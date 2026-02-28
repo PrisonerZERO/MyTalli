@@ -79,6 +79,14 @@ nav.on-dark .logo span {
     color: #a78bfa;
 }
 
+nav.on-dark ul a {
+    color: rgba(255,255,255,0.85);
+}
+
+nav.on-dark ul a:hover {
+    color: #fff;
+}
+
 .nav-cta {
     background: #6c5ce7;
     border: none;
