@@ -1,5 +1,11 @@
+html {
+    scroll-behavior: smooth;
+}
+
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1a1a2e;
+    -webkit-font-smoothing: antialiased;
 }
 
 a, .btn-link {

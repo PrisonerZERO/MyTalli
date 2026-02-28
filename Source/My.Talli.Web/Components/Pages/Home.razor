@@ -1,7 +1,201 @@
-﻿@page "/"
+@page "/"
+@layout Layout.LandingLayout
+@inherits My.Talli.Web.ViewModels.Pages.HomeViewModel
+@rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+<PageTitle>MyTalli — All Your Side Hustle Revenue, One Dashboard</PageTitle>
 
-<h1>Hello, world!</h1>
+<!-- NAV -->
+<nav id="landing-nav">
+    <a href="" class="logo" @onclick="ScrollToTop" @onclick:preventDefault>My<span>Talli</span></a>
+    <ul>
+        <li><a href="" @onclick='() => ScrollToSection("how")' @onclick:preventDefault>How It Works</a></li>
+        <li><a href="" @onclick='() => ScrollToSection("features")' @onclick:preventDefault>Features</a></li>
+        <li><a href="" @onclick='() => ScrollToSection("pricing")' @onclick:preventDefault>Pricing</a></li>
+    </ul>
+    <a href="" class="nav-cta" @onclick="HighlightWaitlist" @onclick:preventDefault>Get Early Access</a>
+</nav>
 
-Welcome to your new app.
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-bg-shape">
+        <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="blobGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#6c5ce7"/>
+                    <stop offset="50%" stop-color="#8b5cf6"/>
+                    <stop offset="100%" stop-color="#6c5ce7"/>
+                </linearGradient>
+            </defs>
+            <path fill="url(#blobGrad)" d="
+                M 450,0
+                L 1000,0
+                L 1000,1000
+                L 450,1000
+                C 400,900 310,750 280,500
+                C 250,250 360,100 450,0
+                Z
+            "/>
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+        <div class="deco-circle deco-circle-4"></div>
+    </div>
+    <div class="hero-left">
+        <span class="hero-tag">Coming Soon</span>
+        <h1>All your side&nbsp;hustle income. <em>One&nbsp;dashboard.</em></h1>
+        <p>Connect <span class="p-stripe">Stripe</span>, <span class="p-etsy">Etsy</span>, <span class="p-gumroad">Gumroad</span>, and more — see exactly how much you're earning across every platform, updated in real time.</p>
+        <form class="waitlist-form" id="waitlist" @onsubmit="HandleWaitlistSubmit" @onsubmit:preventDefault>
+            <input type="email" placeholder="you@email.com" required />
+            <button type="submit">Join Waitlist</button>
+        </form>
+        <p class="hero-note">Free to start. No credit card needed.</p>
+    </div>
+    <div class="hero-right">
+        <div class="dash-mockup">
+            <div class="dash-header">
+                <h3>Revenue Overview</h3>
+                <span class="dash-period">Last 30 days</span>
+            </div>
+            <div class="dash-total">$4,218</div>
+            <div class="dash-change">↑ 23% vs last month</div>
+            <div class="dash-chart">
+                <div class="dash-bar" style="height:40%"></div>
+                <div class="dash-bar" style="height:55%"></div>
+                <div class="dash-bar" style="height:35%"></div>
+                <div class="dash-bar" style="height:70%"></div>
+                <div class="dash-bar" style="height:60%"></div>
+                <div class="dash-bar" style="height:85%"></div>
+                <div class="dash-bar" style="height:50%"></div>
+                <div class="dash-bar" style="height:95%"></div>
+                <div class="dash-bar" style="height:75%"></div>
+                <div class="dash-bar" style="height:65%"></div>
+            </div>
+            <div class="dash-platforms">
+                <div class="dash-plat">
+                    <span class="dash-plat-name"><span class="dash-plat-dot" style="background:#6c5ce7"></span>Stripe</span>
+                    <span class="dash-plat-amt">$2,340</span>
+                </div>
+                <div class="dash-plat">
+                    <span class="dash-plat-name"><span class="dash-plat-dot" style="background:#f97316"></span>Etsy</span>
+                    <span class="dash-plat-amt">$1,128</span>
+                </div>
+                <div class="dash-plat">
+                    <span class="dash-plat-name"><span class="dash-plat-dot" style="background:#ec4899"></span>Gumroad</span>
+                    <span class="dash-plat-amt">$750</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- WAVE -->
+<div class="wave-divider">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+        <path fill="#f8f7fc" d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,50 1440,40 L1440,80 L0,80 Z"/>
+    </svg>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+    <div class="section-tag">How It Works</div>
+    <h2>Three steps. Total clarity.</h2>
+    <p>No spreadsheets, no mental math. Just connect your platforms and let MyTalli handle the rest.</p>
+    <div class="steps">
+        <div class="step">
+            <div class="step-num">01</div>
+            <h3>Connect your platforms</h3>
+            <p>Link <span class="p-stripe">Stripe</span>,
+                <span class="p-etsy">Etsy</span>,
+                <span class="p-gumroad">Gumroad</span>,
+                <span class="p-paypal">PayPal</span>,
+                <span class="p-shopify">Shopify</span> — whatever you use. <strong>Secure OAuth</strong> means we never see your password. <strong>Encryption-At-Rest</strong> keeps your data protected even at the storage level.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">02</div>
+            <h3>See the full picture</h3>
+            <p>Your combined revenue from every source, broken down by platform, time period, and trends. Updated automatically.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">03</div>
+            <h3>Set goals and grow</h3>
+            <p>Track your monthly targets, spot your best-performing platforms, and export clean data when tax season hits.</p>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section" id="features">
+    <div class="section-tag">Features</div>
+    <h2>Built for people with multiple income streams</h2>
+    <p>Whether you sell on two platforms or ten, MyTalli gives you one source of truth.</p>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Real-time revenue tracking</h3>
+            <p>See your total earnings update as sales come in across every connected platform.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📈</div>
+            <h3>Trends &amp; comparisons</h3>
+            <p>Month-over-month growth, platform breakdowns, and historical data so you know what's working.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3>Revenue goals</h3>
+            <p>Set monthly income targets and track your progress with visual indicators that keep you motivated.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📥</div>
+            <h3>CSV export</h3>
+            <p>Download your revenue data in clean CSV format. Makes tax prep and bookkeeping painless.</p>
+        </div>
+    </div>
+</section>
+
+<!-- PRICING TEASER -->
+<section class="pricing-section" id="pricing">
+    <div class="section-tag">Pricing</div>
+    <h2>Start free. Upgrade when you're ready.</h2>
+    <p>No tricks. A generous free tier that works, and a Pro plan for when you need more.</p>
+    <div class="pricing-cards">
+        <div class="price-card free">
+            <h3>Free</h3>
+            <div class="price">$0</div>
+            <div class="price-sub">Forever free</div>
+            <ul class="price-features">
+                <li>1 connected platform</li>
+                <li>Basic dashboard</li>
+                <li>30-day history</li>
+            </ul>
+        </div>
+        <div class="price-card pro">
+            <h3>Pro</h3>
+            <div class="price">$12<span style="font-size:16px;font-weight:400">/mo</span></div>
+            <div class="price-sub">or $99/year (save 31%)</div>
+            <ul class="price-features">
+                <li>Unlimited platforms</li>
+                <li>Full revenue history</li>
+                <li>Goals &amp; weekly emails</li>
+                <li>CSV export</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- BOTTOM CTA -->
+<section class="bottom-cta">
+    <h2>Stop guessing. Start knowing.</h2>
+    <p>Join the waitlist and be first in line when MyTalli launches.</p>
+    <form class="waitlist-form" @onsubmit="HandleWaitlistSubmit" @onsubmit:preventDefault>
+        <input type="email" placeholder="you@email.com" required />
+        <button type="submit">Join Waitlist</button>
+    </form>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <p>&copy; 2026 MyTalli. All rights reserved.</p>
+    <a href="mailto:hello@mytalli.com">hello@mytalli.com</a>
+</footer>
