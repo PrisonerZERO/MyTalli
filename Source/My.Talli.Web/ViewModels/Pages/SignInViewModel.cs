@@ -26,8 +26,7 @@ public class SignInViewModel : ComponentBase
 
     protected void HandleMicrosoftSignIn()
     {
-        // TODO: Wire up Microsoft OAuth authentication
-        Navigation.NavigateTo("/waitlist");
+        Navigation.NavigateTo("/api/auth/login/microsoft", forceLoad: true);
     }
 
     #endregion
