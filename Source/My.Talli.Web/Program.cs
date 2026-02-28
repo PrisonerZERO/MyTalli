@@ -26,18 +26,18 @@ builder.Services.AddAuthentication(options =>
         options.LogoutPath = "/api/auth/logout";
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
         options.SlidingExpiration = true;
-    })
-    .AddGoogle(options =>
-    {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
-        options.CallbackPath = "/signin-google";
-        options.Events.OnCreatingTicket = async context =>
-        {
-            var handler = context.HttpContext.RequestServices.GetRequiredService<GoogleAuthenticationHandler>();
-            await handler.HandleTicketAsync(context);
-        };
     });
+    //.AddGoogle(options =>
+    //{
+    //    options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+    //    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    //    options.CallbackPath = "/signin-google";
+    //    options.Events.OnCreatingTicket = async context =>
+    //    {
+    //        var handler = context.HttpContext.RequestServices.GetRequiredService<GoogleAuthenticationHandler>();
+    //        await handler.HandleTicketAsync(context);
+    //    };
+    //});
 
 builder.Services.AddScoped<GoogleAuthenticationHandler>();
 
