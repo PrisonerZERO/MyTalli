@@ -9,6 +9,9 @@
 # Development settings (may contain secrets)
 appsettings.Development.json
 
+# Claude Code local settings (may contain secrets in permission entries)
+.claude/settings.local.json
+
 # User-specific files
 *.rsuser
 *.suo
