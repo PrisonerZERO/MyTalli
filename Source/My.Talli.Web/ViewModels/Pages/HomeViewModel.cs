@@ -5,10 +5,16 @@ namespace My.Talli.Web.ViewModels.Pages;
 
 public class HomeViewModel : ComponentBase, IAsyncDisposable
 {
+    #region <Variables>>
+
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
 
     private IJSObjectReference? _module;
+
+    #endregion
+
+    #region <Events>
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -18,6 +24,10 @@ public class HomeViewModel : ComponentBase, IAsyncDisposable
             await _module.InvokeVoidAsync("initLanding");
         }
     }
+
+    #endregion
+
+    #region <Methods>
 
     protected async Task ScrollToTop()
     {
@@ -57,4 +67,6 @@ public class HomeViewModel : ComponentBase, IAsyncDisposable
             }
         }
     }
+
+    #endregion
 }
