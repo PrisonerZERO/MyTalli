@@ -57,19 +57,20 @@ My.Talli/
 
 ## Brand & Design
 
+> **Source of truth:** `MyTalli_ColorPalette.html` — keep this section in sync with that file.
+
 - **Font:** DM Sans (Google Fonts) — weights 400, 500, 600, 700
+
+### Brand Colors
+
 - **Primary Purple:** `#6c5ce7` — CTAs, logo accent, links, active states
-- **Primary Hover:** `#5a4bd1`
-- **Light Purple:** `#8b5cf6` — gradient mid-point
+- **Primary Hover:** `#5a4bd1` — hover & pressed states
+- **Light Purple:** `#8b5cf6` — gradient mid-point, secondary accent
 - **Lavender:** `#a78bfa` — accents on dark backgrounds
 - **Soft Purple:** `#f0edff` — tags, badges, light backgrounds
-- **Muted Purple:** `#e0dce8` — input borders, dividers
+- **Muted Purple:** `#e0dce8` — input borders, subtle dividers
 - **Page Background:** `#f8f7fc` — alternating section backgrounds
 - **Dark Navy:** `#1a1a2e` — primary text, dark sections
-- **Success Green:** `#27ae60` — positive revenue changes
-- **Body Text:** `#555`
-- **Muted Text:** `#999`
-- **Highlight Yellow:** `#fff176` — attention flash
 
 ### Platform Connector Colors
 
@@ -80,6 +81,14 @@ My.Talli/
 | Gumroad  | `#ff90e8` |
 | PayPal   | `#003087` |
 | Shopify  | `#96bf48` |
+
+### UI Colors
+
+- **Success / Growth:** `#27ae60` — positive revenue changes, growth indicators
+- **Body Text:** `#555` — secondary paragraph text
+- **Muted Text:** `#999` — footnotes, helper text, timestamps
+- **White:** `#ffffff` — cards, inputs, clean backgrounds
+- **Highlight Yellow:** `#fff176` — attention flash (waitlist input highlight)
 
 ## Development
 
