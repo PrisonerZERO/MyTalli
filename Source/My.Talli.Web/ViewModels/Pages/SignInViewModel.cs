@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace My.Talli.Web.ViewModels.Pages;
 
-public class LoginViewModel : ComponentBase
+public class SignInViewModel : ComponentBase
 {
     protected bool ShowComingSoon { get; set; }
 
