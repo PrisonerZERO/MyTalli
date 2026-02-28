@@ -7,6 +7,8 @@ using My.Talli.Web.Services.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// -----
+// LAMAR
 builder.Host.UseLamar();
 
 // Add services to the container.
