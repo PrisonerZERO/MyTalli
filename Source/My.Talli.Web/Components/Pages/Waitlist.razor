@@ -16,7 +16,15 @@
         </div>
 
         <h1 class="waitlist-heading">You're on the waitlist!</h1>
-        <p class="waitlist-subtext">Thanks for signing up. You're officially in line for early access to MyTalli.</p>
+
+        @if (!string.IsNullOrEmpty(UserName))
+        {
+            <p class="waitlist-subtext">Thanks for signing up, @UserName. You're officially in line for early access to MyTalli.</p>
+        }
+        else
+        {
+            <p class="waitlist-subtext">Thanks for signing up. You're officially in line for early access to MyTalli.</p>
+        }
 
         <div class="waitlist-next">
             <h2 class="waitlist-next-heading">What's next?</h2>

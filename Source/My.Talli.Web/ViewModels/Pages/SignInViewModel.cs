@@ -21,8 +21,7 @@ public class SignInViewModel : ComponentBase
 
     protected void HandleGoogleSignIn()
     {
-        // TODO: Wire up Google OAuth authentication
-        Navigation.NavigateTo("/waitlist");
+        Navigation.NavigateTo("/api/auth/login/google", forceLoad: true);
     }
 
     protected void HandleMicrosoftSignIn()
