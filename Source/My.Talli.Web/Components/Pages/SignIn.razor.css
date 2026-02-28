@@ -31,7 +31,7 @@
 
 .login-divider span { color: #999; font-size: 13px; padding: 0 16px; }
 
-.login-hint { color: #999; font-size: 13px; margin-bottom: 24px; }
+.login-hint { color: #6c5ce7; font-size: 13px; margin-bottom: 24px; }
 
 .login-back-link { color: #6c5ce7; font-size: 14px; font-weight: 500; text-decoration: none; transition: color 0.2s; }
 .login-back-link:hover { color: #5a4bd1; }
