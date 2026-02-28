@@ -8,4 +8,9 @@
     <RootNamespace>My.Talli.Domain</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Handlers\" />
+    <Folder Include="CommandsAndQueries\" />
+  </ItemGroup>
+
 </Project>
