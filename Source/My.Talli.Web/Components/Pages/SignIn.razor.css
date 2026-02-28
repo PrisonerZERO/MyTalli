@@ -102,6 +102,17 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+.login-btn-microsoft {
+    background: #ffffff;
+    border: 2px solid #e0dce8;
+    color: #1a1a2e;
+}
+
+.login-btn-microsoft:hover {
+    border-color: #d0cbe0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
 .login-notice {
     background: #f0edff;
     border-radius: 8px;

@@ -17,4 +17,10 @@ public class SignInViewModel : ComponentBase
         ShowComingSoon = true;
         // TODO: Wire up Apple Sign-In authentication
     }
+
+    protected void HandleMicrosoftSignIn()
+    {
+        ShowComingSoon = true;
+        // TODO: Wire up Microsoft OAuth authentication
+    }
 }
