@@ -5,7 +5,7 @@ namespace My.Talli.Web.ViewModels.Pages;
 
 public class HomeViewModel : ComponentBase, IAsyncDisposable
 {
-    #region <Variables>>
+    #region <Variables>
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
