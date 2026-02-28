@@ -151,6 +151,8 @@ dotnet run --project Source/My.Talli.Web
   4. `<Events>` — lifecycle events, event handlers
   5. `<Methods>` — general methods
   6. `<Actions>` — MVC controller actions (not used yet)
+- **Within each region**, order members by access modifier: `public` → `protected` → `private`
+- **Within each access level**, alphabetize members by name
 
 ### CSS Class Ordering
 

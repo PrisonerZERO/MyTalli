@@ -12,16 +12,16 @@ public class SignInViewModel : ComponentBase
 
     #region <Methods>
 
-    protected void HandleGoogleSignIn()
-    {
-        ShowComingSoon = true;
-        // TODO: Wire up Google OAuth authentication
-    }
-
     protected void HandleAppleSignIn()
     {
         ShowComingSoon = true;
         // TODO: Wire up Apple Sign-In authentication
+    }
+
+    protected void HandleGoogleSignIn()
+    {
+        ShowComingSoon = true;
+        // TODO: Wire up Google OAuth authentication
     }
 
     protected void HandleMicrosoftSignIn()

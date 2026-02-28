@@ -29,29 +29,6 @@ public class HomeViewModel : ComponentBase, IAsyncDisposable
 
     #region <Methods>
 
-    protected async Task ScrollToTop()
-    {
-        if (_module is not null)
-            await _module.InvokeVoidAsync("scrollToTop");
-    }
-
-    protected async Task ScrollToSection(string sectionId)
-    {
-        if (_module is not null)
-            await _module.InvokeVoidAsync("scrollToSection", sectionId);
-    }
-
-    protected async Task HighlightWaitlist()
-    {
-        if (_module is not null)
-            await _module.InvokeVoidAsync("highlightWaitlist");
-    }
-
-    protected void HandleWaitlistSubmit()
-    {
-        // TODO: Implement waitlist signup
-    }
-
     public async ValueTask DisposeAsync()
     {
         if (_module is not null)
@@ -66,6 +43,29 @@ public class HomeViewModel : ComponentBase, IAsyncDisposable
                 // Circuit may already be disconnected
             }
         }
+    }
+
+    protected void HandleWaitlistSubmit()
+    {
+        // TODO: Implement waitlist signup
+    }
+
+    protected async Task HighlightWaitlist()
+    {
+        if (_module is not null)
+            await _module.InvokeVoidAsync("highlightWaitlist");
+    }
+
+    protected async Task ScrollToSection(string sectionId)
+    {
+        if (_module is not null)
+            await _module.InvokeVoidAsync("scrollToSection", sectionId);
+    }
+
+    protected async Task ScrollToTop()
+    {
+        if (_module is not null)
+            await _module.InvokeVoidAsync("scrollToTop");
     }
 
     #endregion
