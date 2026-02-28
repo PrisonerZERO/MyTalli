@@ -1,6 +1,6 @@
 @page "/"
 @layout Layout.LandingLayout
-@inherits My.Talli.Web.ViewModels.Pages.HomeViewModel
+@inherits My.Talli.Web.ViewModels.Pages.LandingPageViewModel
 @rendermode InteractiveServer
 
 <PageTitle>MyTalli — All Your Side Hustle Revenue, One Dashboard</PageTitle>
@@ -13,7 +13,7 @@
         <li><a href="" @onclick='() => ScrollToSection("features")' @onclick:preventDefault>Features</a></li>
         <li><a href="" @onclick='() => ScrollToSection("pricing")' @onclick:preventDefault>Pricing</a></li>
     </ul>
-    <a href="" class="nav-cta" @onclick="HighlightWaitlist" @onclick:preventDefault>Get Early Access</a>
+    <a class="nav-cta" href="/signin">Get Early Access</a>
 </nav>
 
 <!-- HERO -->
@@ -46,10 +46,7 @@
         <span class="hero-tag">Coming Soon</span>
         <h1>All your side&nbsp;hustle income. <em>One&nbsp;dashboard.</em></h1>
         <p>Connect <span class="p-stripe">Stripe</span>, <span class="p-etsy">Etsy</span>, <span class="p-gumroad">Gumroad</span>, and more — see exactly how much you're earning across every platform, updated in real time.</p>
-        <form class="waitlist-form" id="waitlist" @onsubmit="HandleWaitlistSubmit" @onsubmit:preventDefault>
-            <input type="email" placeholder="you@email.com" required />
-            <button type="submit">Join Waitlist</button>
-        </form>
+        <a class="waitlist-btn" href="/signin">Join Waitlist</a>
         <p class="hero-note">Free to start. No credit card needed.</p>
     </div>
     <div class="hero-right">
@@ -110,7 +107,7 @@
                 <span class="p-etsy">Etsy</span>,
                 <span class="p-gumroad">Gumroad</span>,
                 <span class="p-paypal">PayPal</span>,
-                <span class="p-shopify">Shopify</span> — whatever you use. <strong>Secure OAuth</strong> means we never see your password. <strong>Encryption-At-Rest</strong> keeps your data protected even at the storage level.</p>
+                <span class="p-shopify">Shopify</span> — whatever you use. <strong>Secure OAuth</strong> connects your platforms without exposing credentials, and <strong>Encryption-At-Rest</strong> keeps your data protected even at the storage level. Sign in with <strong>Google</strong>, <strong>Apple</strong>, or <strong>Microsoft</strong> — <strong>we never store or manage passwords</strong>.</p>
         </div>
         <div class="step">
             <div class="step-num">02</div>
@@ -188,10 +185,7 @@
 <section class="bottom-cta">
     <h2>Stop guessing. Start knowing.</h2>
     <p>Join the waitlist and be first in line when MyTalli launches.</p>
-    <form class="waitlist-form" @onsubmit="HandleWaitlistSubmit" @onsubmit:preventDefault>
-        <input type="email" placeholder="you@email.com" required />
-        <button type="submit">Join Waitlist</button>
-    </form>
+    <a class="waitlist-btn" href="/signin">Join Waitlist</a>
 </section>
 
 <!-- FOOTER -->

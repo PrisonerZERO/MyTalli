@@ -3,12 +3,18 @@ using Microsoft.JSInterop;
 
 namespace My.Talli.Web.ViewModels.Pages;
 
-public class HomeViewModel : ComponentBase, IAsyncDisposable
+public class LandingPageViewModel : ComponentBase, IAsyncDisposable
 {
+    #region <Variables>
+
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
 
     private IJSObjectReference? _module;
+
+    #endregion
+
+    #region <Events>
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -19,28 +25,9 @@ public class HomeViewModel : ComponentBase, IAsyncDisposable
         }
     }
 
-    protected async Task ScrollToTop()
-    {
-        if (_module is not null)
-            await _module.InvokeVoidAsync("scrollToTop");
-    }
+    #endregion
 
-    protected async Task ScrollToSection(string sectionId)
-    {
-        if (_module is not null)
-            await _module.InvokeVoidAsync("scrollToSection", sectionId);
-    }
-
-    protected async Task HighlightWaitlist()
-    {
-        if (_module is not null)
-            await _module.InvokeVoidAsync("highlightWaitlist");
-    }
-
-    protected void HandleWaitlistSubmit()
-    {
-        // TODO: Implement waitlist signup
-    }
+    #region <Methods>
 
     public async ValueTask DisposeAsync()
     {
@@ -57,4 +44,18 @@ public class HomeViewModel : ComponentBase, IAsyncDisposable
             }
         }
     }
+
+    protected async Task ScrollToSection(string sectionId)
+    {
+        if (_module is not null)
+            await _module.InvokeVoidAsync("scrollToSection", sectionId);
+    }
+
+    protected async Task ScrollToTop()
+    {
+        if (_module is not null)
+            await _module.InvokeVoidAsync("scrollToTop");
+    }
+
+    #endregion
 }
