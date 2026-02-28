@@ -4,7 +4,7 @@
 
 MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and freelancers connect their payment platforms (Stripe, Etsy, Gumroad, PayPal, Shopify, etc.) and see all their income in one unified dashboard with real-time tracking, trends, goals, and CSV export.
 
-**Status:** Early development. The Blazor app is scaffolded from the default template; the landing page and color palette are designed as standalone HTML mockups.
+**Status:** Early development. Landing page and sign-in page are built; authentication is UI-only (not yet wired to providers).
 
 ## Tech Stack
 
@@ -12,6 +12,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Blazor Server** (Interactive Server render mode) — `blazor.web.js`
 - **Bootstrap** — bundled in `wwwroot/lib/bootstrap/`
 - **C#** — backend language
+- **Lamar** — IoC container (replaces default Microsoft DI); not yet installed
 - **Razor Components** — UI layer (`.razor` files)
 
 ## Solution Structure
@@ -32,19 +33,27 @@ My.Talli/
         │   ├── Routes.razor      # Routing setup
         │   ├── _Imports.razor    # Global usings
         │   ├── Layout/
+        │   │   ├── LandingLayout.razor   # Minimal layout (no sidebar)
         │   │   ├── MainLayout.razor      # Page layout shell
         │   │   ├── MainLayout.razor.css
         │   │   ├── NavMenu.razor         # Sidebar navigation
         │   │   └── NavMenu.razor.css
         │   └── Pages/
-        │       ├── Home.razor
-        │       ├── Counter.razor         # Template page (to be replaced)
-        │       ├── Weather.razor         # Template page (to be replaced)
+        │       ├── LandingPage.razor     # Landing page (route: /)
+        │       ├── SignIn.razor          # Sign-in page (route: /signin)
+        │       ├── Waitlist.razor        # Waitlist confirmation (route: /waitlist)
         │       └── Error.razor
+        ├── ViewModels/
+        │   └── Pages/
+        │       ├── LandingPageViewModel.cs
+        │       ├── SignInViewModel.cs
+        │       └── WaitlistViewModel.cs
         ├── Properties/
         │   └── launchSettings.json
         ├── wwwroot/
         │   ├── app.css
+        │   ├── js/
+        │   │   └── landing.js    # Landing page scroll & nav interactivity
         │   └── lib/bootstrap/
         ├── appsettings.json
         └── appsettings.Development.json
@@ -59,6 +68,7 @@ My.Talli/
 
 > **Source of truth:** `MyTalli_ColorPalette.html` — keep this section in sync with that file.
 
+- **Color palette tool:** [Coolors](https://coolors.co) — used to create and manage the brand palette
 - **Font:** DM Sans (Google Fonts) — weights 400, 500, 600, 700
 
 ### Brand Colors
@@ -104,6 +114,14 @@ dotnet run --project Source/My.Talli.Web
 - HTTPS: `https://localhost:7012`
 - HTTP: `http://localhost:5034`
 
+## Authentication
+
+- **No local passwords** — MyTalli does not store or manage usernames/passwords.
+- **External providers only:** Google, Apple, Microsoft (via OAuth)
+- **Current status:** UI-only (sign-in page with provider buttons; not yet wired to backend auth)
+- **Sign-in route:** `/signin`
+- **Waitlist route:** `/waitlist` — shown after sign-in; confirms user is on the waitlist
+
 ## Planned Features
 
 - Real-time revenue tracking across connected platforms
@@ -128,14 +146,14 @@ dotnet run --project Source/My.Talli.Web
 
 - Any page or component that requires C# logic **must** use a code-behind file.
 - Code-behind files inherit from `ComponentBase` (or `LayoutComponentBase` for layouts) and the `.razor` file uses `@inherits` to reference it.
-- Example: `Home.razor` → `@inherits HomeViewModel`
+- Example: `LandingPage.razor` → `@inherits LandingPageViewModel`
 
 ### ViewModels Folder
 
 - All code-behind files live in the `ViewModels/` folder within the web project.
 - Code-behind classes are named `{ComponentName}ViewModel.cs`.
 - Mirror the component folder structure inside `ViewModels/`:
-  - `Components/Pages/Home.razor` → `ViewModels/Pages/HomeViewModel.cs`
+  - `Components/Pages/LandingPage.razor` → `ViewModels/Pages/LandingPageViewModel.cs`
   - `Components/Layout/MainLayout.razor` → `ViewModels/Layout/MainLayoutViewModel.cs`
 - Namespace follows the folder: `My.Talli.Web.ViewModels.Pages`, `My.Talli.Web.ViewModels.Layout`, etc.
 
