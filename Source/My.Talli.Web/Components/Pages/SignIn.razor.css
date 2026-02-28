@@ -143,6 +143,12 @@
     padding: 0 16px;
 }
 
+.login-hint {
+    color: #999;
+    font-size: 13px;
+    margin-bottom: 24px;
+}
+
 .login-back-link {
     color: #6c5ce7;
     font-size: 14px;
