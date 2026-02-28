@@ -130,6 +130,10 @@ dotnet run --project Source/My.Talli.Web
   - `Components/Layout/MainLayout.razor` → `ViewModels/Layout/MainLayoutViewModel.cs`
 - Namespace follows the folder: `My.Talli.Web.ViewModels.Pages`, `My.Talli.Web.ViewModels.Layout`, etc.
 
+### CSS Class Ordering
+
+- Where possible, all CSS class attributes should be in alphabetical order.
+
 ## Conventions
 
 - Use the `.slnx` solution format (not `.sln`)
