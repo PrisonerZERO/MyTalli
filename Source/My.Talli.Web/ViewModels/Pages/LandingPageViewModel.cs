@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 
 namespace My.Talli.Web.ViewModels.Pages;
 
-public class HomeViewModel : ComponentBase, IAsyncDisposable
+public class LandingPageViewModel : ComponentBase, IAsyncDisposable
 {
     #region <Variables>
 
