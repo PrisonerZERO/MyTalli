@@ -1,4 +1,4 @@
-﻿namespace My.Talli.Domain.Handlers.Authentication
+﻿namespace My.Talli.Web.Services.Authentication
 {
     internal class GoogleAuthenticationHandler
     {
