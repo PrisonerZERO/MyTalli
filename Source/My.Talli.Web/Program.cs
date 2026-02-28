@@ -13,6 +13,8 @@ builder.Host.UseLamar();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// --------------
+// AUTHENTICATION
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -42,9 +44,11 @@ builder.Services.AddScoped<GoogleAuthenticationHandler>();
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
+// Build
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ---------------------
+// HTTP REQUEST PIPELINE
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -53,17 +57,16 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// Auth endpoints
+// ---------
+// ENDPOINTS
 app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext context) =>
 {
     var properties = new AuthenticationProperties
