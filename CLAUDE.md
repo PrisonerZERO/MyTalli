@@ -108,12 +108,6 @@ dotnet run --project Source/My.Talli.Web
 - **Free:** 1 connected platform, basic dashboard, 30-day history
 - **Pro ($12/mo or $99/year):** Unlimited platforms, full history, goals, weekly emails, CSV export
 
-## Known Issues / Legacy
-
-- Some build artifacts reference the old project name "RevenueAggregator" (in `obj/` and `bin/` folders, `NavMenu.razor`, and the stylesheet reference in `App.razor`). A clean build after renaming should resolve most of these.
-- `App.razor` line 10 still references `RevenueAggregator.Web.styles.css` — should be updated to `My.Talli.Web.styles.css`.
-- `NavMenu.razor` still shows "RevenueAggregator.Web" as the navbar brand text.
-
 ## Rules
 
 ### No Inline Code Blocks
