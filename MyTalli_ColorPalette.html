@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Color Palette</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #fafafa; color: #1a1a2e; padding: 48px; }
+
+  h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin-bottom: 4px; }
+  h1 span { color: #6c5ce7; }
+  .subtitle { font-size: 15px; color: #999; margin-bottom: 48px; }
+
+  .section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #6c5ce7; margin-bottom: 20px; margin-top: 48px; }
+  .section-title:first-of-type { margin-top: 0; }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 16px; }
+
+  .swatch { width: 180px; border-radius: 12px; overflow: hidden; border: 1px solid #eee; background: #fff; }
+  .swatch-color { height: 90px; position: relative; }
+  .swatch-info { padding: 14px; }
+  .swatch-name { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 2px; }
+  .swatch-hex { font-size: 12px; font-weight: 500; color: #999; font-family: 'DM Sans', monospace; margin-bottom: 6px; cursor: pointer; }
+  .swatch-hex:hover { color: #6c5ce7; }
+  .swatch-usage { font-size: 11px; color: #aaa; line-height: 1.5; }
+
+  /* Dark swatch text overlay */
+  .swatch-color .contrast-label { position: absolute; bottom: 8px; right: 10px; font-size: 10px; font-weight: 600; opacity: 0.7; }
+
+  .divider { height: 1px; background: #eee; margin: 48px 0; }
+
+  .font-preview { margin-top: 48px; padding: 32px; background: #fff; border: 1px solid #eee; border-radius: 12px; max-width: 500px; }
+  .font-preview h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1a1a2e; }
+  .font-sample { margin-bottom: 12px; }
+  .font-sample .weight-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .font-sample .weight-text { font-size: 20px; color: #1a1a2e; }
+
+  .copied-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1a1a2e; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s ease; pointer-events: none; }
+  .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<h1>My<span>Talli</span> Color Palette</h1>
+<p class="subtitle">Brand colors, platform colors, and UI tokens — click any hex code to copy</p>
+
+<div class="section-title">Brand Colors</div>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#6c5ce7"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Primary Purple</div>
+      <div class="swatch-hex" onclick="copyHex('#6c5ce7')">#6c5ce7</div>
+      <div class="swatch-usage">CTAs, logo accent, links, active states</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#5a4bd1"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Primary Hover</div>
+      <div class="swatch-hex" onclick="copyHex('#5a4bd1')">#5a4bd1</div>
+      <div class="swatch-usage">Hover &amp; pressed states</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#8b5cf6"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Light Purple</div>
+      <div class="swatch-hex" onclick="copyHex('#8b5cf6')">#8b5cf6</div>
+      <div class="swatch-usage">Gradient mid-point, secondary accent</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#a78bfa"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Lavender</div>
+      <div class="swatch-hex" onclick="copyHex('#a78bfa')">#a78bfa</div>
+      <div class="swatch-usage">Accents on dark backgrounds</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#f0edff"><span class="contrast-label" style="color:#6c5ce7">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Soft Purple</div>
+      <div class="swatch-hex" onclick="copyHex('#f0edff')">#f0edff</div>
+      <div class="swatch-usage">Tags, badges, light backgrounds</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#e0dce8"><span class="contrast-label" style="color:#555">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Muted Purple</div>
+      <div class="swatch-hex" onclick="copyHex('#e0dce8')">#e0dce8</div>
+      <div class="swatch-usage">Input borders, subtle dividers</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#f8f7fc"><span class="contrast-label" style="color:#999">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Page Background</div>
+      <div class="swatch-hex" onclick="copyHex('#f8f7fc')">#f8f7fc</div>
+      <div class="swatch-usage">Alternating section backgrounds</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#1a1a2e"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Dark Navy</div>
+      <div class="swatch-hex" onclick="copyHex('#1a1a2e')">#1a1a2e</div>
+      <div class="swatch-usage">Primary text, dark sections</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section-title">Platform / Connector Colors</div>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#635bff"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Stripe</div>
+      <div class="swatch-hex" onclick="copyHex('#635bff')">#635bff</div>
+      <div class="swatch-usage">Indigo — Stripe brand color</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#f56400"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Etsy</div>
+      <div class="swatch-hex" onclick="copyHex('#f56400')">#f56400</div>
+      <div class="swatch-usage">Orange — Etsy brand color</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#ff90e8"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Gumroad</div>
+      <div class="swatch-hex" onclick="copyHex('#ff90e8')">#ff90e8</div>
+      <div class="swatch-usage">Pink — Gumroad brand color</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#003087"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">PayPal</div>
+      <div class="swatch-hex" onclick="copyHex('#003087')">#003087</div>
+      <div class="swatch-usage">Navy blue — PayPal brand color</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#96bf48"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Shopify</div>
+      <div class="swatch-hex" onclick="copyHex('#96bf48')">#96bf48</div>
+      <div class="swatch-usage">Green — Shopify brand color</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section-title">UI Colors</div>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#27ae60"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Success / Growth</div>
+      <div class="swatch-hex" onclick="copyHex('#27ae60')">#27ae60</div>
+      <div class="swatch-usage">Positive revenue changes, growth indicators</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#555555"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Body Text</div>
+      <div class="swatch-hex" onclick="copyHex('#555555')">#555</div>
+      <div class="swatch-usage">Secondary paragraph text</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#999999"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Muted Text</div>
+      <div class="swatch-hex" onclick="copyHex('#999999')">#999</div>
+      <div class="swatch-usage">Footnotes, helper text, timestamps</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#ffffff; border: 1px solid #eee"><span class="contrast-label" style="color:#999">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">White</div>
+      <div class="swatch-hex" onclick="copyHex('#ffffff')">#ffffff</div>
+      <div class="swatch-usage">Cards, inputs, clean backgrounds</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#fff176"><span class="contrast-label" style="color:#555">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Highlight Yellow</div>
+      <div class="swatch-hex" onclick="copyHex('#fff176')">#fff176</div>
+      <div class="swatch-usage">Attention flash (waitlist input highlight)</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section-title">Font</div>
+<div class="font-preview">
+  <h3>DM Sans — Google Fonts</h3>
+  <div class="font-sample">
+    <div class="weight-label">Regular 400</div>
+    <div class="weight-text" style="font-weight:400">All your side hustle income. One dashboard.</div>
+  </div>
+  <div class="font-sample">
+    <div class="weight-label">Medium 500</div>
+    <div class="weight-text" style="font-weight:500">All your side hustle income. One dashboard.</div>
+  </div>
+  <div class="font-sample">
+    <div class="weight-label">Semibold 600</div>
+    <div class="weight-text" style="font-weight:600">All your side hustle income. One dashboard.</div>
+  </div>
+  <div class="font-sample">
+    <div class="weight-label">Bold 700</div>
+    <div class="weight-text" style="font-weight:700">All your side hustle income. One dashboard.</div>
+  </div>
+</div>
+
+<div id="toast" class="copied-toast">Copied!</div>
+
+<script>
+function copyHex(hex) {
+  navigator.clipboard.writeText(hex).then(() => {
+    const toast = document.getElementById('toast');
+    toast.textContent = 'Copied ' + hex;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1500);
+  });
+}
+</script>
+
+</body>
+</html>

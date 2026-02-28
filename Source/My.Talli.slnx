@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/Foundation/" />
+  <Folder Name="/Presentation/">
+    <Project Path="My.Talli.Web/My.Talli.Web.csproj" />
+  </Folder>
+</Solution>
