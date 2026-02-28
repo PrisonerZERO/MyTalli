@@ -139,6 +139,19 @@ dotnet run --project Source/My.Talli.Web
   - `Components/Layout/MainLayout.razor` → `ViewModels/Layout/MainLayoutViewModel.cs`
 - Namespace follows the folder: `My.Talli.Web.ViewModels.Pages`, `My.Talli.Web.ViewModels.Layout`, etc.
 
+### C# Region Convention
+
+- Every C# class **must** use `#region` / `#endregion` to organize its members.
+- Region names use angle brackets: `#region <Name>`
+- Only include regions the class actually needs — omit empty ones.
+- Allowed regions (in order):
+  1. `<Variables>` — fields, constants, injected services
+  2. `<Constructors>` — constructor overloads
+  3. `<Properties>` — public/protected properties
+  4. `<Events>` — lifecycle events, event handlers
+  5. `<Methods>` — general methods
+  6. `<Actions>` — MVC controller actions (not used yet)
+
 ### CSS Class Ordering
 
 - Where possible, all CSS class attributes should be in alphabetical order.

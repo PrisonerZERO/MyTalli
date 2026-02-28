@@ -4,7 +4,13 @@ namespace My.Talli.Web.ViewModels.Pages;
 
 public class SignInViewModel : ComponentBase
 {
+    #region <Properties>
+
     protected bool ShowComingSoon { get; set; }
+
+    #endregion
+
+    #region <Methods>
 
     protected void HandleGoogleSignIn()
     {
@@ -23,4 +29,6 @@ public class SignInViewModel : ComponentBase
         ShowComingSoon = true;
         // TODO: Wire up Microsoft OAuth authentication
     }
+
+    #endregion
 }
