@@ -1,3 +1,4 @@
+using Lamar.Microsoft.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -5,6 +6,8 @@ using My.Talli.Web.Components;
 using My.Talli.Web.Services.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseLamar();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
