@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Folder Include="CommandsAndQueries\" />
+    <Folder Include="Handlers\" />
   </ItemGroup>
 
 </Project>
