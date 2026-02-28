@@ -40,11 +40,13 @@ My.Talli/
         │   └── Pages/
         │       ├── LandingPage.razor     # Landing page (route: /)
         │       ├── SignIn.razor          # Sign-in page (route: /signin)
+        │       ├── Waitlist.razor        # Waitlist confirmation (route: /waitlist)
         │       └── Error.razor
         ├── ViewModels/
         │   └── Pages/
         │       ├── LandingPageViewModel.cs
-        │       └── SignInViewModel.cs
+        │       ├── SignInViewModel.cs
+        │       └── WaitlistViewModel.cs
         ├── Properties/
         │   └── launchSettings.json
         ├── wwwroot/
@@ -116,6 +118,7 @@ dotnet run --project Source/My.Talli.Web
 - **External providers only:** Google, Apple, Microsoft (via OAuth)
 - **Current status:** UI-only (sign-in page with provider buttons; not yet wired to backend auth)
 - **Sign-in route:** `/signin`
+- **Waitlist route:** `/waitlist` — shown after sign-in; confirms user is on the waitlist
 
 ## Planned Features
 
