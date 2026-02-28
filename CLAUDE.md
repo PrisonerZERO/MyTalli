@@ -12,6 +12,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Blazor Server** (Interactive Server render mode) — `blazor.web.js`
 - **Bootstrap** — bundled in `wwwroot/lib/bootstrap/`
 - **C#** — backend language
+- **Lamar** — IoC container (replaces default Microsoft DI); not yet installed
 - **Razor Components** — UI layer (`.razor` files)
 
 ## Solution Structure
@@ -67,6 +68,7 @@ My.Talli/
 
 > **Source of truth:** `MyTalli_ColorPalette.html` — keep this section in sync with that file.
 
+- **Color palette tool:** [Coolors](https://coolors.co) — used to create and manage the brand palette
 - **Font:** DM Sans (Google Fonts) — weights 400, 500, 600, 700
 
 ### Brand Colors
