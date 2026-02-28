@@ -45,17 +45,6 @@ public class LandingPageViewModel : ComponentBase, IAsyncDisposable
         }
     }
 
-    protected void HandleWaitlistSubmit()
-    {
-        // TODO: Implement waitlist signup
-    }
-
-    protected async Task HighlightWaitlist()
-    {
-        if (_module is not null)
-            await _module.InvokeVoidAsync("highlightWaitlist");
-    }
-
     protected async Task ScrollToSection(string sectionId)
     {
         if (_module is not null)

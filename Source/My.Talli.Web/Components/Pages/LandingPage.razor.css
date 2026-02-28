@@ -221,53 +221,29 @@ nav.on-dark ul a:hover {
     max-width: 460px;
 }
 
-/* WAITLIST FORM */
-.waitlist-form {
-    display: flex;
-    gap: 10px;
-    max-width: 440px;
-}
-
-.waitlist-form input {
-    background-color: #fff;
-    border: 2px solid #e0dce8;
-    border-radius: 10px;
-    flex: 1;
-    font-family: inherit;
-    font-size: 15px;
-    outline: none;
-    padding: 14px 18px;
-    transition: border-color 0.2s, background-color 3s ease;
-}
-
-.waitlist-form input.highlight {
-    background-color: #fff176;
-    transition: none;
-}
-
-.waitlist-form input:focus {
-    border-color: #6c5ce7;
-}
-
-.waitlist-form button {
+/* WAITLIST BUTTON */
+.waitlist-btn {
     background: #6c5ce7;
     border: none;
     border-radius: 10px;
     color: #fff;
     cursor: pointer;
+    display: inline-block;
     font-family: inherit;
     font-size: 15px;
     font-weight: 600;
     padding: 14px 28px;
+    text-decoration: none;
     transition: background 0.2s, transform 0.1s;
     white-space: nowrap;
+    width: fit-content;
 }
 
-.waitlist-form button:hover {
+.waitlist-btn:hover {
     background: #5a4bd1;
 }
 
-.waitlist-form button:active {
+.waitlist-btn:active {
     transform: scale(0.97);
 }
 
@@ -651,9 +627,8 @@ nav.on-dark ul a:hover {
     max-width: 440px;
 }
 
-.bottom-cta .waitlist-form {
+.bottom-cta .waitlist-btn {
     margin: 0 auto;
-    max-width: 440px;
 }
 
 /* FOOTER */
