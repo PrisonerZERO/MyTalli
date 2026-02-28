@@ -36,7 +36,14 @@
 .login-back-link { color: #6c5ce7; font-size: 14px; font-weight: 500; text-decoration: none; transition: color 0.2s; }
 .login-back-link:hover { color: #5a4bd1; }
 
+p.login-subtext { margin-bottom:0; }
+
 @media (max-width: 480px) {
-    .login-card { padding: 36px 24px; }
-    .login-heading { font-size: 24px; }
+    .login-card {
+        padding: 36px 24px;
+    }
+
+    .login-heading {
+        font-size: 24px;
+    }
 }
