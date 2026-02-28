@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>My.Talli.Domain</AssemblyName>
+    <RootNamespace>My.Talli.Domain</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="CommandsAndQueries\" />
+    <Folder Include="Handlers\" />
+  </ItemGroup>
+
+</Project>

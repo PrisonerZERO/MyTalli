@@ -1,5 +1,7 @@
 <Solution>
-  <Folder Name="/Foundation/" />
+  <Folder Name="/Foundation/">
+    <Project Path="Domain/Domain.csproj" Id="87f46119-76c1-4fb1-af79-7013b7e127fc" />
+  </Folder>
   <Folder Name="/Presentation/">
     <Project Path="My.Talli.Web/My.Talli.Web.csproj" />
   </Folder>

@@ -1,0 +1,40 @@
+@page "/waitlist"
+@layout Layout.LandingLayout
+@inherits My.Talli.Web.ViewModels.Pages.WaitlistViewModel
+@rendermode InteractiveServer
+
+<PageTitle>You're on the Waitlist — MyTalli</PageTitle>
+
+<div class="waitlist-page">
+    <div class="waitlist-card">
+        <a class="waitlist-logo" href="/">My<span>Talli</span></a>
+
+        <div class="waitlist-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#27ae60"/>
+            </svg>
+        </div>
+
+        <h1 class="waitlist-heading">You're on the waitlist!</h1>
+
+        @if (!string.IsNullOrEmpty(UserName))
+        {
+            <p class="waitlist-subtext">Thanks for signing up, @UserName. You're officially in line for early access to MyTalli.</p>
+        }
+        else
+        {
+            <p class="waitlist-subtext">Thanks for signing up. You're officially in line for early access to MyTalli.</p>
+        }
+
+        <div class="waitlist-next">
+            <h2 class="waitlist-next-heading">What's next?</h2>
+            <ul class="waitlist-next-list">
+                <li>We'll send you an email when MyTalli is ready to launch.</li>
+                <li>Early access members get priority onboarding.</li>
+                <li>You'll be the first to connect your platforms and start tracking revenue.</li>
+            </ul>
+        </div>
+
+        <a class="waitlist-back-link" href="/">Back to homepage</a>
+    </div>
+</div>

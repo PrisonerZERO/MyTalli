@@ -4,9 +4,10 @@ namespace My.Talli.Web.ViewModels.Pages;
 
 public class SignInViewModel : ComponentBase
 {
-    #region <Properties>
+    #region <Variables>
 
-    protected bool ShowComingSoon { get; set; }
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
 
     #endregion
 
@@ -14,20 +15,19 @@ public class SignInViewModel : ComponentBase
 
     protected void HandleAppleSignIn()
     {
-        ShowComingSoon = true;
         // TODO: Wire up Apple Sign-In authentication
+        Navigation.NavigateTo("/waitlist");
     }
 
     protected void HandleGoogleSignIn()
     {
-        ShowComingSoon = true;
-        // TODO: Wire up Google OAuth authentication
+        Navigation.NavigateTo("/api/auth/login/google", forceLoad: true);
     }
 
     protected void HandleMicrosoftSignIn()
     {
-        ShowComingSoon = true;
         // TODO: Wire up Microsoft OAuth authentication
+        Navigation.NavigateTo("/waitlist");
     }
 
     #endregion

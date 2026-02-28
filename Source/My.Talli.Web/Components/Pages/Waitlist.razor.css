@@ -1,0 +1,124 @@
+.waitlist-page {
+    align-items: center;
+    background: #f8f7fc;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+}
+
+.waitlist-card {
+    background: #ffffff;
+    border: 1px solid #e0dce8;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(108, 92, 231, 0.08);
+    max-width: 480px;
+    padding: 48px 40px;
+    text-align: center;
+    width: 100%;
+}
+
+.waitlist-logo {
+    color: #1a1a2e;
+    display: inline-block;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 32px;
+    text-decoration: none;
+}
+
+.waitlist-logo span {
+    color: #6c5ce7;
+}
+
+.waitlist-icon {
+    align-items: center;
+    background: rgba(39, 174, 96, 0.1);
+    border-radius: 50%;
+    display: flex;
+    height: 64px;
+    justify-content: center;
+    margin: 0 auto 24px;
+    width: 64px;
+}
+
+.waitlist-icon svg {
+    height: 32px;
+    width: 32px;
+}
+
+.waitlist-heading {
+    color: #1a1a2e;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.waitlist-subtext {
+    color: #999;
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 32px;
+}
+
+.waitlist-next {
+    background: #f8f7fc;
+    border-radius: 12px;
+    margin-bottom: 32px;
+    padding: 24px;
+    text-align: left;
+}
+
+.waitlist-next-heading {
+    color: #1a1a2e;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.waitlist-next-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.waitlist-next-list li {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 6px 0 6px 24px;
+    position: relative;
+}
+
+.waitlist-next-list li::before {
+    color: #27ae60;
+    content: '\2713';
+    font-size: 13px;
+    font-weight: 700;
+    left: 0;
+    position: absolute;
+}
+
+.waitlist-back-link {
+    color: #6c5ce7;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.waitlist-back-link:hover {
+    color: #5a4bd1;
+}
+
+@media (max-width: 480px) {
+    .waitlist-card {
+        padding: 36px 24px;
+    }
+
+    .waitlist-heading {
+        font-size: 24px;
+    }
+}
