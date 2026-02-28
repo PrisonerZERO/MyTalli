@@ -7,7 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Components\ViewModels\" />
+    <Compile Remove="Components\ViewModels\**" />
+    <Content Remove="Components\ViewModels\**" />
+    <EmbeddedResource Remove="Components\ViewModels\**" />
+    <None Remove="Components\ViewModels\**" />
   </ItemGroup>
 
 </Project>
