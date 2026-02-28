@@ -29,6 +29,7 @@ builder.Services.AddAuthentication(options =>
     })
     .AddGoogle(options =>
     {
+        // Configuration Uses: dotnet user-secrets
         options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
         options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
         options.CallbackPath = "/signin-google";
