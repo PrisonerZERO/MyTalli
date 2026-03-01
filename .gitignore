@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Apple Sign-In private key
+*.p8
+
 # Development settings (may contain secrets)
 appsettings.Development.json
 
