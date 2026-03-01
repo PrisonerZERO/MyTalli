@@ -2,6 +2,7 @@ using Lamar.Microsoft.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 using My.Talli.Web.Components;
 using My.Talli.Web.Services.Authentication;
 
@@ -40,9 +41,22 @@ builder.Services.AddAuthentication(options =>
             var handler = context.HttpContext.RequestServices.GetRequiredService<GoogleAuthenticationHandler>();
             await handler.HandleTicketAsync(context);
         };
+    })
+    .AddMicrosoftAccount(options =>
+    {
+        // Configuration Uses: dotnet user-secrets
+        options.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"]!;
+        options.CallbackPath = "/signin-microsoft";
+        options.Events.OnCreatingTicket = async context =>
+        {
+            var handler = context.HttpContext.RequestServices.GetRequiredService<MicrosoftAuthenticationHandler>();
+            await handler.HandleTicketAsync(context);
+        };
     });
 
 builder.Services.AddScoped<GoogleAuthenticationHandler>();
+builder.Services.AddScoped<MicrosoftAuthenticationHandler>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
@@ -80,6 +94,7 @@ app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext con
     var scheme = provider.ToLowerInvariant() switch
     {
         "google" => GoogleDefaults.AuthenticationScheme,
+        "microsoft" => MicrosoftAccountDefaults.AuthenticationScheme,
         _ => throw new ArgumentException($"Unsupported provider: {provider}")
     };
 

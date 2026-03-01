@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="14.*" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.*" />
   </ItemGroup>
 
   <ItemGroup>
