@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
+using AspNet.Security.OAuth.Apple;
 using My.Talli.Web.Components;
 using My.Talli.Web.Services.Authentication;
+using AppleAuthHandler = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,8 +55,29 @@ builder.Services.AddAuthentication(options =>
             var handler = context.HttpContext.RequestServices.GetRequiredService<MicrosoftAuthenticationHandler>();
             await handler.HandleTicketAsync(context);
         };
+    })
+    .AddApple(options =>
+    {
+        // Configuration Uses: dotnet user-secrets
+        options.ClientId = builder.Configuration["Authentication:Apple:ClientId"]!;
+        options.TeamId = builder.Configuration["Authentication:Apple:TeamId"]!;
+        options.KeyId = builder.Configuration["Authentication:Apple:KeyId"]!;
+        options.GenerateClientSecret = true;
+        options.CallbackPath = "/signin-apple";
+        options.PrivateKey = async (keyId, cancellationToken) =>
+        {
+            var keyPath = builder.Configuration["Authentication:Apple:PrivateKeyPath"]!;
+            var keyText = await File.ReadAllTextAsync(keyPath, cancellationToken);
+            return keyText.AsMemory();
+        };
+        options.Events.OnCreatingTicket = async context =>
+        {
+            var handler = context.HttpContext.RequestServices.GetRequiredService<AppleAuthHandler>();
+            await handler.HandleTicketAsync(context);
+        };
     });
 
+builder.Services.AddScoped<AppleAuthHandler>();
 builder.Services.AddScoped<GoogleAuthenticationHandler>();
 builder.Services.AddScoped<MicrosoftAuthenticationHandler>();
 
@@ -93,6 +116,7 @@ app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext con
 
     var scheme = provider.ToLowerInvariant() switch
     {
+        "apple" => AppleAuthenticationDefaults.AuthenticationScheme,
         "google" => GoogleDefaults.AuthenticationScheme,
         "microsoft" => MicrosoftAccountDefaults.AuthenticationScheme,
         _ => throw new ArgumentException($"Unsupported provider: {provider}")

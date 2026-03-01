@@ -15,8 +15,7 @@ public class SignInViewModel : ComponentBase
 
     protected void HandleAppleSignIn()
     {
-        // TODO: Wire up Apple Sign-In authentication
-        Navigation.NavigateTo("/waitlist");
+        Navigation.NavigateTo("/api/auth/login/apple", forceLoad: true);
     }
 
     protected void HandleGoogleSignIn()
