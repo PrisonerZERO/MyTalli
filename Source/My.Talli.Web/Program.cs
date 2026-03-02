@@ -111,7 +111,7 @@ app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext con
 {
     var properties = new AuthenticationProperties
     {
-        RedirectUri = "/waitlist"
+        RedirectUri = "/dashboard"
     };
 
     var scheme = provider.ToLowerInvariant() switch
