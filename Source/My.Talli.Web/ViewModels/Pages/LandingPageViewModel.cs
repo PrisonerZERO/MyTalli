@@ -22,6 +22,8 @@ public class LandingPageViewModel : ComponentBase, IAsyncDisposable
 
     public bool ShowSignedOutToast { get; private set; }
 
+    public string SignedOutName { get; private set; } = string.Empty;
+
     #endregion
 
     #region <Events>
@@ -34,6 +36,11 @@ public class LandingPageViewModel : ComponentBase, IAsyncDisposable
         if (query.ContainsKey("signed-out"))
         {
             ShowSignedOutToast = true;
+
+            if (query.TryGetValue("name", out var nameValue) && !string.IsNullOrEmpty(nameValue))
+            {
+                SignedOutName = nameValue!;
+            }
         }
     }
 

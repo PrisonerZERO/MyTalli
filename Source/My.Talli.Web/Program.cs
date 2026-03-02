@@ -127,8 +127,14 @@ app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext con
 
 app.MapGet("/api/auth/logout", async (HttpContext context) =>
 {
+    var name = context.User.Identity?.Name;
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    context.Response.Redirect("/?signed-out");
+
+    var redirect = string.IsNullOrEmpty(name)
+        ? "/?signed-out"
+        : $"/?signed-out&name={Uri.EscapeDataString(name)}";
+
+    context.Response.Redirect(redirect);
 });
 
 app.Run();
