@@ -41,27 +41,32 @@ My.Talli/
         │   │   ├── MainLayout.razor.css
         │   │   ├── NavMenu.razor         # Sidebar navigation (brand styled)
         │   │   └── NavMenu.razor.css
-        │   └── Pages/
-        │       ├── Dashboard.razor       # Dashboard (route: /dashboard)
-        │       ├── Dashboard.razor.css
-        │       ├── LandingPage.razor     # Landing page (route: /)
-        │       ├── LandingPage.razor.css
-        │       ├── SignIn.razor          # Sign-in page (route: /signin)
-        │       ├── SignIn.razor.css
-        │       ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
-        │       ├── Waitlist.razor.css
-        │       └── Error.razor
+        │   ├── Pages/
+        │   │   ├── Dashboard.razor       # Dashboard (route: /dashboard)
+        │   │   ├── Dashboard.razor.css
+        │   │   ├── LandingPage.razor     # Landing page (route: /)
+        │   │   ├── LandingPage.razor.css
+        │   │   ├── SignIn.razor          # Sign-in page (route: /signin)
+        │   │   ├── SignIn.razor.css
+        │   │   ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
+        │   │   ├── Waitlist.razor.css
+        │   │   └── Error.razor
+        │   └── Shared/
+        │       ├── BrandHeader.razor     # Reusable purple swoosh header (logo + action slot)
+        │       └── BrandHeader.razor.css
         ├── Services/
         │   └── Authentication/
         │       ├── AppleAuthenticationHandler.cs
         │       ├── GoogleAuthenticationHandler.cs
         │       └── MicrosoftAuthenticationHandler.cs
         ├── ViewModels/
-        │   └── Pages/
-        │       ├── DashboardViewModel.cs
-        │       ├── LandingPageViewModel.cs
-        │       ├── SignInViewModel.cs
-        │       └── WaitlistViewModel.cs
+        │   ├── Pages/
+        │   │   ├── DashboardViewModel.cs
+        │   │   ├── LandingPageViewModel.cs
+        │   │   ├── SignInViewModel.cs
+        │   │   └── WaitlistViewModel.cs
+        │   └── Shared/
+        │       └── BrandHeaderViewModel.cs
         ├── Properties/
         │   └── launchSettings.json
         ├── wwwroot/
@@ -83,6 +88,23 @@ My.Talli/
 > **Source of truth:** `MyTalli_ColorPalette.html` (light) and `MyTalli_DarkModePalette.html` (dark) — keep this section in sync with those files.
 
 - **Color palette tool:** [Coolors](https://coolors.co) — used to create and manage the brand palette
+
+### Page Branding — Purple Swoosh
+
+Every page except the Landing Page uses a **purple gradient swoosh** header for consistent branding:
+
+- **`BrandHeader` component** (`Components/Shared/BrandHeader.razor`) — reusable swoosh with logo + action slot (`ChildContent` RenderFragment). Used by Sign-In and Waitlist pages.
+- **Dashboard** uses its own inline swoosh (no BrandHeader) because the sidebar already has the logo — the swoosh sits behind the greeting area instead.
+- **Landing Page** has its own distinct hero layout and is **not** branded with the swoosh.
+
+| Page | Swoosh | Logo | Action Slot |
+|------|--------|------|-------------|
+| `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
+| `/waitlist` | `<BrandHeader>` | Yes | "Sign Out" link |
+| `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | "Sign Out" link |
+| `/` | None | Own nav logo | N/A |
+
+Swoosh visual: purple gradient SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7`) with 3 decorative circles (`rgba(255,255,255,0.07)`).
 - **Font:** DM Sans (Google Fonts) — weights 400, 500, 600, 700
 - **Theme approach:** Purple-tinted surfaces in both modes (no neutral grays in dark mode)
 
@@ -202,7 +224,8 @@ dotnet run --project Source/My.Talli.Web
 - Mirror the component folder structure inside `ViewModels/`:
   - `Components/Pages/LandingPage.razor` → `ViewModels/Pages/LandingPageViewModel.cs`
   - `Components/Layout/MainLayout.razor` → `ViewModels/Layout/MainLayoutViewModel.cs`
-- Namespace follows the folder: `My.Talli.Web.ViewModels.Pages`, `My.Talli.Web.ViewModels.Layout`, etc.
+  - `Components/Shared/BrandHeader.razor` → `ViewModels/Shared/BrandHeaderViewModel.cs`
+- Namespace follows the folder: `My.Talli.Web.ViewModels.Pages`, `My.Talli.Web.ViewModels.Layout`, `My.Talli.Web.ViewModels.Shared`, etc.
 
 ### C# Region Convention
 
