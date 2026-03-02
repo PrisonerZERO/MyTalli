@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1a1a2e;
+    background: #f8f7fc;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    background: #fff;
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    left: 0;
+    padding: 28px 20px 20px;
+    position: fixed;
+    top: 0;
+    width: 240px;
+    z-index: 50;
+  }
+
+  .sidebar-logo {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    letter-spacing: -0.5px;
+    text-decoration: none;
+    padding: 0 12px;
+    margin-bottom: 36px;
+  }
+  .sidebar-logo span { color: #6c5ce7; }
+
+  .sidebar-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+
+  .nav-link {
+    align-items: center;
+    border-radius: 10px;
+    color: #555;
+    cursor: pointer;
+    display: flex;
+    font-size: 14px;
+    font-weight: 500;
+    gap: 12px;
+    padding: 11px 14px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .nav-link:hover { background: #f8f7fc; color: #1a1a2e; }
+  .nav-link.active {
+    background: #f0edff;
+    color: #6c5ce7;
+    font-weight: 600;
+  }
+  .nav-link svg { flex-shrink: 0; height: 20px; width: 20px; }
+  .nav-link.active svg { stroke: #6c5ce7; }
+
+  .nav-spacer { flex: 1; }
+
+  /* Upgrade card */
+  .upgrade-card {
+    background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 100%);
+    border-radius: 14px;
+    color: #fff;
+    margin-bottom: 16px;
+    padding: 20px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .upgrade-card::before {
+    background: radial-gradient(circle at 100% 0%, rgba(255,255,255,0.12) 0%, transparent 60%);
+    content: '';
+    height: 100%;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
+  .upgrade-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; position: relative; }
+  .upgrade-card p { color: rgba(255,255,255,0.75); font-size: 12px; line-height: 1.5; margin-bottom: 14px; position: relative; }
+  .upgrade-btn {
+    background: #fff;
+    border: none;
+    border-radius: 8px;
+    color: #6c5ce7;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 20px;
+    position: relative;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .upgrade-btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-1px); }
+
+  /* User section */
+  .sidebar-user {
+    align-items: center;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    padding-top: 16px;
+  }
+  .user-avatar {
+    align-items: center;
+    background: linear-gradient(135deg, #6c5ce7, #8b5cf6);
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 600;
+    height: 36px;
+    justify-content: center;
+    width: 36px;
+  }
+  .user-info { min-width: 0; }
+  .user-name { color: #1a1a2e; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-email { color: #999; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ─── MAIN CONTENT ─── */
+  .main {
+    flex: 1;
+    margin-left: 240px;
+    min-height: 100vh;
+    padding: 32px 40px 48px;
+  }
+
+  /* Top bar */
+  .top-bar {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .greeting h1 { color: #1a1a2e; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .greeting p { color: #999; font-size: 14px; margin-top: 4px; }
+
+  .period-pills {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+  }
+  .pill {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #999;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 16px;
+    transition: all 0.15s ease;
+  }
+  .pill:hover { color: #6c5ce7; }
+  .pill.active {
+    background: #6c5ce7;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ─── SUMMARY CARDS ─── */
+  .summary-row {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    margin-bottom: 28px;
+  }
+
+  .summary-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    padding: 22px 24px;
+    position: relative;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .summary-card:hover { border-color: #e0dce8; box-shadow: 0 4px 20px rgba(108,92,231,0.06); }
+
+  .card-label {
+    color: #999;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .card-value {
+    color: #1a1a2e;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .card-badge {
+    align-items: center;
+    background: rgba(39,174,96,0.08);
+    border-radius: 6px;
+    color: #27ae60;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 3px;
+    margin-top: 10px;
+    padding: 4px 10px;
+  }
+  .card-badge svg { height: 12px; width: 12px; }
+
+  /* Platforms connected card */
+  .platform-dots {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .platform-dot {
+    border-radius: 50%;
+    height: 10px;
+    width: 10px;
+  }
+
+  /* Goal mini progress */
+  .mini-progress {
+    background: #f0edff;
+    border-radius: 99px;
+    height: 8px;
+    margin-top: 12px;
+    overflow: hidden;
+    width: 100%;
+  }
+  .mini-progress-fill {
+    background: linear-gradient(90deg, #6c5ce7, #8b5cf6);
+    border-radius: 99px;
+    height: 100%;
+    transition: width 1s ease;
+  }
+  .goal-label { color: #999; font-size: 12px; margin-top: 6px; }
+
+  /* ─── CHART ─── */
+  .chart-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    margin-bottom: 28px;
+    padding: 28px;
+  }
+  .chart-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .chart-header h3 { color: #1a1a2e; font-size: 16px; font-weight: 600; }
+  .chart-legend {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+  }
+  .legend-item { align-items: center; color: #999; display: flex; font-size: 12px; gap: 6px; }
+  .legend-dot { border-radius: 50%; height: 8px; width: 8px; }
+
+  .chart-area {
+    height: 220px;
+    position: relative;
+    width: 100%;
+  }
+  .chart-area svg { display: block; height: 100%; width: 100%; }
+
+  /* Chart grid lines */
+  .chart-grid line { stroke: #f0edff; stroke-width: 1; }
+  .chart-label { fill: #bbb; font-family: 'DM Sans', sans-serif; font-size: 11px; }
+
+  /* ─── TWO COLUMN ─── */
+  .two-col {
+    display: grid;
+    gap: 28px;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 28px;
+  }
+
+  .section-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .section-card h3 { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-bottom: 24px; }
+
+  /* Platform breakdown */
+  .platform-row {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    padding: 14px 0;
+  }
+  .platform-row + .platform-row { border-top: 1px solid #f8f7fc; }
+
+  .platform-color-dot {
+    border-radius: 50%;
+    flex-shrink: 0;
+    height: 10px;
+    width: 10px;
+  }
+  .platform-name { color: #1a1a2e; flex-shrink: 0; font-size: 14px; font-weight: 500; width: 70px; }
+  .platform-bar-track {
+    background: #f8f7fc;
+    border-radius: 99px;
+    flex: 1;
+    height: 8px;
+    overflow: hidden;
+  }
+  .platform-bar-fill { border-radius: 99px; height: 100%; transition: width 0.8s ease; }
+  .platform-amount { color: #1a1a2e; flex-shrink: 0; font-size: 14px; font-weight: 600; text-align: right; width: 72px; }
+  .platform-pct { color: #999; flex-shrink: 0; font-size: 12px; text-align: right; width: 36px; }
+
+  /* Revenue goal — circular progress */
+  .goal-center { align-items: center; display: flex; flex-direction: column; padding-top: 8px; }
+  .circle-progress {
+    height: 160px;
+    position: relative;
+    width: 160px;
+  }
+  .circle-progress svg { height: 100%; transform: rotate(-90deg); width: 100%; }
+  .circle-bg { fill: none; stroke: #f0edff; stroke-width: 10; }
+  .circle-fill {
+    fill: none;
+    stroke: url(#goalGrad);
+    stroke-dasharray: 408.4;
+    stroke-dashoffset: 130.7;
+    stroke-linecap: round;
+    stroke-width: 10;
+    transition: stroke-dashoffset 1.2s ease;
+  }
+  .circle-text {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: center;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
+  .circle-pct { color: #1a1a2e; font-size: 36px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+  .circle-sub { color: #999; font-size: 12px; margin-top: 4px; }
+
+  .goal-amounts { color: #1a1a2e; font-size: 15px; font-weight: 600; margin-top: 20px; text-align: center; }
+  .goal-amounts span { color: #999; font-weight: 400; }
+  .goal-target { color: #999; font-size: 13px; margin-top: 4px; text-align: center; }
+  .goal-status {
+    align-items: center;
+    background: rgba(39,174,96,0.08);
+    border-radius: 8px;
+    color: #27ae60;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 500;
+    gap: 6px;
+    margin-top: 16px;
+    padding: 8px 16px;
+  }
+  .goal-status svg { flex-shrink: 0; height: 14px; width: 14px; }
+
+  /* ─── RECENT TRANSACTIONS ─── */
+  .transactions-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .transactions-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .transactions-header h3 { color: #1a1a2e; font-size: 16px; font-weight: 600; }
+  .view-all {
+    border: none;
+    background: none;
+    color: #6c5ce7;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 0;
+    transition: color 0.15s ease;
+  }
+  .view-all:hover { color: #5a4bd1; }
+
+  .tx-table { border-collapse: collapse; width: 100%; }
+  .tx-table th {
+    border-bottom: 1px solid #eee;
+    color: #999;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 0 0 12px;
+    text-align: left;
+    text-transform: uppercase;
+  }
+  .tx-table th:last-child { text-align: right; }
+  .tx-table td {
+    border-bottom: 1px solid #f8f7fc;
+    color: #555;
+    font-size: 14px;
+    padding: 14px 0;
+  }
+  .tx-table tr:last-child td { border-bottom: none; }
+  .tx-table td:last-child { color: #1a1a2e; font-weight: 600; text-align: right; }
+
+  .tx-platform {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+  }
+  .tx-dot {
+    border-radius: 50%;
+    flex-shrink: 0;
+    height: 8px;
+    width: 8px;
+  }
+  .tx-platform-name { color: #1a1a2e; font-weight: 500; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in {
+    animation: fadeUp 0.5s ease forwards;
+    opacity: 0;
+  }
+  .delay-1 { animation-delay: 0.05s; }
+  .delay-2 { animation-delay: 0.1s; }
+  .delay-3 { animation-delay: 0.15s; }
+  .delay-4 { animation-delay: 0.2s; }
+  .delay-5 { animation-delay: 0.25s; }
+  .delay-6 { animation-delay: 0.3s; }
+  .delay-7 { animation-delay: 0.35s; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .sidebar { animation: slideIn 0.4s ease forwards; }
+</style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─── -->
+<aside class="sidebar">
+  <a class="sidebar-logo" href="#">My<span>Talli</span></a>
+
+  <nav class="sidebar-nav">
+    <a class="nav-link active" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Dashboard
+    </a>
+    <a class="nav-link" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+      Platforms
+    </a>
+    <a class="nav-link" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+      Goals
+    </a>
+    <a class="nav-link" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export
+    </a>
+    <a class="nav-link" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+      Settings
+    </a>
+
+    <div class="nav-spacer"></div>
+  </nav>
+
+  <div class="upgrade-card">
+    <h4>Upgrade to Pro</h4>
+    <p>Unlimited platforms, full history, goals &amp; CSV export.</p>
+    <button class="upgrade-btn">Upgrade</button>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">SJ</div>
+    <div class="user-info">
+      <div class="user-name">Sarah Johnson</div>
+      <div class="user-email">sarah@email.com</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ─── MAIN CONTENT ─── -->
+<main class="main">
+
+  <!-- Top bar -->
+  <div class="top-bar animate-in delay-1">
+    <div class="greeting">
+      <h1>Good morning, Sarah</h1>
+      <p>Here's how your revenue is looking.</p>
+    </div>
+    <div class="period-pills">
+      <button class="pill">7D</button>
+      <button class="pill active">30D</button>
+      <button class="pill">90D</button>
+      <button class="pill">12M</button>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="summary-row animate-in delay-2">
+    <div class="summary-card">
+      <div class="card-label">Total Revenue</div>
+      <div class="card-value">$4,218</div>
+      <div class="card-badge">
+        <svg viewBox="0 0 12 12" fill="none"><path d="M6 9V3M6 3L3 6M6 3l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        23% vs last month
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="card-label">This Month</div>
+      <div class="card-value">$1,847</div>
+      <div class="card-badge">
+        <svg viewBox="0 0 12 12" fill="none"><path d="M6 9V3M6 3L3 6M6 3l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        12% vs last month
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="card-label">Platforms Connected</div>
+      <div class="card-value">3</div>
+      <div class="platform-dots">
+        <div class="platform-dot" style="background:#635bff" title="Stripe"></div>
+        <div class="platform-dot" style="background:#f56400" title="Etsy"></div>
+        <div class="platform-dot" style="background:#ff90e8" title="Gumroad"></div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="card-label">Monthly Goal</div>
+      <div class="card-value">68%</div>
+      <div class="mini-progress"><div class="mini-progress-fill" style="width:68%"></div></div>
+      <div class="goal-label">$1,847 of $2,700</div>
+    </div>
+  </div>
+
+  <!-- Revenue chart -->
+  <div class="chart-card animate-in delay-3">
+    <div class="chart-header">
+      <h3>Revenue Over Time</h3>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#6c5ce7"></div> Revenue</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e0dce8"></div> Previous period</div>
+      </div>
+    </div>
+    <div class="chart-area">
+      <svg viewBox="0 0 800 200" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#6c5ce7" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#6c5ce7" stop-opacity="0.02"/>
+          </linearGradient>
+          <linearGradient id="prevGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e0dce8" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#e0dce8" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Grid lines -->
+        <g class="chart-grid">
+          <line x1="0" y1="40" x2="800" y2="40"/>
+          <line x1="0" y1="80" x2="800" y2="80"/>
+          <line x1="0" y1="120" x2="800" y2="120"/>
+          <line x1="0" y1="160" x2="800" y2="160"/>
+        </g>
+
+        <!-- Y-axis labels -->
+        <text class="chart-label" x="0" y="38">$200</text>
+        <text class="chart-label" x="0" y="78">$150</text>
+        <text class="chart-label" x="0" y="118">$100</text>
+        <text class="chart-label" x="0" y="158">$50</text>
+
+        <!-- Previous period area (lighter, behind) -->
+        <path fill="url(#prevGrad)" d="
+          M40,140 L67,135 L94,142 L121,130 L148,138 L175,125 L202,132 L229,120 L256,128 L283,115
+          L310,122 L337,110 L364,118 L391,105 L418,112 L445,100 L472,108 L499,95 L526,102 L553,90
+          L580,97 L607,85 L634,92 L661,80 L688,88 L715,75 L742,82 L769,70 L796,78
+          L796,200 L40,200 Z
+        "/>
+        <path fill="none" stroke="#e0dce8" stroke-width="2" d="
+          M40,140 L67,135 L94,142 L121,130 L148,138 L175,125 L202,132 L229,120 L256,128 L283,115
+          L310,122 L337,110 L364,118 L391,105 L418,112 L445,100 L472,108 L499,95 L526,102 L553,90
+          L580,97 L607,85 L634,92 L661,80 L688,88 L715,75 L742,82 L769,70 L796,78
+        "/>
+
+        <!-- Current period area -->
+        <path fill="url(#chartGrad)" d="
+          M40,155 L67,148 L94,152 L121,140 L148,145 L175,130 L202,138 L229,125 L256,130 L283,118
+          L310,124 L337,108 L364,100 L391,105 L418,92 L445,98 L472,85 L499,78 L526,82 L553,70
+          L580,75 L607,62 L634,68 L661,55 L688,50 L715,45 L742,52 L769,38 L796,32
+          L796,200 L40,200 Z
+        "/>
+        <path fill="none" stroke="#6c5ce7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="
+          M40,155 L67,148 L94,152 L121,140 L148,145 L175,130 L202,138 L229,125 L256,130 L283,118
+          L310,124 L337,108 L364,100 L391,105 L418,92 L445,98 L472,85 L499,78 L526,82 L553,70
+          L580,75 L607,62 L634,68 L661,55 L688,50 L715,45 L742,52 L769,38 L796,32
+        "/>
+
+        <!-- Current value dot -->
+        <circle cx="796" cy="32" r="5" fill="#6c5ce7"/>
+        <circle cx="796" cy="32" r="8" fill="#6c5ce7" opacity="0.2"/>
+
+        <!-- X-axis labels -->
+        <text class="chart-label" x="40" y="196">Feb 1</text>
+        <text class="chart-label" x="175" y="196">Feb 6</text>
+        <text class="chart-label" x="310" y="196">Feb 11</text>
+        <text class="chart-label" x="445" y="196">Feb 16</text>
+        <text class="chart-label" x="580" y="196">Feb 21</text>
+        <text class="chart-label" x="715" y="196">Feb 26</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Two-column: Platform Breakdown + Revenue Goal -->
+  <div class="two-col animate-in delay-4">
+    <!-- Platform Breakdown -->
+    <div class="section-card">
+      <h3>Platform Breakdown</h3>
+      <div class="platform-row">
+        <div class="platform-color-dot" style="background:#635bff"></div>
+        <div class="platform-name">Stripe</div>
+        <div class="platform-bar-track">
+          <div class="platform-bar-fill" style="background:#635bff; width:55%"></div>
+        </div>
+        <div class="platform-amount">$2,340</div>
+        <div class="platform-pct">55%</div>
+      </div>
+      <div class="platform-row">
+        <div class="platform-color-dot" style="background:#f56400"></div>
+        <div class="platform-name">Etsy</div>
+        <div class="platform-bar-track">
+          <div class="platform-bar-fill" style="background:#f56400; width:27%"></div>
+        </div>
+        <div class="platform-amount">$1,128</div>
+        <div class="platform-pct">27%</div>
+      </div>
+      <div class="platform-row">
+        <div class="platform-color-dot" style="background:#ff90e8"></div>
+        <div class="platform-name">Gumroad</div>
+        <div class="platform-bar-track">
+          <div class="platform-bar-fill" style="background:#ff90e8; width:18%"></div>
+        </div>
+        <div class="platform-amount">$750</div>
+        <div class="platform-pct">18%</div>
+      </div>
+    </div>
+
+    <!-- Revenue Goal -->
+    <div class="section-card">
+      <h3>Revenue Goal</h3>
+      <div class="goal-center">
+        <div class="circle-progress">
+          <svg viewBox="0 0 140 140">
+            <defs>
+              <linearGradient id="goalGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#6c5ce7"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+            <circle class="circle-bg" cx="70" cy="70" r="58"/>
+            <circle class="circle-fill" cx="70" cy="70" r="58"/>
+          </svg>
+          <div class="circle-text">
+            <span class="circle-pct">68%</span>
+            <span class="circle-sub">completed</span>
+          </div>
+        </div>
+        <div class="goal-amounts">$1,847 <span>/ $2,700</span></div>
+        <div class="goal-target">Monthly Target</div>
+        <div class="goal-status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          On track &mdash; 12 days left
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Transactions -->
+  <div class="transactions-card animate-in delay-5">
+    <div class="transactions-header">
+      <h3>Recent Transactions</h3>
+      <button class="view-all">View all &rarr;</button>
+    </div>
+    <table class="tx-table">
+      <thead>
+        <tr>
+          <th>Platform</th>
+          <th>Description</th>
+          <th>Date</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="tx-platform">
+              <div class="tx-dot" style="background:#f56400"></div>
+              <span class="tx-platform-name">Etsy</span>
+            </div>
+          </td>
+          <td>Handmade Candle Set (x2)</td>
+          <td>Mar 1</td>
+          <td>$68.00</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="tx-platform">
+              <div class="tx-dot" style="background:#635bff"></div>
+              <span class="tx-platform-name">Stripe</span>
+            </div>
+          </td>
+          <td>Logo Design — Freelance</td>
+          <td>Feb 28</td>
+          <td>$450.00</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="tx-platform">
+              <div class="tx-dot" style="background:#ff90e8"></div>
+              <span class="tx-platform-name">Gumroad</span>
+            </div>
+          </td>
+          <td>Procreate Brush Pack</td>
+          <td>Feb 27</td>
+          <td>$12.00</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="tx-platform">
+              <div class="tx-dot" style="background:#635bff"></div>
+              <span class="tx-platform-name">Stripe</span>
+            </div>
+          </td>
+          <td>Web Dev Retainer — Feb</td>
+          <td>Feb 26</td>
+          <td>$800.00</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="tx-platform">
+              <div class="tx-dot" style="background:#f56400"></div>
+              <span class="tx-platform-name">Etsy</span>
+            </div>
+          </td>
+          <td>Ceramic Mug — Speckled</td>
+          <td>Feb 25</td>
+          <td>$34.00</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<script>
+// Period pill toggle
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+  });
+});
+
+// Nav link toggle
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

@@ -21,7 +21,9 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 My.Talli/
 ├── CLAUDE.md
 ├── MyTalli_LandingPage.html      # Static landing page mockup
-├── MyTalli_ColorPalette.html     # Brand color reference sheet
+├── MyTalli_Dashboard.html        # Static dashboard mockup (post-login)
+├── MyTalli_ColorPalette.html     # Brand color reference sheet (light mode)
+├── MyTalli_DarkModePalette.html  # Brand color reference sheet (dark mode)
 └── Source/
     ├── My.Talli.slnx             # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
@@ -66,12 +68,13 @@ My.Talli/
 
 ## Brand & Design
 
-> **Source of truth:** `MyTalli_ColorPalette.html` — keep this section in sync with that file.
+> **Source of truth:** `MyTalli_ColorPalette.html` (light) and `MyTalli_DarkModePalette.html` (dark) — keep this section in sync with those files.
 
 - **Color palette tool:** [Coolors](https://coolors.co) — used to create and manage the brand palette
 - **Font:** DM Sans (Google Fonts) — weights 400, 500, 600, 700
+- **Theme approach:** Purple-tinted surfaces in both modes (no neutral grays in dark mode)
 
-### Brand Colors
+### Brand Colors (Light Mode)
 
 - **Primary Purple:** `#6c5ce7` — CTAs, logo accent, links, active states
 - **Primary Hover:** `#5a4bd1` — hover & pressed states
@@ -82,17 +85,46 @@ My.Talli/
 - **Page Background:** `#f8f7fc` — alternating section backgrounds
 - **Dark Navy:** `#1a1a2e` — primary text, dark sections
 
+### Brand Colors (Dark Mode)
+
+#### Surfaces
+- **Page Background:** `#0f0f1a` — deepest layer, main page bg
+- **Card Surface:** `#1a1a2e` — cards, sidebar, inputs (Dark Navy repurposed)
+- **Elevated Surface:** `#242440` — hover states, dropdowns, tooltips
+- **Border:** `#2a2745` — card borders, dividers, table lines
+- **Subtle Divider:** `#1e1c30` — table row borders, faint separators
+
+#### Accents
+- **Primary Purple:** `#7c6cf7` — CTAs, active states (slightly lifted for dark bg contrast)
+- **Primary Hover:** `#6c5ce7` — hover & pressed (original primary becomes hover)
+- **Lavender:** `#a78bfa` — logo accent, section tags (promoted role in dark mode)
+- **Active Tint:** `#2a2154` — active nav bg, selected states, tags (replaces `#f0edff`)
+- **Active Tint Hover:** `#362d6b` — hover on active tint areas, progress bar tracks
+
+#### Text
+- **Primary Text:** `#e8e6f0` — headings, card values (warm purple-white, not pure `#fff`)
+- **Secondary Text:** `#a09cae` — body paragraphs, descriptions
+- **Muted Text:** `#7a7790` — labels, timestamps, helper text
+- **Disabled / Faintest:** `#5c5977` — disabled states, chart grid lines
+
+#### UI Colors (Dark Mode Adjusted)
+- **Success / Growth:** `#2ecc71` — slightly brighter for pop on dark
+- **Success Tint:** `#1a3a2a` — growth badge background
+- **Danger / Decline:** `#e74c3c` — negative revenue, errors
+- **Danger Tint:** `#3a1a1e` — danger badge background
+- **Warning / Highlight:** `#f5c842` — attention states (warmer than light mode yellow)
+
 ### Platform Connector Colors
 
-| Platform | Color     |
-|----------|-----------|
-| Stripe   | `#635bff` |
-| Etsy     | `#f56400` |
-| Gumroad  | `#ff90e8` |
-| PayPal   | `#003087` |
-| Shopify  | `#96bf48` |
+| Platform | Light Mode | Dark Mode  | Notes                              |
+|----------|------------|------------|------------------------------------|
+| Stripe   | `#635bff`  | `#635bff`  | No change needed                   |
+| Etsy     | `#f56400`  | `#f56400`  | No change needed                   |
+| Gumroad  | `#ff90e8`  | `#ff90e8`  | No change needed                   |
+| PayPal   | `#003087`  | `#2a7fff`  | Lightened — `#003087` invisible on dark |
+| Shopify  | `#96bf48`  | `#96bf48`  | No change needed                   |
 
-### UI Colors
+### UI Colors (Light Mode)
 
 - **Success / Growth:** `#27ae60` — positive revenue changes, growth indicators
 - **Body Text:** `#555` — secondary paragraph text

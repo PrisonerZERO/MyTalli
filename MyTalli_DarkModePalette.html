@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Dark Mode Palette</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #0f0f1a; color: #e8e6f0; padding: 48px; }
+
+  h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin-bottom: 4px; }
+  h1 span { color: #a78bfa; }
+  .subtitle { font-size: 15px; color: #7a7790; margin-bottom: 48px; }
+
+  .section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #a78bfa; margin-bottom: 20px; margin-top: 48px; }
+  .section-title:first-of-type { margin-top: 0; }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 16px; }
+
+  .swatch { width: 200px; border-radius: 12px; overflow: hidden; border: 1px solid #2a2745; background: #1a1a2e; }
+  .swatch-color { height: 90px; position: relative; }
+  .swatch-info { padding: 14px; }
+  .swatch-name { font-size: 13px; font-weight: 600; color: #e8e6f0; margin-bottom: 2px; }
+  .swatch-hex { font-size: 12px; font-weight: 500; color: #7a7790; font-family: 'DM Sans', monospace; margin-bottom: 6px; cursor: pointer; }
+  .swatch-hex:hover { color: #a78bfa; }
+  .swatch-usage { font-size: 11px; color: #5c5977; line-height: 1.5; }
+  .swatch-light { font-size: 10px; color: #5c5977; margin-top: 4px; font-style: italic; }
+
+  .swatch-color .contrast-label { position: absolute; bottom: 8px; right: 10px; font-size: 10px; font-weight: 600; opacity: 0.7; }
+
+  .divider { height: 1px; background: #2a2745; margin: 48px 0; }
+
+  /* Mapping table */
+  .mapping-section { margin-top: 48px; }
+  .mapping-table { width: 100%; max-width: 900px; border-collapse: collapse; }
+  .mapping-table th {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    color: #7a7790; text-align: left; padding: 0 0 12px; border-bottom: 1px solid #2a2745;
+  }
+  .mapping-table td { padding: 12px 0; border-bottom: 1px solid #1e1c30; vertical-align: middle; }
+  .mapping-table tr:last-child td { border-bottom: none; }
+  .color-cell { display: flex; align-items: center; gap: 10px; }
+  .color-pip { width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0; }
+  .color-pip.bordered { border: 1px solid #2a2745; }
+  .color-hex { font-size: 13px; font-family: 'DM Sans', monospace; color: #e8e6f0; }
+  .token-name { font-size: 13px; font-weight: 500; color: #a09cae; }
+  .arrow-cell { color: #5c5977; font-size: 16px; text-align: center; width: 40px; }
+
+  /* Mini dashboard preview */
+  .preview-section { margin-top: 48px; }
+  .preview-frame {
+    background: #0f0f1a; border: 1px solid #2a2745; border-radius: 16px;
+    overflow: hidden; max-width: 900px;
+  }
+  .preview-sidebar {
+    background: #1a1a2e; width: 180px; padding: 20px 14px; float: left;
+    min-height: 400px; border-right: 1px solid #2a2745;
+  }
+  .preview-logo { font-size: 16px; font-weight: 700; color: #e8e6f0; margin-bottom: 24px; }
+  .preview-logo span { color: #a78bfa; }
+  .preview-nav-item {
+    display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 8px;
+    font-size: 12px; font-weight: 500; color: #7a7790; margin-bottom: 2px;
+  }
+  .preview-nav-item.active { background: #2a2154; color: #a78bfa; font-weight: 600; }
+  .preview-nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .preview-main { margin-left: 180px; padding: 24px; }
+  .preview-greeting { font-size: 18px; font-weight: 700; color: #e8e6f0; margin-bottom: 4px; }
+  .preview-sub { font-size: 12px; color: #7a7790; margin-bottom: 20px; }
+  .preview-cards { display: flex; gap: 12px; margin-bottom: 20px; }
+  .preview-card {
+    flex: 1; background: #1a1a2e; border: 1px solid #2a2745; border-radius: 10px; padding: 16px;
+  }
+  .preview-card-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #7a7790; margin-bottom: 6px; }
+  .preview-card-value { font-size: 22px; font-weight: 700; color: #e8e6f0; }
+  .preview-card-badge { font-size: 10px; font-weight: 600; color: #2ecc71; margin-top: 6px; }
+  .preview-chart-area {
+    background: #1a1a2e; border: 1px solid #2a2745; border-radius: 10px; padding: 16px;
+  }
+  .preview-chart-title { font-size: 13px; font-weight: 600; color: #e8e6f0; margin-bottom: 12px; }
+
+  .copied-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #a78bfa; color: #0f0f1a; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; opacity: 0; transition: all 0.3s ease; pointer-events: none; }
+  .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Contrast rating badges */
+  .wcag-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+  .wcag-aaa { background: #2ecc71; color: #0f0f1a; }
+  .wcag-aa { background: #f39c12; color: #0f0f1a; }
+
+  .clearfix::after { content: ''; display: table; clear: both; }
+</style>
+</head>
+<body>
+
+<h1>My<span>Talli</span> Dark Mode Palette</h1>
+<p class="subtitle">Proposed dark theme colors — click any hex code to copy. Surface hierarchy uses purple-tinted darks, not neutral grays.</p>
+
+<!-- ─── SURFACES ─── -->
+<div class="section-title">Surfaces</div>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#0f0f1a"><span class="contrast-label" style="color:#7a7790">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Page Background</div>
+      <div class="swatch-hex" onclick="copyHex('#0f0f1a')">#0f0f1a</div>
+      <div class="swatch-usage">Deepest layer — main page bg, scrollable area behind cards</div>
+      <div class="swatch-light">Light mode: #f8f7fc</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#1a1a2e"><span class="contrast-label" style="color:#a09cae">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Card Surface</div>
+      <div class="swatch-hex" onclick="copyHex('#1a1a2e')">#1a1a2e</div>
+      <div class="swatch-usage">Cards, sidebar, inputs — primary elevated surface</div>
+      <div class="swatch-light">Light mode: #ffffff</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#242440"><span class="contrast-label" style="color:#a09cae">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Elevated Surface</div>
+      <div class="swatch-hex" onclick="copyHex('#242440')">#242440</div>
+      <div class="swatch-usage">Hover states, dropdowns, tooltips, modals</div>
+      <div class="swatch-light">Light mode: #f8f7fc</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#2a2745"><span class="contrast-label" style="color:#a09cae">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Border</div>
+      <div class="swatch-hex" onclick="copyHex('#2a2745')">#2a2745</div>
+      <div class="swatch-usage">Card borders, dividers, table lines</div>
+      <div class="swatch-light">Light mode: #eee / #e0dce8</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#1e1c30"><span class="contrast-label" style="color:#7a7790">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Subtle Divider</div>
+      <div class="swatch-hex" onclick="copyHex('#1e1c30')">#1e1c30</div>
+      <div class="swatch-usage">Table row borders, faint separators</div>
+      <div class="swatch-light">Light mode: #f8f7fc</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ─── BRAND ACCENTS ─── -->
+<div class="section-title">Brand Accents (Dark Mode)</div>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#7c6cf7"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Primary Purple</div>
+      <div class="swatch-hex" onclick="copyHex('#7c6cf7')">#7c6cf7</div>
+      <div class="swatch-usage">CTAs, active states, links — slightly lifted for dark bg contrast</div>
+      <div class="swatch-light">Light mode: #6c5ce7</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#6c5ce7"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Primary Hover</div>
+      <div class="swatch-hex" onclick="copyHex('#6c5ce7')">#6c5ce7</div>
+      <div class="swatch-usage">Hover &amp; pressed states — original primary becomes hover in dark</div>
+      <div class="swatch-light">Light mode: #5a4bd1</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#a78bfa"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Lavender</div>
+      <div class="swatch-hex" onclick="copyHex('#a78bfa')">#a78bfa</div>
+      <div class="swatch-usage">Logo accent, section tags, secondary accent — promoted role in dark mode</div>
+      <div class="swatch-light">Light mode: #a78bfa (same)</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#2a2154"><span class="contrast-label" style="color:#a78bfa">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Active Tint</div>
+      <div class="swatch-hex" onclick="copyHex('#2a2154')">#2a2154</div>
+      <div class="swatch-usage">Active nav bg, selected states, tags — replaces #f0edff</div>
+      <div class="swatch-light">Light mode: #f0edff</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#362d6b"><span class="contrast-label" style="color:#a78bfa">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Active Tint Hover</div>
+      <div class="swatch-hex" onclick="copyHex('#362d6b')">#362d6b</div>
+      <div class="swatch-usage">Hover on active tint areas, progress bar tracks</div>
+      <div class="swatch-light">Light mode: #e0dce8</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ─── TEXT ─── -->
+<div class="section-title">Text Colors</div>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#e8e6f0"><span class="contrast-label" style="color:#1a1a2e">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Primary Text</div>
+      <div class="swatch-hex" onclick="copyHex('#e8e6f0')">#e8e6f0</div>
+      <div class="swatch-usage">Headings, card values, emphasis — warm purple-white (not pure #fff)</div>
+      <div class="swatch-light">Light mode: #1a1a2e</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#a09cae"><span class="contrast-label" style="color:#1a1a2e">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Secondary Text</div>
+      <div class="swatch-hex" onclick="copyHex('#a09cae')">#a09cae</div>
+      <div class="swatch-usage">Body paragraphs, descriptions, table cells</div>
+      <div class="swatch-light">Light mode: #555</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#7a7790"><span class="contrast-label" style="color:#1a1a2e">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Muted Text</div>
+      <div class="swatch-hex" onclick="copyHex('#7a7790')">#7a7790</div>
+      <div class="swatch-usage">Labels, timestamps, helper text, placeholders</div>
+      <div class="swatch-light">Light mode: #999</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#5c5977"><span class="contrast-label" style="color:#1e1c30">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Disabled / Faintest</div>
+      <div class="swatch-hex" onclick="copyHex('#5c5977')">#5c5977</div>
+      <div class="swatch-usage">Disabled states, chart grid lines, faint annotations</div>
+      <div class="swatch-light">Light mode: #bbb / #ccc</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ─── UI COLORS ─── -->
+<div class="section-title">UI Colors (Dark Mode Adjusted)</div>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#2ecc71"><span class="contrast-label" style="color:#0f0f1a">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Success / Growth</div>
+      <div class="swatch-hex" onclick="copyHex('#2ecc71')">#2ecc71</div>
+      <div class="swatch-usage">Positive revenue — slightly brighter than light mode for pop</div>
+      <div class="swatch-light">Light mode: #27ae60</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#1a3a2a"><span class="contrast-label" style="color:#2ecc71">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Success Tint</div>
+      <div class="swatch-hex" onclick="copyHex('#1a3a2a')">#1a3a2a</div>
+      <div class="swatch-usage">Growth badge background — replaces rgba(39,174,96,0.08)</div>
+      <div class="swatch-light">Light mode: rgba(39,174,96,0.08)</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#e74c3c"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Danger / Decline</div>
+      <div class="swatch-hex" onclick="copyHex('#e74c3c')">#e74c3c</div>
+      <div class="swatch-usage">Negative revenue changes, errors</div>
+      <div class="swatch-light">Light mode: #e74c3c (same)</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#3a1a1e"><span class="contrast-label" style="color:#e74c3c">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Danger Tint</div>
+      <div class="swatch-hex" onclick="copyHex('#3a1a1e')">#3a1a1e</div>
+      <div class="swatch-usage">Danger badge background</div>
+      <div class="swatch-light">Light mode: rgba(231,76,60,0.08)</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#f5c842"><span class="contrast-label" style="color:#0f0f1a">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Warning / Highlight</div>
+      <div class="swatch-hex" onclick="copyHex('#f5c842')">#f5c842</div>
+      <div class="swatch-usage">Attention states, warnings — warmer than light mode yellow</div>
+      <div class="swatch-light">Light mode: #fff176</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ─── PLATFORM COLORS ─── -->
+<div class="section-title">Platform Colors (unchanged)</div>
+<p style="font-size: 13px; color: #7a7790; margin-bottom: 20px; max-width: 600px; line-height: 1.6;">Platform brand colors stay the same — they're already designed to work on dark surfaces. PayPal navy (#003087) gets a lighter alternative for when it's used as text/icon on dark bg.</p>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#635bff"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Stripe</div>
+      <div class="swatch-hex" onclick="copyHex('#635bff')">#635bff</div>
+      <div class="swatch-usage">No change needed — reads well on dark</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#f56400"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Etsy</div>
+      <div class="swatch-hex" onclick="copyHex('#f56400')">#f56400</div>
+      <div class="swatch-usage">No change needed</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#ff90e8"><span class="contrast-label" style="color:#0f0f1a">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Gumroad</div>
+      <div class="swatch-hex" onclick="copyHex('#ff90e8')">#ff90e8</div>
+      <div class="swatch-usage">No change needed — bright pink pops on dark</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#2a7fff"><span class="contrast-label" style="color:#fff">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">PayPal (Dark Mode)</div>
+      <div class="swatch-hex" onclick="copyHex('#2a7fff')">#2a7fff</div>
+      <div class="swatch-usage">Lightened for visibility — #003087 is invisible on dark surfaces</div>
+      <div class="swatch-light">Light mode: #003087</div>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#96bf48"><span class="contrast-label" style="color:#0f0f1a">Aa</span></div>
+    <div class="swatch-info">
+      <div class="swatch-name">Shopify</div>
+      <div class="swatch-hex" onclick="copyHex('#96bf48')">#96bf48</div>
+      <div class="swatch-usage">No change needed</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ─── LIGHT ↔ DARK MAPPING TABLE ─── -->
+<div class="section-title">Token Mapping — Light vs Dark</div>
+<div class="mapping-section">
+<table class="mapping-table">
+  <thead>
+    <tr>
+      <th style="width:200px">Token</th>
+      <th style="width:200px">Light Mode</th>
+      <th style="width:40px"></th>
+      <th style="width:200px">Dark Mode</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="token-name">Page Background</span></td>
+      <td><div class="color-cell"><div class="color-pip bordered" style="background:#f8f7fc"></div><span class="color-hex">#f8f7fc</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#0f0f1a"></div><span class="color-hex">#0f0f1a</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">Card / Sidebar</span></td>
+      <td><div class="color-cell"><div class="color-pip bordered" style="background:#ffffff"></div><span class="color-hex">#ffffff</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#1a1a2e"></div><span class="color-hex">#1a1a2e</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">Border</span></td>
+      <td><div class="color-cell"><div class="color-pip bordered" style="background:#eeeeee"></div><span class="color-hex">#eee</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#2a2745"></div><span class="color-hex">#2a2745</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">Primary Purple</span></td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#6c5ce7"></div><span class="color-hex">#6c5ce7</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#7c6cf7"></div><span class="color-hex">#7c6cf7</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">Logo Accent</span></td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#6c5ce7"></div><span class="color-hex">#6c5ce7</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#a78bfa"></div><span class="color-hex">#a78bfa</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">Soft Purple / Active BG</span></td>
+      <td><div class="color-cell"><div class="color-pip bordered" style="background:#f0edff"></div><span class="color-hex">#f0edff</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#2a2154"></div><span class="color-hex">#2a2154</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">Primary Text</span></td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#1a1a2e"></div><span class="color-hex">#1a1a2e</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#e8e6f0"></div><span class="color-hex">#e8e6f0</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">Body Text</span></td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#555555"></div><span class="color-hex">#555</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#a09cae"></div><span class="color-hex">#a09cae</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">Muted Text</span></td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#999999"></div><span class="color-hex">#999</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#7a7790"></div><span class="color-hex">#7a7790</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">Success</span></td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#27ae60"></div><span class="color-hex">#27ae60</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#2ecc71"></div><span class="color-hex">#2ecc71</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">Success Badge BG</span></td>
+      <td><div class="color-cell"><div class="color-pip bordered" style="background:rgba(39,174,96,0.08)"></div><span class="color-hex">rgba(...0.08)</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#1a3a2a"></div><span class="color-hex">#1a3a2a</span></div></td>
+    </tr>
+    <tr>
+      <td><span class="token-name">PayPal</span></td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#003087"></div><span class="color-hex">#003087</span></div></td>
+      <td class="arrow-cell">&rarr;</td>
+      <td><div class="color-cell"><div class="color-pip" style="background:#2a7fff"></div><span class="color-hex">#2a7fff</span></div></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ─── MINI PREVIEW ─── -->
+<div class="section-title">Mini Preview</div>
+<p style="font-size: 13px; color: #7a7790; margin-bottom: 20px; line-height: 1.6;">Quick visual of how the dark palette feels in context with the dashboard layout.</p>
+<div class="preview-frame clearfix">
+  <div class="preview-sidebar">
+    <div class="preview-logo">My<span>Talli</span></div>
+    <div class="preview-nav-item active"><div class="preview-nav-dot"></div> Dashboard</div>
+    <div class="preview-nav-item"><div class="preview-nav-dot"></div> Platforms</div>
+    <div class="preview-nav-item"><div class="preview-nav-dot"></div> Goals</div>
+    <div class="preview-nav-item"><div class="preview-nav-dot"></div> Export</div>
+    <div class="preview-nav-item"><div class="preview-nav-dot"></div> Settings</div>
+  </div>
+  <div class="preview-main">
+    <div class="preview-greeting">Good morning, Sarah</div>
+    <div class="preview-sub">Here's how your revenue is looking.</div>
+    <div class="preview-cards">
+      <div class="preview-card">
+        <div class="preview-card-label">Total Revenue</div>
+        <div class="preview-card-value">$4,218</div>
+        <div class="preview-card-badge">&#8593; 23%</div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-card-label">This Month</div>
+        <div class="preview-card-value">$1,847</div>
+        <div class="preview-card-badge">&#8593; 12%</div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-card-label">Platforms</div>
+        <div class="preview-card-value">3</div>
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <div style="width:8px;height:8px;border-radius:50%;background:#635bff"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#f56400"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#ff90e8"></div>
+        </div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-card-label">Monthly Goal</div>
+        <div class="preview-card-value">68%</div>
+        <div style="background:#2a2154;height:6px;border-radius:99px;margin-top:8px;overflow:hidden"><div style="background:linear-gradient(90deg,#7c6cf7,#a78bfa);height:100%;width:68%;border-radius:99px"></div></div>
+      </div>
+    </div>
+    <div class="preview-chart-area">
+      <div class="preview-chart-title">Revenue Over Time</div>
+      <svg viewBox="0 0 600 100" preserveAspectRatio="none" style="width:100%;height:80px;display:block">
+        <defs>
+          <linearGradient id="darkChartGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7c6cf7" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#7c6cf7" stop-opacity="0.03"/>
+          </linearGradient>
+        </defs>
+        <line x1="0" y1="25" x2="600" y2="25" stroke="#2a2745" stroke-width="0.5"/>
+        <line x1="0" y1="50" x2="600" y2="50" stroke="#2a2745" stroke-width="0.5"/>
+        <line x1="0" y1="75" x2="600" y2="75" stroke="#2a2745" stroke-width="0.5"/>
+        <path fill="url(#darkChartGrad)" d="M0,80 L25,72 50,76 75,65 100,70 125,58 150,62 175,50 200,55 225,45 250,48 275,38 300,35 325,38 350,28 375,32 400,22 425,18 450,22 475,15 500,18 525,10 550,14 575,8 600,5 L600,100 L0,100Z"/>
+        <path fill="none" stroke="#7c6cf7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M0,80 L25,72 50,76 75,65 100,70 125,58 150,62 175,50 200,55 225,45 250,48 275,38 300,35 325,38 350,28 375,32 400,22 425,18 450,22 475,15 500,18 525,10 550,14 575,8 600,5"/>
+        <circle cx="600" cy="5" r="3" fill="#7c6cf7"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="copied-toast">Copied!</div>
+
+<script>
+function copyHex(hex) {
+  navigator.clipboard.writeText(hex).then(() => {
+    const toast = document.getElementById('toast');
+    toast.textContent = 'Copied ' + hex;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1500);
+  });
+}
+</script>
+
+</body>
+</html>
