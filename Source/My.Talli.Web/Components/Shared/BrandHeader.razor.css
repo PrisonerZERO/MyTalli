@@ -1,0 +1,95 @@
+/* ─── BRAND HEADER ─── */
+.brand-header {
+    position: relative;
+}
+
+/* ─── PURPLE SWOOSH ─── */
+.hero-bg {
+    height: 480px;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.hero-bg svg {
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+.deco-circle {
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 50%;
+    position: absolute;
+}
+
+.deco-circle-1 {
+    height: 260px;
+    right: 10%;
+    top: -40px;
+    width: 260px;
+}
+
+.deco-circle-2 {
+    height: 180px;
+    left: 15%;
+    top: 120px;
+    width: 180px;
+}
+
+.deco-circle-3 {
+    bottom: 40px;
+    height: 220px;
+    right: 25%;
+    width: 220px;
+}
+
+/* ─── TOP BAR ─── */
+.brand-bar {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    padding: 24px 32px 0;
+    position: relative;
+    z-index: 2;
+}
+
+.brand-logo {
+    color: #fff;
+    display: inline-block;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.brand-logo span {
+    color: #a78bfa;
+}
+
+/* ─── ACTION SLOT STYLES ─── */
+::deep .sign-out-btn,
+::deep .back-link {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 18px;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+
+::deep .sign-out-btn:hover,
+::deep .back-link:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 480px) {
+    .brand-bar {
+        padding: 20px 16px 0;
+    }
+}

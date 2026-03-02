@@ -4,7 +4,7 @@
 
 MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and freelancers connect their payment platforms (Stripe, Etsy, Gumroad, PayPal, Shopify, etc.) and see all their income in one unified dashboard with real-time tracking, trends, goals, and CSV export.
 
-**Status:** Early development. Landing page and sign-in page are built; authentication is UI-only (not yet wired to providers).
+**Status:** Early development. Landing page, sign-in, waitlist, and dashboard pages are built. OAuth authentication is working (Google, Apple, Microsoft). Users currently land on the waitlist after sign-in (dashboard is built but waitlist is the active post-login destination).
 
 ## Tech Stack
 
@@ -12,7 +12,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Blazor Server** (Interactive Server render mode) — `blazor.web.js`
 - **Bootstrap** — bundled in `wwwroot/lib/bootstrap/`
 - **C#** — backend language
-- **Lamar** — IoC container (replaces default Microsoft DI); not yet installed
+- **Lamar** — IoC container (replaces default Microsoft DI)
 - **Razor Components** — UI layer (`.razor` files)
 
 ## Solution Structure
@@ -20,33 +20,45 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 ```
 My.Talli/
 ├── CLAUDE.md
-├── MyTalli_LandingPage.html      # Static landing page mockup
-├── MyTalli_Dashboard.html        # Static dashboard mockup (post-login)
-├── MyTalli_ColorPalette.html     # Brand color reference sheet (light mode)
-├── MyTalli_DarkModePalette.html  # Brand color reference sheet (dark mode)
+├── MyTalli_LandingPage.html        # Static landing page mockup
+├── MyTalli_Dashboard.html          # Static dashboard mockup (post-login)
+├── MyTalli_WaitlistConcepts.html   # Waitlist page design concepts (A/B/C)
+├── MyTalli_ColorPalette.html       # Brand color reference sheet (light mode)
+├── MyTalli_DarkModePalette.html    # Brand color reference sheet (dark mode)
 └── Source/
-    ├── My.Talli.slnx             # Solution file (XML-based .slnx format)
+    ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
-    └── My.Talli.Web/             # Blazor Server web project
+    └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
-        ├── Program.cs            # App entry point, service config
+        ├── Program.cs              # App entry point, service config, auth, endpoints
         ├── Components/
-        │   ├── App.razor         # Root HTML document
-        │   ├── Routes.razor      # Routing setup
-        │   ├── _Imports.razor    # Global usings
+        │   ├── App.razor           # Root HTML document
+        │   ├── Routes.razor        # Routing setup
+        │   ├── _Imports.razor      # Global usings
         │   ├── Layout/
         │   │   ├── LandingLayout.razor   # Minimal layout (no sidebar)
-        │   │   ├── MainLayout.razor      # Page layout shell
+        │   │   ├── MainLayout.razor      # Sidebar + content layout shell
         │   │   ├── MainLayout.razor.css
-        │   │   ├── NavMenu.razor         # Sidebar navigation
+        │   │   ├── NavMenu.razor         # Sidebar navigation (brand styled)
         │   │   └── NavMenu.razor.css
         │   └── Pages/
+        │       ├── Dashboard.razor       # Dashboard (route: /dashboard)
+        │       ├── Dashboard.razor.css
         │       ├── LandingPage.razor     # Landing page (route: /)
+        │       ├── LandingPage.razor.css
         │       ├── SignIn.razor          # Sign-in page (route: /signin)
-        │       ├── Waitlist.razor        # Waitlist confirmation (route: /waitlist)
+        │       ├── SignIn.razor.css
+        │       ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
+        │       ├── Waitlist.razor.css
         │       └── Error.razor
+        ├── Services/
+        │   └── Authentication/
+        │       ├── AppleAuthenticationHandler.cs
+        │       ├── GoogleAuthenticationHandler.cs
+        │       └── MicrosoftAuthenticationHandler.cs
         ├── ViewModels/
         │   └── Pages/
+        │       ├── DashboardViewModel.cs
         │       ├── LandingPageViewModel.cs
         │       ├── SignInViewModel.cs
         │       └── WaitlistViewModel.cs
@@ -149,10 +161,13 @@ dotnet run --project Source/My.Talli.Web
 ## Authentication
 
 - **No local passwords** — MyTalli does not store or manage usernames/passwords.
-- **External providers only:** Google, Apple, Microsoft (via OAuth)
-- **Current status:** UI-only (sign-in page with provider buttons; not yet wired to backend auth)
-- **Sign-in route:** `/signin`
-- **Waitlist route:** `/waitlist` — shown after sign-in; confirms user is on the waitlist
+- **External providers only:** Google, Apple, Microsoft (via OAuth) — all working
+- **Cookie auth** with 30-day sliding expiration
+- **Sign-in route:** `/signin` — provider selection page
+- **Login endpoint:** `/api/auth/login/{provider}` — triggers OAuth challenge, redirects to `/dashboard` on success
+- **Logout endpoint:** `/api/auth/logout` — clears cookie, redirects to `/?signed-out&name={name}`
+- **Sign-out toast:** Landing page detects `?signed-out` query param and shows a personalized auto-dismissing toast ("You've been signed out, {name}. See you next time!"), then strips the query param from the URL via `history.replaceState`
+- **Waitlist route:** `/waitlist` — launch progress tracker with milestone timeline (not a dead-end confirmation)
 
 ## Planned Features
 

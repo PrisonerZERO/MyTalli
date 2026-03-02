@@ -6,29 +6,12 @@
 <PageTitle>You're on the Waitlist — MyTalli</PageTitle>
 
 <div class="waitlist-page">
-    <!-- Purple swoosh background -->
-    <div class="hero-bg">
-        <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="swooshGrad" x1="0" x2="1" y1="0" y2="1">
-                    <stop offset="0%" stop-color="#6c5ce7" />
-                    <stop offset="50%" stop-color="#8b5cf6" />
-                    <stop offset="100%" stop-color="#6c5ce7" />
-                </linearGradient>
-            </defs>
-            <path d="M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z" fill="url(#swooshGrad)" />
-        </svg>
-        <div class="deco-circle deco-circle-1"></div>
-        <div class="deco-circle deco-circle-2"></div>
-        <div class="deco-circle deco-circle-3"></div>
-    </div>
+    <BrandHeader>
+        <a class="sign-out-btn" href="/api/auth/logout">Sign Out</a>
+    </BrandHeader>
 
     <div class="waitlist-shell">
         <div class="page-header">
-            <div class="top-bar">
-                <span class="logo">My<span>Talli</span></span>
-                <a class="sign-out-btn" href="/api/auth/logout">Sign Out</a>
-            </div>
 
             <div class="confirm-badge">
                 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
