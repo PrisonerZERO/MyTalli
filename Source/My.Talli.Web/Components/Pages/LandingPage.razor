@@ -5,6 +5,25 @@
 
 <PageTitle>MyTalli — All Your Side Hustle Revenue, One Dashboard</PageTitle>
 
+@if (ShowSignedOutToast)
+{
+    <div class="signout-toast">
+        <svg class="signout-toast-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        @if (!string.IsNullOrEmpty(SignedOutName))
+        {
+            <span>You've been signed out, @SignedOutName. See you next time!</span>
+        }
+        else
+        {
+            <span>You've been signed out. See you next time!</span>
+        }
+        <button class="signout-toast-dismiss" @onclick="DismissToast">&times;</button>
+    </div>
+}
+
 <!-- NAV -->
 <nav id="landing-nav">
     <a href="" class="logo" @onclick="ScrollToTop" @onclick:preventDefault>My<span>Talli</span></a>

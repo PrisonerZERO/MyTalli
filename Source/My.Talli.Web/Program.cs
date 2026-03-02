@@ -111,7 +111,7 @@ app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext con
 {
     var properties = new AuthenticationProperties
     {
-        RedirectUri = "/waitlist"
+        RedirectUri = "/dashboard"
     };
 
     var scheme = provider.ToLowerInvariant() switch
@@ -127,8 +127,14 @@ app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext con
 
 app.MapGet("/api/auth/logout", async (HttpContext context) =>
 {
+    var name = context.User.Identity?.Name;
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    context.Response.Redirect("/");
+
+    var redirect = string.IsNullOrEmpty(name)
+        ? "/?signed-out"
+        : $"/?signed-out&name={Uri.EscapeDataString(name)}";
+
+    context.Response.Redirect(redirect);
 });
 
 app.Run();

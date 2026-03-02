@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Waitlist Page Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1a1a2e;
+    background: #f8f7fc;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── CONCEPT SELECTOR ─── */
+  .concept-nav {
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .concept-btn {
+    background: #fff;
+    border: 2px solid #e0dce8;
+    border-radius: 10px;
+    color: #555;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 24px;
+    transition: all 0.15s ease;
+  }
+  .concept-btn:hover { border-color: #6c5ce7; color: #6c5ce7; }
+  .concept-btn.active { background: #6c5ce7; border-color: #6c5ce7; color: #fff; }
+
+  .concept-label {
+    background: #f0edff;
+    border-radius: 8px;
+    color: #6c5ce7;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 48px auto 24px;
+    padding: 6px 16px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* ─── SHARED PAGE SHELL ─── */
+  .concept { display: none; min-height: 100vh; padding: 0 0 80px; }
+  .concept.visible { display: block; }
+
+  .page-shell {
+    margin: 0 auto;
+    max-width: 680px;
+    padding: 0 24px;
+  }
+
+  .page-header {
+    padding-top: 48px;
+    text-align: center;
+  }
+
+  .logo {
+    color: #1a1a2e;
+    display: inline-block;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 32px;
+    text-decoration: none;
+  }
+  .logo span { color: #6c5ce7; }
+
+  .confirm-badge {
+    align-items: center;
+    background: rgba(39, 174, 96, 0.08);
+    border-radius: 10px;
+    color: #27ae60;
+    display: inline-flex;
+    font-size: 14px;
+    font-weight: 600;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 10px 20px;
+  }
+  .confirm-badge svg { flex-shrink: 0; height: 18px; width: 18px; }
+
+  .page-heading {
+    color: #1a1a2e;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+
+  .page-sub {
+    color: #999;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+
+  .back-link {
+    color: #6c5ce7;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 40px;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  .back-link:hover { color: #5a4bd1; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT A: VERTICAL TIMELINE */
+  /* ─────────────────────────── */
+  .timeline {
+    padding: 0 0 0 28px;
+    position: relative;
+  }
+
+  .timeline::before {
+    background: #e0dce8;
+    content: '';
+    height: 100%;
+    left: 11px;
+    position: absolute;
+    top: 0;
+    width: 2px;
+  }
+
+  .timeline-item {
+    padding: 0 0 32px 28px;
+    position: relative;
+  }
+  .timeline-item:last-child { padding-bottom: 0; }
+
+  .timeline-dot {
+    align-items: center;
+    border-radius: 50%;
+    display: flex;
+    height: 24px;
+    justify-content: center;
+    left: -40px;
+    position: absolute;
+    top: 0;
+    width: 24px;
+  }
+  .timeline-dot.done { background: #27ae60; }
+  .timeline-dot.in-progress { background: #6c5ce7; }
+  .timeline-dot.upcoming { background: #e0dce8; }
+
+  .timeline-dot svg { height: 12px; width: 12px; }
+
+  /* Pulse animation for in-progress */
+  .timeline-dot.in-progress::after {
+    animation: pulse 2s ease infinite;
+    border: 2px solid #6c5ce7;
+    border-radius: 50%;
+    content: '';
+    height: 24px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 24px;
+  }
+  @keyframes pulse {
+    0% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 0; transform: scale(1.8); }
+    100% { opacity: 0; transform: scale(1.8); }
+  }
+
+  .timeline-title {
+    color: #1a1a2e;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .timeline-item.is-upcoming .timeline-title { color: #999; }
+
+  .timeline-desc {
+    color: #999;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .timeline-status {
+    border-radius: 6px;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 6px;
+    padding: 3px 10px;
+    text-transform: uppercase;
+  }
+  .timeline-status.done { background: rgba(39, 174, 96, 0.08); color: #27ae60; }
+  .timeline-status.in-progress { background: #f0edff; color: #6c5ce7; }
+  .timeline-status.upcoming { background: #f8f7fc; color: #bbb; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT B: CHECKLIST CARDS  */
+  /* ─────────────────────────── */
+  .cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .milestone-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    display: flex;
+    gap: 16px;
+    padding: 20px 24px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .milestone-card:hover { border-color: #e0dce8; box-shadow: 0 4px 16px rgba(108, 92, 231, 0.05); }
+  .milestone-card.is-upcoming { opacity: 0.55; }
+
+  .card-icon {
+    align-items: center;
+    border-radius: 10px;
+    display: flex;
+    flex-shrink: 0;
+    height: 44px;
+    justify-content: center;
+    width: 44px;
+  }
+  .card-icon.done { background: rgba(39, 174, 96, 0.08); }
+  .card-icon.in-progress { background: #f0edff; }
+  .card-icon.upcoming { background: #f8f7fc; }
+  .card-icon svg { height: 20px; width: 20px; }
+
+  .card-body { flex: 1; min-width: 0; }
+  .card-top { align-items: center; display: flex; justify-content: space-between; margin-bottom: 4px; }
+
+  .card-title {
+    color: #1a1a2e;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .milestone-card.is-upcoming .card-title { color: #999; }
+
+  .card-status {
+    border-radius: 6px;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    text-transform: uppercase;
+  }
+  .card-status.done { background: rgba(39, 174, 96, 0.08); color: #27ae60; }
+  .card-status.in-progress { background: #f0edff; color: #6c5ce7; }
+  .card-status.upcoming { background: #f8f7fc; color: #bbb; }
+
+  .card-desc {
+    color: #999;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* Mini progress bar inside card */
+  .card-progress {
+    background: #f0edff;
+    border-radius: 99px;
+    height: 6px;
+    margin-top: 10px;
+    overflow: hidden;
+    width: 100%;
+  }
+  .card-progress-fill {
+    background: linear-gradient(90deg, #6c5ce7, #8b5cf6);
+    border-radius: 99px;
+    height: 100%;
+  }
+
+  /* ─────────────────────────── */
+  /* CONCEPT C: RING + LIST      */
+  /* ─────────────────────────── */
+  .ring-section {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 40px;
+  }
+
+  .big-ring {
+    height: 200px;
+    position: relative;
+    width: 200px;
+  }
+  .big-ring svg {
+    height: 100%;
+    transform: rotate(-90deg);
+    width: 100%;
+  }
+  .big-ring-bg { fill: none; stroke: #f0edff; stroke-width: 12; }
+  .big-ring-fill {
+    fill: none;
+    stroke: url(#ringGrad);
+    stroke-dasharray: 439.82;
+    stroke-dashoffset: 255.1;
+    stroke-linecap: round;
+    stroke-width: 12;
+    transition: stroke-dashoffset 1.5s ease;
+  }
+  .big-ring-text {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: center;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
+  .big-ring-pct {
+    color: #1a1a2e;
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    line-height: 1;
+  }
+  .big-ring-label {
+    color: #999;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  .ring-caption {
+    color: #555;
+    font-size: 15px;
+    font-weight: 500;
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .simple-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .simple-item {
+    align-items: center;
+    border-bottom: 1px solid #f0edff;
+    display: flex;
+    gap: 14px;
+    padding: 16px 0;
+  }
+  .simple-item:last-child { border-bottom: none; }
+
+  .simple-icon {
+    align-items: center;
+    border-radius: 50%;
+    display: flex;
+    flex-shrink: 0;
+    height: 32px;
+    justify-content: center;
+    width: 32px;
+  }
+  .simple-icon.done { background: rgba(39, 174, 96, 0.08); }
+  .simple-icon.in-progress { background: #f0edff; }
+  .simple-icon.upcoming { background: #f8f7fc; }
+  .simple-icon svg { height: 14px; width: 14px; }
+
+  .simple-text { flex: 1; }
+  .simple-title { color: #1a1a2e; font-size: 14px; font-weight: 600; }
+  .simple-item.is-upcoming .simple-title { color: #bbb; }
+  .simple-subtitle { color: #999; font-size: 12px; margin-top: 2px; }
+
+  .simple-badge {
+    border-radius: 6px;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    text-transform: uppercase;
+  }
+  .simple-badge.done { background: rgba(39, 174, 96, 0.08); color: #27ae60; }
+  .simple-badge.in-progress { background: #f0edff; color: #6c5ce7; }
+  .simple-badge.upcoming { background: #f8f7fc; color: #bbb; }
+</style>
+</head>
+<body>
+
+<!-- CONCEPT SELECTOR -->
+<div class="concept-nav">
+  <button class="concept-btn active" onclick="showConcept('a')">A — Vertical Timeline</button>
+  <button class="concept-btn" onclick="showConcept('b')">B — Checklist Cards</button>
+  <button class="concept-btn" onclick="showConcept('c')">C — Ring + List</button>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT A: VERTICAL TIMELINE            -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept visible" id="concept-a">
+  <div class="page-shell">
+    <div class="page-header">
+      <a class="logo" href="#">My<span>Talli</span></a>
+
+      <div class="confirm-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        You're on the waitlist, Sarah!
+      </div>
+
+      <h1 class="page-heading">We're building MyTalli</h1>
+      <p class="page-sub">Here's where we are on the road to launch. Check back anytime to see our progress.</p>
+    </div>
+
+    <div class="timeline">
+      <!-- Done -->
+      <div class="timeline-item">
+        <div class="timeline-dot done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="timeline-title">Authentication</div>
+        <div class="timeline-desc">Sign in with Google, Apple, and Microsoft</div>
+        <span class="timeline-status done">Complete</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="timeline-title">Dashboard &amp; Revenue Tracking</div>
+        <div class="timeline-desc">Unified view of all your side hustle income</div>
+        <span class="timeline-status done">Complete</span>
+      </div>
+
+      <!-- In progress -->
+      <div class="timeline-item">
+        <div class="timeline-dot in-progress">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="timeline-title">Stripe Connector</div>
+        <div class="timeline-desc">Connect your Stripe account and pull revenue data automatically</div>
+        <span class="timeline-status in-progress">In Progress</span>
+      </div>
+
+      <!-- Upcoming -->
+      <div class="timeline-item is-upcoming">
+        <div class="timeline-dot upcoming"></div>
+        <div class="timeline-title">Etsy Connector</div>
+        <div class="timeline-desc">Pull sales data from your Etsy shop</div>
+        <span class="timeline-status upcoming">Upcoming</span>
+      </div>
+
+      <div class="timeline-item is-upcoming">
+        <div class="timeline-dot upcoming"></div>
+        <div class="timeline-title">Gumroad Connector</div>
+        <div class="timeline-desc">Track digital product revenue from Gumroad</div>
+        <span class="timeline-status upcoming">Upcoming</span>
+      </div>
+
+      <div class="timeline-item is-upcoming">
+        <div class="timeline-dot upcoming"></div>
+        <div class="timeline-title">Goals &amp; CSV Export</div>
+        <div class="timeline-desc">Set monthly targets and export data for tax prep</div>
+        <span class="timeline-status upcoming">Upcoming</span>
+      </div>
+
+      <div class="timeline-item is-upcoming">
+        <div class="timeline-dot upcoming"></div>
+        <div class="timeline-title">Beta Launch</div>
+        <div class="timeline-desc">Early access for waitlist members — you'll be first in line</div>
+        <span class="timeline-status upcoming">Upcoming</span>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <a class="back-link" href="#">&larr; Back to homepage</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT B: CHECKLIST CARDS              -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept" id="concept-b">
+  <div class="page-shell">
+    <div class="page-header">
+      <a class="logo" href="#">My<span>Talli</span></a>
+
+      <div class="confirm-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        You're on the waitlist, Sarah!
+      </div>
+
+      <h1 class="page-heading">We're building MyTalli</h1>
+      <p class="page-sub">Here's where we are on the road to launch. Check back anytime to see our progress.</p>
+    </div>
+
+    <div class="cards-grid">
+      <!-- Done -->
+      <div class="milestone-card">
+        <div class="card-icon done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-title">Authentication</div>
+            <span class="card-status done">Complete</span>
+          </div>
+          <div class="card-desc">Sign in with Google, Apple, and Microsoft</div>
+        </div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="card-icon done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-title">Dashboard &amp; Revenue Tracking</div>
+            <span class="card-status done">Complete</span>
+          </div>
+          <div class="card-desc">Unified view of all your side hustle income</div>
+        </div>
+      </div>
+
+      <!-- In progress -->
+      <div class="milestone-card">
+        <div class="card-icon in-progress">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-title">Stripe Connector</div>
+            <span class="card-status in-progress">In Progress</span>
+          </div>
+          <div class="card-desc">Connect your Stripe account and pull revenue data automatically</div>
+          <div class="card-progress"><div class="card-progress-fill" style="width:60%"></div></div>
+        </div>
+      </div>
+
+      <!-- Upcoming -->
+      <div class="milestone-card is-upcoming">
+        <div class="card-icon upcoming">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-title">Etsy Connector</div>
+            <span class="card-status upcoming">Upcoming</span>
+          </div>
+          <div class="card-desc">Pull sales data from your Etsy shop</div>
+        </div>
+      </div>
+
+      <div class="milestone-card is-upcoming">
+        <div class="card-icon upcoming">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-title">Gumroad Connector</div>
+            <span class="card-status upcoming">Upcoming</span>
+          </div>
+          <div class="card-desc">Track digital product revenue from Gumroad</div>
+        </div>
+      </div>
+
+      <div class="milestone-card is-upcoming">
+        <div class="card-icon upcoming">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-title">Goals &amp; CSV Export</div>
+            <span class="card-status upcoming">Upcoming</span>
+          </div>
+          <div class="card-desc">Set monthly targets and export data for tax prep</div>
+        </div>
+      </div>
+
+      <div class="milestone-card is-upcoming">
+        <div class="card-icon upcoming">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round"><path d="M5 3l14 9-14 9V3z"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-title">Beta Launch</div>
+            <span class="card-status upcoming">Upcoming</span>
+          </div>
+          <div class="card-desc">Early access for waitlist members — you'll be first in line</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <a class="back-link" href="#">&larr; Back to homepage</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT C: RING + LIST                  -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept" id="concept-c">
+  <div class="page-shell">
+    <div class="page-header">
+      <a class="logo" href="#">My<span>Talli</span></a>
+
+      <div class="confirm-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        You're on the waitlist, Sarah!
+      </div>
+
+      <h1 class="page-heading">We're building MyTalli</h1>
+      <p class="page-sub">Here's where we are on the road to launch. Check back anytime to see our progress.</p>
+    </div>
+
+    <div class="ring-section">
+      <div class="big-ring">
+        <svg viewBox="0 0 160 160">
+          <defs>
+            <linearGradient id="ringGrad" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stop-color="#6c5ce7" />
+              <stop offset="100%" stop-color="#8b5cf6" />
+            </linearGradient>
+          </defs>
+          <circle class="big-ring-bg" cx="80" cy="80" r="70" />
+          <circle class="big-ring-fill" cx="80" cy="80" r="70" />
+        </svg>
+        <div class="big-ring-text">
+          <span class="big-ring-pct">42%</span>
+          <span class="big-ring-label">to launch</span>
+        </div>
+      </div>
+      <div class="ring-caption">3 of 7 milestones complete</div>
+    </div>
+
+    <div class="simple-list">
+      <!-- Done -->
+      <div class="simple-item">
+        <div class="simple-icon done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="simple-text">
+          <div class="simple-title">Authentication</div>
+          <div class="simple-subtitle">Google, Apple, Microsoft sign-in</div>
+        </div>
+        <span class="simple-badge done">Done</span>
+      </div>
+
+      <div class="simple-item">
+        <div class="simple-icon done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="simple-text">
+          <div class="simple-title">Dashboard &amp; Revenue Tracking</div>
+          <div class="simple-subtitle">Unified income view across all platforms</div>
+        </div>
+        <span class="simple-badge done">Done</span>
+      </div>
+
+      <!-- In progress -->
+      <div class="simple-item">
+        <div class="simple-icon in-progress">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#6c5ce7" stroke-width="2.5" stroke-linecap="round"><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="simple-text">
+          <div class="simple-title">Stripe Connector</div>
+          <div class="simple-subtitle">Automatic revenue import from Stripe</div>
+        </div>
+        <span class="simple-badge in-progress">In Progress</span>
+      </div>
+
+      <!-- Upcoming -->
+      <div class="simple-item is-upcoming">
+        <div class="simple-icon upcoming">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>
+        </div>
+        <div class="simple-text">
+          <div class="simple-title">Etsy Connector</div>
+          <div class="simple-subtitle">Shop sales data from Etsy</div>
+        </div>
+        <span class="simple-badge upcoming">Upcoming</span>
+      </div>
+
+      <div class="simple-item is-upcoming">
+        <div class="simple-icon upcoming">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>
+        </div>
+        <div class="simple-text">
+          <div class="simple-title">Gumroad Connector</div>
+          <div class="simple-subtitle">Digital product revenue from Gumroad</div>
+        </div>
+        <span class="simple-badge upcoming">Upcoming</span>
+      </div>
+
+      <div class="simple-item is-upcoming">
+        <div class="simple-icon upcoming">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>
+        </div>
+        <div class="simple-text">
+          <div class="simple-title">Goals &amp; CSV Export</div>
+          <div class="simple-subtitle">Monthly targets and tax-ready exports</div>
+        </div>
+        <span class="simple-badge upcoming">Upcoming</span>
+      </div>
+
+      <div class="simple-item is-upcoming">
+        <div class="simple-icon upcoming">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>
+        </div>
+        <div class="simple-text">
+          <div class="simple-title">Beta Launch</div>
+          <div class="simple-subtitle">Early access for waitlist members</div>
+        </div>
+        <span class="simple-badge upcoming">Upcoming</span>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <a class="back-link" href="#">&larr; Back to homepage</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function showConcept(id) {
+  document.querySelectorAll('.concept').forEach(c => c.classList.remove('visible'));
+  document.getElementById('concept-' + id).classList.add('visible');
+  document.querySelectorAll('.concept-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

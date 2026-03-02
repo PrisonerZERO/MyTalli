@@ -1,0 +1,236 @@
+@page "/dashboard"
+@inherits My.Talli.Web.ViewModels.Pages.DashboardViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Dashboard — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<div class="dash-hero">
+    <div class="dash-hero-bg">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="dashSwooshGrad" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#6c5ce7" />
+                    <stop offset="50%" stop-color="#8b5cf6" />
+                    <stop offset="100%" stop-color="#6c5ce7" />
+                </linearGradient>
+            </defs>
+            <path d="M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z" fill="url(#dashSwooshGrad)" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="dash-hero-bar">
+        <a class="sign-out-btn" data-enhance-nav="false" href="/api/auth/logout">Sign Out</a>
+    </div>
+
+    <div class="top-bar animate-in delay-1">
+        <div class="greeting">
+            <h1>Good morning, @UserFirstName</h1>
+            <p>Here's how your revenue is looking.</p>
+        </div>
+        <div class="period-pills">
+            @foreach (var period in Periods)
+            {
+                <button class="pill @(period == ActivePeriod ? "active" : "")"
+                        @onclick="() => SelectPeriod(period)">
+                    @period
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Summary cards -->
+<div class="summary-row animate-in delay-2">
+    <div class="summary-card">
+        <div class="card-label">Total Revenue</div>
+        <div class="card-value">@TotalRevenue.ToString("C0")</div>
+        <div class="card-badge">
+            <svg fill="none" viewBox="0 0 12 12">
+                <path d="M6 9V3M6 3L3 6M6 3l3 3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+            </svg>
+            @TotalRevenueChange vs last month
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-label">This Month</div>
+        <div class="card-value">@ThisMonthRevenue.ToString("C0")</div>
+        <div class="card-badge">
+            <svg fill="none" viewBox="0 0 12 12">
+                <path d="M6 9V3M6 3L3 6M6 3l3 3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+            </svg>
+            @ThisMonthChange vs last month
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-label">Platforms Connected</div>
+        <div class="card-value">@PlatformsConnected</div>
+        <div class="platform-dots">
+            @foreach (var platform in Platforms)
+            {
+                <div class="platform-dot" style="background:@platform.Color" title="@platform.Name"></div>
+            }
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-label">Monthly Goal</div>
+        <div class="card-value">@(MonthlyGoalPercentage)%</div>
+        <div class="mini-progress">
+            <div class="mini-progress-fill" style="width:@(MonthlyGoalPercentage)%"></div>
+        </div>
+        <div class="goal-label">@GoalCurrentAmount.ToString("C0") of @GoalTargetAmount.ToString("C0")</div>
+    </div>
+</div>
+
+<!-- Revenue chart -->
+<div class="chart-card animate-in delay-3">
+    <div class="chart-header">
+        <h3>Revenue Over Time</h3>
+        <div class="chart-legend">
+            <div class="legend-item">
+                <div class="legend-dot" style="background:#6c5ce7"></div> Revenue
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background:#e0dce8"></div> Previous period
+            </div>
+        </div>
+    </div>
+    <div class="chart-area">
+        <svg preserveAspectRatio="none" viewBox="0 0 800 200">
+            <defs>
+                <linearGradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#6c5ce7" stop-opacity="0.25" />
+                    <stop offset="100%" stop-color="#6c5ce7" stop-opacity="0.02" />
+                </linearGradient>
+                <linearGradient id="prevGrad" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#e0dce8" stop-opacity="0.15" />
+                    <stop offset="100%" stop-color="#e0dce8" stop-opacity="0.02" />
+                </linearGradient>
+            </defs>
+
+            <!-- Grid lines -->
+            <g class="chart-grid">
+                <line x1="0" x2="800" y1="40" y2="40" />
+                <line x1="0" x2="800" y1="80" y2="80" />
+                <line x1="0" x2="800" y1="120" y2="120" />
+                <line x1="0" x2="800" y1="160" y2="160" />
+            </g>
+
+            <!-- Y-axis labels -->
+            <text class="chart-label" x="0" y="38">$200</text>
+            <text class="chart-label" x="0" y="78">$150</text>
+            <text class="chart-label" x="0" y="118">$100</text>
+            <text class="chart-label" x="0" y="158">$50</text>
+
+            <!-- Previous period -->
+            <path d="@ChartPreviousAreaPath" fill="url(#prevGrad)" />
+            <path d="@ChartPreviousLinePath" fill="none" stroke="#e0dce8" stroke-width="2" />
+
+            <!-- Current period -->
+            <path d="@ChartCurrentAreaPath" fill="url(#chartGrad)" />
+            <path d="@ChartCurrentLinePath" fill="none" stroke="#6c5ce7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
+
+            <!-- Current value dot -->
+            <circle cx="796" cy="32" fill="#6c5ce7" r="5" />
+            <circle cx="796" cy="32" fill="#6c5ce7" opacity="0.2" r="8" />
+
+            <!-- X-axis labels -->
+            <text class="chart-label" x="40" y="196">Feb 1</text>
+            <text class="chart-label" x="175" y="196">Feb 6</text>
+            <text class="chart-label" x="310" y="196">Feb 11</text>
+            <text class="chart-label" x="445" y="196">Feb 16</text>
+            <text class="chart-label" x="580" y="196">Feb 21</text>
+            <text class="chart-label" x="715" y="196">Feb 26</text>
+        </svg>
+    </div>
+</div>
+
+<!-- Two-column: Platform Breakdown + Revenue Goal -->
+<div class="animate-in delay-4 two-col">
+    <!-- Platform Breakdown -->
+    <div class="section-card">
+        <h3>Platform Breakdown</h3>
+        @foreach (var platform in Platforms)
+        {
+            <div class="platform-row">
+                <div class="platform-color-dot" style="background:@platform.Color"></div>
+                <div class="platform-name">@platform.Name</div>
+                <div class="platform-bar-track">
+                    <div class="platform-bar-fill" style="background:@platform.Color; width:@(platform.Percentage)%"></div>
+                </div>
+                <div class="platform-amount">@platform.Amount.ToString("C0")</div>
+                <div class="platform-pct">@(platform.Percentage)%</div>
+            </div>
+        }
+    </div>
+
+    <!-- Revenue Goal -->
+    <div class="section-card">
+        <h3>Revenue Goal</h3>
+        <div class="goal-center">
+            <div class="circle-progress">
+                <svg viewBox="0 0 140 140">
+                    <defs>
+                        <linearGradient id="goalGrad" x1="0" x2="1" y1="0" y2="1">
+                            <stop offset="0%" stop-color="#6c5ce7" />
+                            <stop offset="100%" stop-color="#8b5cf6" />
+                        </linearGradient>
+                    </defs>
+                    <circle class="circle-bg" cx="70" cy="70" r="58" />
+                    <circle class="circle-fill" cx="70" cy="70" r="58"
+                            style="stroke-dasharray:@CircleStrokeDasharray; stroke-dashoffset:@CircleStrokeDashoffset" />
+                </svg>
+                <div class="circle-text">
+                    <span class="circle-pct">@(GoalPercentage)%</span>
+                    <span class="circle-sub">completed</span>
+                </div>
+            </div>
+            <div class="goal-amounts">@GoalCurrentAmount.ToString("C0") <span>/ @GoalTargetAmount.ToString("C0")</span></div>
+            <div class="goal-target">Monthly Target</div>
+            <div class="goal-status">
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                On track &mdash; @DaysRemaining days left
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="animate-in delay-5 transactions-card">
+    <div class="transactions-header">
+        <h3>Recent Transactions</h3>
+        <button class="view-all">View all &rarr;</button>
+    </div>
+    <table class="tx-table">
+        <thead>
+            <tr>
+                <th>Platform</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tx in RecentTransactions)
+            {
+                <tr>
+                    <td>
+                        <div class="tx-platform">
+                            <div class="tx-dot" style="background:@tx.PlatformColor"></div>
+                            <span class="tx-platform-name">@tx.PlatformName</span>
+                        </div>
+                    </td>
+                    <td>@tx.Description</td>
+                    <td>@tx.Date</td>
+                    <td>@tx.Amount.ToString("C2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
