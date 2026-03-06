@@ -242,9 +242,22 @@ dotnet run --project Source/My.Talli.Web
 - **Within each region**, order members by access modifier: `public` → `protected` → `private`
 - **Within each access level**, alphabetize members by name
 
-### CSS Class Ordering
+### CSS Formatting
 
-- Where possible, all CSS class attributes should be in alphabetical order.
+- Each CSS rule set must be written on a **single line** — selector, opening brace, all declarations, and closing brace.
+- Where possible, all CSS declarations within a rule should be in **alphabetical order**.
+
+```css
+/* Correct */
+.signin-page { background: #f8f7fc; min-height: 100vh; overflow: hidden; padding: 0 0 80px; position: relative; }
+.signin-shell { margin: 0 auto; max-width: 420px; position: relative; text-align: center; z-index: 2; }
+
+/* Wrong — do not use multi-line format */
+.signin-page {
+    background: #f8f7fc;
+    min-height: 100vh;
+}
+```
 
 ## Conventions
 

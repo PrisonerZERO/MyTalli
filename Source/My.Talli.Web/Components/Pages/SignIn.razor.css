@@ -1,128 +1,27 @@
-.signin-page {
-    background: #f8f7fc;
-    min-height: 100vh;
-    overflow: hidden;
-    padding: 0 0 80px;
-    position: relative;
-}
-
-.signin-shell {
-    margin: 0 auto;
-    max-width: 420px;
-    position: relative;
-    text-align: center;
-    z-index: 2;
-}
+.signin-page { background: #f8f7fc; min-height: 100vh; overflow: hidden; padding: 0 0 80px; position: relative; }
+.signin-shell { margin: 0 auto; max-width: 420px; position: relative; text-align: center; z-index: 2; }
 
 /* ─── HEADER TEXT ─── */
-.page-heading {
-    color: #fff;
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    margin-bottom: 8px;
-    padding-top: 24px;
-}
-
-.page-sub {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 32px;
-}
+.page-heading { color: #fff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; padding-top: 24px; }
+.page-sub { color: rgba(255, 255, 255, 0.7); font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
 
 /* ─── LOGIN CARD ─── */
-.login-card {
-    background: #ffffff;
-    border: 1px solid #e0dce8;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(108, 92, 231, 0.08);
-    padding: 36px 32px;
-    text-align: center;
-}
-
-.login-hint {
-    color: #6c5ce7;
-    font-size: 13px;
-    margin-bottom: 24px;
-}
-
-.login-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.login-btn {
-    align-items: center;
-    border-radius: 10px;
-    cursor: pointer;
-    display: flex;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    gap: 12px;
-    justify-content: center;
-    padding: 14px 24px;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-    width: 100%;
-}
-
-.login-btn:active {
-    transform: scale(0.98);
-}
-
-.login-btn-icon {
-    flex-shrink: 0;
-    height: 20px;
-    width: 20px;
-}
-
-.login-btn-google {
-    background: #ffffff;
-    border: 2px solid #e0dce8;
-    color: #1a1a2e;
-}
-
-.login-btn-google:hover {
-    border-color: #d0cbe0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.login-btn-apple {
-    background: #000000;
-    border: 2px solid #000000;
-    color: #ffffff;
-}
-
-.login-btn-apple:hover {
-    background: #1a1a1a;
-    border-color: #1a1a1a;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.login-btn-microsoft {
-    background: #ffffff;
-    border: 2px solid #e0dce8;
-    color: #1a1a2e;
-}
-
-.login-btn-microsoft:hover {
-    border-color: #d0cbe0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
+.login-card { background: #ffffff; border: 1px solid #e0dce8; border-radius: 16px; box-shadow: 0 4px 24px rgba(108, 92, 231, 0.08); padding: 36px 32px; text-align: center; }
+.login-hint { color: #6c5ce7; font-size: 13px; margin-bottom: 24px; }
+.login-buttons { display: flex; flex-direction: column; gap: 12px; }
+.login-btn { align-items: center; border-radius: 10px; cursor: pointer; display: flex; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; gap: 12px; justify-content: center; padding: 14px 24px; transition: background 0.2s, box-shadow 0.2s, transform 0.1s; width: 100%; }
+.login-btn:active { transform: scale(0.98); }
+.login-btn-icon { flex-shrink: 0; height: 20px; width: 20px; }
+.login-btn-google { background: #ffffff; border: 2px solid #e0dce8; color: #1a1a2e; }
+.login-btn-google:hover { border-color: #d0cbe0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+.login-btn-apple { background: #000000; border: 2px solid #000000; color: #ffffff; }
+.login-btn-apple:hover { background: #1a1a1a; border-color: #1a1a1a; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }
+.login-btn-microsoft { background: #ffffff; border: 2px solid #e0dce8; color: #1a1a2e; }
+.login-btn-microsoft:hover { border-color: #d0cbe0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
 
 /* ─── RESPONSIVE ─── */
 @media (max-width: 480px) {
-    .signin-page {
-        padding: 0 16px 60px;
-    }
-
-    .page-heading {
-        font-size: 24px;
-    }
-
-    .login-card {
-        padding: 28px 20px;
-    }
+    .signin-page { padding: 0 16px 60px; }
+    .page-heading { font-size: 24px; }
+    .login-card { padding: 28px 20px; }
 }
