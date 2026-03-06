@@ -1,0 +1,33 @@
+/* ─── ERROR PAGE ─── */
+.error-page { background: #f8f7fc; min-height: 100vh; overflow: hidden; padding: 0 0 80px; position: relative; }
+.error-shell { margin: 0 auto; max-width: 520px; padding: 0 24px; position: relative; text-align: center; z-index: 2; }
+
+/* ─── ICON ─── */
+.error-icon-wrap { align-items: center; background: rgba(255, 255, 255, 0.15); border-radius: 50%; display: flex; height: 96px; justify-content: center; margin: 32px auto 24px; width: 96px; }
+.error-icon { color: #fff; height: 44px; width: 44px; }
+
+/* ─── TEXT ─── */
+.error-code { color: rgba(255, 255, 255, 0.4); font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
+.error-title { color: #fff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+.error-desc { color: rgba(255, 255, 255, 0.7); font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+
+/* ─── ACTIONS ─── */
+.error-actions { display: flex; gap: 12px; justify-content: center; }
+.btn-primary-action { background: #fff; border: none; border-radius: 10px; color: #6c5ce7; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 14px 28px; transition: box-shadow 0.2s, transform 0.1s; }
+.btn-primary-action:hover { box-shadow: 0 4px 16px rgba(108, 92, 231, 0.2); transform: translateY(-1px); }
+.btn-primary-action:active { transform: scale(0.98); }
+
+/* ─── DEBUG ─── */
+.error-debug { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; display: inline-block; margin-top: 32px; padding: 12px 20px; }
+.debug-label { color: rgba(255, 255, 255, 0.5); font-size: 12px; font-weight: 500; margin-right: 8px; }
+.debug-value { background: rgba(0, 0, 0, 0.2); border-radius: 4px; color: #a78bfa; font-family: monospace; font-size: 12px; padding: 2px 8px; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 480px) {
+    .error-actions { flex-direction: column; }
+    .error-code { font-size: 48px; }
+    .error-icon-wrap { height: 80px; width: 80px; }
+    .error-icon { height: 36px; width: 36px; }
+    .error-page { padding: 0 16px 60px; }
+    .error-title { font-size: 24px; }
+}
