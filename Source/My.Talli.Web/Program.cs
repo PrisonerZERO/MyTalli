@@ -89,10 +89,11 @@ var app = builder.Build();
 
 // ---------------------
 // HTTP REQUEST PIPELINE
+app.UseExceptionHandler("/Error", createScopeForErrors: true);
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseStatusCodePagesWithReExecute("/Error/{0}");
     app.UseHsts();
 }
 
