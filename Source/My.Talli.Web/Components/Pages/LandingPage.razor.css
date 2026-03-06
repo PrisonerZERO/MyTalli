@@ -86,7 +86,7 @@ nav.on-dark ul a:hover { color: #fff; }
 .dash-plat-amt { color: #1a1a2e; font-size: 13px; font-weight: 600; }
 
 /* WAVE DIVIDER */
-.wave-divider { line-height: 0; overflow: hidden; width: 100%; }
+.wave-divider { bottom: 0; left: 0; line-height: 0; overflow: hidden; position: absolute; right: 0; z-index: 3; }
 .wave-divider svg { display: block; height: 80px; width: 100%; }
 
 /* HOW IT WORKS */
