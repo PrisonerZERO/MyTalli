@@ -1,36 +1,92 @@
-﻿@page "/Error"
-@using System.Diagnostics
+@page "/Error"
+@page "/Error/{StatusCode:int}"
+@layout Layout.LandingLayout
+@inherits My.Talli.Web.ViewModels.Pages.ErrorViewModel
 
-<PageTitle>Error</PageTitle>
+<PageTitle>@ErrorTitle — MyTalli</PageTitle>
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<div class="error-page">
+    <BrandHeader>
+        <a class="back-link" href="/">Back to homepage</a>
+    </BrandHeader>
 
-@if (ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@RequestId</code>
-    </p>
-}
+    <div class="error-shell">
+        <div class="error-icon-wrap">
+            @if (ErrorIcon == "warning-triangle")
+            {
+                <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" x2="12" y1="9" y2="13" />
+                    <line x1="12" x2="12.01" y1="17" y2="17" />
+                </svg>
+            }
+            else if (ErrorIcon == "lock")
+            {
+                <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <rect height="11" rx="2" ry="2" width="18" x="3" y="11" />
+                    <path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+            }
+            else if (ErrorIcon == "shield")
+            {
+                <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <line x1="9" x2="15" y1="12" y2="12" />
+                </svg>
+            }
+            else if (ErrorIcon == "search")
+            {
+                <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" x2="16.65" y1="21" y2="16.65" />
+                    <line x1="8" x2="14" y1="11" y2="11" />
+                </svg>
+            }
+            else if (ErrorIcon == "clock")
+            {
+                <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+            }
+            else if (ErrorIcon == "cloud-off")
+            {
+                <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M22.61 16.95A5 5 0 0018 10h-1.26a8 8 0 00-7.05-6M5 5a8 8 0 004 15h9a5 5 0 001.7-.3" />
+                    <line x1="1" x2="23" y1="1" y2="23" />
+                </svg>
+            }
+            else if (ErrorIcon == "tool")
+            {
+                <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+                </svg>
+            }
+            else
+            {
+                <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" x2="12" y1="8" y2="12" />
+                    <line x1="12" x2="12.01" y1="16" y2="16" />
+                </svg>
+            }
+        </div>
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+        <div class="error-code">@StatusCode</div>
+        <h1 class="error-title">@ErrorTitle</h1>
+        <p class="error-desc">@ErrorDescription</p>
 
-@code{
-    [CascadingParameter]
-    private HttpContext? HttpContext { get; set; }
+        <div class="error-actions">
+            <a class="btn-primary-action" href="/">Go to Homepage</a>
+            <button class="btn-secondary-action" onclick="history.back()">Go Back</button>
+        </div>
 
-    private string? RequestId { get; set; }
-    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-
-    protected override void OnInitialized() =>
-        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
-}
+        @if (ShowRequestId)
+        {
+            <div class="error-debug">
+                <span class="debug-label">Request ID:</span>
+                <code class="debug-value">@RequestId</code>
+            </div>
+        }
+    </div>
+</div>
