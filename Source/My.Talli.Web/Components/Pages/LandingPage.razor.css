@@ -40,7 +40,7 @@ nav.on-dark ul a:hover { color: #fff; }
 /* HERO */
 .hero { display: grid; grid-template-columns: 1fr 1fr; margin-top: 0; min-height: 100vh; overflow: hidden; position: relative; }
 .hero-left { display: flex; flex-direction: column; justify-content: center; padding: 120px 64px 80px 80px; position: relative; z-index: 2; }
-.hero-right { align-items: center; display: flex; justify-content: center; position: relative; z-index: 2; }
+.hero-right { align-items: center; display: flex; justify-content: center; padding-bottom: 100px; position: relative; z-index: 2; }
 
 /* Hero background shape */
 .hero-bg-shape { bottom: 0; left: 0; pointer-events: none; position: absolute; right: 0; top: 0; z-index: 1; }
@@ -52,7 +52,7 @@ nav.on-dark ul a:hover { color: #fff; }
 .deco-circle-4 { background: rgba(255,255,255,0.05); height: 140px; right: 28%; top: 20%; width: 140px; }
 .hero-tag { background: #f0edff; border-radius: 99px; color: #6c5ce7; display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 24px; padding: 6px 14px; text-transform: uppercase; width: fit-content; }
 .hero h1 { color: #1a1a2e; font-size: 52px; font-weight: 700; letter-spacing: -1.5px; line-height: 1.12; margin-bottom: 20px; }
-.hero h1 em { color: #6c5ce7; font-style: normal; }
+.hero h1 em { color: #f5c842; font-style: normal; }
 .hero p { color: #555; font-size: 18px; line-height: 1.65; margin-bottom: 36px; max-width: 460px; }
 
 /* WAITLIST BUTTON */
@@ -86,7 +86,7 @@ nav.on-dark ul a:hover { color: #fff; }
 .dash-plat-amt { color: #1a1a2e; font-size: 13px; font-weight: 600; }
 
 /* WAVE DIVIDER */
-.wave-divider { line-height: 0; overflow: hidden; width: 100%; }
+.wave-divider { bottom: 0; left: 0; line-height: 0; overflow: hidden; position: absolute; right: 0; z-index: 3; }
 .wave-divider svg { display: block; height: 80px; width: 100%; }
 
 /* HOW IT WORKS */
@@ -142,7 +142,18 @@ footer p { color: #999; font-size: 13px; }
 footer a { color: #999; font-size: 13px; text-decoration: none; }
 footer a:hover { color: #6c5ce7; }
 
-/* RESPONSIVE */
+/* RESPONSIVE — short viewport */
+@media (max-height: 820px) {
+    .dash-chart { height: 64px; margin-bottom: 16px; }
+    .dash-change { margin-bottom: 16px; }
+    .dash-header { margin-bottom: 16px; }
+    .dash-mockup { padding: 20px; width: 360px; }
+    .dash-plat { padding: 8px 12px; }
+    .dash-platforms { gap: 6px; }
+    .dash-total { font-size: 28px; }
+}
+
+/* RESPONSIVE — narrow viewport */
 @media (max-width: 900px) {
     .hero { grid-template-columns: 1fr; }
     .hero-left { padding: 60px 32px; }

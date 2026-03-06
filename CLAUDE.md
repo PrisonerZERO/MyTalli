@@ -28,6 +28,16 @@ My.Talli/
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
+    ├── Domain/                      # Domain layer (exceptions, shared types)
+    │   ├── Domain.csproj
+    │   └── Exceptions/
+    │       ├── TalliException.cs              # Abstract base (HttpStatusCode property)
+    │       ├── ForbiddenException.cs          # 403
+    │       ├── DatabaseConnectionFailedException.cs  # 403 (inherits Forbidden)
+    │       ├── NotFoundException.cs           # 404
+    │       ├── UnauthorizedException.cs       # 401
+    │       ├── SignInFailedException.cs        # 401 (inherits Unauthorized)
+    │       └── UnexpectedException.cs         # 500
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, service config, auth, endpoints
@@ -50,7 +60,8 @@ My.Talli/
         │   │   ├── SignIn.razor.css
         │   │   ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
         │   │   ├── Waitlist.razor.css
-        │   │   └── Error.razor
+        │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
+        │   │   └── Error.razor.css
         │   └── Shared/
         │       ├── BrandHeader.razor     # Reusable purple swoosh header (logo + action slot)
         │       └── BrandHeader.razor.css
@@ -63,6 +74,7 @@ My.Talli/
         │   ├── Pages/
         │   │   ├── DashboardViewModel.cs
         │   │   ├── LandingPageViewModel.cs
+        │   │   ├── ErrorViewModel.cs
         │   │   ├── SignInViewModel.cs
         │   │   └── WaitlistViewModel.cs
         │   └── Shared/
@@ -80,7 +92,7 @@ My.Talli/
 
 ### Solution Folders (in .slnx)
 
-- `/Foundation/` — shared/core projects (empty, reserved for future domain/infrastructure layers)
+- `/Foundation/` — shared/core projects (contains `Domain` project)
 - `/Presentation/` — contains `My.Talli.Web`
 
 ## Brand & Design
@@ -102,6 +114,7 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 | `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
 | `/waitlist` | `<BrandHeader>` | Yes | "Sign Out" link |
 | `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | "Sign Out" link |
+| `/Error` | `<BrandHeader>` | Yes | "Back to homepage" link |
 | `/` | None | Own nav logo | N/A |
 
 Swoosh visual: purple gradient SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7`) with 3 decorative circles (`rgba(255,255,255,0.07)`).
@@ -190,6 +203,17 @@ dotnet run --project Source/My.Talli.Web
 - **Logout endpoint:** `/api/auth/logout` — clears cookie, redirects to `/?signed-out&name={name}`
 - **Sign-out toast:** Landing page detects `?signed-out` query param and shows a personalized auto-dismissing toast ("You've been signed out, {name}. See you next time!"), then strips the query param from the URL via `history.replaceState`
 - **Waitlist route:** `/waitlist` — launch progress tracker with milestone timeline (not a dead-end confirmation)
+
+## Error Handling
+
+- **Error page routes:** `/Error` (unhandled exceptions) and `/Error/{StatusCode:int}` (HTTP status codes)
+- **Layout:** Uses `LandingLayout` + `BrandHeader` with "Back to homepage" link
+- **Static SSR:** No `@rendermode` — intentional so error pages work even when SignalR circuit fails
+- **Middleware:** `UseExceptionHandler("/Error")` + `UseStatusCodePagesWithReExecute("/Error/{0}")` — both active in all environments
+- **Router 404:** `Routes.razor` has a `<NotFound>` template that renders the Error component with `StatusCode="404"`
+- **Exception hierarchy:** `TalliException` (abstract base) exposes `HttpStatusCode` property. Subclasses: `ForbiddenException` (403), `NotFoundException` (404), `UnauthorizedException` (401), `UnexpectedException` (500). Specific exceptions inherit from these (e.g., `DatabaseConnectionFailedException` → `ForbiddenException`, `SignInFailedException` → `UnauthorizedException`)
+- **Status code resolution:** `ErrorViewModel` checks for `TalliException` via `IExceptionHandlerFeature` to extract the status code, falls back to `Response.StatusCode`, then 500
+- **Request ID:** Only shown in Development when an actual exception was caught (not on status-code-only errors)
 
 ## Planned Features
 
