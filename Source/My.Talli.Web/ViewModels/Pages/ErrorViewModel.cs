@@ -28,7 +28,8 @@ public class ErrorViewModel : ComponentBase
     public string? RequestId { get; private set; }
 
     public bool ShowRequestId => !string.IsNullOrEmpty(RequestId)
-                                 && Environment.IsDevelopment();
+                                 && Environment.IsDevelopment()
+                                 && HttpContext?.Features.Get<IExceptionHandlerFeature>() is not null;
 
     [Parameter]
     public int? StatusCode { get; set; }
