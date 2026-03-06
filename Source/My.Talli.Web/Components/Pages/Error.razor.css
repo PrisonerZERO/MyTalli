@@ -16,8 +16,8 @@
 .btn-primary-action { background: #fff; border: none; border-radius: 10px; color: #6c5ce7; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 14px 28px; text-decoration: none; transition: box-shadow 0.2s, transform 0.1s; }
 .btn-primary-action:hover { box-shadow: 0 4px 16px rgba(108, 92, 231, 0.2); transform: translateY(-1px); }
 .btn-primary-action:active { transform: scale(0.98); }
-.btn-secondary-action { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px; color: rgba(255, 255, 255, 0.9); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 14px 28px; transition: background 0.2s; }
-.btn-secondary-action:hover { background: rgba(255, 255, 255, 0.25); color: #fff; }
+.btn-secondary-action { background: transparent; border: 2px solid #6c5ce7; border-radius: 10px; color: #6c5ce7; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 14px 28px; transition: background 0.2s, border-color 0.2s; }
+.btn-secondary-action:hover { background: #6c5ce7; border-color: #6c5ce7; color: #fff; }
 
 /* ─── DEBUG ─── */
 .error-debug { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; display: inline-block; margin-top: 32px; padding: 12px 20px; }
