@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Diagnostics;
+using My.Talli.Domain.Exceptions;
 using System.Diagnostics;
 
 namespace My.Talli.Web.ViewModels.Pages;
@@ -53,7 +55,16 @@ public class ErrorViewModel : ComponentBase
 
     private void ResolveStatusCode()
     {
-        StatusCode ??= HttpContext?.Response.StatusCode ?? 500;
+        if (StatusCode.HasValue) return;
+
+        var exceptionFeature = HttpContext?.Features.Get<IExceptionHandlerFeature>();
+        if (exceptionFeature?.Error is TalliException talliException)
+        {
+            StatusCode = talliException.HttpStatusCode;
+            return;
+        }
+
+        StatusCode = HttpContext?.Response.StatusCode ?? 500;
     }
 
     private void SetErrorContent()
