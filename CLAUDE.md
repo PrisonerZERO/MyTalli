@@ -199,7 +199,9 @@ dotnet run --project Source/My.Talli.Web
 - **Hosting:** Azure Static Web Apps (Free tier) — "coming soon" landing page
 - **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned)
 - **Auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
-- **Analytics:** Free tier does not emit CDN metrics — no built-in visit tracking available
+- **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
+- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html` (copied from `MyTalli_LandingPage.html`)
+- **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
 
 ## Authentication
 
