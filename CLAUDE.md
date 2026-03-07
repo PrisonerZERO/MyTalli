@@ -200,8 +200,22 @@ dotnet run --project Source/My.Talli.Web
 - **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned)
 - **Auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
 - **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
-- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html` (copied from `MyTalli_LandingPage.html`)
+- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html` (copied from `MyTalli_LandingPage.html`), `robots.txt`, and `sitemap.xml`
 - **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
+
+### SEO
+
+The landing page (`MyTalli_LandingPage.html`) includes:
+- `meta description`, `robots`, `theme-color`, `canonical` URL
+- Open Graph tags (`og:type`, `og:url`, `og:title`, `og:description`) — `og:image` commented out pending share image
+- Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`) — `twitter:image` commented out pending share image
+- JSON-LD structured data (`SoftwareApplication` schema with free tier pricing)
+- **Favicon:** SVG (`/favicon.svg`) — "T" with ascending growth bars on purple rounded square, using primary purple `#6c5ce7` background and lavender `#a78bfa` bars. Source: `favicon-concepts/favicon-c-growth.svg`
+
+Deploy folder also contains:
+- `favicon.svg` — chosen favicon (concept C)
+- `robots.txt` — allows all crawlers, references sitemap
+- `sitemap.xml` — single entry for `https://www.mytalli.com/` (update as pages are added)
 
 ## Authentication
 
