@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Local secrets (deployment tokens, API keys)
+.secrets
+
 # Apple Sign-In private key
 *.p8
 
