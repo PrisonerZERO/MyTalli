@@ -326,6 +326,11 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 
 ## Rules
 
+### Task Completion
+
+- When you finish a task, **always explicitly say "Done."** or equivalent so it's clear the work is complete.
+- Do not wait for the user to ask "Are you done?" — proactively declare completion.
+
 ### Clean Up NUL Files
 
 - Bash on Windows creates an actual file named `nul` when using `2>nul` redirects (instead of discarding output to the Windows NUL device). **Always delete any `nul`/`NUL` files** that get created in the repo after running shell commands.
