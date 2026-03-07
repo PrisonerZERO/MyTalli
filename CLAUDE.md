@@ -21,14 +21,12 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 My.Talli/
 ├── .secrets                        # Local secrets file (git-ignored) — SWA deploy token
 ├── CLAUDE.md
-├── MyTalli_LandingPage.html        # Static landing page mockup
-├── MyTalli_Dashboard.html          # Static dashboard mockup (post-login)
-├── MyTalli_WaitlistConcepts.html   # Waitlist page design concepts (A/B/C)
-├── MyTalli_ColorPalette.html       # Brand color reference sheet (light mode)
-├── MyTalli_DarkModePalette.html    # Brand color reference sheet (dark mode)
+├── mytalli-logo.png                # Brand logo (transparent bg)
+├── mytalli-logo-white-bg.png       # Brand logo (white bg)
 ├── og-image.png                    # Social share image (1200×630) — source copy
+├── setup-iis.ps1                   # IIS setup script for local dev
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
-│   ├── index.html                  # Copied from MyTalli_LandingPage.html
+│   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
 │   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
 │   ├── og-image.png                # Social share image
 │   ├── robots.txt                  # Allows all crawlers, references sitemap
@@ -41,6 +39,13 @@ My.Talli/
 │   ├── og-image-capture.html       # Viewport-locked page for PNG capture
 │   ├── og-image-mockup.html        # OG image design mockup (1200×630)
 │   └── preview.html                # Side-by-side favicon comparison page
+├── wireframes/                     # Standalone HTML mockups & design concepts
+│   ├── MyTalli_ColorPalette.html   # Brand color reference sheet (light mode)
+│   ├── MyTalli_DarkModePalette.html # Brand color reference sheet (dark mode)
+│   ├── MyTalli_Dashboard.html      # Static dashboard mockup (post-login)
+│   ├── MyTalli_LandingPage.html    # Static landing page mockup
+│   ├── MyTalli_SuggestionBoxConcepts.html # Suggestion box design concepts (A/B/C)
+│   └── MyTalli_WaitlistConcepts.html # Waitlist page design concepts (A/B/C)
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
@@ -74,6 +79,8 @@ My.Talli/
         │   │   ├── LandingPage.razor.css
         │   │   ├── SignIn.razor          # Sign-in page (route: /signin)
         │   │   ├── SignIn.razor.css
+        │   │   ├── SuggestionBox.razor       # Suggestion box (route: /suggestions)
+        │   │   ├── SuggestionBox.razor.css
         │   │   ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
         │   │   ├── Waitlist.razor.css
         │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
@@ -92,6 +99,7 @@ My.Talli/
         │   │   ├── LandingPageViewModel.cs
         │   │   ├── ErrorViewModel.cs
         │   │   ├── SignInViewModel.cs
+        │   │   ├── SuggestionBoxViewModel.cs
         │   │   └── WaitlistViewModel.cs
         │   └── Shared/
         │       └── BrandHeaderViewModel.cs
@@ -113,7 +121,7 @@ My.Talli/
 
 ## Brand & Design
 
-> **Source of truth:** `MyTalli_ColorPalette.html` (light) and `MyTalli_DarkModePalette.html` (dark) — keep this section in sync with those files.
+> **Source of truth:** `wireframes/MyTalli_ColorPalette.html` (light) and `wireframes/MyTalli_DarkModePalette.html` (dark) — keep this section in sync with those files.
 
 - **Color palette tool:** [Coolors](https://coolors.co) — used to create and manage the brand palette
 
@@ -130,6 +138,7 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 | `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
 | `/waitlist` | `<BrandHeader>` | Yes | "Sign Out" link |
 | `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | "Sign Out" link |
+| `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button |
 | `/Error` | `<BrandHeader>` | Yes | "Back to homepage" link |
 | `/` | None | Own nav logo | N/A |
 
@@ -224,7 +233,7 @@ dotnet run --project Source/My.Talli.Web
 
 ### SEO
 
-The landing page (`MyTalli_LandingPage.html`) includes:
+The landing page (`wireframes/MyTalli_LandingPage.html`) includes:
 - `meta description`, `robots`, `theme-color`, `canonical` URL
 - Open Graph tags (`og:type`, `og:url`, `og:title`, `og:description`, `og:image`)
 - Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`)
@@ -234,7 +243,7 @@ The landing page (`MyTalli_LandingPage.html`) includes:
 
 ### Accessibility
 
-The landing page (`deploy/index.html` and `MyTalli_LandingPage.html`) includes:
+The landing page (`deploy/index.html` and `wireframes/MyTalli_LandingPage.html`) includes:
 - **Skip navigation** — hidden "Skip to main content" link, visible on keyboard focus (`.skip-link`)
 - **Landmarks** — `<main id="main">`, `<nav aria-label="Main navigation">`, `<footer role="contentinfo">`
 - **Section labeling** — `aria-labelledby` on each content section pointing to its `<h2>` id; `aria-label="Hero"` on hero section
