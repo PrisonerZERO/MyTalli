@@ -5,13 +5,16 @@
 
 <PageTitle>@ErrorTitle — MyTalli</PageTitle>
 
+<a href="#main" class="skip-link">Skip to main content</a>
+
 <div class="error-page">
     <BrandHeader>
         <a class="back-link" href="/">Back to homepage</a>
     </BrandHeader>
 
-    <div class="error-shell">
-        <div class="error-icon-wrap">
+    <main id="main">
+        <div class="error-shell">
+            <div class="error-icon-wrap" aria-hidden="true">
             @if (ErrorIcon == "warning-triangle")
             {
                 <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
@@ -70,22 +73,23 @@
                     <line x1="12" x2="12.01" y1="16" y2="16" />
                 </svg>
             }
-        </div>
-
-        <div class="error-code">@StatusCode</div>
-        <h1 class="error-title">@ErrorTitle</h1>
-        <p class="error-desc">@ErrorDescription</p>
-
-        <div class="error-actions">
-            <button class="btn-primary-action" onclick="history.back()">Go Back</button>
-        </div>
-
-        @if (ShowRequestId)
-        {
-            <div class="error-debug">
-                <span class="debug-label">Request ID:</span>
-                <code class="debug-value">@RequestId</code>
             </div>
-        }
-    </div>
+
+            <div class="error-code">@StatusCode</div>
+            <h1 class="error-title">@ErrorTitle</h1>
+            <p class="error-desc">@ErrorDescription</p>
+
+            <div class="error-actions">
+                <button class="btn-primary-action" onclick="history.back()">Go Back</button>
+            </div>
+
+            @if (ShowRequestId)
+            {
+                <div class="error-debug">
+                    <span class="debug-label">Request ID:</span>
+                    <code class="debug-value">@RequestId</code>
+                </div>
+            }
+        </div>
+    </main>
 </div>

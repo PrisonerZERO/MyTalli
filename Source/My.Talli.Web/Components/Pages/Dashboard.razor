@@ -6,7 +6,7 @@
 
 <!-- Swoosh hero -->
 <div class="dash-hero">
-    <div class="dash-hero-bg">
+    <div class="dash-hero-bg" aria-hidden="true">
         <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="dashSwooshGrad" x1="0" x2="1" y1="0" y2="1">
@@ -49,7 +49,7 @@
         <div class="card-label">Total Revenue</div>
         <div class="card-value">@TotalRevenue.ToString("C0")</div>
         <div class="card-badge">
-            <svg fill="none" viewBox="0 0 12 12">
+            <svg aria-hidden="true" fill="none" viewBox="0 0 12 12">
                 <path d="M6 9V3M6 3L3 6M6 3l3 3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
             </svg>
             @TotalRevenueChange vs last month
@@ -59,7 +59,7 @@
         <div class="card-label">This Month</div>
         <div class="card-value">@ThisMonthRevenue.ToString("C0")</div>
         <div class="card-badge">
-            <svg fill="none" viewBox="0 0 12 12">
+            <svg aria-hidden="true" fill="none" viewBox="0 0 12 12">
                 <path d="M6 9V3M6 3L3 6M6 3l3 3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
             </svg>
             @ThisMonthChange vs last month
@@ -86,7 +86,7 @@
 </div>
 
 <!-- Revenue chart -->
-<div class="chart-card animate-in delay-3">
+<div class="chart-card animate-in delay-3" role="img" aria-label="Revenue over time line chart showing current and previous period trends">
     <div class="chart-header">
         <h3>Revenue Over Time</h3>
         <div class="chart-legend">
@@ -191,7 +191,7 @@
             <div class="goal-amounts">@GoalCurrentAmount.ToString("C0") <span>/ @GoalTargetAmount.ToString("C0")</span></div>
             <div class="goal-target">Monthly Target</div>
             <div class="goal-status">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
