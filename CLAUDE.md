@@ -193,6 +193,14 @@ dotnet run --project Source/My.Talli.Web
 - HTTPS: `https://localhost:7012`
 - HTTP: `http://localhost:5034`
 
+## Infrastructure
+
+- **Domain registrar:** GoDaddy — `mytalli.com`
+- **Hosting:** Azure Static Web Apps (Free tier) — "coming soon" landing page
+- **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned)
+- **Auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
+- **Analytics:** Free tier does not emit CDN metrics — no built-in visit tracking available
+
 ## Authentication
 
 - **No local passwords** — MyTalli does not store or manage usernames/passwords.
