@@ -229,6 +229,21 @@ The landing page (`MyTalli_LandingPage.html`) includes:
 - **Favicon:** SVG (`/favicon.svg`) — "T" with ascending growth bars on purple rounded square, using primary purple `#6c5ce7` background and lavender `#a78bfa` bars. Source: `favicon-concepts/favicon-c-growth.svg`
 - **OG Share Image:** PNG (`/og-image.png`, 1200×630) — dark navy gradient with favicon icon, "MyTalli" title (lavender accent), tagline with yellow "One dashboard.", platform pills with brand colors (Stripe, Etsy, Gumroad, PayPal, Shopify), and `www.mytalli.com` footer. Source mockup: `favicon-concepts/og-image-mockup.html`
 
+### Accessibility
+
+The landing page (`deploy/index.html` and `MyTalli_LandingPage.html`) includes:
+- **Skip navigation** — hidden "Skip to main content" link, visible on keyboard focus (`.skip-link`)
+- **Landmarks** — `<main id="main">`, `<nav aria-label="Main navigation">`, `<footer role="contentinfo">`
+- **Section labeling** — `aria-labelledby` on each content section pointing to its `<h2>` id; `aria-label="Hero"` on hero section
+- **Decorative hiding** — `aria-hidden="true"` on hero background shapes, wave divider SVG, section tags, and step numbers
+- **Dashboard mockup** — `role="img"` with descriptive `aria-label` (announced as a single image, inner elements hidden)
+- **Emoji icons** — wrapped in `<span role="img" aria-label="...">` with descriptive labels
+- **Pricing checkmarks** — visually-hidden `<span class="sr-only">Included: </span>` prefix on each list item
+- **Step context** — `aria-label="Step 1: Connect your platforms"` etc. on each `.step` div
+- **Logo** — `aria-label="MyTalli, go to top of page"` on nav logo link
+- **Focus indicators** — `:focus-visible { outline: 3px solid #6c5ce7; outline-offset: 2px; }`
+- **Utility class** — `.sr-only` for visually-hidden screen-reader-only text
+
 Deploy folder also contains:
 - `favicon.svg` — chosen favicon (concept C)
 - `og-image.png` — social share image (1200×630 PNG)
