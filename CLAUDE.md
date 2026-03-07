@@ -372,6 +372,18 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - Follow standard .NET/Blazor project conventions
 - Namespace root: `My.Talli`
 
+## Testing Tools
+
+- **WAVE** (wave.webaim.org) — web accessibility evaluation tool. Paste a URL to get a visual overlay of ARIA landmarks, contrast errors, heading structure, and missing labels. Note: WAVE cannot evaluate contrast for text over positioned/overlapping backgrounds (e.g., nav links over the hero gradient) — expect false positives there.
+- **Lighthouse** — built into Chrome DevTools (F12 > Lighthouse tab). Scores accessibility, performance, SEO, and best practices out of 100.
+- **axe DevTools** — Chrome extension by Deque. Runs in the Elements panel and catches WCAG violations with fix suggestions.
+- **NVDA** (nvaccess.org) — free Windows screen reader for manual testing of the full blind-user experience.
+
+### Accessibility Notes
+
+- **WAVE contrast errors (28):** Mostly false positives from nav links (`rgba(255,255,255,0.85)`) over the purple hero gradient — WAVE sees them against the white `<body>` background. A few real failures exist on platform brand colors (Shopify `#96bf48`, Gumroad `#ff90e8`, Etsy `#f56400` on `#f8f7fc`), but these are intentional brand colors kept as-is.
+- **WAVE alert (1):** Skipped heading level — the `<h3>` inside the dashboard mockup jumps from `<h1>`. Harmless because the mockup is marked `role="img"` with a descriptive `aria-label`.
+
 ## Blazor TODO
 
 Features already shipped in the static HTML landing page (`deploy/index.html`) that still need to be ported to the Blazor app:
