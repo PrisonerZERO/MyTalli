@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OG Image Mockup — 1200x630</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body { background: #f8f7fc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: 'DM Sans', sans-serif; }
+.og-frame { width: 1200px; height: 630px; position: relative; overflow: hidden; background: linear-gradient(135deg, #1a1a2e 0%, #2a2154 50%, #1a1a2e 100%); display: flex; align-items: center; justify-content: center; flex-direction: column; }
+/* Decorative circles like the swoosh */
+.og-frame::before { content: ''; position: absolute; top: -80px; right: -80px; width: 300px; height: 300px; border-radius: 50%; background: rgba(108, 92, 231, 0.15); }
+.og-frame::after { content: ''; position: absolute; bottom: -60px; left: -60px; width: 250px; height: 250px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); }
+.og-content { position: relative; z-index: 1; text-align: center; }
+.og-icon { width: 120px; height: 120px; margin: 0 auto 32px; }
+.og-title { color: #e8e6f0; font-size: 56px; font-weight: 700; letter-spacing: -1px; margin: 0 0 12px; }
+.og-title span { color: #a78bfa; }
+.og-tagline { color: #e8e6f0; font-size: 26px; font-weight: 400; margin: 0 0 32px; }
+.og-tagline em { color: #f5c842; font-style: normal; font-weight: 600; }
+.og-platforms { display: flex; gap: 20px; justify-content: center; }
+.og-platforms span { background: #242440; border: 1px solid #2a2745; border-radius: 20px; font-size: 16px; font-weight: 600; padding: 10px 24px; }
+.og-platforms .p-stripe { color: #635bff; }
+.og-platforms .p-etsy { color: #f56400; }
+.og-platforms .p-gumroad { color: #ff90e8; }
+.og-platforms .p-paypal { color: #2a7fff; }
+.og-platforms .p-shopify { color: #96bf48; }
+.og-url { bottom: 28px; color: #a09cae; font-size: 16px; font-weight: 500; position: absolute; }
+</style>
+</head>
+<body>
+<div class="og-frame">
+  <div class="og-content">
+    <svg class="og-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="7" fill="#6c5ce7"/>
+      <text x="16" y="19" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="700" font-size="18" fill="#ffffff">T</text>
+      <rect x="8" y="25" width="4" height="3" rx="0.5" fill="#a78bfa"/>
+      <rect x="14" y="23" width="4" height="5" rx="0.5" fill="#a78bfa"/>
+      <rect x="20" y="21" width="4" height="7" rx="0.5" fill="#a78bfa"/>
+    </svg>
+    <h1 class="og-title">My<span>Talli</span></h1>
+    <p class="og-tagline">All your side hustle revenue. <em>One dashboard.</em></p>
+    <div class="og-platforms">
+      <span class="p-stripe">Stripe</span>
+      <span class="p-etsy">Etsy</span>
+      <span class="p-gumroad">Gumroad</span>
+      <span class="p-paypal">PayPal</span>
+      <span class="p-shopify">Shopify</span>
+    </div>
+  </div>
+  <span class="og-url">www.mytalli.com</span>
+</div>
+</body>
+</html>

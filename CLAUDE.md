@@ -25,6 +25,21 @@ My.Talli/
 ├── MyTalli_WaitlistConcepts.html   # Waitlist page design concepts (A/B/C)
 ├── MyTalli_ColorPalette.html       # Brand color reference sheet (light mode)
 ├── MyTalli_DarkModePalette.html    # Brand color reference sheet (dark mode)
+├── og-image.png                    # Social share image (1200×630) — source copy
+├── deploy/                         # Azure SWA deploy folder (static HTML era)
+│   ├── index.html                  # Copied from MyTalli_LandingPage.html
+│   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
+│   ├── og-image.png                # Social share image
+│   ├── robots.txt                  # Allows all crawlers, references sitemap
+│   └── sitemap.xml                 # Site map for search engines
+├── favicon-concepts/               # Favicon & OG image design assets
+│   ├── favicon-a-lettermark.svg    # Concept A — bold T lettermark
+│   ├── favicon-b-tally.svg         # Concept B — tally marks
+│   ├── favicon-c-growth.svg        # Concept C — T + growth bars (CHOSEN)
+│   ├── favicon-d-tgraph.svg        # Concept D — T with graph behind
+│   ├── og-image-capture.html       # Viewport-locked page for PNG capture
+│   ├── og-image-mockup.html        # OG image design mockup (1200×630)
+│   └── preview.html                # Side-by-side favicon comparison page
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
@@ -200,8 +215,25 @@ dotnet run --project Source/My.Talli.Web
 - **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned)
 - **Auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
 - **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
-- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html` (copied from `MyTalli_LandingPage.html`)
+- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, and `sitemap.xml`
 - **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
+- **Migration note:** The `deploy/` and `favicon-concepts/` folders are for the current static HTML landing page era. When the Blazor app is deployed, static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) will move into `wwwroot/` and the `deploy/` folder will no longer be needed.
+
+### SEO
+
+The landing page (`MyTalli_LandingPage.html`) includes:
+- `meta description`, `robots`, `theme-color`, `canonical` URL
+- Open Graph tags (`og:type`, `og:url`, `og:title`, `og:description`, `og:image`)
+- Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`)
+- JSON-LD structured data (`SoftwareApplication` schema with free tier pricing)
+- **Favicon:** SVG (`/favicon.svg`) — "T" with ascending growth bars on purple rounded square, using primary purple `#6c5ce7` background and lavender `#a78bfa` bars. Source: `favicon-concepts/favicon-c-growth.svg`
+- **OG Share Image:** PNG (`/og-image.png`, 1200×630) — dark navy gradient with favicon icon, "MyTalli" title (lavender accent), tagline with yellow "One dashboard.", platform pills with brand colors (Stripe, Etsy, Gumroad, PayPal, Shopify), and `www.mytalli.com` footer. Source mockup: `favicon-concepts/og-image-mockup.html`
+
+Deploy folder also contains:
+- `favicon.svg` — chosen favicon (concept C)
+- `og-image.png` — social share image (1200×630 PNG)
+- `robots.txt` — allows all crawlers, references sitemap
+- `sitemap.xml` — single entry for `https://www.mytalli.com/` (update as pages are added)
 
 ## Authentication
 
@@ -225,6 +257,42 @@ dotnet run --project Source/My.Talli.Web
 - **Status code resolution:** `ErrorViewModel` checks for `TalliException` via `IExceptionHandlerFeature` to extract the status code, falls back to `Response.StatusCode`, then 500
 - **Request ID:** Only shown in Development when an actual exception was caught (not on status-code-only errors)
 
+## Platform API Notes
+
+Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data.
+
+### Stripe
+
+- **API:** REST API (extensive) — [docs.stripe.com/api](https://docs.stripe.com/api)
+- **Auth:** OAuth via Stripe Connect (Standard or Express) — user authorizes MyTalli to read their account
+- **Key endpoints:** Balance Transactions (charges, refunds, fees, payouts), Charges, PaymentIntents, Reports API (scheduled CSV reports), Revenue Recognition API
+- **Data richness:** Excellent — granular transaction-level data, fees, net amounts, metadata
+- **Caveats:** None significant. Best-documented API of the three.
+
+### Etsy
+
+- **API:** Etsy Open API v3 (REST) — [developers.etsy.com](https://developers.etsy.com/)
+- **Auth:** OAuth 2.0 (PKCE flow)
+- **Key endpoints:** Shop Receipts (orders/sales per shop), Transactions (line-item detail), Payments (payment & transaction lookups by shop/listing/receipt)
+- **Data richness:** Good — order-level sales, item details, shop stats
+- **Caveats:** Multi-seller apps (like MyTalli) require **commercial access approval** from Etsy. Must apply and be approved before production use.
+
+### Gumroad
+
+- **API:** REST API — [gumroad.com/api](https://gumroad.com/api)
+- **Auth:** OAuth 2.0
+- **Key endpoints:** Sales (list sales with filtering), Products (product info & pricing), Subscribers (subscription data)
+- **Data richness:** Basic — covers sales and products but less granular than Stripe (no fee breakdowns, limited filtering)
+- **Caveats:** Simpler API overall. Sufficient for revenue aggregation but won't support deep financial reporting.
+
+### PayPal (not yet researched in detail)
+
+- Known to have extensive REST APIs and OAuth for third-party access. Needs detailed review before integration.
+
+### Shopify (not yet researched in detail)
+
+- Known to have Admin API (REST + GraphQL) with OAuth. Needs detailed review before integration.
+
 ## Planned Features
 
 - Real-time revenue tracking across connected platforms
@@ -239,6 +307,10 @@ dotnet run --project Source/My.Talli.Web
 - **Pro ($12/mo or $99/year):** Unlimited platforms, full history, goals, weekly emails, CSV export
 
 ## Rules
+
+### Clean Up NUL Files
+
+- Bash on Windows creates an actual file named `nul` when using `2>nul` redirects (instead of discarding output to the Windows NUL device). **Always delete any `nul`/`NUL` files** that get created in the repo after running shell commands.
 
 ### No Inline Code Blocks
 

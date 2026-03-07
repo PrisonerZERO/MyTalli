@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Concept A: Bold "T" on purple rounded square -->
+  <rect width="32" height="32" rx="7" fill="#6c5ce7"/>
+  <text x="16" y="24" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="700" font-size="22" fill="#ffffff">T</text>
+</svg>

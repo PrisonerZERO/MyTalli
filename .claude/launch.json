@@ -6,6 +6,12 @@
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "Source/My.Talli.Web"],
       "port": 5034
+    },
+    {
+      "name": "landing-page",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": ["/c", "npx", "http-server", ".", "-p", "8090", "-c-1"],
+      "port": 8090
     }
   ]
 }
