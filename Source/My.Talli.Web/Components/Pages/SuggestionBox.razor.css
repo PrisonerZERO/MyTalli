@@ -1,13 +1,13 @@
 /* ─── SWOOSH HERO ─── */
-.suggest-hero { margin: -32px -40px 32px; overflow: hidden; padding: 24px 40px 40px; position: relative; }
-.suggest-hero-bg { height: 100%; left: 0; pointer-events: none; position: absolute; right: 0; top: 0; }
-.suggest-hero-bg svg { display: block; height: 100%; min-height: 280px; width: 100%; }
+.suggest-hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); margin: -32px -40px 32px; overflow: hidden; padding: 24px 40px 32px; position: relative; }
+.suggest-hero-bg { bottom: 0; left: 0; pointer-events: none; position: absolute; right: 0; }
+.suggest-hero-bg svg { display: block; height: 40px; width: 100%; }
 .deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
 .deco-circle-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
 .deco-circle-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
 .deco-circle-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
 .suggest-hero-content { position: relative; z-index: 2; }
-.suggest-hero-top { align-items: center; display: flex; justify-content: space-between; margin-bottom: 24px; }
+.suggest-hero-top { align-items: center; display: flex; justify-content: space-between; margin-bottom: 8px; }
 .suggest-hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
 .suggest-hero p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
 
@@ -16,10 +16,13 @@
 .suggest-new-btn svg { height: 16px; width: 16px; }
 
 /* ─── STATS ─── */
-.suggest-stats { display: flex; gap: 24px; margin-top: 20px; }
+.suggest-stats { display: flex; gap: 28px; margin-top: 8px; }
 .suggest-stat { align-items: center; display: flex; gap: 8px; }
-.suggest-stat-num { color: #fff; font-size: 22px; font-weight: 700; }
+.suggest-stat-num { font-size: 22px; font-weight: 700; }
 .suggest-stat-label { color: rgba(255, 255, 255, 0.6); font-size: 13px; }
+.suggest-stat:nth-child(1) .suggest-stat-num { color: #a78bfa; }
+.suggest-stat:nth-child(2) .suggest-stat-num { color: #f5c842; }
+.suggest-stat:nth-child(3) .suggest-stat-num { color: #fff; }
 
 /* ─── TOOLBAR ─── */
 .suggest-toolbar { align-items: center; display: flex; gap: 12px; margin-bottom: 24px; }
