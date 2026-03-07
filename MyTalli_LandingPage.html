@@ -48,6 +48,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
 <style>
+  /* Skip Link */
+  .skip-link { background: #6c5ce7; border-radius: 0 0 8px 8px; color: #fff; font-size: 14px; font-weight: 600; left: 50%; padding: 10px 20px; position: fixed; top: -100%; transform: translateX(-50%); z-index: 200; }
+  .skip-link:focus { top: 0; }
+
+  /* Focus Indicators */
+  :focus-visible { outline: 3px solid #6c5ce7; outline-offset: 2px; }
+
+  /* Visually Hidden (screen reader only) */
+  .sr-only { border: 0; clip: rect(0,0,0,0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; width: 1px; }
+
   /* Component Reset */
   *, *::before, *::after {
       box-sizing: border-box;
@@ -743,9 +753,12 @@
 </head>
 <body>
 
+<!-- SKIP LINK -->
+<a href="#main" class="skip-link">Skip to main content</a>
+
 <!-- NAV -->
-<nav>
-    <a href="#" class="logo" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">My<span>Talli</span></a>
+<nav aria-label="Main navigation">
+    <a href="#" class="logo" aria-label="MyTalli, go to top of page" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">My<span>Talli</span></a>
     <ul>
         <li><a href="#how">How It Works</a></li>
         <li><a href="#features">Features</a></li>
@@ -753,9 +766,12 @@
     </ul>
 </nav>
 
+<!-- MAIN CONTENT -->
+<main id="main">
+
 <!-- HERO -->
-<section class="hero">
-    <div class="hero-bg-shape">
+<section class="hero" aria-label="Hero">
+    <div class="hero-bg-shape" aria-hidden="true">
         <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="blobGrad" x1="0" y1="0" x2="1" y2="1">
@@ -785,7 +801,7 @@
         <p>Connect <span class="p-stripe">Stripe</span>, <span class="p-etsy">Etsy</span>, <span class="p-gumroad">Gumroad</span>, and more — see exactly how much you're earning across every platform, updated in real time.</p>
     </div>
     <div class="hero-right">
-        <div class="dash-mockup">
+        <div class="dash-mockup" role="img" aria-label="Dashboard preview showing $4,218 total revenue across Stripe, Etsy, and Gumroad with a 23% increase over last month">
             <div class="dash-header">
                 <h3>Revenue Overview</h3>
                 <span class="dash-period">Last 30 days</span>
@@ -820,7 +836,7 @@
             </div>
         </div>
     </div>
-    <div class="wave-divider">
+    <div class="wave-divider" aria-hidden="true">
         <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
             <path fill="#f8f7fc" d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,50 1440,40 L1440,80 L0,80 Z"/>
         </svg>
@@ -828,13 +844,13 @@
 </section>
 
 <!-- HOW IT WORKS -->
-<section class="how-section" id="how">
-    <div class="section-tag">How It Works</div>
-    <h2>Three steps. Total clarity.</h2>
+<section class="how-section" id="how" aria-labelledby="how-heading">
+    <div class="section-tag" aria-hidden="true">How It Works</div>
+    <h2 id="how-heading">Three steps. Total clarity.</h2>
     <p>No spreadsheets, no mental math. Just connect your platforms and let MyTalli handle the rest.</p>
     <div class="steps">
-        <div class="step">
-            <div class="step-num">01</div>
+        <div class="step" aria-label="Step 1: Connect your platforms">
+            <div class="step-num" aria-hidden="true">01</div>
             <h3>Connect your platforms</h3>
             <p>Link <span class="p-stripe">Stripe</span>,
                 <span class="p-etsy">Etsy</span>,
@@ -842,13 +858,13 @@
                 <span class="p-paypal">PayPal</span>,
                 <span class="p-shopify">Shopify</span> — whatever you use. <strong>Secure OAuth</strong> connects your platforms without exposing credentials, and <strong>Encryption-At-Rest</strong> keeps your data protected even at the storage level. Sign in with <strong>Google</strong>, <strong>Apple</strong>, or <strong>Microsoft</strong> — <strong>we never store or manage passwords</strong>.</p>
         </div>
-        <div class="step">
-            <div class="step-num">02</div>
+        <div class="step" aria-label="Step 2: See the full picture">
+            <div class="step-num" aria-hidden="true">02</div>
             <h3>See the full picture</h3>
             <p>Your combined revenue from every source, broken down by platform, time period, and trends. Updated automatically.</p>
         </div>
-        <div class="step">
-            <div class="step-num">03</div>
+        <div class="step" aria-label="Step 3: Set goals and grow">
+            <div class="step-num" aria-hidden="true">03</div>
             <h3>Set goals and grow</h3>
             <p>Track your monthly targets, spot your best-performing platforms, and export clean data when tax season hits.</p>
         </div>
@@ -856,28 +872,28 @@
 </section>
 
 <!-- FEATURES -->
-<section class="features-section" id="features">
-    <div class="section-tag">Features</div>
-    <h2>Built for people with multiple income streams</h2>
+<section class="features-section" id="features" aria-labelledby="features-heading">
+    <div class="section-tag" aria-hidden="true">Features</div>
+    <h2 id="features-heading">Built for people with multiple income streams</h2>
     <p>Whether you sell on two platforms or ten, MyTalli gives you one source of truth.</p>
     <div class="features-grid">
         <div class="feature-card">
-            <div class="feature-icon">📊</div>
+            <div class="feature-icon" role="img" aria-label="Bar chart">📊</div>
             <h3>Real-time revenue tracking</h3>
             <p>See your total earnings update as sales come in across every connected platform.</p>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">📈</div>
+            <div class="feature-icon" role="img" aria-label="Chart trending up">📈</div>
             <h3>Trends &amp; comparisons</h3>
             <p>Month-over-month growth, platform breakdowns, and historical data so you know what's working.</p>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">🎯</div>
+            <div class="feature-icon" role="img" aria-label="Target">🎯</div>
             <h3>Revenue goals</h3>
             <p>Set monthly income targets and track your progress with visual indicators that keep you motivated.</p>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">📥</div>
+            <div class="feature-icon" role="img" aria-label="Download">📥</div>
             <h3>CSV export</h3>
             <p>Download your revenue data in clean CSV format. Makes tax prep and bookkeeping painless.</p>
         </div>
@@ -885,9 +901,9 @@
 </section>
 
 <!-- PRICING TEASER -->
-<section class="pricing-section" id="pricing">
-    <div class="section-tag">Pricing</div>
-    <h2>Start free. Upgrade when you're ready.</h2>
+<section class="pricing-section" id="pricing" aria-labelledby="pricing-heading">
+    <div class="section-tag" aria-hidden="true">Pricing</div>
+    <h2 id="pricing-heading">Start free. Upgrade when you're ready.</h2>
     <p>No tricks. A generous free tier that works, and a Pro plan for when you need more.</p>
     <div class="pricing-cards">
         <div class="price-card free">
@@ -895,9 +911,9 @@
             <div class="price">$0</div>
             <div class="price-sub">Forever free</div>
             <ul class="price-features">
-                <li>1 connected platform</li>
-                <li>Basic dashboard</li>
-                <li>30-day history</li>
+                <li><span class="sr-only">Included: </span>1 connected platform</li>
+                <li><span class="sr-only">Included: </span>Basic dashboard</li>
+                <li><span class="sr-only">Included: </span>30-day history</li>
             </ul>
         </div>
         <div class="price-card pro">
@@ -905,24 +921,26 @@
             <div class="price">$12<span style="font-size:16px;font-weight:400">/mo</span></div>
             <div class="price-sub">or $99/year (save 31%)</div>
             <ul class="price-features">
-                <li>Unlimited platforms</li>
-                <li>Full revenue history</li>
-                <li>Goals &amp; weekly emails</li>
-                <li>CSV export</li>
+                <li><span class="sr-only">Included: </span>Unlimited platforms</li>
+                <li><span class="sr-only">Included: </span>Full revenue history</li>
+                <li><span class="sr-only">Included: </span>Goals &amp; weekly emails</li>
+                <li><span class="sr-only">Included: </span>CSV export</li>
             </ul>
         </div>
     </div>
 </section>
 
 <!-- BOTTOM CTA -->
-<section class="bottom-cta">
-    <h2>Stop guessing. Start knowing.</h2>
+<section class="bottom-cta" aria-labelledby="cta-heading">
+    <h2 id="cta-heading">Stop guessing. Start knowing.</h2>
     <p>MyTalli is launching soon. We're building the simplest way for creators and freelancers to see all their revenue in one place.</p>
     <div class="launching-badge">Launching 2026</div>
 </section>
 
+</main>
+
 <!-- FOOTER -->
-<footer>
+<footer role="contentinfo">
     <p>&copy; 2026 MyTalli. All rights reserved.</p>
     <a href="mailto:hello@mytalli.com">hello@mytalli.com</a>
 </footer>
