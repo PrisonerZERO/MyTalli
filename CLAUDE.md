@@ -225,6 +225,42 @@ dotnet run --project Source/My.Talli.Web
 - **Status code resolution:** `ErrorViewModel` checks for `TalliException` via `IExceptionHandlerFeature` to extract the status code, falls back to `Response.StatusCode`, then 500
 - **Request ID:** Only shown in Development when an actual exception was caught (not on status-code-only errors)
 
+## Platform API Notes
+
+Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data.
+
+### Stripe
+
+- **API:** REST API (extensive) — [docs.stripe.com/api](https://docs.stripe.com/api)
+- **Auth:** OAuth via Stripe Connect (Standard or Express) — user authorizes MyTalli to read their account
+- **Key endpoints:** Balance Transactions (charges, refunds, fees, payouts), Charges, PaymentIntents, Reports API (scheduled CSV reports), Revenue Recognition API
+- **Data richness:** Excellent — granular transaction-level data, fees, net amounts, metadata
+- **Caveats:** None significant. Best-documented API of the three.
+
+### Etsy
+
+- **API:** Etsy Open API v3 (REST) — [developers.etsy.com](https://developers.etsy.com/)
+- **Auth:** OAuth 2.0 (PKCE flow)
+- **Key endpoints:** Shop Receipts (orders/sales per shop), Transactions (line-item detail), Payments (payment & transaction lookups by shop/listing/receipt)
+- **Data richness:** Good — order-level sales, item details, shop stats
+- **Caveats:** Multi-seller apps (like MyTalli) require **commercial access approval** from Etsy. Must apply and be approved before production use.
+
+### Gumroad
+
+- **API:** REST API — [gumroad.com/api](https://gumroad.com/api)
+- **Auth:** OAuth 2.0
+- **Key endpoints:** Sales (list sales with filtering), Products (product info & pricing), Subscribers (subscription data)
+- **Data richness:** Basic — covers sales and products but less granular than Stripe (no fee breakdowns, limited filtering)
+- **Caveats:** Simpler API overall. Sufficient for revenue aggregation but won't support deep financial reporting.
+
+### PayPal (not yet researched in detail)
+
+- Known to have extensive REST APIs and OAuth for third-party access. Needs detailed review before integration.
+
+### Shopify (not yet researched in detail)
+
+- Known to have Admin API (REST + GraphQL) with OAuth. Needs detailed review before integration.
+
 ## Planned Features
 
 - Real-time revenue tracking across connected platforms
