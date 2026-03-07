@@ -10,7 +10,7 @@
     {
       "name": "landing-page",
       "runtimeExecutable": "cmd.exe",
-      "runtimeArgs": ["/c", "npx", "http-server", ".", "-p", "8090", "-c-1"],
+      "runtimeArgs": ["/c", "npx", "http-server", "deploy", "-p", "8090", "-c-1"],
       "port": 8090
     }
   ]
