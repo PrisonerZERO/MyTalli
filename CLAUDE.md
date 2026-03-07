@@ -19,6 +19,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 
 ```
 My.Talli/
+├── .secrets                        # Local secrets file (git-ignored) — SWA deploy token
 ├── CLAUDE.md
 ├── MyTalli_LandingPage.html        # Static landing page mockup
 ├── MyTalli_Dashboard.html          # Static dashboard mockup (post-login)
@@ -215,7 +216,9 @@ dotnet run --project Source/My.Talli.Web
 - **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned)
 - **Auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
 - **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
+- **Google Search Console:** Property `https://www.mytalli.com/` verified via GA4 (2026-03-07). Sitemap submitted. Dashboard at [search.google.com/search-console](https://search.google.com/search-console)
 - **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, and `sitemap.xml`
+- **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys
 - **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
 - **Migration note:** The `deploy/` and `favicon-concepts/` folders are for the current static HTML landing page era. When the Blazor app is deployed, static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) will move into `wwwroot/` and the `deploy/` folder will no longer be needed.
 
