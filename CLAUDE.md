@@ -25,6 +25,21 @@ My.Talli/
 ├── MyTalli_WaitlistConcepts.html   # Waitlist page design concepts (A/B/C)
 ├── MyTalli_ColorPalette.html       # Brand color reference sheet (light mode)
 ├── MyTalli_DarkModePalette.html    # Brand color reference sheet (dark mode)
+├── og-image.png                    # Social share image (1200×630) — source copy
+├── deploy/                         # Azure SWA deploy folder (static HTML era)
+│   ├── index.html                  # Copied from MyTalli_LandingPage.html
+│   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
+│   ├── og-image.png                # Social share image
+│   ├── robots.txt                  # Allows all crawlers, references sitemap
+│   └── sitemap.xml                 # Site map for search engines
+├── favicon-concepts/               # Favicon & OG image design assets
+│   ├── favicon-a-lettermark.svg    # Concept A — bold T lettermark
+│   ├── favicon-b-tally.svg         # Concept B — tally marks
+│   ├── favicon-c-growth.svg        # Concept C — T + growth bars (CHOSEN)
+│   ├── favicon-d-tgraph.svg        # Concept D — T with graph behind
+│   ├── og-image-capture.html       # Viewport-locked page for PNG capture
+│   ├── og-image-mockup.html        # OG image design mockup (1200×630)
+│   └── preview.html                # Side-by-side favicon comparison page
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
@@ -200,8 +215,9 @@ dotnet run --project Source/My.Talli.Web
 - **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned)
 - **Auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
 - **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
-- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html` (copied from `MyTalli_LandingPage.html`), `robots.txt`, and `sitemap.xml`
+- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, and `sitemap.xml`
 - **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
+- **Migration note:** The `deploy/` and `favicon-concepts/` folders are for the current static HTML landing page era. When the Blazor app is deployed, static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) will move into `wwwroot/` and the `deploy/` folder will no longer be needed.
 
 ### SEO
 
