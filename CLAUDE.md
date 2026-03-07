@@ -207,13 +207,15 @@ dotnet run --project Source/My.Talli.Web
 
 The landing page (`MyTalli_LandingPage.html`) includes:
 - `meta description`, `robots`, `theme-color`, `canonical` URL
-- Open Graph tags (`og:type`, `og:url`, `og:title`, `og:description`) — `og:image` commented out pending share image
-- Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`) — `twitter:image` commented out pending share image
+- Open Graph tags (`og:type`, `og:url`, `og:title`, `og:description`, `og:image`)
+- Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`)
 - JSON-LD structured data (`SoftwareApplication` schema with free tier pricing)
 - **Favicon:** SVG (`/favicon.svg`) — "T" with ascending growth bars on purple rounded square, using primary purple `#6c5ce7` background and lavender `#a78bfa` bars. Source: `favicon-concepts/favicon-c-growth.svg`
+- **OG Share Image:** PNG (`/og-image.png`, 1200×630) — dark navy gradient with favicon icon, "MyTalli" title (lavender accent), tagline with yellow "One dashboard.", platform pills with brand colors (Stripe, Etsy, Gumroad, PayPal, Shopify), and `www.mytalli.com` footer. Source mockup: `favicon-concepts/og-image-mockup.html`
 
 Deploy folder also contains:
 - `favicon.svg` — chosen favicon (concept C)
+- `og-image.png` — social share image (1200×630 PNG)
 - `robots.txt` — allows all crawlers, references sitemap
 - `sitemap.xml` — single entry for `https://www.mytalli.com/` (update as pages are added)
 
@@ -289,6 +291,10 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - **Pro ($12/mo or $99/year):** Unlimited platforms, full history, goals, weekly emails, CSV export
 
 ## Rules
+
+### Clean Up NUL Files
+
+- Bash on Windows creates an actual file named `nul` when using `2>nul` redirects (instead of discarding output to the Windows NUL device). **Always delete any `nul`/`NUL` files** that get created in the repo after running shell commands.
 
 ### No Inline Code Blocks
 
