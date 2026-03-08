@@ -1,0 +1,58 @@
+/* ─── SWOOSH HERO ─── */
+.cancel-hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); margin: -32px -40px 32px; overflow: hidden; padding: 24px 40px 32px; position: relative; }
+.cancel-hero-bg { bottom: 0; left: 0; pointer-events: none; position: absolute; right: 0; }
+.cancel-hero-bg svg { display: block; height: 40px; width: 100%; }
+.deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
+.deco-circle-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
+.deco-circle-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
+.deco-circle-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
+.cancel-hero-content { position: relative; z-index: 2; }
+.cancel-hero-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.cancel-hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+.cancel-hero p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
+
+/* ─── TOAST ─── */
+.cancel-toast { align-items: center; border-radius: 12px; display: flex; font-size: 14px; font-weight: 500; gap: 12px; margin-bottom: 24px; padding: 16px 20px; }
+.cancel-toast svg { flex-shrink: 0; height: 20px; width: 20px; }
+.cancel-toast-success { background: rgba(39, 174, 96, 0.08); border: 1px solid rgba(39, 174, 96, 0.2); color: #27ae60; }
+.cancel-toast-dismiss { background: none; border: none; color: inherit; cursor: pointer; font-size: 20px; margin-left: auto; opacity: 0.6; padding: 0 4px; }
+.cancel-toast-dismiss:hover { opacity: 1; }
+
+/* ─── LOSS CARD ─── */
+.cancel-loss-card { background: #fff; border: 1px solid #eee; border-radius: 14px; margin-bottom: 24px; max-width: 560px; padding: 28px; }
+.cancel-loss-card h3 { color: #1a1a2e; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.cancel-loss-subtitle { color: #555; font-size: 14px; margin-bottom: 20px; }
+.cancel-loss-list { list-style: none; margin: 0; padding: 0; }
+.cancel-loss-list li { color: #e74c3c; font-size: 14px; font-weight: 500; padding: 8px 0 8px 28px; position: relative; }
+.cancel-loss-list li::before { content: '\2717'; font-weight: 700; left: 0; position: absolute; }
+.cancel-loss-note { background: #fff8e1; border-left: 3px solid #f5c842; border-radius: 0 8px 8px 0; color: #555; font-size: 13px; line-height: 1.6; margin-top: 20px; padding: 12px 16px; }
+
+/* ─── REASON CARD ─── */
+.cancel-reason-card { background: #fff; border: 1px solid #eee; border-radius: 14px; margin-bottom: 24px; max-width: 560px; padding: 28px; }
+.cancel-reason-card h3 { color: #1a1a2e; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.cancel-reason-subtitle { color: #555; font-size: 14px; margin-bottom: 16px; }
+.cancel-reason-field { display: flex; flex-direction: column; gap: 6px; }
+.cancel-reason-label { color: #1a1a2e; font-size: 13px; font-weight: 600; }
+.cancel-reason-select { appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 14px center; border: 1px solid #e0dce8; border-radius: 10px; color: #1a1a2e; font-family: inherit; font-size: 14px; padding: 12px 40px 12px 14px; transition: border-color 0.15s ease; width: 100%; }
+.cancel-reason-select:focus { border-color: #6c5ce7; outline: none; }
+
+/* ─── ACTION BUTTONS ─── */
+.cancel-actions { display: flex; gap: 12px; max-width: 560px; }
+.cancel-keep-btn { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 100%); border: none; border-radius: 10px; color: #fff; cursor: pointer; flex: 1; font-family: inherit; font-size: 15px; font-weight: 600; padding: 14px 24px; transition: box-shadow 0.15s ease, transform 0.15s ease; }
+.cancel-keep-btn:hover { box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3); transform: translateY(-1px); }
+.cancel-proceed-btn { background: #fff; border: 1px solid #e74c3c; border-radius: 10px; color: #e74c3c; cursor: pointer; flex: 1; font-family: inherit; font-size: 15px; font-weight: 600; padding: 14px 24px; transition: background 0.15s ease; }
+.cancel-proceed-btn:hover { background: rgba(231, 76, 60, 0.05); }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in { animation: fadeUp 0.5s ease forwards; opacity: 0; }
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.1s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.2s; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 641px) {
+    .cancel-hero { margin: -24px -20px 24px; padding: 20px 20px 32px; }
+    .cancel-actions { flex-direction: column; }
+}

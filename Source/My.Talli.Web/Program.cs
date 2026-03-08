@@ -178,7 +178,7 @@ app.MapPost("/api/billing/create-portal-session", async (HttpContext context, St
     // TODO: Look up Stripe customer ID from database using authenticated user
     // var stripeCustomerId = await userService.GetStripeCustomerIdAsync(userId);
     // var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
-    // var session = await billing.CreatePortalSessionAsync(stripeCustomerId, $"{baseUrl}/upgrade");
+    // var session = await billing.CreatePortalSessionAsync(stripeCustomerId, $"{baseUrl}/subscription/cancel?status=kept");
     // context.Response.Redirect(session.Url);
 
     return Results.BadRequest("Portal not yet available — no database.");
