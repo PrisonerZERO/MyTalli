@@ -1,0 +1,101 @@
+@page "/subscription"
+@inherits My.Talli.Web.ViewModels.Pages.SubscriptionViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Your Subscription — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<section class="sub-hero" aria-label="Your subscription">
+    <div class="sub-hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="sub-hero-content">
+        <div class="sub-hero-top">
+            <div>
+                <h1>Your Subscription</h1>
+                <p>Manage your plan and billing</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Current plan -->
+<section class="sub-plan-card animate-in delay-1" aria-labelledby="plan-heading">
+    <div class="sub-plan-header">
+        <h3 id="plan-heading">Current Plan</h3>
+        <div class="sub-plan-status" role="status">
+            <span class="sub-status-dot" aria-hidden="true"></span>
+            @PlanStatus
+        </div>
+    </div>
+
+    <div class="sub-plan-details">
+        <div class="sub-plan-name-row">
+            <span class="sub-plan-badge">@PlanName</span>
+            <div class="sub-plan-price">@PlanPrice<span>@PlanPeriod</span></div>
+        </div>
+
+        <div class="sub-plan-meta">
+            <div class="sub-meta-item">
+                <span class="sub-meta-label">Next billing date</span>
+                <span class="sub-meta-value">@NextBillingDate</span>
+            </div>
+            <div class="sub-meta-item">
+                <span class="sub-meta-label">Member since</span>
+                <span class="sub-meta-value">@MemberSince</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Plan features -->
+<section class="sub-features-card animate-in delay-2" aria-labelledby="features-heading">
+    <h3 id="features-heading">What's Included</h3>
+    <ul class="sub-features-list">
+        <li><span class="sr-only">Included: </span>Unlimited platforms</li>
+        <li><span class="sr-only">Included: </span>Full revenue history</li>
+        <li><span class="sr-only">Included: </span>Goals &amp; weekly emails</li>
+        <li><span class="sr-only">Included: </span>CSV export</li>
+    </ul>
+</section>
+
+<!-- Billing actions -->
+<section class="sub-actions-card animate-in delay-3" aria-labelledby="actions-heading">
+    <h3 id="actions-heading">Billing &amp; Plan</h3>
+
+    <div class="sub-action-row">
+        <div class="sub-action-info">
+            <h4>Manage Billing</h4>
+            <p>Update payment method, view invoices, and download receipts.</p>
+        </div>
+        <button class="sub-action-btn primary" @onclick="HandleManageBilling">
+            Manage Billing
+        </button>
+    </div>
+
+    <div class="sub-action-row">
+        <div class="sub-action-info">
+            <h4>Change Plan</h4>
+            <p>Switch between monthly and yearly, or compare plan features.</p>
+        </div>
+        <button class="sub-action-btn outline" @onclick="HandleChangePlan">
+            Change Plan
+        </button>
+    </div>
+
+    <div class="sub-action-row">
+        <div class="sub-action-info">
+            <h4>Cancel Subscription</h4>
+            <p>Downgrade to the Free plan at the end of your billing period.</p>
+        </div>
+        <button class="sub-action-btn danger" @onclick="HandleCancel">
+            Cancel
+        </button>
+    </div>
+</section>
