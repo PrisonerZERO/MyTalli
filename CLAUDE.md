@@ -73,14 +73,20 @@ My.Talli/
         │   │   ├── NavMenu.razor         # Sidebar navigation (brand styled)
         │   │   └── NavMenu.razor.css
         │   ├── Pages/
+        │   │   ├── CancelSubscription.razor  # Cancel subscription retention page (route: /subscription/cancel)
+        │   │   ├── CancelSubscription.razor.css
         │   │   ├── Dashboard.razor       # Dashboard (route: /dashboard)
         │   │   ├── Dashboard.razor.css
         │   │   ├── LandingPage.razor     # Landing page (route: /)
         │   │   ├── LandingPage.razor.css
         │   │   ├── SignIn.razor          # Sign-in page (route: /signin)
         │   │   ├── SignIn.razor.css
+        │   │   ├── Subscription.razor    # Subscription hub (route: /subscription)
+        │   │   ├── Subscription.razor.css
         │   │   ├── SuggestionBox.razor       # Suggestion box (route: /suggestions)
         │   │   ├── SuggestionBox.razor.css
+        │   │   ├── Upgrade.razor         # Upgrade pricing page (route: /upgrade)
+        │   │   ├── Upgrade.razor.css
         │   │   ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
         │   │   ├── Waitlist.razor.css
         │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
@@ -89,17 +95,23 @@ My.Talli/
         │       ├── BrandHeader.razor     # Reusable purple swoosh header (logo + action slot)
         │       └── BrandHeader.razor.css
         ├── Services/
-        │   └── Authentication/
-        │       ├── AppleAuthenticationHandler.cs
-        │       ├── GoogleAuthenticationHandler.cs
-        │       └── MicrosoftAuthenticationHandler.cs
+        │   ├── Authentication/
+        │   │   ├── AppleAuthenticationHandler.cs
+        │   │   ├── GoogleAuthenticationHandler.cs
+        │   │   └── MicrosoftAuthenticationHandler.cs
+        │   └── Billing/
+        │       ├── StripeBillingService.cs  # Stripe Checkout & Portal API wrapper
+        │       └── StripeSettings.cs        # Stripe configuration POCO
         ├── ViewModels/
         │   ├── Pages/
+        │   │   ├── CancelSubscriptionViewModel.cs
         │   │   ├── DashboardViewModel.cs
-        │   │   ├── LandingPageViewModel.cs
         │   │   ├── ErrorViewModel.cs
+        │   │   ├── LandingPageViewModel.cs
         │   │   ├── SignInViewModel.cs
+        │   │   ├── SubscriptionViewModel.cs
         │   │   ├── SuggestionBoxViewModel.cs
+        │   │   ├── UpgradeViewModel.cs
         │   │   └── WaitlistViewModel.cs
         │   └── Shared/
         │       └── BrandHeaderViewModel.cs
@@ -139,6 +151,9 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 | `/waitlist` | `<BrandHeader>` | Yes | "Sign Out" link |
 | `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | "Sign Out" link |
 | `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button |
+| `/subscription` | Inline SVG (`.sub-hero`) | No (sidebar has it) | N/A |
+| `/subscription/cancel` | Inline SVG (`.cancel-hero`) | No (sidebar has it) | N/A |
+| `/upgrade` | Inline SVG (`.upgrade-hero`) | No (sidebar has it) | N/A |
 | `/Error` | `<BrandHeader>` | Yes | "Back to homepage" link |
 | `/` | None | Own nav logo | N/A |
 
@@ -337,8 +352,22 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 
 ### Task Completion
 
+- Before declaring a task complete, verify all Rules in this section have been followed.
 - When you finish a task, **always explicitly say "Done."** or equivalent so it's clear the work is complete.
 - Do not wait for the user to ask "Are you done?" — proactively declare completion.
+
+### Accessibility & SEO Checklist
+
+- **Every new or modified page** must be checked for accessibility and SEO before the task is considered complete.
+- **Accessibility requirements:**
+  - `aria-label` on interactive elements without visible text (dismiss buttons, icon-only buttons)
+  - `aria-hidden="true"` on decorative SVGs and visual-only elements
+  - `role="status"` or `role="alert"` on toast/notification elements
+  - `aria-pressed` on toggle buttons (see SuggestionBox filter pills for pattern)
+  - Semantic `<section>` wrappers with `aria-label` or `aria-labelledby` on content regions
+  - `sr-only` spans on list items where visual context (like checkmarks) conveys meaning
+  - `role="group" aria-label="..."` on related button groups
+- **SEO:** Only applies to public (unauthenticated) pages. Authenticated pages behind `MainLayout` do not need SEO meta tags — `<PageTitle>` is sufficient.
 
 ### Page Hero Branding
 

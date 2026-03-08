@@ -1,0 +1,120 @@
+@page "/upgrade"
+@inherits My.Talli.Web.ViewModels.Pages.UpgradeViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Upgrade to Pro — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<section class="upgrade-hero" aria-label="Upgrade to Pro">
+    <div class="upgrade-hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="upgrade-hero-content">
+        <div class="upgrade-hero-top">
+            <div>
+                <h1>Upgrade to Pro</h1>
+                <p>Unlock the full power of MyTalli</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Status toasts -->
+@if (ShowSuccessToast)
+{
+    <div class="upgrade-toast upgrade-toast-success animate-in delay-1" role="status">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        <span>Welcome to Pro! Your subscription is now active.</span>
+        <button class="upgrade-toast-dismiss" aria-label="Dismiss notification" @onclick="DismissToast">&times;</button>
+    </div>
+}
+
+@if (ShowCancelledToast)
+{
+    <div class="upgrade-toast upgrade-toast-info animate-in delay-1" role="status">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" x2="12" y1="8" y2="12" />
+            <line x1="12" x2="12.01" y1="16" y2="16" />
+        </svg>
+        <span>Checkout was cancelled. You can try again anytime.</span>
+        <button class="upgrade-toast-dismiss" aria-label="Dismiss notification" @onclick="DismissToast">&times;</button>
+    </div>
+}
+
+<!-- Pricing cards -->
+<section class="upgrade-plans animate-in delay-2" aria-label="Pricing plans">
+    <div class="upgrade-plan-card">
+        <div class="plan-current-badge">Current Plan</div>
+        <h3>Free</h3>
+        <div class="plan-price">$0</div>
+        <div class="plan-period">Forever free</div>
+        <ul class="plan-features">
+            <li><span class="sr-only">Included: </span>1 connected platform</li>
+            <li><span class="sr-only">Included: </span>Basic dashboard</li>
+            <li><span class="sr-only">Included: </span>30-day history</li>
+        </ul>
+    </div>
+
+    <div class="upgrade-plan-card pro">
+        <div class="plan-badge">Recommended</div>
+        <h3>Pro</h3>
+
+        <div class="plan-toggle" role="group" aria-label="Billing period">
+            <button class="plan-toggle-btn @(SelectedPlan == "monthly" ? "active" : "")"
+                    aria-pressed="@(SelectedPlan == "monthly" ? "true" : "false")"
+                    @onclick='() => SelectPlan("monthly")'>Monthly</button>
+            <button class="plan-toggle-btn @(SelectedPlan == "yearly" ? "active" : "")"
+                    aria-pressed="@(SelectedPlan == "yearly" ? "true" : "false")"
+                    @onclick='() => SelectPlan("yearly")'>Yearly</button>
+        </div>
+
+        @if (SelectedPlan == "monthly")
+        {
+            <div class="plan-price">$12<span>/mo</span></div>
+            <div class="plan-period">Billed monthly</div>
+        }
+        else
+        {
+            <div class="plan-price">$99<span>/yr</span></div>
+            <div class="plan-period">$8.25/mo — save 31%</div>
+        }
+
+        <ul class="plan-features">
+            <li><span class="sr-only">Included: </span>Unlimited platforms</li>
+            <li><span class="sr-only">Included: </span>Full revenue history</li>
+            <li><span class="sr-only">Included: </span>Goals &amp; weekly emails</li>
+            <li><span class="sr-only">Included: </span>CSV export</li>
+        </ul>
+
+        <button class="plan-cta" @onclick="HandleUpgrade">
+            Upgrade Now
+        </button>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="upgrade-faq animate-in delay-3" aria-labelledby="faq-heading">
+    <h3 id="faq-heading">Frequently Asked Questions</h3>
+    <div class="faq-item">
+        <h4>Can I cancel anytime?</h4>
+        <p>Yes. Cancel your subscription anytime from your billing portal. You'll keep Pro access until the end of your billing period.</p>
+    </div>
+    <div class="faq-item">
+        <h4>What payment methods do you accept?</h4>
+        <p>We accept all major credit and debit cards through Stripe's secure checkout.</p>
+    </div>
+    <div class="faq-item">
+        <h4>Can I switch between monthly and yearly?</h4>
+        <p>Yes. You can change your billing period anytime through the customer portal.</p>
+    </div>
+</section>

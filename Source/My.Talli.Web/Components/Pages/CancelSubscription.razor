@@ -1,0 +1,80 @@
+@page "/subscription/cancel"
+@inherits My.Talli.Web.ViewModels.Pages.CancelSubscriptionViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Cancel Subscription — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<section class="cancel-hero" aria-label="Cancel subscription">
+    <div class="cancel-hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="cancel-hero-content">
+        <div class="cancel-hero-top">
+            <div>
+                <h1>Cancel Subscription</h1>
+                <p>We're sorry to see you go</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Status toast -->
+@if (ShowKeptToast)
+{
+    <div class="cancel-toast cancel-toast-success animate-in delay-1" role="status">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        <span>Great choice! Your Pro subscription is active.</span>
+        <button class="cancel-toast-dismiss" aria-label="Dismiss notification" @onclick="DismissToast">&times;</button>
+    </div>
+}
+
+<!-- What you'll lose -->
+<section class="cancel-loss-card animate-in delay-2" aria-labelledby="loss-heading">
+    <h3 id="loss-heading">What you'll lose</h3>
+    <p class="cancel-loss-subtitle">By cancelling Pro, you'll lose access to these features:</p>
+    <ul class="cancel-loss-list">
+        <li><span class="sr-only">You will lose: </span>Unlimited platforms</li>
+        <li><span class="sr-only">You will lose: </span>Full revenue history</li>
+        <li><span class="sr-only">You will lose: </span>Goals &amp; weekly emails</li>
+        <li><span class="sr-only">You will lose: </span>CSV export</li>
+    </ul>
+    <p class="cancel-loss-note">You'll be downgraded to the Free plan (1 platform, 30-day history) at the end of your current billing period.</p>
+</section>
+
+<!-- Cancellation reason -->
+<section class="cancel-reason-card animate-in delay-3" aria-labelledby="reason-heading">
+    <h3 id="reason-heading">Help us improve</h3>
+    <p class="cancel-reason-subtitle">Let us know why you're leaving so we can do better.</p>
+    <div class="cancel-reason-field">
+        <label class="cancel-reason-label" for="cancel-reason">Reason for cancelling</label>
+        <select class="cancel-reason-select" id="cancel-reason" @bind="SelectedReason">
+            <option value="">Select a reason (optional)</option>
+            <option value="too-expensive">Too expensive</option>
+            <option value="not-using">Not using it enough</option>
+            <option value="missing-features">Missing features I need</option>
+            <option value="switching">Switching to another tool</option>
+            <option value="testing">Just testing it out</option>
+            <option value="other">Other</option>
+        </select>
+    </div>
+</section>
+
+<!-- Action buttons -->
+<div class="cancel-actions animate-in delay-4">
+    <button class="cancel-keep-btn" @onclick="HandleKeep">
+        Keep My Subscription
+    </button>
+    <button class="cancel-proceed-btn" @onclick="HandleCancel">
+        Continue to Cancel
+    </button>
+</div>
