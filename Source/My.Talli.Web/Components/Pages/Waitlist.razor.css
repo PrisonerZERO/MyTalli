@@ -8,6 +8,11 @@
 .page-heading { color: #fff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
 .page-sub { color: rgba(255, 255, 255, 0.7); font-size: 15px; line-height: 1.6; margin-bottom: 150px; }
 
+/* ─── SECTION HEADINGS ─── */
+.section-heading { border-bottom: 2px solid #e0dce8; color: #1a1a2e; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 24px; padding-bottom: 8px; }
+.section-heading + .timeline { margin-top: 0; }
+section + section { margin-top: 48px; }
+
 /* ─── TIMELINE ─── */
 .timeline { padding: 0 0 0 28px; position: relative; }
 .timeline::before { background: #e0dce8; content: ''; height: 100%; left: 11px; position: absolute; top: 0; width: 2px; }

@@ -35,49 +35,99 @@
                 <p class="page-sub">Here's where we are on the road to launch. Check back anytime to see our progress.</p>
             </div>
 
-            <div class="timeline" role="list" aria-label="Launch milestones">
-                @foreach (var milestone in Milestones)
-                {
-                    <div class="timeline-item @(milestone.Status == MilestoneStatus.Upcoming ? "is-upcoming" : "")" role="listitem">
-                        @if (milestone.Status == MilestoneStatus.Complete)
-                        {
-                            <div class="timeline-dot done">
-                                <svg aria-hidden="true" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24">
-                                    <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                            </div>
-                        }
-                        else if (milestone.Status == MilestoneStatus.InProgress)
-                        {
-                            <div class="timeline-dot in-progress">
-                                <svg aria-hidden="true" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24">
-                                    <path d="M12 6v6l4 2" />
-                                </svg>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="timeline-dot upcoming"></div>
-                        }
+            <section aria-label="Beta milestones">
+                <h2 class="section-heading">Beta</h2>
+                <div class="timeline" role="list" aria-label="Beta milestones">
+                    @foreach (var milestone in BetaMilestones)
+                    {
+                        <div class="timeline-item @(milestone.Status == MilestoneStatus.Upcoming ? "is-upcoming" : "")" role="listitem">
+                            @if (milestone.Status == MilestoneStatus.Complete)
+                            {
+                                <div class="timeline-dot done">
+                                    <svg aria-hidden="true" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                </div>
+                            }
+                            else if (milestone.Status == MilestoneStatus.InProgress)
+                            {
+                                <div class="timeline-dot in-progress">
+                                    <svg aria-hidden="true" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path d="M12 6v6l4 2" />
+                                    </svg>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="timeline-dot upcoming"></div>
+                            }
 
-                        <div class="timeline-title">@milestone.Title</div>
-                        <div class="timeline-desc">@milestone.Description</div>
+                            <div class="timeline-title">@milestone.Title</div>
+                            <div class="timeline-desc">@milestone.Description</div>
 
-                        @if (milestone.Status == MilestoneStatus.Complete)
-                        {
-                            <span class="timeline-status done">Complete</span>
-                        }
-                        else if (milestone.Status == MilestoneStatus.InProgress)
-                        {
-                            <span class="timeline-status in-progress">In Progress</span>
-                        }
-                        else
-                        {
-                            <span class="timeline-status upcoming">Upcoming</span>
-                        }
-                    </div>
-                }
-            </div>
+                            @if (milestone.Status == MilestoneStatus.Complete)
+                            {
+                                <span class="timeline-status done">Complete</span>
+                            }
+                            else if (milestone.Status == MilestoneStatus.InProgress)
+                            {
+                                <span class="timeline-status in-progress">In Progress</span>
+                            }
+                            else
+                            {
+                                <span class="timeline-status upcoming">Upcoming</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </section>
+
+            <section aria-label="Full Launch milestones">
+                <h2 class="section-heading">Full Launch</h2>
+                <div class="timeline" role="list" aria-label="Full Launch milestones">
+                    @foreach (var milestone in FullLaunchMilestones)
+                    {
+                        <div class="timeline-item @(milestone.Status == MilestoneStatus.Upcoming ? "is-upcoming" : "")" role="listitem">
+                            @if (milestone.Status == MilestoneStatus.Complete)
+                            {
+                                <div class="timeline-dot done">
+                                    <svg aria-hidden="true" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                </div>
+                            }
+                            else if (milestone.Status == MilestoneStatus.InProgress)
+                            {
+                                <div class="timeline-dot in-progress">
+                                    <svg aria-hidden="true" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path d="M12 6v6l4 2" />
+                                    </svg>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="timeline-dot upcoming"></div>
+                            }
+
+                            <div class="timeline-title">@milestone.Title</div>
+                            <div class="timeline-desc">@milestone.Description</div>
+
+                            @if (milestone.Status == MilestoneStatus.Complete)
+                            {
+                                <span class="timeline-status done">Complete</span>
+                            }
+                            else if (milestone.Status == MilestoneStatus.InProgress)
+                            {
+                                <span class="timeline-status in-progress">In Progress</span>
+                            }
+                            else
+                            {
+                                <span class="timeline-status upcoming">Upcoming</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </section>
 
         </div>
     </main>

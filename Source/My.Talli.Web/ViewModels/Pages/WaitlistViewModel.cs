@@ -15,7 +15,9 @@ public class WaitlistViewModel : ComponentBase
 
     #region <Properties>
 
-    public List<Milestone> Milestones { get; private set; } = [];
+    public List<Milestone> BetaMilestones { get; private set; } = [];
+
+    public List<Milestone> FullLaunchMilestones { get; private set; } = [];
 
     public string UserName { get; private set; } = string.Empty;
 
@@ -45,35 +47,79 @@ public class WaitlistViewModel : ComponentBase
 
     private void LoadMilestones()
     {
-        Milestones =
+        BetaMilestones =
         [
             new Milestone(
                 "Authentication",
                 "Sign in with Google, Apple, and Microsoft",
                 MilestoneStatus.Complete),
             new Milestone(
-                "Dashboard & Revenue Tracking",
-                "Unified view of all your side hustle income",
+                "Landing Page & Waitlist",
+                "Landing page and waitlist progress tracker",
                 MilestoneStatus.Complete),
             new Milestone(
-                "Stripe Connector",
-                "Connect your Stripe account and pull revenue data automatically",
-                MilestoneStatus.InProgress),
-            new Milestone(
-                "Etsy Connector",
-                "Pull sales data from your Etsy shop",
+                "Stripe Integration",
+                "Connector & Dashboard",
                 MilestoneStatus.Upcoming),
             new Milestone(
-                "Gumroad Connector",
-                "Track digital product revenue from Gumroad",
+                "Etsy Integration",
+                "Connector & Dashboard",
                 MilestoneStatus.Upcoming),
             new Milestone(
-                "Goals & CSV Export",
-                "Set monthly targets and export data for tax prep",
+                "Gumroad Integration",
+                "Connector & Dashboard",
+                MilestoneStatus.Upcoming),
+            new Milestone(
+                "Aggregate Dashboard",
+                "Unified revenue view across all connected platforms",
+                MilestoneStatus.Upcoming),
+            new Milestone(
+                "Platforms",
+                "Manage connected platforms and sync status",
+                MilestoneStatus.Upcoming),
+            new Milestone(
+                "Suggestion Box",
+                "Submit and vote on feature ideas",
+                MilestoneStatus.Upcoming),
+            new Milestone(
+                "Settings",
+                "User profile and preferences",
+                MilestoneStatus.Upcoming),
+            new Milestone(
+                "Subscription & Billing",
+                "Free and Pro tier management",
                 MilestoneStatus.Upcoming),
             new Milestone(
                 "Beta Launch",
                 "Early access for waitlist members — you'll be first in line",
+                MilestoneStatus.Upcoming)
+        ];
+
+        FullLaunchMilestones =
+        [
+            new Milestone(
+                "PayPal Integration",
+                "Connector & Dashboard",
+                MilestoneStatus.Upcoming),
+            new Milestone(
+                "Shopify Integration",
+                "Connector & Dashboard",
+                MilestoneStatus.Upcoming),
+            new Milestone(
+                "Goals",
+                "Set monthly revenue targets and track progress",
+                MilestoneStatus.Upcoming),
+            new Milestone(
+                "CSV Export",
+                "Download revenue data for tax prep and bookkeeping",
+                MilestoneStatus.Upcoming),
+            new Milestone(
+                "Weekly Email Summaries",
+                "Weekly revenue digest via email",
+                MilestoneStatus.Upcoming),
+            new Milestone(
+                "Full Launch",
+                "Open to everyone",
                 MilestoneStatus.Upcoming)
         ];
     }

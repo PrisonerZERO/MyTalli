@@ -19,6 +19,7 @@ Completed items are listed first. Remaining items are not in priority order.
 | **Gumroad Integration** | | Connector & Dashboard — connect Gumroad account, pull sales/product data, specialized detail view. |
 | **Aggregate Dashboard** | | Unified revenue view across all connected platforms — totals, trends, platform breakdown. |
 | **Platforms Page** | | Manage connected platforms — connect/disconnect, connection health, sync status. (Nav: `/platforms`) |
+| **Suggestion Box** | | Submit and vote on feature ideas. (Nav: `/suggestions`) |
 | **Settings** | | User profile, preferences, notification settings. (Nav: `/settings`) |
 | **Subscription & Billing** | | Stripe checkout tied to user records, Free vs Pro tier enforcement, billing portal. |
 | **Beta Launch** | | Open dashboard to waitlist members — first users get access. |
