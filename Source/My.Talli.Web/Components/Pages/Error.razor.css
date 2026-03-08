@@ -22,7 +22,6 @@
 
 /* ─── RESPONSIVE ─── */
 @media (max-width: 480px) {
-    .error-actions { flex-direction: column; }
     .error-code { font-size: 48px; }
     .error-icon-wrap { height: 80px; width: 80px; }
     .error-icon { height: 36px; width: 36px; }
