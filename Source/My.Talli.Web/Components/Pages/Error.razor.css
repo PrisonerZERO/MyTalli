@@ -8,13 +8,13 @@
 
 /* ─── TEXT ─── */
 .error-code { color: rgba(255, 255, 255, 0.4); font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
-.error-title { color: #fff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
-.error-desc { color: rgba(255, 255, 255, 0.7); font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+.error-title { color: #1a1a2e; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+.error-desc { color: #555; font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
 
 /* ─── ACTIONS ─── */
 .error-actions { display: flex; gap: 12px; justify-content: center; }
-.btn-primary-action { background: #fff; border: none; border-radius: 10px; color: #6c5ce7; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 14px 28px; transition: box-shadow 0.2s, transform 0.1s; }
-.btn-primary-action:hover { box-shadow: 0 4px 16px rgba(108, 92, 231, 0.2); transform: translateY(-1px); }
+.btn-primary-action { background: #6c5ce7; border: none; border-radius: 10px; color: #fff; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 14px 28px; transition: background 0.2s, box-shadow 0.2s, transform 0.1s; }
+.btn-primary-action:hover { background: #5a4bd1; box-shadow: 0 4px 16px rgba(108, 92, 231, 0.25); transform: translateY(-1px); }
 .btn-primary-action:active { transform: scale(0.98); }
 
 /* ─── DEBUG ─── */

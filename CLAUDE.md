@@ -154,7 +154,7 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 | `/subscription` | Inline SVG (`.sub-hero`) | No (sidebar has it) | N/A |
 | `/subscription/cancel` | Inline SVG (`.cancel-hero`) | No (sidebar has it) | N/A |
 | `/upgrade` | Inline SVG (`.upgrade-hero`) | No (sidebar has it) | N/A |
-| `/Error` | `<BrandHeader>` | Yes | "Back to homepage" link |
+| `/Error` | `<BrandHeader>` | Yes | N/A |
 | `/` | None | Own nav logo | N/A |
 
 Swoosh visual: purple gradient SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7`) with 3 decorative circles (`rgba(255,255,255,0.07)`).
