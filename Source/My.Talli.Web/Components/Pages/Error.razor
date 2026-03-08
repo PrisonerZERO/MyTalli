@@ -88,4 +88,11 @@
             }
         </div>
     </main>
+
+    <div class="falling-numbers" aria-hidden="true">
+        @foreach (var digit in FallingDigits)
+        {
+            <span class="fall-digit">@digit</span>
+        }
+    </div>
 </div>

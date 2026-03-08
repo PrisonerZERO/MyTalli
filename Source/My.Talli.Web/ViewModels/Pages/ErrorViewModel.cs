@@ -25,6 +25,8 @@ public class ErrorViewModel : ComponentBase
 
     public string ErrorTitle { get; private set; } = string.Empty;
 
+    public List<char> FallingDigits { get; private set; } = [];
+
     public string? RequestId { get; private set; }
 
     public bool ShowRequestId => !string.IsNullOrEmpty(RequestId)
@@ -42,6 +44,7 @@ public class ErrorViewModel : ComponentBase
     {
         ResolveStatusCode();
         SetErrorContent();
+        SetFallingDigits();
         CaptureRequestId();
     }
 
@@ -118,6 +121,15 @@ public class ErrorViewModel : ComponentBase
                 "alert-circle"
             )
         };
+    }
+
+    private void SetFallingDigits()
+    {
+        var codeChars = (StatusCode ?? 500).ToString().ToCharArray();
+        for (var i = 0; i < 12; i++)
+        {
+            FallingDigits.Add(codeChars[i % codeChars.Length]);
+        }
     }
 
     #endregion
