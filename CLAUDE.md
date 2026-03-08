@@ -19,15 +19,14 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 
 ```
 My.Talli/
+├── .secrets                        # Local secrets file (git-ignored) — SWA deploy token
 ├── CLAUDE.md
-├── MyTalli_LandingPage.html        # Static landing page mockup
-├── MyTalli_Dashboard.html          # Static dashboard mockup (post-login)
-├── MyTalli_WaitlistConcepts.html   # Waitlist page design concepts (A/B/C)
-├── MyTalli_ColorPalette.html       # Brand color reference sheet (light mode)
-├── MyTalli_DarkModePalette.html    # Brand color reference sheet (dark mode)
+├── mytalli-logo.png                # Brand logo (transparent bg)
+├── mytalli-logo-white-bg.png       # Brand logo (white bg)
 ├── og-image.png                    # Social share image (1200×630) — source copy
+├── setup-iis.ps1                   # IIS setup script for local dev
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
-│   ├── index.html                  # Copied from MyTalli_LandingPage.html
+│   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
 │   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
 │   ├── og-image.png                # Social share image
 │   ├── robots.txt                  # Allows all crawlers, references sitemap
@@ -40,6 +39,13 @@ My.Talli/
 │   ├── og-image-capture.html       # Viewport-locked page for PNG capture
 │   ├── og-image-mockup.html        # OG image design mockup (1200×630)
 │   └── preview.html                # Side-by-side favicon comparison page
+├── wireframes/                     # Standalone HTML mockups & design concepts
+│   ├── MyTalli_ColorPalette.html   # Brand color reference sheet (light mode)
+│   ├── MyTalli_DarkModePalette.html # Brand color reference sheet (dark mode)
+│   ├── MyTalli_Dashboard.html      # Static dashboard mockup (post-login)
+│   ├── MyTalli_LandingPage.html    # Static landing page mockup
+│   ├── MyTalli_SuggestionBoxConcepts.html # Suggestion box design concepts (A/B/C)
+│   └── MyTalli_WaitlistConcepts.html # Waitlist page design concepts (A/B/C)
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
@@ -73,6 +79,8 @@ My.Talli/
         │   │   ├── LandingPage.razor.css
         │   │   ├── SignIn.razor          # Sign-in page (route: /signin)
         │   │   ├── SignIn.razor.css
+        │   │   ├── SuggestionBox.razor       # Suggestion box (route: /suggestions)
+        │   │   ├── SuggestionBox.razor.css
         │   │   ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
         │   │   ├── Waitlist.razor.css
         │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
@@ -91,6 +99,7 @@ My.Talli/
         │   │   ├── LandingPageViewModel.cs
         │   │   ├── ErrorViewModel.cs
         │   │   ├── SignInViewModel.cs
+        │   │   ├── SuggestionBoxViewModel.cs
         │   │   └── WaitlistViewModel.cs
         │   └── Shared/
         │       └── BrandHeaderViewModel.cs
@@ -112,7 +121,7 @@ My.Talli/
 
 ## Brand & Design
 
-> **Source of truth:** `MyTalli_ColorPalette.html` (light) and `MyTalli_DarkModePalette.html` (dark) — keep this section in sync with those files.
+> **Source of truth:** `wireframes/MyTalli_ColorPalette.html` (light) and `wireframes/MyTalli_DarkModePalette.html` (dark) — keep this section in sync with those files.
 
 - **Color palette tool:** [Coolors](https://coolors.co) — used to create and manage the brand palette
 
@@ -129,6 +138,7 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 | `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
 | `/waitlist` | `<BrandHeader>` | Yes | "Sign Out" link |
 | `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | "Sign Out" link |
+| `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button |
 | `/Error` | `<BrandHeader>` | Yes | "Back to homepage" link |
 | `/` | None | Own nav logo | N/A |
 
@@ -215,19 +225,36 @@ dotnet run --project Source/My.Talli.Web
 - **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned)
 - **Auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
 - **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
+- **Google Search Console:** Property `https://www.mytalli.com/` verified via GA4 (2026-03-07). Sitemap submitted. Dashboard at [search.google.com/search-console](https://search.google.com/search-console)
 - **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, and `sitemap.xml`
+- **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys
 - **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
 - **Migration note:** The `deploy/` and `favicon-concepts/` folders are for the current static HTML landing page era. When the Blazor app is deployed, static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) will move into `wwwroot/` and the `deploy/` folder will no longer be needed.
 
 ### SEO
 
-The landing page (`MyTalli_LandingPage.html`) includes:
+The landing page (`wireframes/MyTalli_LandingPage.html`) includes:
 - `meta description`, `robots`, `theme-color`, `canonical` URL
 - Open Graph tags (`og:type`, `og:url`, `og:title`, `og:description`, `og:image`)
 - Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`)
 - JSON-LD structured data (`SoftwareApplication` schema with free tier pricing)
 - **Favicon:** SVG (`/favicon.svg`) — "T" with ascending growth bars on purple rounded square, using primary purple `#6c5ce7` background and lavender `#a78bfa` bars. Source: `favicon-concepts/favicon-c-growth.svg`
 - **OG Share Image:** PNG (`/og-image.png`, 1200×630) — dark navy gradient with favicon icon, "MyTalli" title (lavender accent), tagline with yellow "One dashboard.", platform pills with brand colors (Stripe, Etsy, Gumroad, PayPal, Shopify), and `www.mytalli.com` footer. Source mockup: `favicon-concepts/og-image-mockup.html`
+
+### Accessibility
+
+The landing page (`deploy/index.html` and `wireframes/MyTalli_LandingPage.html`) includes:
+- **Skip navigation** — hidden "Skip to main content" link, visible on keyboard focus (`.skip-link`)
+- **Landmarks** — `<main id="main">`, `<nav aria-label="Main navigation">`, `<footer role="contentinfo">`
+- **Section labeling** — `aria-labelledby` on each content section pointing to its `<h2>` id; `aria-label="Hero"` on hero section
+- **Decorative hiding** — `aria-hidden="true"` on hero background shapes, wave divider SVG, section tags, and step numbers
+- **Dashboard mockup** — `role="img"` with descriptive `aria-label` (announced as a single image, inner elements hidden)
+- **Emoji icons** — wrapped in `<span role="img" aria-label="...">` with descriptive labels
+- **Pricing checkmarks** — visually-hidden `<span class="sr-only">Included: </span>` prefix on each list item
+- **Step context** — `aria-label="Step 1: Connect your platforms"` etc. on each `.step` div
+- **Logo** — `aria-label="MyTalli, go to top of page"` on nav logo link
+- **Focus indicators** — `:focus-visible { outline: 3px solid #6c5ce7; outline-offset: 2px; }`
+- **Utility class** — `.sr-only` for visually-hidden screen-reader-only text
 
 Deploy folder also contains:
 - `favicon.svg` — chosen favicon (concept C)
@@ -308,6 +335,18 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 
 ## Rules
 
+### Task Completion
+
+- When you finish a task, **always explicitly say "Done."** or equivalent so it's clear the work is complete.
+- Do not wait for the user to ask "Are you done?" — proactively declare completion.
+
+### Page Hero Branding
+
+- **Every page** in the app (except the Landing Page) must include a purple gradient swoosh hero section for consistent branding.
+- Pages using `MainLayout` (sidebar pages like Dashboard, Suggestions) use an **inline swoosh** hero within the page markup.
+- Pages using `LandingLayout` (Sign-In, Waitlist, Error) use the **`BrandHeader`** component.
+- See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
+
 ### Clean Up NUL Files
 
 - Bash on Windows creates an actual file named `nul` when using `2>nul` redirects (instead of discarding output to the Windows NUL device). **Always delete any `nul`/`NUL` files** that get created in the repo after running shell commands.
@@ -372,11 +411,27 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - Follow standard .NET/Blazor project conventions
 - Namespace root: `My.Talli`
 
+## Testing Tools
+
+- **WAVE** (wave.webaim.org) — web accessibility evaluation tool. Paste a URL to get a visual overlay of ARIA landmarks, contrast errors, heading structure, and missing labels. Note: WAVE cannot evaluate contrast for text over positioned/overlapping backgrounds (e.g., nav links over the hero gradient) — expect false positives there.
+- **Lighthouse** — built into Chrome DevTools (F12 > Lighthouse tab). Scores accessibility, performance, SEO, and best practices out of 100.
+- **axe DevTools** — Chrome extension by Deque. Runs in the Elements panel and catches WCAG violations with fix suggestions.
+- **NVDA** (nvaccess.org) — free Windows screen reader for manual testing of the full blind-user experience.
+
+### Accessibility Notes
+
+- **WAVE contrast errors (28):** Mostly false positives from nav links (`rgba(255,255,255,0.85)`) over the purple hero gradient — WAVE sees them against the white `<body>` background. A few real failures exist on platform brand colors (Shopify `#96bf48`, Gumroad `#ff90e8`, Etsy `#f56400` on `#f8f7fc`), but these are intentional brand colors kept as-is.
+- **WAVE alert (1):** Skipped heading level — the `<h3>` inside the dashboard mockup jumps from `<h1>`. Harmless because the mockup is marked `role="img"` with a descriptive `aria-label`.
+
 ## Blazor TODO
 
 Features already shipped in the static HTML landing page (`deploy/index.html`) that still need to be ported to the Blazor app:
 
-- [ ] **SEO** — meta description, robots, canonical URL, Open Graph tags, Twitter Card tags, JSON-LD structured data (`SoftwareApplication` schema)
-- [ ] **Favicon** — link `favicon.svg` (concept C — T + growth bars) in `App.razor` `<head>`
-- [ ] **Social Share Image** — add `og-image.png` (1200x630) to `wwwroot/` and reference in OG/Twitter meta tags
-- [ ] **Accessibility** — skip navigation link, `<main>` landmark, ARIA labels on nav/sections, `aria-hidden` on decorative SVGs, emoji `role="img"` labels, `.sr-only` utility class, `:focus-visible` outlines, `role="contentinfo"` on footer, visually-hidden "Included:" prefixes on pricing checkmarks
+- [x] **SEO** — meta description, robots, canonical URL, Open Graph tags, Twitter Card tags, JSON-LD structured data (`SoftwareApplication` schema)
+- [x] **Favicon** — link `favicon.svg` (concept C — T + growth bars) in `App.razor` `<head>`
+- [x] **Social Share Image** — add `og-image.png` (1200x630) to `wwwroot/` and reference in OG/Twitter meta tags
+- [x] **Accessibility** — skip navigation link, `<main>` landmark, ARIA labels on nav/sections, `aria-hidden` on decorative SVGs, emoji `role="img"` labels, `.sr-only` utility class, `:focus-visible` outlines, `role="contentinfo"` on footer, visually-hidden "Included:" prefixes on pricing checkmarks
+
+Upcoming features:
+
+- [ ] **Admin Page** — role-based admin section (`/admin`) for managing waitlist signups, viewing all suggestion box submissions, user management, platform connection health, and feature flag/tier management. Accessible only to accounts with an `Admin` role.

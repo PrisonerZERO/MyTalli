@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Suggestion Box Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1a1a2e;
+    background: #f8f7fc;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── CONCEPT SELECTOR ─── */
+  .concept-nav {
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+  }
+  .concept-btn {
+    background: #fff;
+    border: 2px solid #e0dce8;
+    border-radius: 10px;
+    color: #555;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 24px;
+    transition: all 0.15s ease;
+  }
+  .concept-btn:hover { border-color: #6c5ce7; color: #6c5ce7; }
+  .concept-btn.active { background: #6c5ce7; border-color: #6c5ce7; color: #fff; }
+
+  .concept-label {
+    background: #f0edff;
+    border-radius: 8px;
+    color: #6c5ce7;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 32px auto 16px;
+    padding: 6px 16px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* ─── SHARED LAYOUT SHELL ─── */
+  .concept { display: none; min-height: 100vh; }
+  .concept.visible { display: block; }
+
+  .app-shell { display: flex; min-height: 100vh; }
+
+  /* Simulated sidebar */
+  .sim-sidebar {
+    background: #fff;
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    padding: 24px 16px;
+    width: 240px;
+  }
+  .sim-logo { color: #1a1a2e; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 32px; padding: 0 8px; text-decoration: none; }
+  .sim-logo span { color: #6c5ce7; }
+  .sim-nav { display: flex; flex-direction: column; gap: 2px; }
+  .sim-link {
+    align-items: center;
+    border-radius: 8px;
+    color: #555;
+    display: flex;
+    font-size: 14px;
+    font-weight: 500;
+    gap: 10px;
+    padding: 10px 12px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .sim-link:hover { background: #f8f7fc; color: #1a1a2e; }
+  .sim-link.active { background: #f0edff; color: #6c5ce7; font-weight: 600; }
+  .sim-link svg { flex-shrink: 0; height: 18px; width: 18px; }
+
+  /* Main content area */
+  .sim-main { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 40px 80px; }
+
+  /* ─── SHARED SUGGESTION STYLES ─── */
+  .vote-block { align-items: center; display: flex; flex-direction: column; flex-shrink: 0; gap: 2px; width: 40px; }
+  .vote-btn {
+    align-items: center;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    color: #bbb;
+    cursor: pointer;
+    display: flex;
+    height: 28px;
+    justify-content: center;
+    transition: all 0.15s ease;
+    width: 28px;
+  }
+  .vote-btn:hover { background: #f0edff; color: #6c5ce7; }
+  .vote-btn.voted { color: #6c5ce7; }
+  .vote-btn svg { height: 14px; width: 14px; }
+  .vote-count { color: #1a1a2e; font-size: 15px; font-weight: 700; line-height: 1; }
+
+  .cat-tag {
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    text-transform: uppercase;
+  }
+  .cat-feature { background: #f0edff; color: #6c5ce7; }
+  .cat-integration { background: rgba(99, 91, 255, 0.08); color: #635bff; }
+  .cat-export { background: rgba(39, 174, 96, 0.08); color: #27ae60; }
+  .cat-ui { background: rgba(245, 100, 0, 0.08); color: #f56400; }
+  .cat-bug { background: rgba(231, 76, 60, 0.08); color: #e74c3c; }
+
+  .meta-text { color: #999; font-size: 12px; }
+
+  /* ─── FORM SHARED ─── */
+  .form-label { color: #1a1a2e; display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .form-input, .form-textarea, .form-select {
+    background: #fff;
+    border: 1px solid #e0dce8;
+    border-radius: 10px;
+    color: #1a1a2e;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    padding: 12px 16px;
+    transition: border-color 0.15s ease;
+    width: 100%;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: #6c5ce7; }
+  .form-textarea { min-height: 100px; resize: vertical; }
+  .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-position: right 14px center; background-repeat: no-repeat; cursor: pointer; padding-right: 36px; }
+
+  .btn-submit {
+    background: #6c5ce7;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 28px;
+    transition: background 0.15s ease;
+  }
+  .btn-submit:hover { background: #5a4bd1; }
+
+  .btn-outline {
+    background: #fff;
+    border: 2px solid #e0dce8;
+    border-radius: 10px;
+    color: #555;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 24px;
+    transition: all 0.15s ease;
+  }
+  .btn-outline:hover { border-color: #6c5ce7; color: #6c5ce7; }
+
+  /* ─── ANIMATION ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeUp 0.5s ease forwards; opacity: 0; }
+  .delay-1 { animation-delay: 0.05s; }
+  .delay-2 { animation-delay: 0.1s; }
+  .delay-3 { animation-delay: 0.15s; }
+  .delay-4 { animation-delay: 0.2s; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT A: TWO-COLUMN SPLIT */
+  /* ─────────────────────────── */
+  .a-page-title { color: #1a1a2e; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .a-page-sub { color: #999; font-size: 14px; margin-bottom: 28px; }
+
+  .a-two-col { display: grid; gap: 28px; grid-template-columns: 340px 1fr; }
+
+  .a-form-card { background: #fff; border: 1px solid #eee; border-radius: 14px; height: fit-content; padding: 28px; position: sticky; top: 80px; }
+  .a-form-card h3 { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .a-form-group { margin-bottom: 16px; }
+  .a-form-group:last-of-type { margin-bottom: 20px; }
+
+  .a-list-section h3 { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+  .a-filter-bar { align-items: center; display: flex; gap: 12px; margin-bottom: 20px; }
+  .a-filter-bar .form-select { max-width: 160px; }
+  .a-filter-bar .sort-pills { display: flex; gap: 4px; margin-left: auto; }
+  .a-sort-pill {
+    background: transparent;
+    border: 1px solid #e0dce8;
+    border-radius: 6px;
+    color: #999;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    transition: all 0.15s ease;
+  }
+  .a-sort-pill:hover { border-color: #6c5ce7; color: #6c5ce7; }
+  .a-sort-pill.active { background: #f0edff; border-color: #6c5ce7; color: #6c5ce7; font-weight: 600; }
+
+  .a-suggestion-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding: 20px 24px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .a-suggestion-card:hover { border-color: #e0dce8; box-shadow: 0 4px 16px rgba(108, 92, 231, 0.05); }
+  .a-card-body { flex: 1; min-width: 0; }
+  .a-card-title { color: #1a1a2e; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .a-card-desc { color: #555; font-size: 13px; line-height: 1.5; margin-bottom: 10px; }
+  .a-card-meta { align-items: center; display: flex; gap: 10px; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT B: STACKED CARDS    */
+  /* ─────────────────────────── */
+  .b-page-title { color: #1a1a2e; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .b-page-sub { color: #999; font-size: 14px; margin-bottom: 28px; }
+
+  .b-submit-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    margin-bottom: 28px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+  }
+  .b-submit-toggle {
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    font-family: inherit;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 20px 24px;
+    width: 100%;
+  }
+  .b-submit-toggle-left { align-items: center; display: flex; gap: 10px; }
+  .b-submit-toggle-left svg { color: #6c5ce7; flex-shrink: 0; height: 20px; width: 20px; }
+  .b-submit-toggle-left span { color: #1a1a2e; font-size: 15px; font-weight: 600; }
+  .b-submit-toggle .chevron { color: #bbb; height: 16px; transition: transform 0.2s ease; width: 16px; }
+  .b-submit-toggle .chevron.open { transform: rotate(180deg); }
+  .b-submit-body { border-top: 1px solid #eee; padding: 24px; }
+  .b-form-row { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin-bottom: 16px; }
+  .b-form-group { margin-bottom: 16px; }
+  .b-form-actions { display: flex; gap: 12px; justify-content: flex-end; }
+
+  .b-toolbar { align-items: center; display: flex; gap: 12px; margin-bottom: 20px; }
+  .b-toolbar .form-select { max-width: 160px; }
+  .b-search-input {
+    background: #fff;
+    border: 1px solid #e0dce8;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    margin-left: auto;
+    max-width: 240px;
+    outline: none;
+    padding: 10px 16px;
+    transition: border-color 0.15s ease;
+    width: 100%;
+  }
+  .b-search-input:focus { border-color: #6c5ce7; }
+
+  .b-suggestion-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding: 22px 24px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .b-suggestion-card:hover { border-color: #e0dce8; box-shadow: 0 4px 16px rgba(108, 92, 231, 0.05); }
+  .b-card-body { flex: 1; min-width: 0; }
+  .b-card-top { align-items: flex-start; display: flex; gap: 10px; justify-content: space-between; margin-bottom: 6px; }
+  .b-card-title { color: #1a1a2e; font-size: 15px; font-weight: 600; }
+  .b-card-desc { color: #555; font-size: 13px; line-height: 1.5; margin-bottom: 10px; }
+  .b-card-footer { align-items: center; display: flex; gap: 12px; }
+  .b-comment-count { align-items: center; color: #bbb; display: flex; font-size: 12px; gap: 4px; }
+  .b-comment-count svg { height: 14px; width: 14px; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT C: HERO + GRID      */
+  /* ─────────────────────────── */
+  .c-hero { margin: -32px -40px 32px; overflow: hidden; padding: 24px 40px 40px; position: relative; }
+  .c-hero-bg { height: 100%; left: 0; pointer-events: none; position: absolute; right: 0; top: 0; }
+  .c-hero-bg svg { display: block; height: 100%; min-height: 280px; width: 100%; }
+  .c-deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
+  .c-deco-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
+  .c-deco-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
+  .c-deco-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
+
+  .c-hero-content { position: relative; z-index: 2; }
+  .c-hero-top { align-items: center; display: flex; justify-content: space-between; margin-bottom: 24px; }
+  .c-hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .c-hero p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
+
+  .c-new-btn {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    gap: 8px;
+    padding: 10px 22px;
+    transition: background 0.15s ease;
+  }
+  .c-new-btn:hover { background: rgba(255, 255, 255, 0.28); }
+  .c-new-btn svg { height: 16px; width: 16px; }
+
+  .c-stats { display: flex; gap: 24px; margin-top: 20px; }
+  .c-stat { align-items: center; display: flex; gap: 8px; }
+  .c-stat-num { color: #fff; font-size: 22px; font-weight: 700; }
+  .c-stat-label { color: rgba(255, 255, 255, 0.6); font-size: 13px; }
+
+  .c-toolbar { align-items: center; display: flex; gap: 12px; margin-bottom: 24px; }
+  .c-cat-pills { display: flex; gap: 6px; }
+  .c-cat-pill {
+    background: #fff;
+    border: 1px solid #e0dce8;
+    border-radius: 8px;
+    color: #555;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 16px;
+    transition: all 0.15s ease;
+  }
+  .c-cat-pill:hover { border-color: #6c5ce7; color: #6c5ce7; }
+  .c-cat-pill.active { background: #6c5ce7; border-color: #6c5ce7; color: #fff; }
+  .c-sort { color: #999; font-size: 13px; margin-left: auto; }
+  .c-sort select {
+    background: none;
+    border: none;
+    color: #6c5ce7;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+  }
+
+  .c-grid { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); }
+
+  .c-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .c-card:hover { border-color: #e0dce8; box-shadow: 0 4px 20px rgba(108, 92, 231, 0.06); }
+  .c-card-header { align-items: flex-start; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 10px; }
+  .c-card-title { color: #1a1a2e; font-size: 15px; font-weight: 600; }
+  .c-card-desc { color: #555; flex: 1; font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
+  .c-card-footer { align-items: center; border-top: 1px solid #f8f7fc; display: flex; gap: 12px; justify-content: space-between; padding-top: 14px; }
+  .c-card-votes { align-items: center; display: flex; gap: 6px; }
+  .c-vote-btn {
+    align-items: center;
+    background: #f8f7fc;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    color: #999;
+    cursor: pointer;
+    display: flex;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    transition: all 0.15s ease;
+  }
+  .c-vote-btn:hover { border-color: #6c5ce7; color: #6c5ce7; }
+  .c-vote-btn.voted { background: #f0edff; border-color: #6c5ce7; color: #6c5ce7; }
+  .c-vote-btn svg { height: 12px; width: 12px; }
+  .c-card-meta { align-items: center; display: flex; gap: 8px; }
+
+  /* Modal for Concept C */
+  .c-modal-overlay {
+    align-items: center;
+    background: rgba(26, 26, 46, 0.5);
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 300;
+  }
+  .c-modal {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.15);
+    max-width: 520px;
+    padding: 32px;
+    width: 90%;
+  }
+  .c-modal h2 { color: #1a1a2e; font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+  .c-modal .form-group { margin-bottom: 16px; }
+  .c-modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1024px) {
+    .a-two-col { grid-template-columns: 1fr; }
+    .a-form-card { position: static; }
+    .c-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    .sim-sidebar { display: none; }
+    .sim-main { padding: 24px 20px 60px; }
+    .b-form-row { grid-template-columns: 1fr; }
+    .c-hero { margin: -24px -20px 24px; padding: 20px 20px 32px; }
+    .c-stats { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CONCEPT SELECTOR -->
+<div class="concept-nav">
+  <button class="concept-btn active" onclick="showConcept('a')">A — Two-Column Split</button>
+  <button class="concept-btn" onclick="showConcept('b')">B — Stacked Cards</button>
+  <button class="concept-btn" onclick="showConcept('c')">C — Hero + Grid</button>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT A: TWO-COLUMN SPLIT             -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept visible" id="concept-a">
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sim-sidebar">
+      <a class="sim-logo" href="#">My<span>Talli</span></a>
+      <nav class="sim-nav">
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Platforms
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Goals
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Export
+        </a>
+        <a class="sim-link active" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Suggestions
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="sim-main">
+      <div class="animate-in delay-1">
+        <h1 class="a-page-title">Suggestion Box</h1>
+        <p class="a-page-sub">Help shape the future of MyTalli — share ideas, vote on what matters most.</p>
+      </div>
+
+      <div class="a-two-col animate-in delay-2">
+        <!-- Left: Submit Form -->
+        <div class="a-form-card">
+          <h3>Share Your Idea</h3>
+          <div class="a-form-group">
+            <label class="form-label">Title</label>
+            <input class="form-input" type="text" placeholder="e.g. Dark mode support">
+          </div>
+          <div class="a-form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea" placeholder="Describe your suggestion in detail..."></textarea>
+          </div>
+          <div class="a-form-group">
+            <label class="form-label">Category</label>
+            <select class="form-select">
+              <option>Feature</option>
+              <option>Integration</option>
+              <option>Export</option>
+              <option>UI / UX</option>
+              <option>Bug Fix</option>
+            </select>
+          </div>
+          <button class="btn-submit" style="width:100%">Submit Suggestion</button>
+        </div>
+
+        <!-- Right: Suggestion List -->
+        <div class="a-list-section">
+          <div class="a-filter-bar">
+            <select class="form-select">
+              <option>All Categories</option>
+              <option>Feature</option>
+              <option>Integration</option>
+              <option>Export</option>
+              <option>UI / UX</option>
+            </select>
+            <div class="sort-pills">
+              <button class="a-sort-pill active">Top</button>
+              <button class="a-sort-pill">New</button>
+            </div>
+          </div>
+
+          <div class="a-suggestion-card">
+            <div class="vote-block">
+              <button class="vote-btn voted"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+              <span class="vote-count">24</span>
+              <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+            </div>
+            <div class="a-card-body">
+              <div class="a-card-title">Dark Mode Support</div>
+              <div class="a-card-desc">Would love a dark mode option for late-night revenue tracking. The current light theme can be harsh on the eyes after hours of use.</div>
+              <div class="a-card-meta">
+                <span class="cat-tag cat-feature">Feature</span>
+                <span class="meta-text">Sarah J. &middot; 3 days ago</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="a-suggestion-card">
+            <div class="vote-block">
+              <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+              <span class="vote-count">18</span>
+              <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+            </div>
+            <div class="a-card-body">
+              <div class="a-card-title">CSV Export with Date Range Filters</div>
+              <div class="a-card-desc">Allow users to select a custom date range when exporting CSV data, rather than exporting everything at once.</div>
+              <div class="a-card-meta">
+                <span class="cat-tag cat-export">Export</span>
+                <span class="meta-text">Alex M. &middot; 5 days ago</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="a-suggestion-card">
+            <div class="vote-block">
+              <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+              <span class="vote-count">15</span>
+              <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+            </div>
+            <div class="a-card-body">
+              <div class="a-card-title">Stripe Webhook Real-Time Sync</div>
+              <div class="a-card-desc">Instead of polling, use Stripe webhooks so new transactions appear in the dashboard instantly.</div>
+              <div class="a-card-meta">
+                <span class="cat-tag cat-integration">Integration</span>
+                <span class="meta-text">Jordan K. &middot; 1 week ago</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="a-suggestion-card">
+            <div class="vote-block">
+              <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+              <span class="vote-count">12</span>
+              <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+            </div>
+            <div class="a-card-body">
+              <div class="a-card-title">Multi-Currency Support</div>
+              <div class="a-card-desc">Support displaying and converting revenue in different currencies for international sellers.</div>
+              <div class="a-card-meta">
+                <span class="cat-tag cat-feature">Feature</span>
+                <span class="meta-text">Priya R. &middot; 1 week ago</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="a-suggestion-card">
+            <div class="vote-block">
+              <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+              <span class="vote-count">9</span>
+              <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+            </div>
+            <div class="a-card-body">
+              <div class="a-card-title">Customizable Dashboard Widgets</div>
+              <div class="a-card-desc">Let users drag and rearrange dashboard cards to prioritize what they care about most.</div>
+              <div class="a-card-meta">
+                <span class="cat-tag cat-ui">UI / UX</span>
+                <span class="meta-text">Chris T. &middot; 2 weeks ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT B: STACKED CARDS                -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept" id="concept-b">
+  <div class="app-shell">
+    <!-- Sidebar (same as A) -->
+    <aside class="sim-sidebar">
+      <a class="sim-logo" href="#">My<span>Talli</span></a>
+      <nav class="sim-nav">
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Platforms
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Goals
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Export
+        </a>
+        <a class="sim-link active" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Suggestions
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="sim-main">
+      <div class="animate-in delay-1">
+        <h1 class="b-page-title">Suggestion Box</h1>
+        <p class="b-page-sub">Share ideas and vote on what you'd like to see next in MyTalli.</p>
+      </div>
+
+      <!-- Collapsible Submit Form -->
+      <div class="b-submit-card animate-in delay-2">
+        <button class="b-submit-toggle" onclick="toggleSubmitB()">
+          <div class="b-submit-toggle-left">
+            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <span>Share Your Idea</span>
+          </div>
+          <svg class="chevron open" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="b-submit-body" id="b-submit-body">
+          <div class="b-form-row">
+            <div>
+              <label class="form-label">Title</label>
+              <input class="form-input" type="text" placeholder="e.g. Dark mode support">
+            </div>
+            <div>
+              <label class="form-label">Category</label>
+              <select class="form-select">
+                <option>Feature</option>
+                <option>Integration</option>
+                <option>Export</option>
+                <option>UI / UX</option>
+                <option>Bug Fix</option>
+              </select>
+            </div>
+          </div>
+          <div class="b-form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea" placeholder="Describe your suggestion in detail..."></textarea>
+          </div>
+          <div class="b-form-actions">
+            <button class="btn-outline" onclick="toggleSubmitB()">Cancel</button>
+            <button class="btn-submit">Submit</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="b-toolbar animate-in delay-3">
+        <select class="form-select">
+          <option>All Categories</option>
+          <option>Feature</option>
+          <option>Integration</option>
+          <option>Export</option>
+          <option>UI / UX</option>
+        </select>
+        <select class="form-select">
+          <option>Most Votes</option>
+          <option>Newest</option>
+          <option>Oldest</option>
+        </select>
+        <input class="b-search-input" type="text" placeholder="Search suggestions...">
+      </div>
+
+      <!-- Suggestion List -->
+      <div class="animate-in delay-4">
+        <div class="b-suggestion-card">
+          <div class="vote-block">
+            <button class="vote-btn voted"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+            <span class="vote-count">24</span>
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+          </div>
+          <div class="b-card-body">
+            <div class="b-card-top">
+              <div class="b-card-title">Dark Mode Support</div>
+              <span class="cat-tag cat-feature">Feature</span>
+            </div>
+            <div class="b-card-desc">Would love a dark mode option for late-night revenue tracking. The current light theme can be harsh on the eyes after hours of use.</div>
+            <div class="b-card-footer">
+              <span class="meta-text">Sarah J. &middot; 3 days ago</span>
+              <span class="b-comment-count">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                4 comments
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="b-suggestion-card">
+          <div class="vote-block">
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+            <span class="vote-count">18</span>
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+          </div>
+          <div class="b-card-body">
+            <div class="b-card-top">
+              <div class="b-card-title">CSV Export with Date Range Filters</div>
+              <span class="cat-tag cat-export">Export</span>
+            </div>
+            <div class="b-card-desc">Allow users to select a custom date range when exporting CSV data, rather than exporting everything at once.</div>
+            <div class="b-card-footer">
+              <span class="meta-text">Alex M. &middot; 5 days ago</span>
+              <span class="b-comment-count">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                2 comments
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="b-suggestion-card">
+          <div class="vote-block">
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+            <span class="vote-count">15</span>
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+          </div>
+          <div class="b-card-body">
+            <div class="b-card-top">
+              <div class="b-card-title">Stripe Webhook Real-Time Sync</div>
+              <span class="cat-tag cat-integration">Integration</span>
+            </div>
+            <div class="b-card-desc">Instead of polling, use Stripe webhooks so new transactions appear in the dashboard instantly.</div>
+            <div class="b-card-footer">
+              <span class="meta-text">Jordan K. &middot; 1 week ago</span>
+              <span class="b-comment-count">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                7 comments
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="b-suggestion-card">
+          <div class="vote-block">
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+            <span class="vote-count">12</span>
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+          </div>
+          <div class="b-card-body">
+            <div class="b-card-top">
+              <div class="b-card-title">Multi-Currency Support</div>
+              <span class="cat-tag cat-feature">Feature</span>
+            </div>
+            <div class="b-card-desc">Support displaying and converting revenue in different currencies for international sellers.</div>
+            <div class="b-card-footer">
+              <span class="meta-text">Priya R. &middot; 1 week ago</span>
+              <span class="b-comment-count">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                1 comment
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="b-suggestion-card">
+          <div class="vote-block">
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+            <span class="vote-count">9</span>
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+          </div>
+          <div class="b-card-body">
+            <div class="b-card-top">
+              <div class="b-card-title">Customizable Dashboard Widgets</div>
+              <span class="cat-tag cat-ui">UI / UX</span>
+            </div>
+            <div class="b-card-desc">Let users drag and rearrange dashboard cards to prioritize what they care about most.</div>
+            <div class="b-card-footer">
+              <span class="meta-text">Chris T. &middot; 2 weeks ago</span>
+              <span class="b-comment-count">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                3 comments
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="b-suggestion-card">
+          <div class="vote-block">
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></button>
+            <span class="vote-count">6</span>
+            <button class="vote-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg></button>
+          </div>
+          <div class="b-card-body">
+            <div class="b-card-top">
+              <div class="b-card-title">Weekly Email Summary</div>
+              <span class="cat-tag cat-feature">Feature</span>
+            </div>
+            <div class="b-card-desc">Get a weekly digest email with revenue highlights, top-performing platforms, and goal progress updates.</div>
+            <div class="b-card-footer">
+              <span class="meta-text">Maya L. &middot; 2 weeks ago</span>
+              <span class="b-comment-count">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                0 comments
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT C: HERO HEADER + GRID           -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept" id="concept-c">
+  <div class="app-shell">
+    <!-- Sidebar (same as A) -->
+    <aside class="sim-sidebar">
+      <a class="sim-logo" href="#">My<span>Talli</span></a>
+      <nav class="sim-nav">
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Platforms
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Goals
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Export
+        </a>
+        <a class="sim-link active" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Suggestions
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="sim-main">
+      <!-- Purple Swoosh Hero -->
+      <div class="c-hero animate-in delay-1">
+        <div class="c-hero-bg">
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="cSwooshGrad" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#6c5ce7" />
+                <stop offset="50%" stop-color="#8b5cf6" />
+                <stop offset="100%" stop-color="#6c5ce7" />
+              </linearGradient>
+            </defs>
+            <path d="M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z" fill="url(#cSwooshGrad)" />
+          </svg>
+          <div class="c-deco-circle c-deco-1"></div>
+          <div class="c-deco-circle c-deco-2"></div>
+          <div class="c-deco-circle c-deco-3"></div>
+        </div>
+
+        <div class="c-hero-content">
+          <div class="c-hero-top">
+            <div>
+              <h1>Suggestion Box</h1>
+              <p>Help shape the future of MyTalli</p>
+            </div>
+            <button class="c-new-btn">
+              <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Suggestion
+            </button>
+          </div>
+
+          <div class="c-stats">
+            <div class="c-stat">
+              <span class="c-stat-num">24</span>
+              <span class="c-stat-label">Ideas</span>
+            </div>
+            <div class="c-stat">
+              <span class="c-stat-num">142</span>
+              <span class="c-stat-label">Votes</span>
+            </div>
+            <div class="c-stat">
+              <span class="c-stat-num">3</span>
+              <span class="c-stat-label">Yours</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="c-toolbar animate-in delay-2">
+        <div class="c-cat-pills">
+          <button class="c-cat-pill active">All</button>
+          <button class="c-cat-pill">Feature</button>
+          <button class="c-cat-pill">Integration</button>
+          <button class="c-cat-pill">Export</button>
+          <button class="c-cat-pill">UI / UX</button>
+        </div>
+        <div class="c-sort">
+          Sort by: <select><option>Most Votes</option><option>Newest</option><option>Oldest</option></select>
+        </div>
+      </div>
+
+      <!-- Card Grid -->
+      <div class="c-grid animate-in delay-3">
+        <div class="c-card">
+          <div class="c-card-header">
+            <div class="c-card-title">Dark Mode Support</div>
+            <span class="cat-tag cat-feature">Feature</span>
+          </div>
+          <div class="c-card-desc">Would love a dark mode option for late-night revenue tracking. The current light theme can be harsh on the eyes.</div>
+          <div class="c-card-footer">
+            <div class="c-card-votes">
+              <button class="c-vote-btn voted">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                24
+              </button>
+            </div>
+            <div class="c-card-meta">
+              <span class="meta-text">Sarah J. &middot; 3d</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-card">
+          <div class="c-card-header">
+            <div class="c-card-title">CSV Export with Date Range</div>
+            <span class="cat-tag cat-export">Export</span>
+          </div>
+          <div class="c-card-desc">Allow users to select a custom date range when exporting CSV data, rather than exporting everything at once.</div>
+          <div class="c-card-footer">
+            <div class="c-card-votes">
+              <button class="c-vote-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                18
+              </button>
+            </div>
+            <div class="c-card-meta">
+              <span class="meta-text">Alex M. &middot; 5d</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-card">
+          <div class="c-card-header">
+            <div class="c-card-title">Stripe Webhook Real-Time Sync</div>
+            <span class="cat-tag cat-integration">Integration</span>
+          </div>
+          <div class="c-card-desc">Use Stripe webhooks so new transactions appear in the dashboard instantly instead of polling.</div>
+          <div class="c-card-footer">
+            <div class="c-card-votes">
+              <button class="c-vote-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                15
+              </button>
+            </div>
+            <div class="c-card-meta">
+              <span class="meta-text">Jordan K. &middot; 1w</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-card">
+          <div class="c-card-header">
+            <div class="c-card-title">Multi-Currency Support</div>
+            <span class="cat-tag cat-feature">Feature</span>
+          </div>
+          <div class="c-card-desc">Support displaying and converting revenue in different currencies for international sellers.</div>
+          <div class="c-card-footer">
+            <div class="c-card-votes">
+              <button class="c-vote-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                12
+              </button>
+            </div>
+            <div class="c-card-meta">
+              <span class="meta-text">Priya R. &middot; 1w</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-card">
+          <div class="c-card-header">
+            <div class="c-card-title">Customizable Dashboard Widgets</div>
+            <span class="cat-tag cat-ui">UI / UX</span>
+          </div>
+          <div class="c-card-desc">Let users drag and rearrange dashboard cards to prioritize what they care about most.</div>
+          <div class="c-card-footer">
+            <div class="c-card-votes">
+              <button class="c-vote-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                9
+              </button>
+            </div>
+            <div class="c-card-meta">
+              <span class="meta-text">Chris T. &middot; 2w</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-card">
+          <div class="c-card-header">
+            <div class="c-card-title">Weekly Email Summary</div>
+            <span class="cat-tag cat-feature">Feature</span>
+          </div>
+          <div class="c-card-desc">Get a weekly digest email with revenue highlights, top-performing platforms, and goal progress.</div>
+          <div class="c-card-footer">
+            <div class="c-card-votes">
+              <button class="c-vote-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                6
+              </button>
+            </div>
+            <div class="c-card-meta">
+              <span class="meta-text">Maya L. &middot; 2w</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showConcept(id) {
+  document.querySelectorAll('.concept').forEach(c => c.classList.remove('visible'));
+  document.getElementById('concept-' + id).classList.add('visible');
+  document.querySelectorAll('.concept-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function toggleSubmitB() {
+  const body = document.getElementById('b-submit-body');
+  const chevron = document.querySelector('.chevron');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    chevron.classList.add('open');
+  } else {
+    body.style.display = 'none';
+    chevron.classList.remove('open');
+  }
+}
+</script>
+
+</body>
+</html>

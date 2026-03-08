@@ -1,0 +1,132 @@
+@page "/suggestions"
+@inherits My.Talli.Web.ViewModels.Pages.SuggestionBoxViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Suggestion Box — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<section class="suggest-hero" aria-label="Suggestion box overview">
+    <div class="suggest-hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="suggest-hero-content">
+        <div class="suggest-hero-top">
+            <div>
+                <h1>Suggestion Box</h1>
+                <p>Help shape the future of MyTalli</p>
+            </div>
+            <button class="suggest-new-btn" @onclick="OpenModal">
+                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                    <line x1="12" x2="12" y1="5" y2="19" />
+                    <line x1="5" x2="19" y1="12" y2="12" />
+                </svg>
+                New Suggestion
+            </button>
+        </div>
+
+        <div class="suggest-stats" role="group" aria-label="Suggestion statistics">
+            <div class="suggest-stat">
+                <span class="suggest-stat-num">@TotalIdeas</span>
+                <span class="suggest-stat-label">Ideas</span>
+            </div>
+            <div class="suggest-stat">
+                <span class="suggest-stat-num">@TotalVotes</span>
+                <span class="suggest-stat-label">Votes</span>
+            </div>
+            <div class="suggest-stat">
+                <span class="suggest-stat-num">@YourSuggestions</span>
+                <span class="suggest-stat-label">Yours</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Category filter pills -->
+<div class="suggest-toolbar animate-in delay-2">
+    <div class="suggest-cat-pills" role="group" aria-label="Filter by category">
+        @foreach (var cat in Categories)
+        {
+            <button class="suggest-cat-pill @(cat == ActiveCategory ? "active" : "")"
+                    aria-pressed="@(cat == ActiveCategory ? "true" : "false")"
+                    @onclick="() => SelectCategory(cat)">
+                @cat
+            </button>
+        }
+    </div>
+    <div class="suggest-sort" role="group" aria-label="Sort order">
+        Sort by:
+        <button class="suggest-sort-btn @(ActiveSort == "Top" ? "active" : "")"
+                aria-pressed="@(ActiveSort == "Top" ? "true" : "false")"
+                @onclick="@(() => SelectSort("Top"))">Top</button>
+        <button class="suggest-sort-btn @(ActiveSort == "New" ? "active" : "")"
+                aria-pressed="@(ActiveSort == "New" ? "true" : "false")"
+                @onclick="@(() => SelectSort("New"))">New</button>
+    </div>
+</div>
+
+<!-- Card grid -->
+<div class="suggest-grid animate-in delay-3">
+    @foreach (var item in FilteredSuggestions)
+    {
+        <article class="suggest-card">
+            <div class="suggest-card-header">
+                <h3 class="suggest-card-title">@item.Title</h3>
+                <span class="suggest-cat-tag @item.CategoryCss">@item.Category</span>
+            </div>
+            <div class="suggest-card-desc">@item.Description</div>
+            <div class="suggest-card-footer">
+                <div class="suggest-card-votes">
+                    <button class="suggest-vote-btn @(item.HasVoted ? "voted" : "")"
+                            aria-label="@(item.HasVoted ? "Remove vote from" : "Upvote") @item.Title, @item.Votes votes"
+                            aria-pressed="@(item.HasVoted ? "true" : "false")"
+                            @onclick="() => ToggleVote(item)">
+                        <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 4l-8 8h5v8h6v-8h5z" />
+                        </svg>
+                        @item.Votes
+                    </button>
+                </div>
+                <div class="suggest-card-meta">
+                    <span class="suggest-meta-text">@item.Author &middot; @item.TimeLabel</span>
+                </div>
+            </div>
+        </article>
+    }
+</div>
+
+<!-- Submit modal -->
+@if (ShowSubmitModal)
+{
+    <div class="suggest-modal-overlay" @onclick="CloseModal">
+        <div class="suggest-modal" @onclick:stopPropagation="true" role="dialog" aria-modal="true" aria-label="Submit a suggestion">
+            <h2>New Suggestion</h2>
+            <div class="suggest-form-group">
+                <label class="suggest-form-label" for="suggest-title">Title</label>
+                <input class="suggest-form-input" id="suggest-title" type="text" placeholder="e.g. Dark mode support">
+            </div>
+            <div class="suggest-form-group">
+                <label class="suggest-form-label" for="suggest-desc">Description</label>
+                <textarea class="suggest-form-textarea" id="suggest-desc" placeholder="Describe your suggestion in detail..."></textarea>
+            </div>
+            <div class="suggest-form-group">
+                <label class="suggest-form-label" for="suggest-cat">Category</label>
+                <select class="suggest-form-select" id="suggest-cat">
+                    <option>Feature</option>
+                    <option>Integration</option>
+                    <option>Export</option>
+                    <option>UI / UX</option>
+                </select>
+            </div>
+            <div class="suggest-modal-actions">
+                <button class="suggest-btn-outline" @onclick="CloseModal">Cancel</button>
+                <button class="suggest-btn-submit" @onclick="CloseModal">Submit</button>
+            </div>
+        </div>
+    </div>
+}

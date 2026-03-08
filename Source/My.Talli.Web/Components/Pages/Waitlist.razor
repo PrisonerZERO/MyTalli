@@ -5,19 +5,22 @@
 
 <PageTitle>You're on the Waitlist — MyTalli</PageTitle>
 
+<a href="#main" class="skip-link">Skip to main content</a>
+
 <div class="waitlist-page">
     <BrandHeader>
         <a class="sign-out-btn" data-enhance-nav="false" href="/api/auth/logout">Sign Out</a>
     </BrandHeader>
 
-    <div class="waitlist-shell">
-        <div class="page-header">
+    <main id="main">
+        <div class="waitlist-shell">
+            <div class="page-header">
 
-            <div class="confirm-badge">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
+                <div class="confirm-badge">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
                 @if (!string.IsNullOrEmpty(UserName))
                 {
                     <text>You're on the waitlist, @UserName!</text>
@@ -26,55 +29,56 @@
                 {
                     <text>You're on the waitlist!</text>
                 }
+                </div>
+
+                <h1 class="page-heading">We're building MyTalli</h1>
+                <p class="page-sub">Here's where we are on the road to launch. Check back anytime to see our progress.</p>
             </div>
 
-            <h1 class="page-heading">We're building MyTalli</h1>
-            <p class="page-sub">Here's where we are on the road to launch. Check back anytime to see our progress.</p>
+            <div class="timeline" role="list" aria-label="Launch milestones">
+                @foreach (var milestone in Milestones)
+                {
+                    <div class="timeline-item @(milestone.Status == MilestoneStatus.Upcoming ? "is-upcoming" : "")" role="listitem">
+                        @if (milestone.Status == MilestoneStatus.Complete)
+                        {
+                            <div class="timeline-dot done">
+                                <svg aria-hidden="true" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                        }
+                        else if (milestone.Status == MilestoneStatus.InProgress)
+                        {
+                            <div class="timeline-dot in-progress">
+                                <svg aria-hidden="true" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path d="M12 6v6l4 2" />
+                                </svg>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="timeline-dot upcoming"></div>
+                        }
+
+                        <div class="timeline-title">@milestone.Title</div>
+                        <div class="timeline-desc">@milestone.Description</div>
+
+                        @if (milestone.Status == MilestoneStatus.Complete)
+                        {
+                            <span class="timeline-status done">Complete</span>
+                        }
+                        else if (milestone.Status == MilestoneStatus.InProgress)
+                        {
+                            <span class="timeline-status in-progress">In Progress</span>
+                        }
+                        else
+                        {
+                            <span class="timeline-status upcoming">Upcoming</span>
+                        }
+                    </div>
+                }
+            </div>
+
         </div>
-
-        <div class="timeline">
-            @foreach (var milestone in Milestones)
-            {
-                <div class="timeline-item @(milestone.Status == MilestoneStatus.Upcoming ? "is-upcoming" : "")">
-                    @if (milestone.Status == MilestoneStatus.Complete)
-                    {
-                        <div class="timeline-dot done">
-                            <svg fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                        </div>
-                    }
-                    else if (milestone.Status == MilestoneStatus.InProgress)
-                    {
-                        <div class="timeline-dot in-progress">
-                            <svg fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24">
-                                <path d="M12 6v6l4 2" />
-                            </svg>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="timeline-dot upcoming"></div>
-                    }
-
-                    <div class="timeline-title">@milestone.Title</div>
-                    <div class="timeline-desc">@milestone.Description</div>
-
-                    @if (milestone.Status == MilestoneStatus.Complete)
-                    {
-                        <span class="timeline-status done">Complete</span>
-                    }
-                    else if (milestone.Status == MilestoneStatus.InProgress)
-                    {
-                        <span class="timeline-status in-progress">In Progress</span>
-                    }
-                    else
-                    {
-                        <span class="timeline-status upcoming">Upcoming</span>
-                    }
-                </div>
-            }
-        </div>
-
-    </div>
+    </main>
 </div>
