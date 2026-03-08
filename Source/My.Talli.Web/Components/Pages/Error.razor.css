@@ -4,8 +4,8 @@
 ::deep .hero-bg { height: 600px !important; }
 
 /* ─── ICON ─── */
-.error-icon-wrap { align-items: center; background: rgba(255, 255, 255, 0.15); border-radius: 50%; display: flex; height: 96px; justify-content: center; margin: 12px auto 16px; width: 96px; }
-.error-icon { color: #fff; height: 44px; width: 44px; }
+.error-icon-wrap { align-items: center; background: rgba(255, 255, 255, 0.15); border-radius: 50%; display: flex; height: 72px; justify-content: center; margin: 12px auto 12px; width: 72px; }
+.error-icon { color: #fff; height: 32px; width: 32px; }
 
 /* ─── TEXT ─── */
 .error-code { color: rgba(255, 255, 255, 0.4); font-size: 54px; font-weight: 700; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
@@ -23,8 +23,8 @@
 /* ─── RESPONSIVE ─── */
 @media (max-width: 480px) {
     .error-code { font-size: 48px; }
-    .error-icon-wrap { height: 80px; width: 80px; }
-    .error-icon { height: 36px; width: 36px; }
+    .error-icon-wrap { height: 64px; width: 64px; }
+    .error-icon { height: 28px; width: 28px; }
     .error-page { padding: 0 16px 60px; }
     .error-title { font-size: 24px; }
 }
