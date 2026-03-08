@@ -8,7 +8,9 @@
 <a href="#main" class="skip-link">Skip to main content</a>
 
 <div class="error-page">
-    <BrandHeader></BrandHeader>
+    <BrandHeader>
+        <button class="back-link" onclick="history.back()" aria-label="Go back to previous page">Go Back</button>
+    </BrandHeader>
 
     <main id="main" aria-labelledby="error-heading">
         <div class="error-shell">
@@ -76,10 +78,6 @@
             <div class="error-code">@StatusCode</div>
             <h1 id="error-heading" class="error-title">@ErrorTitle</h1>
             <p class="error-desc">@ErrorDescription</p>
-
-            <div class="error-actions" role="group" aria-label="Error page actions">
-                <button class="btn-primary-action" onclick="history.back()">Go Back</button>
-            </div>
 
             @if (ShowRequestId)
             {

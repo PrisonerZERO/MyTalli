@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Error Page Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { -webkit-font-smoothing: antialiased; background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+  /* ─── PAGE TITLE ─── */
+  .page-title { background: #fff; border-bottom: 1px solid #eee; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; padding: 20px 32px; text-align: center; }
+  .page-title span { color: #6c5ce7; }
+
+  /* ─── CONCEPTS CONTAINER ─── */
+  .concepts-row { display: flex; gap: 32px; margin: 0 auto; max-width: 1400px; padding: 32px; }
+
+  /* ─── CONCEPT WRAPPER ─── */
+  .concept-wrapper { flex: 1; min-width: 0; }
+  .concept-label { background: #f0edff; border-radius: 8px; color: #6c5ce7; display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 16px; padding: 6px 16px; text-transform: uppercase; }
+  .concept-frame { background: #f8f7fc; border: 1px solid #e0dce8; border-radius: 16px; min-height: 600px; overflow: hidden; position: relative; }
+
+  /* ─── SHARED: BRAND HEADER ─── */
+  .brand-header { position: relative; }
+  .hero-bg { left: 0; pointer-events: none; position: absolute; right: 0; top: 0; }
+  .hero-bg svg { display: block; height: 100%; width: 100%; }
+  .deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
+  .deco-circle-1 { height: 180px; right: 8%; top: -30px; width: 180px; }
+  .deco-circle-2 { height: 120px; left: 12%; top: 80px; width: 120px; }
+  .deco-circle-3 { bottom: 60px; height: 150px; right: 22%; width: 150px; }
+  .brand-bar { align-items: center; display: flex; justify-content: space-between; padding: 24px 32px 0; position: relative; z-index: 2; }
+  .brand-logo { color: #fff; display: inline-block; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .brand-logo span { color: #a78bfa; }
+  .back-link { background: rgba(255, 255, 255, 0.15); border-radius: 8px; color: rgba(255, 255, 255, 0.9); font-size: 13px; font-weight: 500; padding: 8px 18px; text-decoration: none; transition: background 0.15s ease; }
+  .back-link:hover { background: rgba(255, 255, 255, 0.25); color: #fff; }
+
+  /* ─── SHARED: ERROR ICON ─── */
+  .error-icon-wrap { align-items: center; background: rgba(255, 255, 255, 0.15); border-radius: 50%; display: flex; height: 96px; justify-content: center; margin: 0 auto 16px; width: 96px; }
+  .error-icon { color: #fff; height: 44px; width: 44px; }
+
+  /* ─── SHARED: 404 CODE ─── */
+  .error-code { color: rgba(255, 255, 255, 0.4); font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
+
+  /* ─── SHARED: BUTTON ─── */
+  .btn-primary { background: #6c5ce7; border: none; border-radius: 10px; color: #fff; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 14px 28px; transition: background 0.2s, box-shadow 0.2s, transform 0.1s; }
+  .btn-primary:hover { background: #5a4bd1; box-shadow: 0 4px 16px rgba(108, 92, 231, 0.25); transform: translateY(-1px); }
+  .btn-primary:active { transform: scale(0.98); }
+
+  /* ─── CONCEPT A: ALL IN HEADER ─── */
+  .concept-a .hero-bg { height: 520px; }
+  .concept-a .error-content { padding: 40px 32px 0; position: relative; text-align: center; z-index: 2; }
+  .concept-a .error-title { color: #f5c842; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .concept-a .error-desc { color: rgba(255, 255, 255, 0.7); font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+  .concept-a .error-actions { padding: 0 32px; position: relative; text-align: center; z-index: 2; }
+
+  /* ─── CONCEPT B: TEXT UNDER HEADER ─── */
+  .concept-b .hero-bg { height: 380px; }
+  .concept-b .error-header-content { padding: 40px 32px 0; position: relative; text-align: center; z-index: 2; }
+  .concept-b .error-body { padding: 48px 32px 0; position: relative; text-align: center; z-index: 2; }
+  .concept-b .error-title { color: #f5c842; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .concept-b .error-desc { color: #555; font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .concepts-row { flex-direction: column; padding: 24px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-title">MyTalli — Error Page <span>Concepts</span></div>
+
+<div class="concepts-row">
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- CONCEPT A — ALL IN HEADER                          -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="concept-wrapper">
+    <div class="concept-label">Concept A — All in Header</div>
+    <div class="concept-frame concept-a">
+      <header class="brand-header">
+        <div class="hero-bg" aria-hidden="true">
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="swooshGradA" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#6c5ce7" />
+                <stop offset="50%" stop-color="#8b5cf6" />
+                <stop offset="100%" stop-color="#6c5ce7" />
+              </linearGradient>
+            </defs>
+            <path d="M0,0 L1000,0 L1000,440 C850,520 650,400 450,460 C250,520 100,480 0,420 Z" fill="url(#swooshGradA)" />
+          </svg>
+          <div class="deco-circle deco-circle-1"></div>
+          <div class="deco-circle deco-circle-2"></div>
+          <div class="deco-circle deco-circle-3"></div>
+        </div>
+
+        <div class="brand-bar">
+          <span class="brand-logo">My<span>Talli</span></span>
+          <a href="#" class="back-link">Back to homepage</a>
+        </div>
+      </header>
+
+      <div class="error-content">
+        <div class="error-icon-wrap" aria-hidden="true">
+          <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" x2="16.65" y1="21" y2="16.65" />
+            <line x1="8" x2="14" y1="11" y2="11" />
+          </svg>
+        </div>
+        <div class="error-code">404</div>
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-desc">The page you're looking for doesn't exist or has been moved.</p>
+      </div>
+
+      <div class="error-actions">
+        <button class="btn-primary">Go Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- CONCEPT B — TEXT UNDER HEADER                      -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="concept-wrapper">
+    <div class="concept-label">Concept B — Text Under Header</div>
+    <div class="concept-frame concept-b">
+      <header class="brand-header">
+        <div class="hero-bg" aria-hidden="true">
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="swooshGradB" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#6c5ce7" />
+                <stop offset="50%" stop-color="#8b5cf6" />
+                <stop offset="100%" stop-color="#6c5ce7" />
+              </linearGradient>
+            </defs>
+            <path d="M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z" fill="url(#swooshGradB)" />
+          </svg>
+          <div class="deco-circle deco-circle-1"></div>
+          <div class="deco-circle deco-circle-2"></div>
+          <div class="deco-circle deco-circle-3"></div>
+        </div>
+
+        <div class="brand-bar">
+          <span class="brand-logo">My<span>Talli</span></span>
+          <a href="#" class="back-link">Back to homepage</a>
+        </div>
+      </header>
+
+      <div class="error-header-content">
+        <div class="error-icon-wrap" aria-hidden="true">
+          <svg class="error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" x2="16.65" y1="21" y2="16.65" />
+            <line x1="8" x2="14" y1="11" y2="11" />
+          </svg>
+        </div>
+        <div class="error-code">404</div>
+      </div>
+
+      <div class="error-body">
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-desc">The page you're looking for doesn't exist or has been moved.</p>
+        <button class="btn-primary">Go Back</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

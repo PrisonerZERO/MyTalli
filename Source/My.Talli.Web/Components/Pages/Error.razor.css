@@ -1,21 +1,19 @@
 /* ─── ERROR PAGE ─── */
 .error-page { background: #f8f7fc; min-height: 100vh; overflow: hidden; padding: 0 0 80px; position: relative; }
 .error-shell { margin: 0 auto; max-width: 520px; padding: 0 24px; position: relative; text-align: center; z-index: 2; }
+::deep .hero-bg { height: 600px !important; }
 
 /* ─── ICON ─── */
-.error-icon-wrap { align-items: center; background: rgba(255, 255, 255, 0.15); border-radius: 50%; display: flex; height: 96px; justify-content: center; margin: 32px auto 24px; width: 96px; }
+.error-icon-wrap { align-items: center; background: rgba(255, 255, 255, 0.15); border-radius: 50%; display: flex; height: 96px; justify-content: center; margin: 12px auto 16px; width: 96px; }
 .error-icon { color: #fff; height: 44px; width: 44px; }
 
 /* ─── TEXT ─── */
-.error-code { color: rgba(255, 255, 255, 0.4); font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
-.error-title { color: #1a1a2e; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
-.error-desc { color: #555; font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+.error-code { color: rgba(255, 255, 255, 0.4); font-size: 54px; font-weight: 700; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
+.error-title { color: #f5c842; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+.error-desc { color: rgba(255, 255, 255, 0.7); font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
 
-/* ─── ACTIONS ─── */
-.error-actions { display: flex; gap: 12px; justify-content: center; }
-.btn-primary-action { background: #6c5ce7; border: none; border-radius: 10px; color: #fff; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 14px 28px; transition: background 0.2s, box-shadow 0.2s, transform 0.1s; }
-.btn-primary-action:hover { background: #5a4bd1; box-shadow: 0 4px 16px rgba(108, 92, 231, 0.25); transform: translateY(-1px); }
-.btn-primary-action:active { transform: scale(0.98); }
+/* ─── GO BACK BUTTON (in BrandHeader) ─── */
+::deep .back-link { border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
 
 /* ─── DEBUG ─── */
 .error-debug { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; display: inline-block; margin-top: 32px; padding: 12px 20px; }
