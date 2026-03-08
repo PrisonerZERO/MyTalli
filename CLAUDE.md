@@ -4,7 +4,7 @@
 
 MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and freelancers connect their payment platforms (Stripe, Etsy, Gumroad, PayPal, Shopify, etc.) and see all their income in one unified dashboard with real-time tracking, trends, goals, and CSV export.
 
-**Status:** Early development. Landing page, sign-in, waitlist, and dashboard pages are built. OAuth authentication is working (Google, Apple, Microsoft). Users currently land on the waitlist after sign-in (dashboard is built but waitlist is the active post-login destination).
+**Status:** Early development — **Waitlist Mode** active (see below). Landing page, sign-in, waitlist, and dashboard pages are built. OAuth authentication is working (Google, Apple, Microsoft). Sign-in currently redirects to the waitlist; dashboard and other routes are disabled until Dashboard Mode is enabled.
 
 ## Tech Stack
 
@@ -283,10 +283,37 @@ Deploy folder also contains:
 - **External providers only:** Google, Apple, Microsoft (via OAuth) — all working
 - **Cookie auth** with 30-day sliding expiration
 - **Sign-in route:** `/signin` — provider selection page
-- **Login endpoint:** `/api/auth/login/{provider}` — triggers OAuth challenge, redirects to `/dashboard` on success
+- **Login endpoint:** `/api/auth/login/{provider}` — triggers OAuth challenge, redirects to `/waitlist` on success
 - **Logout endpoint:** `/api/auth/logout` — clears cookie, redirects to `/?signed-out&name={name}`
 - **Sign-out toast:** Landing page detects `?signed-out` query param and shows a personalized auto-dismissing toast ("You've been signed out, {name}. See you next time!"), then strips the query param from the URL via `history.replaceState`
 - **Waitlist route:** `/waitlist` — launch progress tracker with milestone timeline (not a dead-end confirmation)
+
+## App Modes
+
+The app operates in one of two modes. The **current mode is Waitlist Mode**.
+
+### Waitlist Mode ← CURRENT
+
+Only the landing page, sign-in, waitlist, and error pages are active. All other routes redirect to `/waitlist`. Use this mode while building out platform connectors and dashboard features before public launch.
+
+- **Middleware:** `Program.cs` — inline `app.Use(...)` block after `UseAntiforgery()` redirects disabled routes
+- **Disabled routes:** `/dashboard`, `/suggestions`, `/subscription`, `/subscription/cancel`, `/upgrade` — all redirect to `/waitlist`
+- **Active routes:** `/` (landing), `/signin`, `/waitlist`, `/Error`, `/Error/{StatusCode}`
+- **OAuth redirect:** Set to `/waitlist` in the login endpoint (`Program.cs`)
+
+### Dashboard Mode
+
+Full app experience — sign-in takes users to the dashboard, all routes are active, sidebar navigation is functional. Enable this mode when platform connectors and the dashboard are ready.
+
+- **Active routes:** All routes (`/dashboard`, `/suggestions`, `/subscription`, `/upgrade`, etc.)
+- **OAuth redirect:** Set to `/dashboard` in the login endpoint (`Program.cs`)
+
+### Switching Modes
+
+| From → To | Steps |
+|-----------|-------|
+| Waitlist → Dashboard | 1. Remove the waitlist-mode middleware block in `Program.cs` 2. Change `RedirectUri` from `/waitlist` to `/dashboard` |
+| Dashboard → Waitlist | 1. Add the waitlist-mode middleware block back in `Program.cs` 2. Change `RedirectUri` from `/dashboard` to `/waitlist` |
 
 ## Error Handling
 

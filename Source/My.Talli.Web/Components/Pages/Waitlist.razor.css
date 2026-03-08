@@ -6,7 +6,12 @@
 .confirm-badge { align-items: center; background: rgba(255, 255, 255, 0.15); border-radius: 10px; color: #fff; display: inline-flex; font-size: 14px; font-weight: 600; gap: 8px; margin-bottom: 16px; padding: 10px 20px; }
 .confirm-badge svg { flex-shrink: 0; height: 18px; width: 18px; }
 .page-heading { color: #fff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
-.page-sub { color: rgba(255, 255, 255, 0.7); font-size: 15px; line-height: 1.6; margin-bottom: 40px; }
+.page-sub { color: rgba(255, 255, 255, 0.7); font-size: 15px; line-height: 1.6; margin-bottom: 150px; }
+
+/* ─── SECTION HEADINGS ─── */
+.section-heading { border-bottom: 2px solid #e0dce8; color: #1a1a2e; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 24px; padding-bottom: 8px; }
+.section-heading + .timeline { margin-top: 0; }
+section + section { margin-top: 48px; }
 
 /* ─── TIMELINE ─── */
 .timeline { padding: 0 0 0 28px; position: relative; }
