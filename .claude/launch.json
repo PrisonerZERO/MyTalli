@@ -12,6 +12,12 @@
       "runtimeExecutable": "cmd.exe",
       "runtimeArgs": ["/c", "npx", "http-server", "deploy", "-p", "8090", "-c-1"],
       "port": 8090
+    },
+    {
+      "name": "wireframes",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": ["/c", "npx", "http-server", "wireframes", "-p", "8091", "-c-1"],
+      "port": 8091
     }
   ]
 }

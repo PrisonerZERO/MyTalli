@@ -9,10 +9,10 @@
 
 <div class="error-page">
     <BrandHeader>
-        <a class="back-link" href="/">Back to homepage</a>
+        <button class="back-link" onclick="history.back()" aria-label="Go back to previous page">Go Back</button>
     </BrandHeader>
 
-    <main id="main">
+    <main id="main" aria-labelledby="error-heading">
         <div class="error-shell">
             <div class="error-icon-wrap" aria-hidden="true">
             @if (ErrorIcon == "warning-triangle")
@@ -76,12 +76,8 @@
             </div>
 
             <div class="error-code">@StatusCode</div>
-            <h1 class="error-title">@ErrorTitle</h1>
+            <h1 id="error-heading" class="error-title">@ErrorTitle</h1>
             <p class="error-desc">@ErrorDescription</p>
-
-            <div class="error-actions">
-                <button class="btn-primary-action" onclick="history.back()">Go Back</button>
-            </div>
 
             @if (ShowRequestId)
             {
@@ -92,4 +88,11 @@
             }
         </div>
     </main>
+
+    <div class="falling-numbers" aria-hidden="true">
+        @foreach (var digit in FallingDigits)
+        {
+            <span class="fall-digit">@digit</span>
+        }
+    </div>
 </div>
