@@ -340,6 +340,19 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - When you finish a task, **always explicitly say "Done."** or equivalent so it's clear the work is complete.
 - Do not wait for the user to ask "Are you done?" — proactively declare completion.
 
+### Accessibility & SEO Checklist
+
+- **Every new or modified page** must be checked for accessibility and SEO before the task is considered complete.
+- **Accessibility requirements:**
+  - `aria-label` on interactive elements without visible text (dismiss buttons, icon-only buttons)
+  - `aria-hidden="true"` on decorative SVGs and visual-only elements
+  - `role="status"` or `role="alert"` on toast/notification elements
+  - `aria-pressed` on toggle buttons (see SuggestionBox filter pills for pattern)
+  - Semantic `<section>` wrappers with `aria-label` or `aria-labelledby` on content regions
+  - `sr-only` spans on list items where visual context (like checkmarks) conveys meaning
+  - `role="group" aria-label="..."` on related button groups
+- **SEO:** Only applies to public (unauthenticated) pages. Authenticated pages behind `MainLayout` do not need SEO meta tags — `<PageTitle>` is sufficient.
+
 ### Page Hero Branding
 
 - **Every page** in the app (except the Landing Page) must include a purple gradient swoosh hero section for consistent branding.
