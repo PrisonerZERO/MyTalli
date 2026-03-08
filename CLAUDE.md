@@ -291,7 +291,7 @@ Deploy folder also contains:
 ## Error Handling
 
 - **Error page routes:** `/Error` (unhandled exceptions) and `/Error/{StatusCode:int}` (HTTP status codes)
-- **Layout:** Uses `LandingLayout` + `BrandHeader` with "Back to homepage" link
+- **Layout:** Uses `LandingLayout` + `BrandHeader` with "Go Back" button
 - **Static SSR:** No `@rendermode` — intentional so error pages work even when SignalR circuit fails
 - **Middleware:** `UseExceptionHandler("/Error")` + `UseStatusCodePagesWithReExecute("/Error/{0}")` — both active in all environments
 - **Router 404:** `Routes.razor` has a `<NotFound>` template that renders the Error component with `StatusCode="404"`
