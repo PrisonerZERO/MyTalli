@@ -1,6 +1,6 @@
 ﻿namespace My.Talli.Domain.Entities;
 
-using Entities.Interfaces;
+using My.Talli.Domain.Entities.Interfaces;
 
 /// <summary>Entity</summary>
 public class AuditableIdentifiableEntity : IAuditableIdentifiable

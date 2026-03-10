@@ -9,8 +9,5 @@
     <AssemblyName>My.Talli.Domain.Entities</AssemblyName>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Entities\" />
-  </ItemGroup>
 
 </Project>
