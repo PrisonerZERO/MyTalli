@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyTitle>My.Talli.Domain.Entities</AssemblyTitle>
+    <RootNamespace>My.Talli.Domain.Entities</RootNamespace>
+    <AssemblyName>My.Talli.Domain.Entities</AssemblyName>
+  </PropertyGroup>
+
+</Project>

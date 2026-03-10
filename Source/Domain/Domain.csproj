@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>My.Talli.Domain</AssemblyName>
     <RootNamespace>My.Talli.Domain</RootNamespace>
+    <AssemblyTitle>My.Talli.Domain</AssemblyTitle>
   </PropertyGroup>
 
   <ItemGroup>
