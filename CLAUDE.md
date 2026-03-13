@@ -14,6 +14,97 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **C#** — backend language
 - **Lamar** — IoC container (replaces default Microsoft DI)
 - **Razor Components** — UI layer (`.razor` files)
+- **SQL Server** — database (localhost, Windows Auth)
+
+## Database
+
+- **Engine:** SQL Server (localhost)
+- **Test bed database:** `ShoppingCart` — used for schema prototyping during early development. Will be replaced with a production database later.
+- **Connection:** Windows Authentication (Trusted Connection)
+
+### Design Principles
+
+- **No nulls** — provider-specific data lives in dedicated tables, not nullable columns on base tables
+- **Provider separation** — auth providers (Google, Apple, Microsoft) and billing providers (Stripe, etc.) each get their own table with a 1-to-1 relationship to the base table. Adding a new provider = new table, no schema changes to existing tables.
+- **Schema separation** — tables are organized into SQL schemas by functional domain (`auth`, `commerce`). `dbo` is reserved/empty.
+- **Orders as the backbone** — subscriptions, modules, and any future products all flow through the same Order → OrderItem pipeline. A subscription is just a product.
+- **No separate waitlist table** — the `auth.User` table doubles as the waitlist during Waitlist Mode. A signed-up user *is* a waitlist user until Dashboard Mode is enabled.
+- **No milestones table** — milestones are hardcoded in the Waitlist page UI, not stored in the database.
+
+### Schemas
+
+| Schema | Purpose | Tables |
+|--------|---------|--------|
+| `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft |
+| `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
+| `dbo` | Reserved (empty) | — |
+
+### Schema: `auth`
+
+**`auth.User`** — core MyTalli identity (one row per person)
+- `Id` (PK), `DisplayName`, `FirstName`, `LastName`, `CreatedAt`, `LastLoginAt`, `InitialProvider` (historical — which provider they first signed in with, never changes), `PreferredProvider` (which provider the user prefers, starts equal to InitialProvider)
+- Email is **not** stored here — it lives on the provider auth tables. The user's email is resolved via their PreferredProvider.
+
+**`auth.UserAuthenticationGoogle`** — 1-to-1 with User
+- `Id` (PK), `UserId` (FK → User, unique), `GoogleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `AvatarUrl`, `EmailVerified`, `Locale`
+
+**`auth.UserAuthenticationApple`** — 1-to-1 with User
+- `Id` (PK), `UserId` (FK → User, unique), `AppleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `IsPrivateRelay`
+
+**`auth.UserAuthenticationMicrosoft`** — 1-to-1 with User
+- `Id` (PK), `UserId` (FK → User, unique), `MicrosoftId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`
+
+### Schema: `commerce`
+
+**`commerce.ProductVendor`** — who sells the product (e.g., "MyTalli", "Some Other Online Site")
+- `Id` (PK), `VendorName`
+
+**`commerce.ProductType`** — category of product (e.g., "Software Subscription", "Software Module")
+- `Id` (PK), `ProductTypeName`
+
+**`commerce.Product`** — a specific thing for sale (e.g., "12-Month Pro Subscription" at $12)
+- `Id` (PK), `VendorId` (FK → ProductVendor), `ProductTypeId` (FK → ProductType), `ProductName`, `VendorPrice`
+
+**`commerce.Order`** — a user's specific purchase event
+- `Id` (PK), `UserId` (FK → auth.User), `OrderDateTime`, `TaxCharged`
+
+**`commerce.OrderItem`** — line items within an order (junction table: Order ↔ Product)
+- `Id` (PK), `OrderId` (FK → Order), `ProductId` (FK → Product), `ProductPriceCharged`, `ProductQuantity`
+
+**`commerce.Subscription`** — ongoing state of a user's subscription (instanceOf — "what we currently have")
+- `Id` (PK), `UserId` (FK → auth.User), `ProductId` (FK → Product), `OrderItemId` (FK → OrderItem), `Status`, `StartDate`, `EndDate`, `RenewalDate`, `CancelledDate`
+- `ProductId` answers "which product does this subscription track?"
+- `OrderItemId` answers "which order supports this subscription?"
+
+**`commerce.SubscriptionStripe`** — Stripe-specific subscription data (1-to-1 with Subscription)
+- `Id` (PK), `SubscriptionId` (FK → Subscription, unique), `StripeCustomerId`, `StripeSubscriptionId`, `StripePriceId`
+
+**`commerce.Billing`** — a payment event tied to an order
+- `Id` (PK), `UserId` (FK → auth.User), `OrderId` (FK → Order), `Amount`, `Currency`, `Status`
+- `OrderId` answers "which billing satisfied this order?"
+
+**`commerce.BillingStripe`** — Stripe-specific payment data (1-to-1 with Billing)
+- `Id` (PK), `BillingId` (FK → Billing, unique), `StripePaymentIntentId`, `PaymentMethod`, `CardBrand`, `CardLastFour`
+
+### Account Linking (Consolidation)
+
+Users may sign in with different providers over time and accidentally create multiple accounts. The auth table design supports **account consolidation**:
+
+1. User signs in with Google → `auth.User` + `auth.UserAuthenticationGoogle` created
+2. Later signs in with Apple → second `auth.User` + `auth.UserAuthenticationApple` created (empty account)
+3. User realizes their data is on the Google account and triggers consolidation
+4. Consolidation moves the Apple auth row to point at the original User record, deletes the orphaned User record
+5. User can now sign in with either provider and land on the same account
+
+The consolidation process itself is not yet implemented — the schema supports it, the UX flow will be designed later.
+
+### Naming Conventions
+
+- **Primary keys:** `PK_{TableName}` (e.g., `PK_User`, `PK_Order`)
+- **Foreign keys:** `FK_{ChildTable}_{ParentTable}` (e.g., `FK_Order_User`, `FK_Subscription_Product`)
+- **Unique constraints:** `UQ_{TableName}_{ColumnName}` (e.g., `UQ_UserAuthGoogle_UserId`)
+- **Indexes:** `IX_{TableName}_{ColumnName}` (e.g., `IX_Order_UserId`)
+- Every FK column has a non-clustered index for JOIN performance
 
 ## Solution Structure
 
