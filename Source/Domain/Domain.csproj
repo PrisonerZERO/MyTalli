@@ -13,14 +13,7 @@
     <EmbeddedResource Include=".resources\emails\**\*.html" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="CommandsAndQueries\" />
-    <Folder Include="Handlers\" />
-    <Folder Include="Notifications\Emails\Exceptions\" />
-    <Folder Include="Notifications\Emails\Customer\" />
-  </ItemGroup>
-
-  <ItemGroup>
+<ItemGroup>
     <ProjectReference Include="..\Domain.Entities\Domain.Entities.csproj" />
   </ItemGroup>
 

@@ -151,7 +151,7 @@ My.Talli/
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
-    ├── Domain/                      # Domain layer (exceptions, shared types)
+    ├── Domain/                      # Domain layer (exceptions, shared types, framework)
     │   ├── Domain.csproj
     │   ├── .resources/
     │   │   └── emails/              # HTML email templates (EmbeddedResource)
@@ -169,6 +169,11 @@ My.Talli/
     │   │   └── UnexpectedException.cs         # 500
     │   ├── Extensions/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
+    │   ├── Framework/
+    │   │   └── Assert.cs                      # Static validation utility (precondition checks)
+    │   ├── Models/
+    │   │   ├── ActionResponseOf.cs            # Generic response wrapper (ValidationResult + Payload)
+    │   │   └── ValidationResult.cs            # Abstract base (IsValid, ValidationSummary, WarningSummary)
     │   └── Notifications/
     │       └── Emails/
     │           ├── EmailNotification.cs               # Abstract base (FinalizeEmail → SmtpNotification)
