@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using My.Talli.Domain.Entities.Entities;
 
-/// <summary>Entity configuration for Order.</summary>
+/// <summary>Configuration</summary>
 public class OrderConfiguration : IEntityTypeConfiguration<Order>
 {
     #region <Methods>

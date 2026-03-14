@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using My.Talli.Domain.Entities.Entities;
 
-/// <summary>Entity configuration for Billing.</summary>
+/// <summary>Configuration</summary>
 public class BillingConfiguration : IEntityTypeConfiguration<Billing>
 {
     #region <Methods>

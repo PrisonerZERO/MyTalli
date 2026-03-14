@@ -1,6 +1,6 @@
 namespace My.Talli.Domain.Data.Interfaces;
 
-/// <summary>Unit of work abstraction for coordinating transactional persistence.</summary>
+/// <summary>Unit of Work</summary>
 public interface IUnitOfWork : IDisposable
 {
     #region <Methods>

@@ -1,5 +1,6 @@
 namespace My.Talli.Web.Services.Billing;
 
+/// <summary>Settings</summary>
 public class StripeSettings
 {
     #region <Properties>

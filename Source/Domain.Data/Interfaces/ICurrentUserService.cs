@@ -1,6 +1,6 @@
 namespace My.Talli.Domain.Data.Interfaces;
 
-/// <summary>Provides the identity of the currently authenticated user for audit stamping.</summary>
+/// <summary>Identity</summary>
 public interface ICurrentUserService
 {
     #region <Properties>

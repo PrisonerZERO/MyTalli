@@ -4,6 +4,7 @@ using System.Net;
 using System.Reflection;
 using My.Talli.Domain.Extensions;
 
+/// <summary>Notification</summary>
 public class ExceptionOccurredEmailNotification : EmailNotificationOf<ExceptionOccurredEmailNotificationPayload>
 {
     #region <Variables>

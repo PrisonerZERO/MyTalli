@@ -3,6 +3,7 @@ using System.Security.Claims;
 
 namespace My.Talli.Web.Services.Authentication;
 
+/// <summary>Handler</summary>
 public class AppleAuthenticationHandler
 {
     #region <Variables>

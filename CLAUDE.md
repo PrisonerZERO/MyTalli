@@ -655,6 +655,22 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - Pages using `LandingLayout` (Sign-In, Waitlist, Error) use the **`BrandHeader`** component.
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
 
+### Summary Tag Convention
+
+- Every C# class and interface **must** have a `/// <summary>` tag.
+- Keep it to a **short role label** (e.g., `Repository`, `Resolver`, `Entity`, `Configuration`, `Service`).
+- If the summary needs a full sentence to explain what the class does, the class name needs to be more descriptive instead.
+
+```csharp
+/* Correct */
+/// <summary>Repository</summary>
+public class GenericAuditableRepository<TEntity> { ... }
+
+/* Wrong — the class name already says this */
+/// <summary>Repository implementation with automatic audit resolution on insert and update operations.</summary>
+public class GenericAuditableRepository<TEntity> { ... }
+```
+
 ### Clean Up NUL Files
 
 - Bash on Windows creates an actual file named `nul` when using `2>nul` redirects (instead of discarding output to the Windows NUL device). **Always delete any `nul`/`NUL` files** that get created in the repo after running shell commands.

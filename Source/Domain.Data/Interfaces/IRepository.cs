@@ -3,7 +3,7 @@ namespace My.Talli.Domain.Data.Interfaces;
 using System.Linq.Expressions;
 using My.Talli.Domain.Entities.Interfaces;
 
-/// <summary>Generic repository abstraction for data access.</summary>
+/// <summary>Repository</summary>
 public interface IRepository<T> where T : class, IIdentifiable
 {
     #region <Methods>

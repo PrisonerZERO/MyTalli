@@ -4,6 +4,7 @@ using Stripe.Checkout;
 
 namespace My.Talli.Web.Services.Billing;
 
+/// <summary>Service</summary>
 public class StripeBillingService
 {
     #region <Variables>

@@ -3,7 +3,7 @@ namespace My.Talli.Domain.Data.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using My.Talli.Domain.Entities.Entities;
 
-/// <summary>Entity Framework database context for MyTalli.</summary>
+/// <summary>Database Context</summary>
 public class TalliDbContext : DbContext
 {
     #region <Constructors>

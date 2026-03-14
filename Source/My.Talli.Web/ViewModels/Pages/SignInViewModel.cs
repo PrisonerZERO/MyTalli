@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace My.Talli.Web.ViewModels.Pages;
 
+/// <summary>View Model</summary>
 public class SignInViewModel : ComponentBase
 {
     #region <Variables>

@@ -1,5 +1,6 @@
 namespace My.Talli.Domain.Notifications.Emails;
 
+/// <summary>Notification</summary>
 public abstract class EmailNotification
 {
     #region <Properties>

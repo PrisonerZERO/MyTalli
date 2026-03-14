@@ -2,6 +2,7 @@ namespace My.Talli.Domain.Extensions;
 
 using System.Reflection;
 
+/// <summary>Extension</summary>
 public static class AssemblyExtensions
 {
     #region <Methods>

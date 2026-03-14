@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using My.Talli.Domain.Notifications.Emails;
 
+/// <summary>Service</summary>
 public class SmtpEmailService : IEmailService
 {
     #region <Variables>

@@ -2,6 +2,7 @@
 
 using System;
 
+/// <summary>Entity</summary>
 public interface IAuditable
 {
 	#region <Properties>
