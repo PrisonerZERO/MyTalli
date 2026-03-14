@@ -678,6 +678,12 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - When you finish a task, **always explicitly say "Done."** or equivalent so it's clear the work is complete.
 - Do not wait for the user to ask "Are you done?" — proactively declare completion.
 
+### One Migration Per Version
+
+- Each version/release must produce **exactly one migration file**. Do not create multiple migrations for the same version.
+- If schema changes accumulate during development, consolidate them into a single migration before finalizing.
+- To consolidate: revert the database to before the migrations (`Update-Database 0`), remove them (`Remove-Migration`), then regenerate a single migration (`Add-Migration`).
+
 ### Accessibility & SEO Checklist
 
 - **Every new or modified page** must be checked for accessibility and SEO before the task is considered complete.

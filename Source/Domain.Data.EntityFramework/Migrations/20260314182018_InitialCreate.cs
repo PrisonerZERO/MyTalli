@@ -65,6 +65,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     DisplayName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     InitialProvider = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    LastLoginAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     PreferredProvider = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     UserPreferences = table.Column<string>(type: "nvarchar(max)", nullable: false),

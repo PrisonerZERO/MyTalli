@@ -12,7 +12,7 @@ using My.Talli.Domain.Data.EntityFramework;
 namespace My.Talli.Domain.Data.EntityFramework.Migrations
 {
     [DbContext(typeof(TalliDbContext))]
-    [Migration("20260314173603_InitialCreate")]
+    [Migration("20260314182018_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -486,6 +486,9 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastLoginAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("LastName")
                         .IsRequired()
