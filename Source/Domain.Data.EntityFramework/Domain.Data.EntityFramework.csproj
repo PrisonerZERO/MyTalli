@@ -10,11 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Migrations\01_0\Views\00.auth.vUserAuthenticated.sql" />
+    <None Remove="Migrations\**\*.sql" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\01_0\Views\00.auth.vUserAuthenticated.sql" />
+    <EmbeddedResource Include="Migrations\**\*.sql" />
   </ItemGroup>
 
   <ItemGroup>

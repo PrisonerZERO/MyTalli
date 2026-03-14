@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace My.Talli.Domain.Data.EntityFramework.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreate : TalliMigrationBase
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -535,6 +535,9 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 table: "UserAuthenticationMicrosoft",
                 column: "UserId",
                 unique: true);
+
+            // Embedded SQL scripts
+            ExecuteEmbeddedSqlScripts(migrationBuilder, "01_0", "Views");
         }
 
         /// <inheritdoc />
