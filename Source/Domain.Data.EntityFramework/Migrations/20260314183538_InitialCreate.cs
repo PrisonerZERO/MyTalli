@@ -537,7 +537,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 unique: true);
 
             // Embedded SQL scripts
-            ExecuteEmbeddedSqlScripts(migrationBuilder, "01_0", "Views");
+            ExecutePostTableScripts(migrationBuilder, "01_0");
         }
 
         /// <inheritdoc />

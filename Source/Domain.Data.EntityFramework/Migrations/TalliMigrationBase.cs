@@ -6,12 +6,43 @@ using Microsoft.EntityFrameworkCore.Migrations;
 /// <summary>Migration base</summary>
 public abstract class TalliMigrationBase : Migration
 {
+    #region <Variables>
+
+    private static readonly string[] PreTableFolders =
+    [
+        "Pre-Deployment Scripts"
+    ];
+
+    private static readonly string[] PostTableFolders =
+    [
+        "Post-Deployment Scripts",
+        "Functions",
+        "Views",
+        "Stored Procedures",
+        "Triggers",
+        "Assemblies"
+    ];
+
+    #endregion
+
     #region <Methods>
 
-    protected virtual void ExecuteEmbeddedSqlScripts(MigrationBuilder migrationBuilder, string parentFolder, string subFolder)
+    protected void ExecutePreTableScripts(MigrationBuilder migrationBuilder, string migrationFolder)
+    {
+        foreach (var subFolder in PreTableFolders)
+            ExecuteEmbeddedSqlScripts(migrationBuilder, migrationFolder, subFolder);
+    }
+
+    protected void ExecutePostTableScripts(MigrationBuilder migrationBuilder, string migrationFolder)
+    {
+        foreach (var subFolder in PostTableFolders)
+            ExecuteEmbeddedSqlScripts(migrationBuilder, migrationFolder, subFolder);
+    }
+
+    private void ExecuteEmbeddedSqlScripts(MigrationBuilder migrationBuilder, string migrationFolder, string subFolder)
     {
         var type = GetType();
-        var path = $"{type.Namespace}.{parentFolder}.{subFolder}.";
+        var path = $"{type.Namespace}.{migrationFolder}.{subFolder.Replace(" ", "_")}.";
 
         var assembly = Assembly.GetExecutingAssembly();
         var resourceNames = assembly.GetManifestResourceNames()
