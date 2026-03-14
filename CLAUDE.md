@@ -489,7 +489,7 @@ There are two tiers of email branding:
 | **Customer** | End users | Full — polished design, logo image, professional copywriting, mobile-responsive, tested across email clients | Welcome emails, subscription confirmations, weekly summaries |
 
 - **Internal emails** use the current template style: purple header (`#6c5ce7`) with "MyTalli" text (no image dependency), functional layout, monospace stack traces. Acceptable as-is.
-- **Customer-facing emails** require a higher design bar — these have not been designed yet. When created, they should go through a full design pass with proper email client testing (Outlook, Gmail, Apple Mail, mobile).
+- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Custom inline SVG icons (not emoji — emoji render inconsistently across platforms). Three customer emails are built: Welcome, Subscription Confirmation, Weekly Summary.
 
 ### Adding a New Email Notification
 
@@ -498,6 +498,10 @@ There are two tiers of email branding:
 3. Create a concrete notification class extending `EmailNotificationOf<TPayload>` — implement `Build()` to load the template, replace tokens, and set Subject
 4. The `EmbeddedResource` glob in `Domain.csproj` (`**/*.html`) picks up new templates automatically
 5. Create a handler/trigger in the Web project that builds and sends the notification via `IEmailService`
+
+### Test Emails (Development Only)
+
+A dev-only endpoint at `GET /api/test/emails` sends all 3 customer emails to `hello@mytalli.com` with sample data. Only registered when `app.Environment.IsDevelopment()`. Use with a local SMTP tool like **smtp4dev** (.NET global tool — `dotnet tool install -g Rnwood.Smtp4dev`, SMTP on port 25, web UI at `http://localhost:5000`).
 
 ### Embedded Resource Naming
 
