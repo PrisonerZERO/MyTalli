@@ -830,7 +830,41 @@ using My.Talli.Domain.Framework;
   5. `<Methods>` — general methods
   6. `<Actions>` — MVC controller actions (not used yet)
 - **Within each region**, order members by access modifier: `public` → `protected` → `private`
-- **Within each access level**, alphabetize members by name
+- **Within each access level**, alphabetize members by **type/class name** (not by variable name)
+
+```csharp
+/* Correct — sorted by class name: IAuditableRepositoryAsync<User>, IAuditableRepositoryAsync<UserAuthenticationApple>, UserPreferencesJsonSerializer */
+#region <Variables>
+private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
+private readonly IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> _appleAuthRepository;
+private readonly UserPreferencesJsonSerializer _preferencesSerializer;
+#endregion
+
+/* Wrong — sorted by variable name */
+#region <Variables>
+private readonly IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> _appleAuthRepository;
+private readonly UserPreferencesJsonSerializer _preferencesSerializer;
+private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
+#endregion
+```
+
+- **Constructor parameters** follow the same type/class name ordering as `<Variables>`
+- **Constructor assignments** are alphabetized by **variable name**
+
+```csharp
+/* Correct — parameters sorted by type, assignments sorted by variable name */
+#region <Constructors>
+public AppleSignInHandler(
+    IAuditableRepositoryAsync<ENTITIES.User> userRepository,
+    IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> appleAuthRepository,
+    UserPreferencesJsonSerializer preferencesSerializer)
+{
+    _appleAuthRepository = appleAuthRepository;
+    _preferencesSerializer = preferencesSerializer;
+    _userRepository = userRepository;
+}
+#endregion
+```
 
 ### CSS Formatting
 

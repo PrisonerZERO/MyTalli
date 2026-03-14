@@ -11,18 +11,18 @@ public class MicrosoftSignInHandler
 {
 	#region <Variables>
 
+	private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
 	private readonly IAuditableRepositoryAsync<ENTITIES.UserAuthenticationMicrosoft> _microsoftAuthRepository;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
-	private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
 
 	#endregion
 
 	#region <Constructors>
 
 	public MicrosoftSignInHandler(
+		IAuditableRepositoryAsync<ENTITIES.User> userRepository,
 		IAuditableRepositoryAsync<ENTITIES.UserAuthenticationMicrosoft> microsoftAuthRepository,
-		UserPreferencesJsonSerializer preferencesSerializer,
-		IAuditableRepositoryAsync<ENTITIES.User> userRepository)
+		UserPreferencesJsonSerializer preferencesSerializer)
 	{
 		_microsoftAuthRepository = microsoftAuthRepository;
 		_preferencesSerializer = preferencesSerializer;

@@ -11,14 +11,14 @@ public class SmtpEmailService : IEmailService
 {
     #region <Variables>
 
-    private readonly ILogger<SmtpEmailService> _logger;
     private readonly EmailSettings _settings;
+    private readonly ILogger<SmtpEmailService> _logger;
 
     #endregion
 
     #region <Constructors>
 
-    public SmtpEmailService(IOptions<EmailSettings> settings, ILogger<SmtpEmailService> logger)
+    public SmtpEmailService(ILogger<SmtpEmailService> logger, IOptions<EmailSettings> settings)
     {
         _logger = logger;
         _settings = settings.Value;

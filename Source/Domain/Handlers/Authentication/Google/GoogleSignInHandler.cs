@@ -11,18 +11,18 @@ public class GoogleSignInHandler
 {
 	#region <Variables>
 
+	private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
 	private readonly IAuditableRepositoryAsync<ENTITIES.UserAuthenticationGoogle> _googleAuthRepository;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
-	private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
 
 	#endregion
 
 	#region <Constructors>
 
 	public GoogleSignInHandler(
+		IAuditableRepositoryAsync<ENTITIES.User> userRepository,
 		IAuditableRepositoryAsync<ENTITIES.UserAuthenticationGoogle> googleAuthRepository,
-		UserPreferencesJsonSerializer preferencesSerializer,
-		IAuditableRepositoryAsync<ENTITIES.User> userRepository)
+		UserPreferencesJsonSerializer preferencesSerializer)
 	{
 		_googleAuthRepository = googleAuthRepository;
 		_preferencesSerializer = preferencesSerializer;

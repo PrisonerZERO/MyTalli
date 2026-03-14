@@ -15,7 +15,7 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
 
     #region <Constructors>
 
-    public GenericAuditableRepositoryAsync(TalliDbContext dbContext, IAuditResolver<TEntity> auditResolver) : base(dbContext)
+    public GenericAuditableRepositoryAsync(IAuditResolver<TEntity> auditResolver, TalliDbContext dbContext) : base(dbContext)
     {
         AuditResolver = auditResolver;
     }

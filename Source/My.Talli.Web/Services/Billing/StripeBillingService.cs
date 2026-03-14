@@ -17,8 +17,8 @@ public class StripeBillingService
     #region <Constructors>
 
     public StripeBillingService(
-        IOptions<StripeSettings> settings,
-        ILogger<StripeBillingService> logger)
+        ILogger<StripeBillingService> logger,
+        IOptions<StripeSettings> settings)
     {
         _logger = logger;
         _settings = settings.Value;

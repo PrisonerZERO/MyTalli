@@ -11,18 +11,18 @@ public class AppleSignInHandler
 {
 	#region <Variables>
 
+	private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
 	private readonly IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> _appleAuthRepository;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
-	private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
 
 	#endregion
 
 	#region <Constructors>
 
 	public AppleSignInHandler(
+		IAuditableRepositoryAsync<ENTITIES.User> userRepository,
 		IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> appleAuthRepository,
-		UserPreferencesJsonSerializer preferencesSerializer,
-		IAuditableRepositoryAsync<ENTITIES.User> userRepository)
+		UserPreferencesJsonSerializer preferencesSerializer)
 	{
 		_appleAuthRepository = appleAuthRepository;
 		_preferencesSerializer = preferencesSerializer;
