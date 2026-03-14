@@ -43,8 +43,9 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 ### Schema: `auth`
 
 **`auth.User`** — core MyTalli identity (one row per person)
-- `Id` (PK), `DisplayName`, `FirstName`, `LastName`, `CreatedAt`, `LastLoginAt`, `InitialProvider` (historical — which provider they first signed in with, never changes), `PreferredProvider` (which provider the user prefers, starts equal to InitialProvider)
+- `Id` (PK), `DisplayName`, `FirstName`, `LastName`, `CreatedAt`, `LastLoginAt`, `InitialProvider` (historical — which provider they first signed in with, never changes), `PreferredProvider` (which provider the user prefers, starts equal to InitialProvider), `UserPreferences` (NVARCHAR(MAX), JSON — app settings/toggles, defaults to `'{}'`)
 - Email is **not** stored here — it lives on the provider auth tables. The user's email is resolved via their PreferredProvider.
+- **UserPreferences** stores user-configurable app settings as JSON. This avoids contorting the User table with individual columns as settings grow over time.
 
 **`auth.UserAuthenticationGoogle`** — 1-to-1 with User
 - `Id` (PK), `UserId` (FK → User, unique), `GoogleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `AvatarUrl`, `EmailVerified`, `Locale`
