@@ -34,6 +34,7 @@ public class AppleAuthenticationHandler
         var isPrivateRelay = principal.FindFirstValue("urn:apple:is_private_email") == "true";
         var lastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty;
 
+        // Sign-In
         var user = await _signInHandler.HandleAsync(appleId, email, displayName, firstName, lastName, isPrivateRelay);
 
         var identity = (ClaimsIdentity)principal.Identity!;

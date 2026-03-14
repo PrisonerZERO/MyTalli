@@ -36,6 +36,7 @@ public class GoogleAuthenticationHandler
         var lastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty;
         var locale = principal.FindFirstValue("urn:google:locale") ?? string.Empty;
 
+        // Sign-In
         var user = await _signInHandler.HandleAsync(googleId, email, displayName, firstName, lastName, avatarUrl, emailVerified, locale);
 
         var identity = (ClaimsIdentity)principal.Identity!;

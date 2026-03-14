@@ -33,6 +33,7 @@ public class MicrosoftAuthenticationHandler
         var lastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty;
         var microsoftId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
+        // Sign-In
         var user = await _signInHandler.HandleAsync(microsoftId, email, displayName, firstName, lastName);
 
         var identity = (ClaimsIdentity)principal.Identity!;
