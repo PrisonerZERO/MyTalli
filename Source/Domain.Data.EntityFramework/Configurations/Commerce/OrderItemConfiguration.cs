@@ -2,7 +2,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Configurations.Commerce;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using My.Talli.Domain.Entities;
+using Domain.Entities;
 
 /// <summary>Configuration</summary>
 public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>

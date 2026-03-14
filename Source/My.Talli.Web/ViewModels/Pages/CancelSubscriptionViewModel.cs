@@ -1,8 +1,8 @@
+namespace My.Talli.Web.ViewModels.Pages;
+
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.JSInterop;
-
-namespace My.Talli.Web.ViewModels.Pages;
 
 /// <summary>View Model</summary>
 public class CancelSubscriptionViewModel : ComponentBase

@@ -2,8 +2,9 @@ namespace My.Talli.Domain.Notifications.Emails;
 
 using System.Net;
 using System.Reflection;
-using My.Talli.Domain.Extensions;
+using Domain.Extensions;
 
+/// <summary>Notification</summary>
 public class WeeklySummaryEmailNotification : EmailNotificationOf<WeeklySummaryEmailNotificationPayload>
 {
     #region <Variables>

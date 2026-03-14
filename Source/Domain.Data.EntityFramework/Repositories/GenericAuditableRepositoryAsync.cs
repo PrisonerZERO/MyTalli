@@ -1,8 +1,8 @@
 namespace My.Talli.Domain.Data.EntityFramework.Repositories;
 
 using Microsoft.EntityFrameworkCore;
-using My.Talli.Domain.Data.Interfaces;
-using My.Talli.Domain.Entities.Interfaces;
+using Domain.Data.Interfaces;
+using Domain.Entities.Interfaces;
 
 /// <summary>Repository</summary>
 public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<TEntity>, IAuditableRepositoryAsync<TEntity> where TEntity : class, IAuditableIdentifiable

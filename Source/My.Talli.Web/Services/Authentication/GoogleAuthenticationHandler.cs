@@ -2,7 +2,7 @@ namespace My.Talli.Web.Services.Authentication;
 
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.OAuth;
-using My.Talli.Domain.Handlers.Authentication;
+using Domain.Handlers.Authentication;
 
 /// <summary>Handler</summary>
 public class GoogleAuthenticationHandler

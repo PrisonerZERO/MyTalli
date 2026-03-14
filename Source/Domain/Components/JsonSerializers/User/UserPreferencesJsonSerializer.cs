@@ -1,7 +1,7 @@
 namespace My.Talli.Domain.Components.JsonSerializers;
 
 using System.Text.Json;
-using My.Talli.Domain.Framework;
+using Domain.Framework;
 
 using MODELS = Domain.Models;
 

@@ -19,7 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using My.Talli.Web.Services.Email;
 using My.Talli.Web.Services.Identity;
 
-using AppleAuthHandler = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
+using APPLEAUTHHANDLER = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,12 +100,12 @@ builder.Services.AddAuthentication(options =>
         };
         options.Events.OnCreatingTicket = async context =>
         {
-            var handler = context.HttpContext.RequestServices.GetRequiredService<AppleAuthHandler>();
+            var handler = context.HttpContext.RequestServices.GetRequiredService<APPLEAUTHHANDLER>();
             await handler.HandleTicketAsync(context);
         };
     });
 
-builder.Services.AddScoped<AppleAuthHandler>();
+builder.Services.AddScoped<APPLEAUTHHANDLER>();
 builder.Services.AddScoped<GoogleAuthenticationHandler>();
 builder.Services.AddScoped<MicrosoftAuthenticationHandler>();
 

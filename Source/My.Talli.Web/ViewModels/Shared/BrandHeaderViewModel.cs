@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Components;
-
 namespace My.Talli.Web.ViewModels.Shared;
+
+using Microsoft.AspNetCore.Components;
 
 /// <summary>View Model</summary>
 public class BrandHeaderViewModel : ComponentBase

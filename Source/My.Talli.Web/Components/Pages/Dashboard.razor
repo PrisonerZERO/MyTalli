@@ -34,7 +34,7 @@
         <div class="period-pills">
             @foreach (var period in Periods)
             {
-                <button class="pill @(period == ActivePeriod ? "active" : "")"
+                <button aria-label="Filter by @period" class="pill @(period == ActivePeriod ? "active" : "")"
                         @onclick="() => SelectPeriod(period)">
                     @period
                 </button>
@@ -71,7 +71,7 @@
         <div class="platform-dots">
             @foreach (var platform in Platforms)
             {
-                <div class="platform-dot" style="background:@platform.Color" title="@platform.Name"></div>
+                <div aria-label="@platform.Name" class="platform-dot" role="img" style="background:@platform.Color" title="@platform.Name"></div>
             }
         </div>
     </div>
@@ -205,7 +205,7 @@
 <div class="animate-in delay-5 transactions-card">
     <div class="transactions-header">
         <h3>Recent Transactions</h3>
-        <button class="view-all">View all &rarr;</button>
+        <button aria-label="View all transactions" class="view-all">View all &rarr;</button>
     </div>
     <table class="tx-table">
         <thead>

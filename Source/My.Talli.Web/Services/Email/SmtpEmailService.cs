@@ -4,7 +4,7 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using My.Talli.Domain.Notifications.Emails;
+using Domain.Notifications.Emails;
 
 /// <summary>Service</summary>
 public class SmtpEmailService : IEmailService

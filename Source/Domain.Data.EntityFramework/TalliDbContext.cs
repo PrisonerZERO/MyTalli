@@ -1,7 +1,7 @@
 namespace My.Talli.Domain.Data.EntityFramework;
 
 using Microsoft.EntityFrameworkCore;
-using My.Talli.Domain.Entities;
+using Domain.Entities;
 
 /// <summary>Database Context</summary>
 public class TalliDbContext : DbContext

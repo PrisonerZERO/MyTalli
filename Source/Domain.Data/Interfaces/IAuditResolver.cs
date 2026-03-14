@@ -1,6 +1,6 @@
 namespace My.Talli.Domain.Data.Interfaces;
 
-using My.Talli.Domain.Entities.Interfaces;
+using Domain.Entities.Interfaces;
 
 /// <summary>Resolver</summary>
 public interface IAuditResolver<TEntity> where TEntity : class, IAuditableIdentifiable

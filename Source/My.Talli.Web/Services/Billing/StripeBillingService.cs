@@ -1,8 +1,8 @@
+namespace My.Talli.Web.Services.Billing;
+
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
-
-namespace My.Talli.Web.Services.Billing;
 
 /// <summary>Service</summary>
 public class StripeBillingService
