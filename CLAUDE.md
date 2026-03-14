@@ -24,7 +24,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Database:** `MyTalli`
 - **Connection:** Windows Authentication (Trusted Connection)
 - **Connection string key:** `ConnectionStrings:DefaultConnection` (in `appsettings.Development.json`)
-- **Migrations:** EF Core code-first, stored in `Domain.Data.EntityFramework/Migrations/`
+- **Migrations:** EF Core code-first, stored in `Domain.Data.EntityFramework/Migrations/`. All migrations inherit from `DbMigrationBase` (not `Migration` directly) — see "Migration SQL Scripts" below.
 - **Migration commands (Package Manager Console):**
   - Add: `Add-Migration <Name> -Project Domain.Data.EntityFramework -StartupProject My.Talli.Web`
   - Apply: `Update-Database -Project Domain.Data.EntityFramework -StartupProject My.Talli.Web`
@@ -232,6 +232,10 @@ My.Talli/
     │   ├── Domain.Data.EntityFramework.csproj
     │   ├── TalliDbContext.cs              # DbContext with all DbSets
     │   ├── Migrations/                    # EF Core code-first migrations
+    │   │   ├── DbMigrationBase.cs           # Abstract migration base (embedded SQL script execution)
+    │   │   ├── 01_0/                        # SQL scripts for InitialCreate migration
+    │   │   │   └── Views/
+    │   │   │       └── 00.auth.vAuthenticatedUser.sql
     │   ├── Repositories/
     │   │   ├── GenericRepositoryAsync.cs  # IRepositoryAsync<T> implementation
     │   │   └── GenericAuditableRepositoryAsync.cs # IAuditableRepositoryAsync<T> implementation

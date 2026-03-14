@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace My.Talli.Domain.Data.EntityFramework.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : TalliMigrationBase
+    public partial class InitialCreate : DbMigrationBase
     {
         protected override string MigrationFolder => "01_0";
 

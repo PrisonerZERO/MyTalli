@@ -4,7 +4,7 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 /// <summary>Migration base</summary>
-public abstract class TalliMigrationBase : Migration
+public abstract class DbMigrationBase : Migration
 {
     #region <Variables>
 
