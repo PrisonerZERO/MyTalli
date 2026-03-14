@@ -192,8 +192,7 @@ My.Talli/
     │       ├── IAuditableRepositoryAsync.cs # Repository + audit resolution interface (async)
     │       ├── IAuditResolver.cs          # Audit field stamping interface
     │       ├── ICurrentUserService.cs     # Current user identity interface
-    │       ├── IRepositoryAsync.cs        # Generic repository interface (async)
-    │       └── IUnitOfWorkAsync.cs        # Unit of work interface (async)
+    │       └── IRepositoryAsync.cs        # Generic repository interface (async)
     ├── Domain.Data.EntityFramework/  # EF Core implementation of data access
     │   ├── Domain.Data.EntityFramework.csproj
     │   ├── TalliDbContext.cs              # DbContext with all DbSets
