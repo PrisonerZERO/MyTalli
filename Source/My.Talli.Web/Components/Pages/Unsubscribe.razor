@@ -1,0 +1,31 @@
+@page "/unsubscribe"
+@layout Layout.LandingLayout
+@inherits My.Talli.Web.ViewModels.Pages.UnsubscribeViewModel
+
+<PageTitle>Unsubscribed — MyTalli</PageTitle>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<div class="unsub-page">
+    <BrandHeader>
+        <a href="https://www.mytalli.com" class="unsub-home-link" aria-label="Go to MyTalli homepage">Go to Homepage</a>
+    </BrandHeader>
+
+    <main id="main" aria-labelledby="unsub-heading">
+        <div class="unsub-shell">
+            <div class="unsub-icon-wrap" aria-hidden="true">
+                <svg class="unsub-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
+                    <line x1="2" x2="9" y1="20" y2="13" />
+                    <line x1="15" x2="22" y1="13" y2="20" />
+                </svg>
+            </div>
+
+            <h1 id="unsub-heading" class="unsub-title">You've been <span class="unsub-gold">unsubscribed</span></h1>
+            <p class="unsub-desc">You won't receive any more emails from MyTalli. If this was a mistake, you can re-enable notifications from your dashboard settings.</p>
+
+            <a href="https://www.mytalli.com" class="unsub-cta">Back to MyTalli</a>
+        </div>
+    </main>
+</div>
