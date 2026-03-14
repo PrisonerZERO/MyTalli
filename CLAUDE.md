@@ -21,8 +21,19 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 ## Database
 
 - **Engine:** SQL Server (localhost)
-- **Test bed database:** `ShoppingCart` — used for schema prototyping during early development. Will be replaced with a production database later.
+- **Database:** `MyTalli`
 - **Connection:** Windows Authentication (Trusted Connection)
+- **Connection string key:** `ConnectionStrings:DefaultConnection` (in `appsettings.Development.json`)
+- **Migrations:** EF Core code-first, stored in `Domain.Data.EntityFramework/Migrations/`
+- **Migration commands (Package Manager Console):**
+  - Add: `Add-Migration <Name> -Project Domain.Data.EntityFramework -StartupProject My.Talli.Web`
+  - Apply: `Update-Database -Project Domain.Data.EntityFramework -StartupProject My.Talli.Web`
+  - Remove last: `Remove-Migration -Project Domain.Data.EntityFramework -StartupProject My.Talli.Web`
+- **Migration commands (CLI):**
+  - Add: `dotnet ef migrations add <Name> --project Domain.Data.EntityFramework --startup-project My.Talli.Web --output-dir Migrations`
+  - Apply: `dotnet ef database update --project Domain.Data.EntityFramework --startup-project My.Talli.Web`
+  - Remove last: `dotnet ef migrations remove --project Domain.Data.EntityFramework --startup-project My.Talli.Web`
+- **Cascade delete restrictions:** `FK_Billing_User`, `FK_Subscription_User`, and `FK_Subscription_Product` use `DeleteBehavior.Restrict` to avoid SQL Server multiple cascade path errors. These entities are still reachable via indirect cascade paths (e.g., User → Order → Billing).
 
 ### Design Principles
 
