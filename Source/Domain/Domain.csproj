@@ -13,6 +13,7 @@
     <Folder Include=".resources\emails\" />
     <Folder Include="CommandsAndQueries\" />
     <Folder Include="Handlers\" />
+    <Folder Include="Notifications\Emails\" />
   </ItemGroup>
 
   <ItemGroup>
