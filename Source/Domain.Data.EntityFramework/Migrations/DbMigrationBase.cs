@@ -1,6 +1,7 @@
 namespace My.Talli.Domain.Data.EntityFramework.Migrations;
 
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 /// <summary>Migration base</summary>
@@ -71,7 +72,15 @@ public abstract class DbMigrationBase : Migration
             using var reader = new StreamReader(stream!);
 
             var sql = reader.ReadToEnd();
-            migrationBuilder.Sql(sql);
+            var batches = Regex.Split(sql, @"^\s*GO\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+
+            foreach (var batch in batches)
+            {
+                var trimmed = batch.Trim();
+
+                if (trimmed.Length > 0)
+                    migrationBuilder.Sql(trimmed);
+            }
         });
     }
 
