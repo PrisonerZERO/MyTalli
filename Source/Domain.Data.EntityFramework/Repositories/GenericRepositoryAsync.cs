@@ -10,8 +10,8 @@ public class GenericRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where T
 {
     #region <Variables>
 
-    protected readonly TalliDbContext _dbContext;
     protected readonly DbSet<TEntity> _dbSet;
+    protected readonly TalliDbContext _dbContext;
 
     #endregion
 
@@ -19,8 +19,8 @@ public class GenericRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where T
 
     public GenericRepositoryAsync(TalliDbContext dbContext)
     {
-        _dbContext = dbContext;
         _dbSet = dbContext.Set<TEntity>();
+        _dbContext = dbContext;
     }
 
     #endregion

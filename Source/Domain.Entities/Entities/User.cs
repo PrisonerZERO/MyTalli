@@ -1,4 +1,4 @@
-namespace My.Talli.Domain.Entities.Entities;
+namespace My.Talli.Domain.Entities;
 
 /// <summary>Entity</summary>
 public class User : DefaultEntity
@@ -10,6 +10,8 @@ public class User : DefaultEntity
 	public string FirstName { get; set; } = string.Empty;
 
 	public string InitialProvider { get; set; } = string.Empty;
+
+	public DateTime LastLoginAt { get; set; }
 
 	public string LastName { get; set; } = string.Empty;
 

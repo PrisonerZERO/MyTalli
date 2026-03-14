@@ -9,10 +9,10 @@ public class ExceptionEmailHandler : IExceptionHandler
 {
     #region <Variables>
 
+    private readonly EmailSettings _settings;
     private readonly IEmailService _emailService;
     private readonly IHostEnvironment _environment;
     private readonly ILogger<ExceptionEmailHandler> _logger;
-    private readonly EmailSettings _settings;
 
     #endregion
 

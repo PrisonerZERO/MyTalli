@@ -19,10 +19,10 @@
 
   <ItemGroup>
     <Folder Include="CommandsAndQueries\" />
-    <Folder Include="Handlers\" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Domain.Data\Domain.Data.csproj" />
     <ProjectReference Include="..\Domain.Entities\Domain.Entities.csproj" />
   </ItemGroup>
 

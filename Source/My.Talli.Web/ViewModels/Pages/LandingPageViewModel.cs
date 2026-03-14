@@ -9,13 +9,13 @@ public class LandingPageViewModel : ComponentBase, IAsyncDisposable
 {
     #region <Variables>
 
+    private IJSObjectReference? _module;
+
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
 
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
-
-    private IJSObjectReference? _module;
 
     #endregion
 
