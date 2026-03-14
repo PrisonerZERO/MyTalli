@@ -189,11 +189,19 @@ My.Talli/
     ├── Domain.Data/                 # Data access abstractions (ORM-agnostic)
     │   ├── Domain.Data.csproj
     │   └── Interfaces/
+    │       ├── IAuditableRepository.cs    # Repository + audit resolution interface
+    │       ├── IAuditResolver.cs          # Audit field stamping interface
+    │       ├── ICurrentUserService.cs     # Current user identity interface
     │       ├── IRepository.cs             # Generic repository interface
     │       └── IUnitOfWork.cs             # Unit of work interface
     ├── Domain.Data.EntityFramework/  # EF Core implementation of data access
     │   ├── Domain.Data.EntityFramework.csproj
     │   ├── TalliDbContext.cs              # DbContext with all DbSets
+    │   ├── Repositories/
+    │   │   ├── GenericRepository.cs       # IRepository<T> implementation
+    │   │   └── GenericAuditableRepository.cs # IAuditableRepository<T> implementation
+    │   ├── Resolvers/
+    │   │   └── AuditResolver.cs           # IAuditResolver<T> implementation
     │   └── Configurations/
     │       ├── Auth/                      # Entity configs for auth schema
     │       │   ├── UserConfiguration.cs
