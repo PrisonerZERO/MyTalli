@@ -1,4 +1,4 @@
-namespace My.Talli.Domain.Exceptions;
+namespace My.Talli.Domain.Framework.Exceptions;
 
 /// <summary>Exception</summary>
 public class DatabaseConnectionFailedException : ForbiddenException
