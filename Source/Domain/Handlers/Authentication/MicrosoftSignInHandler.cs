@@ -33,14 +33,9 @@ public class MicrosoftSignInHandler
 
 	#region <Methods>
 
-	public async Task<ENTITIES.User> HandleAsync(
-		string microsoftId,
-		string email,
-		string displayName,
-		string firstName,
-		string lastName)
+	public async Task<ENTITIES.User> HandleAsync(SignInArgumentOf<MicrosoftSignInPayload> argument)
 	{
-		var existing = (await _microsoftAuthRepository.FindAsync(x => x.MicrosoftId == microsoftId)).FirstOrDefault();
+		var existing = (await _microsoftAuthRepository.FindAsync(x => x.MicrosoftId == argument.Payload.MicrosoftId)).FirstOrDefault();
 
 		if (existing is not null)
 		{
@@ -52,15 +47,10 @@ public class MicrosoftSignInHandler
 			return user;
 		}
 
-		return await CreateUserAsync(microsoftId, email, displayName, firstName, lastName);
+		return await CreateUserAsync(argument);
 	}
 
-	private async Task<ENTITIES.User> CreateUserAsync(
-		string microsoftId,
-		string email,
-		string displayName,
-		string firstName,
-		string lastName)
+	private async Task<ENTITIES.User> CreateUserAsync(SignInArgumentOf<MicrosoftSignInPayload> argument)
 	{
 		var now = DateTime.UtcNow;
 		var defaultPreferences = _preferencesSerializer.Serialize(new UserPreferences());
@@ -69,11 +59,11 @@ public class MicrosoftSignInHandler
 		{
 			CreateByUserId = 0,
 			CreatedOnDateTime = now,
-			DisplayName = displayName,
-			FirstName = firstName,
+			DisplayName = argument.DisplayName,
+			FirstName = argument.FirstName,
 			InitialProvider = "Microsoft",
 			LastLoginAt = now,
-			LastName = lastName,
+			LastName = argument.LastName,
 			PreferredProvider = "Microsoft",
 			UpdatedByUserId = 0,
 			UpdatedOnDate = now,
@@ -87,11 +77,11 @@ public class MicrosoftSignInHandler
 		{
 			CreateByUserId = user.Id,
 			CreatedOnDateTime = now,
-			DisplayName = displayName,
-			Email = email,
-			FirstName = firstName,
-			LastName = lastName,
-			MicrosoftId = microsoftId,
+			DisplayName = argument.DisplayName,
+			Email = argument.Email,
+			FirstName = argument.FirstName,
+			LastName = argument.LastName,
+			MicrosoftId = argument.Payload.MicrosoftId,
 			UpdatedByUserId = user.Id,
 			UpdatedOnDate = now,
 			UserId = user.Id

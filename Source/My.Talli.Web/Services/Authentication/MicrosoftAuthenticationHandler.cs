@@ -27,14 +27,20 @@ public class MicrosoftAuthenticationHandler
     public async Task HandleTicketAsync(OAuthCreatingTicketContext context)
     {
         var principal = context.Principal!;
-        var displayName = principal.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
-        var email = principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
-        var firstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty;
-        var lastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty;
-        var microsoftId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
-        // Sign-In
-        var user = await _signInHandler.HandleAsync(microsoftId, email, displayName, firstName, lastName);
+        var argument = new SignInArgumentOf<MicrosoftSignInPayload>
+        {
+            DisplayName = principal.FindFirstValue(ClaimTypes.Name) ?? string.Empty,
+            Email = principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
+            FirstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty,
+            LastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty,
+            Payload = new MicrosoftSignInPayload
+            {
+                MicrosoftId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty
+            }
+        };
+
+        var user = await _signInHandler.HandleAsync(argument);
 
         var identity = (ClaimsIdentity)principal.Identity!;
         identity.AddClaim(new Claim("UserId", user.Id.ToString()));

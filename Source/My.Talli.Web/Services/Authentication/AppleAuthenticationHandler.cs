@@ -27,15 +27,21 @@ public class AppleAuthenticationHandler
     public async Task HandleTicketAsync(OAuthCreatingTicketContext context)
     {
         var principal = context.Principal!;
-        var appleId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-        var displayName = principal.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
-        var email = principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
-        var firstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty;
-        var isPrivateRelay = principal.FindFirstValue("urn:apple:is_private_email") == "true";
-        var lastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty;
 
-        // Sign-In
-        var user = await _signInHandler.HandleAsync(appleId, email, displayName, firstName, lastName, isPrivateRelay);
+        var argument = new SignInArgumentOf<AppleSignInPayload>
+        {
+            DisplayName = principal.FindFirstValue(ClaimTypes.Name) ?? string.Empty,
+            Email = principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
+            FirstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty,
+            LastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty,
+            Payload = new AppleSignInPayload
+            {
+                AppleId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
+                IsPrivateRelay = principal.FindFirstValue("urn:apple:is_private_email") == "true"
+            }
+        };
+
+        var user = await _signInHandler.HandleAsync(argument);
 
         var identity = (ClaimsIdentity)principal.Identity!;
         identity.AddClaim(new Claim("UserId", user.Id.ToString()));

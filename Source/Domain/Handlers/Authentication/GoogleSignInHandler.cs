@@ -33,17 +33,9 @@ public class GoogleSignInHandler
 
 	#region <Methods>
 
-	public async Task<ENTITIES.User> HandleAsync(
-		string googleId,
-		string email,
-		string displayName,
-		string firstName,
-		string lastName,
-		string avatarUrl,
-		bool emailVerified,
-		string locale)
+	public async Task<ENTITIES.User> HandleAsync(SignInArgumentOf<GoogleSignInPayload> argument)
 	{
-		var existing = (await _googleAuthRepository.FindAsync(x => x.GoogleId == googleId)).FirstOrDefault();
+		var existing = (await _googleAuthRepository.FindAsync(x => x.GoogleId == argument.Payload.GoogleId)).FirstOrDefault();
 
 		if (existing is not null)
 		{
@@ -55,18 +47,10 @@ public class GoogleSignInHandler
 			return user;
 		}
 
-		return await CreateUserAsync(googleId, email, displayName, firstName, lastName, avatarUrl, emailVerified, locale);
+		return await CreateUserAsync(argument);
 	}
 
-	private async Task<ENTITIES.User> CreateUserAsync(
-		string googleId,
-		string email,
-		string displayName,
-		string firstName,
-		string lastName,
-		string avatarUrl,
-		bool emailVerified,
-		string locale)
+	private async Task<ENTITIES.User> CreateUserAsync(SignInArgumentOf<GoogleSignInPayload> argument)
 	{
 		var now = DateTime.UtcNow;
 		var defaultPreferences = _preferencesSerializer.Serialize(new UserPreferences());
@@ -75,11 +59,11 @@ public class GoogleSignInHandler
 		{
 			CreateByUserId = 0,
 			CreatedOnDateTime = now,
-			DisplayName = displayName,
-			FirstName = firstName,
+			DisplayName = argument.DisplayName,
+			FirstName = argument.FirstName,
 			InitialProvider = "Google",
 			LastLoginAt = now,
-			LastName = lastName,
+			LastName = argument.LastName,
 			PreferredProvider = "Google",
 			UpdatedByUserId = 0,
 			UpdatedOnDate = now,
@@ -91,16 +75,16 @@ public class GoogleSignInHandler
 
 		var googleAuth = new ENTITIES.UserAuthenticationGoogle
 		{
-			AvatarUrl = avatarUrl,
+			AvatarUrl = argument.Payload.AvatarUrl,
 			CreateByUserId = user.Id,
 			CreatedOnDateTime = now,
-			DisplayName = displayName,
-			Email = email,
-			EmailVerified = emailVerified,
-			FirstName = firstName,
-			GoogleId = googleId,
-			LastName = lastName,
-			Locale = locale,
+			DisplayName = argument.DisplayName,
+			Email = argument.Email,
+			EmailVerified = argument.Payload.EmailVerified,
+			FirstName = argument.FirstName,
+			GoogleId = argument.Payload.GoogleId,
+			LastName = argument.LastName,
+			Locale = argument.Payload.Locale,
 			UpdatedByUserId = user.Id,
 			UpdatedOnDate = now,
 			UserId = user.Id

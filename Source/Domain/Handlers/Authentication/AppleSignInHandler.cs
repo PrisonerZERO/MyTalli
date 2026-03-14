@@ -33,15 +33,9 @@ public class AppleSignInHandler
 
 	#region <Methods>
 
-	public async Task<ENTITIES.User> HandleAsync(
-		string appleId,
-		string email,
-		string displayName,
-		string firstName,
-		string lastName,
-		bool isPrivateRelay)
+	public async Task<ENTITIES.User> HandleAsync(SignInArgumentOf<AppleSignInPayload> argument)
 	{
-		var existing = (await _appleAuthRepository.FindAsync(x => x.AppleId == appleId)).FirstOrDefault();
+		var existing = (await _appleAuthRepository.FindAsync(x => x.AppleId == argument.Payload.AppleId)).FirstOrDefault();
 
 		if (existing is not null)
 		{
@@ -53,16 +47,10 @@ public class AppleSignInHandler
 			return user;
 		}
 
-		return await CreateUserAsync(appleId, email, displayName, firstName, lastName, isPrivateRelay);
+		return await CreateUserAsync(argument);
 	}
 
-	private async Task<ENTITIES.User> CreateUserAsync(
-		string appleId,
-		string email,
-		string displayName,
-		string firstName,
-		string lastName,
-		bool isPrivateRelay)
+	private async Task<ENTITIES.User> CreateUserAsync(SignInArgumentOf<AppleSignInPayload> argument)
 	{
 		var now = DateTime.UtcNow;
 		var defaultPreferences = _preferencesSerializer.Serialize(new UserPreferences());
@@ -71,11 +59,11 @@ public class AppleSignInHandler
 		{
 			CreateByUserId = 0,
 			CreatedOnDateTime = now,
-			DisplayName = displayName,
-			FirstName = firstName,
+			DisplayName = argument.DisplayName,
+			FirstName = argument.FirstName,
 			InitialProvider = "Apple",
 			LastLoginAt = now,
-			LastName = lastName,
+			LastName = argument.LastName,
 			PreferredProvider = "Apple",
 			UpdatedByUserId = 0,
 			UpdatedOnDate = now,
@@ -87,14 +75,14 @@ public class AppleSignInHandler
 
 		var appleAuth = new ENTITIES.UserAuthenticationApple
 		{
-			AppleId = appleId,
+			AppleId = argument.Payload.AppleId,
 			CreateByUserId = user.Id,
 			CreatedOnDateTime = now,
-			DisplayName = displayName,
-			Email = email,
-			FirstName = firstName,
-			IsPrivateRelay = isPrivateRelay,
-			LastName = lastName,
+			DisplayName = argument.DisplayName,
+			Email = argument.Email,
+			FirstName = argument.FirstName,
+			IsPrivateRelay = argument.Payload.IsPrivateRelay,
+			LastName = argument.LastName,
 			UpdatedByUserId = user.Id,
 			UpdatedOnDate = now,
 			UserId = user.Id
