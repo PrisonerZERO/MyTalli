@@ -25,19 +25,33 @@ public abstract class TalliMigrationBase : Migration
 
     #endregion
 
+    #region <Properties>
+
+    protected abstract string MigrationFolder { get; }
+
+    #endregion
+
     #region <Methods>
 
-    protected void ExecutePreTableScripts(MigrationBuilder migrationBuilder, string migrationFolder)
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
         foreach (var subFolder in PreTableFolders)
-            ExecuteEmbeddedSqlScripts(migrationBuilder, migrationFolder, subFolder);
+            ExecuteEmbeddedSqlScripts(migrationBuilder, MigrationFolder, subFolder);
+
+        UpTables(migrationBuilder);
+
+        foreach (var subFolder in PostTableFolders)
+            ExecuteEmbeddedSqlScripts(migrationBuilder, MigrationFolder, subFolder);
     }
 
-    protected void ExecutePostTableScripts(MigrationBuilder migrationBuilder, string migrationFolder)
+    protected override void Down(MigrationBuilder migrationBuilder)
     {
-        foreach (var subFolder in PostTableFolders)
-            ExecuteEmbeddedSqlScripts(migrationBuilder, migrationFolder, subFolder);
+        DownTables(migrationBuilder);
     }
+
+    protected abstract void UpTables(MigrationBuilder migrationBuilder);
+
+    protected abstract void DownTables(MigrationBuilder migrationBuilder);
 
     private void ExecuteEmbeddedSqlScripts(MigrationBuilder migrationBuilder, string migrationFolder, string subFolder)
     {

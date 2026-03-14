@@ -8,8 +8,10 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
     /// <inheritdoc />
     public partial class InitialCreate : TalliMigrationBase
     {
+        protected override string MigrationFolder => "01_0";
+
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
+        protected override void UpTables(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
                 name: "commerce");
@@ -536,12 +538,10 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 column: "UserId",
                 unique: true);
 
-            // Embedded SQL scripts
-            ExecutePostTableScripts(migrationBuilder, "01_0");
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
+        protected override void DownTables(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "BillingStripe",
