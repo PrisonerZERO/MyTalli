@@ -164,6 +164,8 @@ Migrations/
 
 **`.csproj` setup:** A `Migrations\**\*.sql` glob automatically embeds all SQL files as resources — no per-file entries needed.
 
+**`GO` batch splitting:** SQL scripts may contain `GO` batch separators (required for DDL like `CREATE VIEW`, `CREATE PROCEDURE`). `DbMigrationBase` splits on `GO` lines and executes each batch as a separate `migrationBuilder.Sql()` call, since EF Core does not natively support `GO`.
+
 **Note:** .NET prepends `_` to resource names for folders starting with a digit (`01_0` → `_01_0`). `DbMigrationBase` handles this automatically.
 
 ## Solution Structure
