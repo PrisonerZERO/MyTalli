@@ -212,6 +212,8 @@ My.Talli/
         │   │   ├── SuggestionBox.razor.css
         │   │   ├── Upgrade.razor         # Upgrade pricing page (route: /upgrade)
         │   │   ├── Upgrade.razor.css
+        │   │   ├── Unsubscribe.razor      # Email unsubscribe confirmation (route: /unsubscribe)
+        │   │   ├── Unsubscribe.razor.css
         │   │   ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
         │   │   ├── Waitlist.razor.css
         │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
@@ -241,6 +243,7 @@ My.Talli/
         │   │   ├── SignInViewModel.cs
         │   │   ├── SubscriptionViewModel.cs
         │   │   ├── SuggestionBoxViewModel.cs
+        │   │   ├── UnsubscribeViewModel.cs
         │   │   ├── UpgradeViewModel.cs
         │   │   └── WaitlistViewModel.cs
         │   └── Shared/
@@ -284,6 +287,7 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 | `/subscription` | Inline SVG (`.sub-hero`) | No (sidebar has it) | N/A |
 | `/subscription/cancel` | Inline SVG (`.cancel-hero`) | No (sidebar has it) | N/A |
 | `/upgrade` | Inline SVG (`.upgrade-hero`) | No (sidebar has it) | N/A |
+| `/unsubscribe` | `<BrandHeader>` | Yes | "Go to Homepage" link |
 | `/Error` | `<BrandHeader>` | Yes | "Go Back" button |
 | `/` | None | Own nav logo | N/A |
 
@@ -428,7 +432,7 @@ Only the landing page, sign-in, waitlist, and error pages are active. All other 
 
 - **Middleware:** `Program.cs` — inline `app.Use(...)` block after `UseAntiforgery()` redirects disabled routes
 - **Disabled routes:** `/dashboard`, `/suggestions`, `/subscription`, `/subscription/cancel`, `/upgrade` — all redirect to `/waitlist`
-- **Active routes:** `/` (landing), `/signin`, `/waitlist`, `/Error`, `/Error/{StatusCode}`
+- **Active routes:** `/` (landing), `/signin`, `/waitlist`, `/unsubscribe`, `/Error`, `/Error/{StatusCode}`
 - **OAuth redirect:** Set to `/waitlist` in the login endpoint (`Program.cs`)
 
 ### Dashboard Mode
