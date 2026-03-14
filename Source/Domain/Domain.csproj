@@ -10,10 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include=".resources\emails\" />
+    <EmbeddedResource Include=".resources\emails\**\*.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="CommandsAndQueries\" />
     <Folder Include="Handlers\" />
-    <Folder Include="Notifications\Emails\" />
   </ItemGroup>
 
   <ItemGroup>
