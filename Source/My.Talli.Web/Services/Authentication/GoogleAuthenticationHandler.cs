@@ -1,22 +1,23 @@
-using Microsoft.AspNetCore.Authentication.OAuth;
-using System.Security.Claims;
-
 namespace My.Talli.Web.Services.Authentication;
+
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using My.Talli.Domain.Handlers.Authentication;
 
 /// <summary>Handler</summary>
 public class GoogleAuthenticationHandler
 {
     #region <Variables>
 
-    private readonly ILogger<GoogleAuthenticationHandler> _logger;
+    private readonly GoogleSignInHandler _signInHandler;
 
     #endregion
 
     #region <Constructors>
 
-    public GoogleAuthenticationHandler(ILogger<GoogleAuthenticationHandler> logger)
+    public GoogleAuthenticationHandler(GoogleSignInHandler signInHandler)
     {
-        _logger = logger;
+        _signInHandler = signInHandler;
     }
 
     #endregion
@@ -25,21 +26,20 @@ public class GoogleAuthenticationHandler
 
     public async Task HandleTicketAsync(OAuthCreatingTicketContext context)
     {
-        var email = context.Principal?.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
-        var googleId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-        var name = context.Principal?.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
-        var pictureUrl = context.Principal?.FindFirstValue("urn:google:picture") ?? string.Empty;
+        var principal = context.Principal!;
+        var avatarUrl = principal.FindFirstValue("urn:google:picture") ?? string.Empty;
+        var displayName = principal.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
+        var email = principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+        var emailVerified = principal.FindFirstValue("urn:google:email_verified") == "true";
+        var firstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty;
+        var googleId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        var lastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty;
+        var locale = principal.FindFirstValue("urn:google:locale") ?? string.Empty;
 
-        _logger.LogInformation("Google sign-in for {Email} ({GoogleId})", email, googleId);
+        var user = await _signInHandler.HandleAsync(googleId, email, displayName, firstName, lastName, avatarUrl, emailVerified, locale);
 
-        // TODO: Look up user in database by Google ID or email
-        // TODO: If user does not exist, create a new user record
-        // TODO: If user exists, update last login timestamp
-        // TODO: Add app-specific claims (e.g., internal user ID, roles) to the identity:
-        //   var identity = (ClaimsIdentity)context.Principal!.Identity!;
-        //   identity.AddClaim(new Claim("UserId", dbUser.Id.ToString()));
-
-        await Task.CompletedTask;
+        var identity = (ClaimsIdentity)principal.Identity!;
+        identity.AddClaim(new Claim("UserId", user.Id.ToString()));
     }
 
     #endregion

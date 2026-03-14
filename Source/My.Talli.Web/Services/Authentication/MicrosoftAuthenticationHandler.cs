@@ -1,22 +1,23 @@
-using Microsoft.AspNetCore.Authentication.OAuth;
-using System.Security.Claims;
-
 namespace My.Talli.Web.Services.Authentication;
+
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using My.Talli.Domain.Handlers.Authentication;
 
 /// <summary>Handler</summary>
 public class MicrosoftAuthenticationHandler
 {
     #region <Variables>
 
-    private readonly ILogger<MicrosoftAuthenticationHandler> _logger;
+    private readonly MicrosoftSignInHandler _signInHandler;
 
     #endregion
 
     #region <Constructors>
 
-    public MicrosoftAuthenticationHandler(ILogger<MicrosoftAuthenticationHandler> logger)
+    public MicrosoftAuthenticationHandler(MicrosoftSignInHandler signInHandler)
     {
-        _logger = logger;
+        _signInHandler = signInHandler;
     }
 
     #endregion
@@ -25,20 +26,17 @@ public class MicrosoftAuthenticationHandler
 
     public async Task HandleTicketAsync(OAuthCreatingTicketContext context)
     {
-        var email = context.Principal?.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
-        var microsoftId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-        var name = context.Principal?.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
+        var principal = context.Principal!;
+        var displayName = principal.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
+        var email = principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+        var firstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty;
+        var lastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty;
+        var microsoftId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
-        _logger.LogInformation("Microsoft sign-in for {Email} ({MicrosoftId})", email, microsoftId);
+        var user = await _signInHandler.HandleAsync(microsoftId, email, displayName, firstName, lastName);
 
-        // TODO: Look up user in database by Microsoft ID or email
-        // TODO: If user does not exist, create a new user record
-        // TODO: If user exists, update last login timestamp
-        // TODO: Add app-specific claims (e.g., internal user ID, roles) to the identity:
-        //   var identity = (ClaimsIdentity)context.Principal!.Identity!;
-        //   identity.AddClaim(new Claim("UserId", dbUser.Id.ToString()));
-
-        await Task.CompletedTask;
+        var identity = (ClaimsIdentity)principal.Identity!;
+        identity.AddClaim(new Claim("UserId", user.Id.ToString()));
     }
 
     #endregion

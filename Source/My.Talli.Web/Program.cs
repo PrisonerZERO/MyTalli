@@ -8,10 +8,17 @@ using AspNet.Security.OAuth.Apple;
 using My.Talli.Web.Components;
 using My.Talli.Web.Services.Authentication;
 using My.Talli.Web.Services.Billing;
+using My.Talli.Domain.Components.JsonSerializers;
+using My.Talli.Domain.Data.EntityFramework;
+using My.Talli.Domain.Data.EntityFramework.Repositories;
+using My.Talli.Domain.Data.EntityFramework.Resolvers;
+using My.Talli.Domain.Data.Interfaces;
+using My.Talli.Domain.Handlers.Authentication;
 using My.Talli.Domain.Notifications.Emails;
 using Microsoft.EntityFrameworkCore;
-using My.Talli.Domain.Data.EntityFramework;
 using My.Talli.Web.Services.Email;
+using My.Talli.Web.Services.Identity;
+
 using AppleAuthHandler = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +31,16 @@ builder.Host.UseLamar();
 // DATABASE
 builder.Services.AddDbContext<TalliDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ------------
+// REPOSITORIES
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped(typeof(IAuditResolver<>), typeof(AuditResolver<>));
+builder.Services.AddScoped(typeof(IAuditableRepositoryAsync<>), typeof(GenericAuditableRepositoryAsync<>));
+builder.Services.AddScoped<UserPreferencesJsonSerializer>();
+builder.Services.AddScoped<AppleSignInHandler>();
+builder.Services.AddScoped<GoogleSignInHandler>();
+builder.Services.AddScoped<MicrosoftSignInHandler>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

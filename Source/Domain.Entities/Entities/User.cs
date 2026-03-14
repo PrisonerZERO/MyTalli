@@ -11,6 +11,8 @@ public class User : DefaultEntity
 
 	public string InitialProvider { get; set; } = string.Empty;
 
+	public DateTime LastLoginAt { get; set; }
+
 	public string LastName { get; set; } = string.Empty;
 
 	public string PreferredProvider { get; set; } = string.Empty;
