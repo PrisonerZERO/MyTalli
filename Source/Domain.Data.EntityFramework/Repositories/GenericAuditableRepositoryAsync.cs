@@ -5,7 +5,7 @@ using My.Talli.Domain.Data.Interfaces;
 using My.Talli.Domain.Entities.Interfaces;
 
 /// <summary>Repository</summary>
-public class GenericAuditableRepository<TEntity> : GenericRepository<TEntity>, IAuditableRepository<TEntity> where TEntity : class, IAuditableIdentifiable
+public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<TEntity>, IAuditableRepositoryAsync<TEntity> where TEntity : class, IAuditableIdentifiable
 {
     #region <Properties>
 
@@ -15,7 +15,7 @@ public class GenericAuditableRepository<TEntity> : GenericRepository<TEntity>, I
 
     #region <Constructors>
 
-    public GenericAuditableRepository(TalliDbContext dbContext, IAuditResolver<TEntity> auditResolver) : base(dbContext)
+    public GenericAuditableRepositoryAsync(TalliDbContext dbContext, IAuditResolver<TEntity> auditResolver) : base(dbContext)
     {
         AuditResolver = auditResolver;
     }

@@ -1,7 +1,7 @@
 namespace My.Talli.Domain.Data.Interfaces;
 
 /// <summary>Unit of Work</summary>
-public interface IUnitOfWork : IDisposable
+public interface IUnitOfWorkAsync : IDisposable
 {
     #region <Methods>
 

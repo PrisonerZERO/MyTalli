@@ -6,7 +6,7 @@ using My.Talli.Domain.Data.Interfaces;
 using My.Talli.Domain.Entities.Interfaces;
 
 /// <summary>Repository</summary>
-public class GenericRepository<TEntity> : IRepository<TEntity> where TEntity : class, IIdentifiable
+public class GenericRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where TEntity : class, IIdentifiable
 {
     #region <Variables>
 
@@ -17,7 +17,7 @@ public class GenericRepository<TEntity> : IRepository<TEntity> where TEntity : c
 
     #region <Constructors>
 
-    public GenericRepository(TalliDbContext dbContext)
+    public GenericRepositoryAsync(TalliDbContext dbContext)
     {
         _dbContext = dbContext;
         _dbSet = dbContext.Set<TEntity>();

@@ -3,7 +3,7 @@ namespace My.Talli.Domain.Data.Interfaces;
 using My.Talli.Domain.Entities.Interfaces;
 
 /// <summary>Repository</summary>
-public interface IAuditableRepository<TEntity> : IRepository<TEntity> where TEntity : class, IAuditableIdentifiable
+public interface IAuditableRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where TEntity : class, IAuditableIdentifiable
 {
     #region <Properties>
 

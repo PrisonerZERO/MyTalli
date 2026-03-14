@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using My.Talli.Domain.Entities.Interfaces;
 
 /// <summary>Repository</summary>
-public interface IRepository<T> where T : class, IIdentifiable
+public interface IRepositoryAsync<T> where T : class, IIdentifiable
 {
     #region <Methods>
 

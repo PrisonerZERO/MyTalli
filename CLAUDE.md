@@ -189,17 +189,17 @@ My.Talli/
     ├── Domain.Data/                 # Data access abstractions (ORM-agnostic)
     │   ├── Domain.Data.csproj
     │   └── Interfaces/
-    │       ├── IAuditableRepository.cs    # Repository + audit resolution interface
+    │       ├── IAuditableRepositoryAsync.cs # Repository + audit resolution interface (async)
     │       ├── IAuditResolver.cs          # Audit field stamping interface
     │       ├── ICurrentUserService.cs     # Current user identity interface
-    │       ├── IRepository.cs             # Generic repository interface
-    │       └── IUnitOfWork.cs             # Unit of work interface
+    │       ├── IRepositoryAsync.cs        # Generic repository interface (async)
+    │       └── IUnitOfWorkAsync.cs        # Unit of work interface (async)
     ├── Domain.Data.EntityFramework/  # EF Core implementation of data access
     │   ├── Domain.Data.EntityFramework.csproj
     │   ├── TalliDbContext.cs              # DbContext with all DbSets
     │   ├── Repositories/
-    │   │   ├── GenericRepository.cs       # IRepository<T> implementation
-    │   │   └── GenericAuditableRepository.cs # IAuditableRepository<T> implementation
+    │   │   ├── GenericRepositoryAsync.cs  # IRepositoryAsync<T> implementation
+    │   │   └── GenericAuditableRepositoryAsync.cs # IAuditableRepositoryAsync<T> implementation
     │   ├── Resolvers/
     │   │   └── AuditResolver.cs           # IAuditResolver<T> implementation
     │   └── Configurations/
@@ -672,12 +672,19 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 ```csharp
 /* Correct */
 /// <summary>Repository</summary>
-public class GenericAuditableRepository<TEntity> { ... }
+public class GenericAuditableRepositoryAsync<TEntity> { ... }
 
 /* Wrong — the class name already says this */
 /// <summary>Repository implementation with automatic audit resolution on insert and update operations.</summary>
-public class GenericAuditableRepository<TEntity> { ... }
+public class GenericAuditableRepositoryAsync<TEntity> { ... }
 ```
+
+### Async Naming Convention
+
+- Synchronous classes and interfaces are named plainly (e.g., `ICurrentUserService`, `AuditResolver`).
+- Asynchronous classes and interfaces append **`Async`** to the name (e.g., `IRepositoryAsync`, `GenericRepositoryAsync`).
+- This applies to the **class/interface name** — async **methods** already follow the standard .NET `Async` suffix convention.
+- Only apply to classes whose primary contract is async. ViewModels, handlers, and services with async lifecycle or framework methods do **not** get the suffix.
 
 ### Clean Up NUL Files
 
