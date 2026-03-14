@@ -14,10 +14,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include=".extensions\AssemblyExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="CommandsAndQueries\" />
     <Folder Include="Handlers\" />
-    <Folder Include="Notifications\Emails\Exceptions\" />
-    <Folder Include="Notifications\Emails\Customer\" />
   </ItemGroup>
 
   <ItemGroup>

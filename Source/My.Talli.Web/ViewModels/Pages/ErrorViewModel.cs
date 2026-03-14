@@ -5,6 +5,7 @@ using System.Diagnostics;
 
 namespace My.Talli.Web.ViewModels.Pages;
 
+/// <summary>View Model</summary>
 public class ErrorViewModel : ComponentBase
 {
     #region <Variables>

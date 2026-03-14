@@ -1,5 +1,6 @@
 namespace My.Talli.Domain.Exceptions;
 
+/// <summary>Exception</summary>
 public abstract class TalliException : Exception
 {
     #region <Properties>

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace My.Talli.Web.ViewModels.Pages;
 
+/// <summary>View Model</summary>
 public class SuggestionBoxViewModel : ComponentBase
 {
     #region <Properties>
@@ -174,6 +175,7 @@ public class SuggestionBoxViewModel : ComponentBase
     #endregion
 }
 
+/// <summary>Model</summary>
 public class SuggestionItem
 {
     #region <Properties>

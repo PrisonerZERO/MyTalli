@@ -4,6 +4,7 @@ using System.Security.Claims;
 
 namespace My.Talli.Web.ViewModels.Pages;
 
+/// <summary>View Model</summary>
 public class WaitlistViewModel : ComponentBase
 {
     #region <Variables>

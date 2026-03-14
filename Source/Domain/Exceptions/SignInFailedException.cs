@@ -1,5 +1,6 @@
 namespace My.Talli.Domain.Exceptions;
 
+/// <summary>Exception</summary>
 public class SignInFailedException : UnauthorizedException
 {
     #region <Constructors>

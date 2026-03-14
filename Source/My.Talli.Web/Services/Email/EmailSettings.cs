@@ -1,5 +1,6 @@
 namespace My.Talli.Web.Services.Email;
 
+/// <summary>Settings</summary>
 public class EmailSettings
 {
     #region <Properties>

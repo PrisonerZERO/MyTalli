@@ -4,6 +4,7 @@ using Microsoft.JSInterop;
 
 namespace My.Talli.Web.ViewModels.Pages;
 
+/// <summary>View Model</summary>
 public class UpgradeViewModel : ComponentBase
 {
     #region <Variables>

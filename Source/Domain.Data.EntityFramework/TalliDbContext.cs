@@ -1,0 +1,53 @@
+namespace My.Talli.Domain.Data.EntityFramework;
+
+using Microsoft.EntityFrameworkCore;
+using My.Talli.Domain.Entities.Entities;
+
+/// <summary>Database Context</summary>
+public class TalliDbContext : DbContext
+{
+    #region <Constructors>
+
+    public TalliDbContext(DbContextOptions<TalliDbContext> options) : base(options) { }
+
+    #endregion
+
+    #region <Properties>
+
+    public DbSet<Billing> Billings { get; set; } = null!;
+
+    public DbSet<BillingStripe> BillingStripes { get; set; } = null!;
+
+    public DbSet<Order> Orders { get; set; } = null!;
+
+    public DbSet<OrderItem> OrderItems { get; set; } = null!;
+
+    public DbSet<Product> Products { get; set; } = null!;
+
+    public DbSet<ProductType> ProductTypes { get; set; } = null!;
+
+    public DbSet<ProductVendor> ProductVendors { get; set; } = null!;
+
+    public DbSet<Subscription> Subscriptions { get; set; } = null!;
+
+    public DbSet<SubscriptionStripe> SubscriptionStripes { get; set; } = null!;
+
+    public DbSet<User> Users { get; set; } = null!;
+
+    public DbSet<UserAuthenticationApple> UserAuthenticationApples { get; set; } = null!;
+
+    public DbSet<UserAuthenticationGoogle> UserAuthenticationGoogles { get; set; } = null!;
+
+    public DbSet<UserAuthenticationMicrosoft> UserAuthenticationMicrosofts { get; set; } = null!;
+
+    #endregion
+
+    #region <Methods>
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(TalliDbContext).Assembly);
+    }
+
+    #endregion
+}

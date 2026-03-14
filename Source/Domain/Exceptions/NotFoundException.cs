@@ -1,5 +1,6 @@
 namespace My.Talli.Domain.Exceptions;
 
+/// <summary>Exception</summary>
 public class NotFoundException : TalliException
 {
     #region <Properties>

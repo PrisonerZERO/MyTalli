@@ -12,6 +12,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Blazor Server** (Interactive Server render mode) — `blazor.web.js`
 - **Bootstrap** — bundled in `wwwroot/lib/bootstrap/`
 - **C#** — backend language
+- **Entity Framework Core** — ORM (SQL Server provider)
 - **Lamar** — IoC container (replaces default Microsoft DI)
 - **MailKit** — email sending (replaces obsolete `System.Net.Mail.SmtpClient`)
 - **Razor Components** — UI layer (`.razor` files)
@@ -43,8 +44,9 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 ### Schema: `auth`
 
 **`auth.User`** — core MyTalli identity (one row per person)
-- `Id` (PK), `DisplayName`, `FirstName`, `LastName`, `CreatedAt`, `LastLoginAt`, `InitialProvider` (historical — which provider they first signed in with, never changes), `PreferredProvider` (which provider the user prefers, starts equal to InitialProvider)
+- `Id` (PK), `DisplayName`, `FirstName`, `LastName`, `CreatedAt`, `LastLoginAt`, `InitialProvider` (historical — which provider they first signed in with, never changes), `PreferredProvider` (which provider the user prefers, starts equal to InitialProvider), `UserPreferences` (NVARCHAR(MAX), JSON — app settings/toggles, defaults to `'{}'`)
 - Email is **not** stored here — it lives on the provider auth tables. The user's email is resolved via their PreferredProvider.
+- **UserPreferences** stores user-configurable app settings as JSON. This avoids contorting the User table with individual columns as settings grow over time.
 
 **`auth.UserAuthenticationGoogle`** — 1-to-1 with User
 - `Id` (PK), `UserId` (FK → User, unique), `GoogleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `AvatarUrl`, `EmailVerified`, `Locale`
@@ -149,7 +151,7 @@ My.Talli/
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
-    ├── Domain/                      # Domain layer (exceptions, shared types)
+    ├── Domain/                      # Domain layer (exceptions, shared types, framework)
     │   ├── Domain.csproj
     │   ├── .resources/
     │   │   └── emails/              # HTML email templates (EmbeddedResource)
@@ -165,8 +167,13 @@ My.Talli/
     │   │   ├── UnauthorizedException.cs       # 401
     │   │   ├── SignInFailedException.cs        # 401 (inherits Unauthorized)
     │   │   └── UnexpectedException.cs         # 500
-    │   ├── Extensions/
+    │   ├── .extensions/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
+    │   ├── Framework/
+    │   │   └── Assert.cs                      # Static validation utility (precondition checks)
+    │   ├── Models/
+    │   │   ├── ActionResponseOf.cs            # Generic response wrapper (ValidationResult + Payload)
+    │   │   └── ValidationResult.cs            # Abstract base (IsValid, ValidationSummary, WarningSummary)
     │   └── Notifications/
     │       └── Emails/
     │           ├── EmailNotification.cs               # Abstract base (FinalizeEmail → SmtpNotification)
@@ -184,6 +191,59 @@ My.Talli/
     │           └── Exceptions/
     │               ├── ExceptionOccurredEmailNotification.cs
     │               └── ExceptionOccurredEmailNotificationPayload.cs
+    ├── Domain.Data/                 # Data access abstractions (ORM-agnostic)
+    │   ├── Domain.Data.csproj
+    │   └── Interfaces/
+    │       ├── IAuditableRepositoryAsync.cs # Repository + audit resolution interface (async)
+    │       ├── IAuditResolver.cs          # Audit field stamping interface
+    │       ├── ICurrentUserService.cs     # Current user identity interface
+    │       └── IRepositoryAsync.cs        # Generic repository interface (async)
+    ├── Domain.Data.EntityFramework/  # EF Core implementation of data access
+    │   ├── Domain.Data.EntityFramework.csproj
+    │   ├── TalliDbContext.cs              # DbContext with all DbSets
+    │   ├── Repositories/
+    │   │   ├── GenericRepositoryAsync.cs  # IRepositoryAsync<T> implementation
+    │   │   └── GenericAuditableRepositoryAsync.cs # IAuditableRepositoryAsync<T> implementation
+    │   ├── Resolvers/
+    │   │   └── AuditResolver.cs           # IAuditResolver<T> implementation
+    │   └── Configurations/
+    │       ├── Auth/                      # Entity configs for auth schema
+    │       │   ├── UserConfiguration.cs
+    │       │   ├── UserAuthenticationAppleConfiguration.cs
+    │       │   ├── UserAuthenticationGoogleConfiguration.cs
+    │       │   └── UserAuthenticationMicrosoftConfiguration.cs
+    │       └── Commerce/                  # Entity configs for commerce schema
+    │           ├── BillingConfiguration.cs
+    │           ├── BillingStripeConfiguration.cs
+    │           ├── OrderConfiguration.cs
+    │           ├── OrderItemConfiguration.cs
+    │           ├── ProductConfiguration.cs
+    │           ├── ProductTypeConfiguration.cs
+    │           ├── ProductVendorConfiguration.cs
+    │           ├── SubscriptionConfiguration.cs
+    │           └── SubscriptionStripeConfiguration.cs
+    ├── Domain.Entities/             # Domain entity layer (database models)
+    │   ├── Domain.Entities.csproj
+    │   ├── AuditableIdentifiableEntity.cs  # Base class (Id + audit fields)
+    │   ├── DefaultEntity.cs                # Standard entity base (adds IsActive)
+    │   ├── Entities/
+    │   │   ├── Billing.cs
+    │   │   ├── BillingStripe.cs
+    │   │   ├── Order.cs
+    │   │   ├── OrderItem.cs
+    │   │   ├── Product.cs
+    │   │   ├── ProductType.cs
+    │   │   ├── ProductVendor.cs
+    │   │   ├── Subscription.cs
+    │   │   ├── SubscriptionStripe.cs
+    │   │   ├── User.cs
+    │   │   ├── UserAuthenticationApple.cs
+    │   │   ├── UserAuthenticationGoogle.cs
+    │   │   └── UserAuthenticationMicrosoft.cs
+    │   └── Interfaces/
+    │       ├── IAuditable.cs
+    │       ├── IAuditableIdentifiable.cs
+    │       └── IIdentifiable.cs
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, service config, auth, endpoints
@@ -261,8 +321,18 @@ My.Talli/
 
 ### Solution Folders (in .slnx)
 
-- `/Foundation/` — shared/core projects (contains `Domain` project)
+- `/Foundation/` — shared/core projects (`Domain`, `Domain.Data`, `Domain.Data.EntityFramework`, `Domain.Entities`)
 - `/Presentation/` — contains `My.Talli.Web`
+
+### Project Reference Chain
+
+```
+Domain.Entities          ← entity classes (no dependencies)
+Domain.Data              ← abstractions (IRepository, IUnitOfWork) → Domain.Entities
+Domain.Data.EntityFramework ← EF Core implementation (DbContext, configs) → Domain.Data, Domain.Entities
+Domain                   ← exceptions, notifications → Domain.Entities
+My.Talli.Web             ← Blazor Server app → Domain
+```
 
 ## Brand & Design
 
@@ -596,6 +666,29 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - Pages using `MainLayout` (sidebar pages like Dashboard, Suggestions) use an **inline swoosh** hero within the page markup.
 - Pages using `LandingLayout` (Sign-In, Waitlist, Error) use the **`BrandHeader`** component.
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
+
+### Summary Tag Convention
+
+- Every C# class and interface **must** have a `/// <summary>` tag.
+- Keep it to a **short role label** (e.g., `Repository`, `Resolver`, `Entity`, `Configuration`, `Service`).
+- If the summary needs a full sentence to explain what the class does, the class name needs to be more descriptive instead.
+
+```csharp
+/* Correct */
+/// <summary>Repository</summary>
+public class GenericAuditableRepositoryAsync<TEntity> { ... }
+
+/* Wrong — the class name already says this */
+/// <summary>Repository implementation with automatic audit resolution on insert and update operations.</summary>
+public class GenericAuditableRepositoryAsync<TEntity> { ... }
+```
+
+### Async Naming Convention
+
+- Synchronous classes and interfaces are named plainly (e.g., `ICurrentUserService`, `AuditResolver`).
+- Asynchronous classes and interfaces append **`Async`** to the name (e.g., `IRepositoryAsync`, `GenericRepositoryAsync`).
+- This applies to the **class/interface name** — async **methods** already follow the standard .NET `Async` suffix convention.
+- Only apply to classes whose primary contract is async. ViewModels, handlers, and services with async lifecycle or framework methods do **not** get the suffix.
 
 ### Clean Up NUL Files
 

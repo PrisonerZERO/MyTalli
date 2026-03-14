@@ -5,7 +5,17 @@ public class User : DefaultEntity
 {
 	#region <Properties>
 
-	public string FullName { get; set; } = string.Empty;
+	public string DisplayName { get; set; } = string.Empty;
+
+	public string FirstName { get; set; } = string.Empty;
+
+	public string InitialProvider { get; set; } = string.Empty;
+
+	public string LastName { get; set; } = string.Empty;
+
+	public string PreferredProvider { get; set; } = string.Empty;
+
+	public string UserPreferences { get; set; } = "{}";
 
 	#endregion
 }
