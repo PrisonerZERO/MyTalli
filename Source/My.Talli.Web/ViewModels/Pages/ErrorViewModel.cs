@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Diagnostics;
-using My.Talli.Domain.Exceptions;
+using My.Talli.Domain.Framework.Exceptions;
 using System.Diagnostics;
 
 namespace My.Talli.Web.ViewModels.Pages;
