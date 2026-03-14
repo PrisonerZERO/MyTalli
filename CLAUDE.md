@@ -145,7 +145,10 @@ My.Talli/
     │   ├── Domain.csproj
     │   ├── .resources/
     │   │   └── emails/              # HTML email templates (EmbeddedResource)
-    │   │       └── ExceptionOccurredEmailNotificationTemplate.html
+    │   │       ├── ExceptionOccurredEmailNotificationTemplate.html
+    │   │       ├── SubscriptionConfirmationEmailNotificationTemplate.html
+    │   │       ├── WelcomeEmailNotificationTemplate.html
+    │   │       └── WeeklySummaryEmailNotificationTemplate.html
     │   ├── Exceptions/
     │   │   ├── TalliException.cs              # Abstract base (HttpStatusCode property)
     │   │   ├── ForbiddenException.cs          # 403
@@ -164,7 +167,13 @@ My.Talli/
     │           ├── EmailNotificationArgumentOf.cs      # Generic argument with Payload
     │           ├── ExceptionOccurredEmailNotification.cs          # Loads template, replaces [[Placeholder]] tokens
     │           ├── ExceptionOccurredEmailNotificationPayload.cs   # Exception data properties
-    │           └── SmtpNotification.cs                # Serializable POCO carrier
+    │           ├── SmtpNotification.cs                # Serializable POCO carrier
+    │           ├── SubscriptionConfirmationEmailNotification.cs
+    │           ├── SubscriptionConfirmationEmailNotificationPayload.cs
+    │           ├── WelcomeEmailNotification.cs
+    │           ├── WelcomeEmailNotificationPayload.cs
+    │           ├── WeeklySummaryEmailNotification.cs
+    │           └── WeeklySummaryEmailNotificationPayload.cs
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, service config, auth, endpoints
