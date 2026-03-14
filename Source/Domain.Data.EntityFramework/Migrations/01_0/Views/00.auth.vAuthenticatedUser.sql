@@ -1,15 +1,15 @@
 -- DROP and CREATE the procedure will loose the security settings.
-IF object_id('[auth].[vUserAuthenticated]') IS NULL
-    EXEC ('CREATE VIEW [auth].[vUserAuthenticated] AS SELECT 1 AS Id')
+IF object_id('[auth].[vAuthenticatedUser]') IS NULL
+    EXEC ('CREATE VIEW [auth].[vAuthenticatedUser] AS SELECT 1 AS Id')
 GO
 
-ALTER VIEW [auth].[vUserAuthenticated]
+ALTER VIEW [auth].[vAuthenticatedUser]
 AS
     /*
-		View: [auth].[vUserAuthenticated]
+		View: [auth].[vAuthenticatedUser]
 		Creation Date: 3/14/2026
 
-		Purpose: 
+		Purpose:
 		To lists Authenticated User detail
 	*/
 	SELECT
@@ -57,7 +57,7 @@ AS
 		-- Standard
 		, users.UserPreferences
 		, users.LastLoginAt
-    
+
 		-- Audit
 		, users.CreateByUserId
 		, users.CreatedOnDateTime
