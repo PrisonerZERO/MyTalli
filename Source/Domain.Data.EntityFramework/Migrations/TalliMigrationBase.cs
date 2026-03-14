@@ -56,7 +56,8 @@ public abstract class TalliMigrationBase : Migration
     private void ExecuteEmbeddedSqlScripts(MigrationBuilder migrationBuilder, string migrationFolder, string subFolder)
     {
         var type = GetType();
-        var path = $"{type.Namespace}.{migrationFolder}.{subFolder.Replace(" ", "_")}.";
+        var resourceFolder = char.IsDigit(migrationFolder[0]) ? $"_{migrationFolder}" : migrationFolder;
+        var path = $"{type.Namespace}.{resourceFolder}.{subFolder.Replace(" ", "_")}.";
 
         var assembly = Assembly.GetExecutingAssembly();
         var resourceNames = assembly.GetManifestResourceNames()
