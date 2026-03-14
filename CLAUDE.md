@@ -12,6 +12,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Blazor Server** (Interactive Server render mode) — `blazor.web.js`
 - **Bootstrap** — bundled in `wwwroot/lib/bootstrap/`
 - **C#** — backend language
+- **Entity Framework Core** — ORM (SQL Server provider)
 - **Lamar** — IoC container (replaces default Microsoft DI)
 - **MailKit** — email sending (replaces obsolete `System.Net.Mail.SmtpClient`)
 - **Razor Components** — UI layer (`.razor` files)
@@ -185,6 +186,30 @@ My.Talli/
     │           └── Exceptions/
     │               ├── ExceptionOccurredEmailNotification.cs
     │               └── ExceptionOccurredEmailNotificationPayload.cs
+    ├── Domain.Data/                 # Data access abstractions (ORM-agnostic)
+    │   ├── Domain.Data.csproj
+    │   └── Interfaces/
+    │       ├── IRepository.cs             # Generic repository interface
+    │       └── IUnitOfWork.cs             # Unit of work interface
+    ├── Domain.Data.EntityFramework/  # EF Core implementation of data access
+    │   ├── Domain.Data.EntityFramework.csproj
+    │   ├── TalliDbContext.cs              # DbContext with all DbSets
+    │   └── Configurations/
+    │       ├── Auth/                      # Entity configs for auth schema
+    │       │   ├── UserConfiguration.cs
+    │       │   ├── UserAuthenticationAppleConfiguration.cs
+    │       │   ├── UserAuthenticationGoogleConfiguration.cs
+    │       │   └── UserAuthenticationMicrosoftConfiguration.cs
+    │       └── Commerce/                  # Entity configs for commerce schema
+    │           ├── BillingConfiguration.cs
+    │           ├── BillingStripeConfiguration.cs
+    │           ├── OrderConfiguration.cs
+    │           ├── OrderItemConfiguration.cs
+    │           ├── ProductConfiguration.cs
+    │           ├── ProductTypeConfiguration.cs
+    │           ├── ProductVendorConfiguration.cs
+    │           ├── SubscriptionConfiguration.cs
+    │           └── SubscriptionStripeConfiguration.cs
     ├── Domain.Entities/             # Domain entity layer (database models)
     │   ├── Domain.Entities.csproj
     │   ├── AuditableIdentifiableEntity.cs  # Base class (Id + audit fields)
@@ -284,8 +309,18 @@ My.Talli/
 
 ### Solution Folders (in .slnx)
 
-- `/Foundation/` — shared/core projects (contains `Domain` project)
+- `/Foundation/` — shared/core projects (`Domain`, `Domain.Data`, `Domain.Data.EntityFramework`, `Domain.Entities`)
 - `/Presentation/` — contains `My.Talli.Web`
+
+### Project Reference Chain
+
+```
+Domain.Entities          ← entity classes (no dependencies)
+Domain.Data              ← abstractions (IRepository, IUnitOfWork) → Domain.Entities
+Domain.Data.EntityFramework ← EF Core implementation (DbContext, configs) → Domain.Data, Domain.Entities
+Domain                   ← exceptions, notifications → Domain.Entities
+My.Talli.Web             ← Blazor Server app → Domain
+```
 
 ## Brand & Design
 
