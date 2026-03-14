@@ -1,4 +1,4 @@
-namespace My.Talli.Domain.Entities.Entities;
+namespace My.Talli.Domain.Entities;
 
 /// <summary>Entity</summary>
 public class ProductType : DefaultEntity

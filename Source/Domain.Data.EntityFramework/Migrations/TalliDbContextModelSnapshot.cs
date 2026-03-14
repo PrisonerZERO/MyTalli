@@ -22,7 +22,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.Billing", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.Billing", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -76,7 +76,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("Billing", "commerce");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.BillingStripe", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.BillingStripe", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -132,7 +132,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("BillingStripe", "commerce");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.Order", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.Order", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -173,7 +173,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("Order", "commerce");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.OrderItem", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.OrderItem", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -220,7 +220,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("OrderItem", "commerce");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.Product", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.Product", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -269,7 +269,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("Product", "commerce");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.ProductType", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.ProductType", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -303,7 +303,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("ProductType", "commerce");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.ProductVendor", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.ProductVendor", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -337,7 +337,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("ProductVendor", "commerce");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.Subscription", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.Subscription", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -401,7 +401,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("Subscription", "commerce");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.SubscriptionStripe", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.SubscriptionStripe", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -452,7 +452,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("SubscriptionStripe", "commerce");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.User", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.User", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -513,7 +513,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("User", "auth");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.UserAuthenticationApple", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.UserAuthenticationApple", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -581,7 +581,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("UserAuthenticationApple", "auth");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.UserAuthenticationGoogle", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.UserAuthenticationGoogle", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -659,7 +659,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("UserAuthenticationGoogle", "auth");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.UserAuthenticationMicrosoft", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.UserAuthenticationMicrosoft", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -724,16 +724,16 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("UserAuthenticationMicrosoft", "auth");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.Billing", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.Billing", b =>
                 {
-                    b.HasOne("My.Talli.Domain.Entities.Entities.Order", "Order")
+                    b.HasOne("My.Talli.Domain.Entities.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Billing_Order");
 
-                    b.HasOne("My.Talli.Domain.Entities.Entities.User", "User")
+                    b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -745,11 +745,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.BillingStripe", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.BillingStripe", b =>
                 {
-                    b.HasOne("My.Talli.Domain.Entities.Entities.Billing", "Billing")
+                    b.HasOne("My.Talli.Domain.Entities.Billing", "Billing")
                         .WithOne()
-                        .HasForeignKey("My.Talli.Domain.Entities.Entities.BillingStripe", "BillingId")
+                        .HasForeignKey("My.Talli.Domain.Entities.BillingStripe", "BillingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_BillingStripe_Billing");
@@ -757,9 +757,9 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("Billing");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.Order", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.Order", b =>
                 {
-                    b.HasOne("My.Talli.Domain.Entities.Entities.User", "User")
+                    b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -769,16 +769,16 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.OrderItem", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.OrderItem", b =>
                 {
-                    b.HasOne("My.Talli.Domain.Entities.Entities.Order", "Order")
+                    b.HasOne("My.Talli.Domain.Entities.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_OrderItem_Order");
 
-                    b.HasOne("My.Talli.Domain.Entities.Entities.Product", "Product")
+                    b.HasOne("My.Talli.Domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -790,16 +790,16 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.Product", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.Product", b =>
                 {
-                    b.HasOne("My.Talli.Domain.Entities.Entities.ProductType", "ProductType")
+                    b.HasOne("My.Talli.Domain.Entities.ProductType", "ProductType")
                         .WithMany()
                         .HasForeignKey("ProductTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Product_ProductType");
 
-                    b.HasOne("My.Talli.Domain.Entities.Entities.ProductVendor", "ProductVendor")
+                    b.HasOne("My.Talli.Domain.Entities.ProductVendor", "ProductVendor")
                         .WithMany()
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -811,23 +811,23 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("ProductVendor");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.Subscription", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.Subscription", b =>
                 {
-                    b.HasOne("My.Talli.Domain.Entities.Entities.OrderItem", "OrderItem")
+                    b.HasOne("My.Talli.Domain.Entities.OrderItem", "OrderItem")
                         .WithMany()
                         .HasForeignKey("OrderItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Subscription_OrderItem");
 
-                    b.HasOne("My.Talli.Domain.Entities.Entities.Product", "Product")
+                    b.HasOne("My.Talli.Domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_Subscription_Product");
 
-                    b.HasOne("My.Talli.Domain.Entities.Entities.User", "User")
+                    b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -841,11 +841,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.SubscriptionStripe", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.SubscriptionStripe", b =>
                 {
-                    b.HasOne("My.Talli.Domain.Entities.Entities.Subscription", "Subscription")
+                    b.HasOne("My.Talli.Domain.Entities.Subscription", "Subscription")
                         .WithOne()
-                        .HasForeignKey("My.Talli.Domain.Entities.Entities.SubscriptionStripe", "SubscriptionId")
+                        .HasForeignKey("My.Talli.Domain.Entities.SubscriptionStripe", "SubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_SubscriptionStripe_Subscription");
@@ -853,11 +853,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("Subscription");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.UserAuthenticationApple", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.UserAuthenticationApple", b =>
                 {
-                    b.HasOne("My.Talli.Domain.Entities.Entities.User", "User")
+                    b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithOne()
-                        .HasForeignKey("My.Talli.Domain.Entities.Entities.UserAuthenticationApple", "UserId")
+                        .HasForeignKey("My.Talli.Domain.Entities.UserAuthenticationApple", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserAuthApple_User");
@@ -865,11 +865,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.UserAuthenticationGoogle", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.UserAuthenticationGoogle", b =>
                 {
-                    b.HasOne("My.Talli.Domain.Entities.Entities.User", "User")
+                    b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithOne()
-                        .HasForeignKey("My.Talli.Domain.Entities.Entities.UserAuthenticationGoogle", "UserId")
+                        .HasForeignKey("My.Talli.Domain.Entities.UserAuthenticationGoogle", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserAuthGoogle_User");
@@ -877,11 +877,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Entities.UserAuthenticationMicrosoft", b =>
+            modelBuilder.Entity("My.Talli.Domain.Entities.UserAuthenticationMicrosoft", b =>
                 {
-                    b.HasOne("My.Talli.Domain.Entities.Entities.User", "User")
+                    b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithOne()
-                        .HasForeignKey("My.Talli.Domain.Entities.Entities.UserAuthenticationMicrosoft", "UserId")
+                        .HasForeignKey("My.Talli.Domain.Entities.UserAuthenticationMicrosoft", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserAuthMicrosoft_User");

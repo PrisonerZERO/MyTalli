@@ -727,6 +727,15 @@ public class GenericAuditableRepositoryAsync<TEntity> { ... }
 - This applies to the **class/interface name** — async **methods** already follow the standard .NET `Async` suffix convention.
 - Only apply to classes whose primary contract is async. ViewModels, handlers, and services with async lifecycle or framework methods do **not** get the suffix.
 
+### Subfolder Namespace Convention
+
+- Subfolders used purely for **file organization** do not add to the C# namespace.
+- The namespace stops at the **functional grouping level** — the last meaningful segment.
+- Examples:
+  - `Domain.Entities/Entities/User.cs` → `namespace My.Talli.Domain.Entities;` (not `...Entities.Entities`)
+  - `Domain/Components/JsonSerializers/User/UserPreferencesJsonSerializer.cs` → `namespace My.Talli.Domain.Components.JsonSerializers;` (not `...JsonSerializers.User`)
+  - `Domain/Handlers/Authentication/Google/GoogleSignInHandler.cs` → `namespace My.Talli.Domain.Handlers.Authentication;` (not `...Authentication.Google`)
+
 ### Clean Up NUL Files
 
 - Bash on Windows creates an actual file named `nul` when using `2>nul` redirects (instead of discarding output to the Windows NUL device). **Always delete any `nul`/`NUL` files** that get created in the repo after running shell commands.

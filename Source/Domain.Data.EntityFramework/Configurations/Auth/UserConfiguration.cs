@@ -2,7 +2,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Configurations.Auth;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using My.Talli.Domain.Entities.Entities;
+using My.Talli.Domain.Entities;
 
 /// <summary>Configuration</summary>
 public class UserConfiguration : IEntityTypeConfiguration<User>

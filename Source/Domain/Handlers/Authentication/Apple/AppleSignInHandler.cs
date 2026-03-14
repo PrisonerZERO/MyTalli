@@ -4,7 +4,7 @@ using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
 using Domain.Models;
 
-using ENTITIES = Domain.Entities.Entities;
+using ENTITIES = Domain.Entities;
 
 /// <summary>Handler</summary>
 public class AppleSignInHandler
