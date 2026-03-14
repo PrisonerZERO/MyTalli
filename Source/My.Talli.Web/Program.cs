@@ -9,6 +9,8 @@ using My.Talli.Web.Components;
 using My.Talli.Web.Services.Authentication;
 using My.Talli.Web.Services.Billing;
 using My.Talli.Domain.Notifications.Emails;
+using Microsoft.EntityFrameworkCore;
+using My.Talli.Domain.Data.EntityFramework;
 using My.Talli.Web.Services.Email;
 using AppleAuthHandler = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
 
@@ -17,6 +19,11 @@ var builder = WebApplication.CreateBuilder(args);
 // -----
 // LAMAR
 builder.Host.UseLamar();
+
+// --------
+// DATABASE
+builder.Services.AddDbContext<TalliDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
