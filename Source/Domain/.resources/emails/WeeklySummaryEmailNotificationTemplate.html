@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Week in Review — MyTalli</title>
+</head>
+<body style="background-color: #f8f7fc; font-family: 'DM Sans', Arial, Helvetica, sans-serif; margin: 0; padding: 0;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f8f7fc; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%;">
+
+                    <!-- LANDING HERO HEADER -->
+                    <tr>
+                        <td style="padding: 0;">
+                            <div style="border-radius: 16px 16px 0 0; overflow: hidden; position: relative;">
+                                <svg viewBox="0 0 600 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="display: block; width: 100%;">
+                                    <defs>
+                                        <linearGradient id="blobGrad" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%" stop-color="#6c5ce7"/>
+                                            <stop offset="50%" stop-color="#8b5cf6"/>
+                                            <stop offset="100%" stop-color="#6c5ce7"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <rect width="600" height="320" fill="#ffffff"/>
+                                    <path fill="url(#blobGrad)" d="M 270,0 L 600,0 L 600,320 L 270,320 C 240,288 192,240 168,160 C 150,80 216,32 270,0 Z"/>
+                                    <circle cx="480" cy="40" r="100" fill="rgba(255,255,255,0.07)"/>
+                                    <circle cx="320" cy="160" r="80" fill="rgba(255,255,255,0.07)"/>
+                                    <circle cx="420" cy="260" r="90" fill="rgba(255,255,255,0.07)"/>
+                                    <circle cx="350" cy="70" r="50" fill="rgba(255,255,255,0.05)"/>
+                                </svg>
+                                <div style="left: 0; position: absolute; right: 0; top: 0; z-index: 2;">
+                                    <div style="padding: 28px 32px 0;">
+                                        <span style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">My</span><span style="color: #6c5ce7; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Talli</span>
+                                    </div>
+                                    <div style="display: flex; min-height: 240px; padding: 24px 32px 0;">
+                                        <div style="flex: 1; padding-right: 16px; padding-top: 16px;">
+                                            <div style="font-size: 40px; line-height: 1; margin-bottom: 12px;">&#128202;</div>
+                                            <h1 style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2; margin: 0 0 8px;">Your Week in Review</h1>
+                                            <p style="color: #555; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.5; margin: 0;">Here's how you did this week, [[User.FirstName]]. [[Summary.WeekRange]].</p>
+                                        </div>
+                                        <div style="flex: 1;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- BODY CARD -->
+                    <tr>
+                        <td>
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: #ffffff; border-radius: 0 0 16px 16px;">
+                                <tr>
+                                    <td style="padding: 32px 40px 40px;">
+
+                                        <!-- REVENUE TOTAL -->
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: #f0edff; border-radius: 12px; margin-bottom: 28px;">
+                                            <tr>
+                                                <td style="padding: 24px 28px;">
+                                                    <p style="color: #999; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 500; margin: 0 0 4px; text-transform: uppercase;">Total Revenue</p>
+                                                    <p style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -1px; margin: 0;">[[Summary.TotalRevenue]]</p>
+                                                    <p style="color: #27ae60; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; margin: 8px 0 0;">[[Summary.TrendDirection]] [[Summary.TrendPercent]] vs last week</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- PLATFORM BREAKDOWN -->
+                                        <h2 style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 700; margin: 0 0 16px;">By platform</h2>
+
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 28px;">
+                                            [[Summary.PlatformRows]]
+                                        </table>
+
+                                        <div style="border-top: 1px solid #f0edff; margin: 0 0 28px;"></div>
+
+                                        <!-- GOAL PROGRESS -->
+                                        <h2 style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 700; margin: 0 0 16px;">Monthly goal</h2>
+
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 8px;">
+                                            <tr>
+                                                <td style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600;">[[Summary.GoalCurrent]] of [[Summary.GoalTarget]]</td>
+                                                <td align="right" style="color: #6c5ce7; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600;">[[Summary.GoalPercent]]</td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Progress bar -->
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 8px;">
+                                            <tr>
+                                                <td style="background: #f0edff; border-radius: 6px; height: 12px; padding: 0;">
+                                                    <div style="background: #6c5ce7; border-radius: 6px; height: 12px; max-width: 100%; width: [[Summary.GoalPercent]];"></div>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <p style="color: #999; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 13px; margin: 0 0 28px;">[[Summary.GoalRemaining]] to go</p>
+
+                                        <div style="border-top: 1px solid #f0edff; margin: 0 0 28px;"></div>
+
+                                        <!-- CTA -->
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center">
+                                                    <p style="color: #555; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.5; margin: 0 0 20px;">Dive into the details on your dashboard:</p>
+                                                    <a href="https://www.mytalli.com/dashboard" style="background: #6c5ce7; border-radius: 10px; color: #ffffff; display: inline-block; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 15px; font-weight: 600; padding: 14px 32px; text-decoration: none;">View Full Dashboard</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER -->
+                    <tr>
+                        <td style="padding: 32px 40px; text-align: center;">
+                            <p style="color: #999; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.6; margin: 0 0 8px;">You're receiving this because you have a Pro subscription on MyTalli.</p>
+                            <p style="color: #999; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.6; margin: 0;">
+                                <a href="https://www.mytalli.com" style="color: #6c5ce7; text-decoration: underline;">mytalli.com</a>
+                            </p>
+                            <p style="color: #bbb; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 11px; margin: 16px 0 0;">&copy; 2026 MyTalli. All rights reserved.</p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

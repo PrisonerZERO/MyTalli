@@ -8,6 +8,7 @@ using AspNet.Security.OAuth.Apple;
 using My.Talli.Web.Components;
 using My.Talli.Web.Services.Authentication;
 using My.Talli.Web.Services.Billing;
+using My.Talli.Web.Services.Email;
 using AppleAuthHandler = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -87,6 +88,12 @@ builder.Services.AddScoped<MicrosoftAuthenticationHandler>();
 // BILLING
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 builder.Services.AddScoped<StripeBillingService>();
+
+// -----
+// EMAIL
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
+builder.Services.AddExceptionHandler<ExceptionEmailHandler>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();

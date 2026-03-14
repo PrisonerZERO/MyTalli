@@ -8,12 +8,104 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 
 ## Tech Stack
 
-- **.NET 9.0** — target framework
+- **.NET 10.0** — target framework
 - **Blazor Server** (Interactive Server render mode) — `blazor.web.js`
 - **Bootstrap** — bundled in `wwwroot/lib/bootstrap/`
 - **C#** — backend language
 - **Lamar** — IoC container (replaces default Microsoft DI)
+- **MailKit** — email sending (replaces obsolete `System.Net.Mail.SmtpClient`)
 - **Razor Components** — UI layer (`.razor` files)
+- **SQL Server** — database (localhost, Windows Auth)
+
+## Database
+
+- **Engine:** SQL Server (localhost)
+- **Test bed database:** `ShoppingCart` — used for schema prototyping during early development. Will be replaced with a production database later.
+- **Connection:** Windows Authentication (Trusted Connection)
+
+### Design Principles
+
+- **No nulls** — provider-specific data lives in dedicated tables, not nullable columns on base tables
+- **Provider separation** — auth providers (Google, Apple, Microsoft) and billing providers (Stripe, etc.) each get their own table with a 1-to-1 relationship to the base table. Adding a new provider = new table, no schema changes to existing tables.
+- **Schema separation** — tables are organized into SQL schemas by functional domain (`auth`, `commerce`). `dbo` is reserved/empty.
+- **Orders as the backbone** — subscriptions, modules, and any future products all flow through the same Order → OrderItem pipeline. A subscription is just a product.
+- **No separate waitlist table** — the `auth.User` table doubles as the waitlist during Waitlist Mode. A signed-up user *is* a waitlist user until Dashboard Mode is enabled.
+- **No milestones table** — milestones are hardcoded in the Waitlist page UI, not stored in the database.
+
+### Schemas
+
+| Schema | Purpose | Tables |
+|--------|---------|--------|
+| `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft |
+| `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
+| `dbo` | Reserved (empty) | — |
+
+### Schema: `auth`
+
+**`auth.User`** — core MyTalli identity (one row per person)
+- `Id` (PK), `DisplayName`, `FirstName`, `LastName`, `CreatedAt`, `LastLoginAt`, `InitialProvider` (historical — which provider they first signed in with, never changes), `PreferredProvider` (which provider the user prefers, starts equal to InitialProvider)
+- Email is **not** stored here — it lives on the provider auth tables. The user's email is resolved via their PreferredProvider.
+
+**`auth.UserAuthenticationGoogle`** — 1-to-1 with User
+- `Id` (PK), `UserId` (FK → User, unique), `GoogleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `AvatarUrl`, `EmailVerified`, `Locale`
+
+**`auth.UserAuthenticationApple`** — 1-to-1 with User
+- `Id` (PK), `UserId` (FK → User, unique), `AppleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `IsPrivateRelay`
+
+**`auth.UserAuthenticationMicrosoft`** — 1-to-1 with User
+- `Id` (PK), `UserId` (FK → User, unique), `MicrosoftId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`
+
+### Schema: `commerce`
+
+**`commerce.ProductVendor`** — who sells the product (e.g., "MyTalli", "Some Other Online Site")
+- `Id` (PK), `VendorName`
+
+**`commerce.ProductType`** — category of product (e.g., "Software Subscription", "Software Module")
+- `Id` (PK), `ProductTypeName`
+
+**`commerce.Product`** — a specific thing for sale (e.g., "12-Month Pro Subscription" at $12)
+- `Id` (PK), `VendorId` (FK → ProductVendor), `ProductTypeId` (FK → ProductType), `ProductName`, `VendorPrice`
+
+**`commerce.Order`** — a user's specific purchase event
+- `Id` (PK), `UserId` (FK → auth.User), `OrderDateTime`, `TaxCharged`
+
+**`commerce.OrderItem`** — line items within an order (junction table: Order ↔ Product)
+- `Id` (PK), `OrderId` (FK → Order), `ProductId` (FK → Product), `ProductPriceCharged`, `ProductQuantity`
+
+**`commerce.Subscription`** — ongoing state of a user's subscription (instanceOf — "what we currently have")
+- `Id` (PK), `UserId` (FK → auth.User), `ProductId` (FK → Product), `OrderItemId` (FK → OrderItem), `Status`, `StartDate`, `EndDate`, `RenewalDate`, `CancelledDate`
+- `ProductId` answers "which product does this subscription track?"
+- `OrderItemId` answers "which order supports this subscription?"
+
+**`commerce.SubscriptionStripe`** — Stripe-specific subscription data (1-to-1 with Subscription)
+- `Id` (PK), `SubscriptionId` (FK → Subscription, unique), `StripeCustomerId`, `StripeSubscriptionId`, `StripePriceId`
+
+**`commerce.Billing`** — a payment event tied to an order
+- `Id` (PK), `UserId` (FK → auth.User), `OrderId` (FK → Order), `Amount`, `Currency`, `Status`
+- `OrderId` answers "which billing satisfied this order?"
+
+**`commerce.BillingStripe`** — Stripe-specific payment data (1-to-1 with Billing)
+- `Id` (PK), `BillingId` (FK → Billing, unique), `StripePaymentIntentId`, `PaymentMethod`, `CardBrand`, `CardLastFour`
+
+### Account Linking (Consolidation)
+
+Users may sign in with different providers over time and accidentally create multiple accounts. The auth table design supports **account consolidation**:
+
+1. User signs in with Google → `auth.User` + `auth.UserAuthenticationGoogle` created
+2. Later signs in with Apple → second `auth.User` + `auth.UserAuthenticationApple` created (empty account)
+3. User realizes their data is on the Google account and triggers consolidation
+4. Consolidation moves the Apple auth row to point at the original User record, deletes the orphaned User record
+5. User can now sign in with either provider and land on the same account
+
+The consolidation process itself is not yet implemented — the schema supports it, the UX flow will be designed later.
+
+### Naming Conventions
+
+- **Primary keys:** `PK_{TableName}` (e.g., `PK_User`, `PK_Order`)
+- **Foreign keys:** `FK_{ChildTable}_{ParentTable}` (e.g., `FK_Order_User`, `FK_Subscription_Product`)
+- **Unique constraints:** `UQ_{TableName}_{ColumnName}` (e.g., `UQ_UserAuthGoogle_UserId`)
+- **Indexes:** `IX_{TableName}_{ColumnName}` (e.g., `IX_Order_UserId`)
+- Every FK column has a non-clustered index for JOIN performance
 
 ## Solution Structure
 
@@ -51,14 +143,39 @@ My.Talli/
     ├── .claude/settings.local.json
     ├── Domain/                      # Domain layer (exceptions, shared types)
     │   ├── Domain.csproj
-    │   └── Exceptions/
-    │       ├── TalliException.cs              # Abstract base (HttpStatusCode property)
-    │       ├── ForbiddenException.cs          # 403
-    │       ├── DatabaseConnectionFailedException.cs  # 403 (inherits Forbidden)
-    │       ├── NotFoundException.cs           # 404
-    │       ├── UnauthorizedException.cs       # 401
-    │       ├── SignInFailedException.cs        # 401 (inherits Unauthorized)
-    │       └── UnexpectedException.cs         # 500
+    │   ├── .resources/
+    │   │   └── emails/              # HTML email templates (EmbeddedResource)
+    │   │       ├── ExceptionOccurredEmailNotificationTemplate.html
+    │   │       ├── SubscriptionConfirmationEmailNotificationTemplate.html
+    │   │       ├── WelcomeEmailNotificationTemplate.html
+    │   │       └── WeeklySummaryEmailNotificationTemplate.html
+    │   ├── Exceptions/
+    │   │   ├── TalliException.cs              # Abstract base (HttpStatusCode property)
+    │   │   ├── ForbiddenException.cs          # 403
+    │   │   ├── DatabaseConnectionFailedException.cs  # 403 (inherits Forbidden)
+    │   │   ├── NotFoundException.cs           # 404
+    │   │   ├── UnauthorizedException.cs       # 401
+    │   │   ├── SignInFailedException.cs        # 401 (inherits Unauthorized)
+    │   │   └── UnexpectedException.cs         # 500
+    │   ├── Extensions/
+    │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
+    │   └── Notifications/
+    │       └── Emails/
+    │           ├── EmailNotification.cs               # Abstract base (FinalizeEmail → SmtpNotification)
+    │           ├── EmailNotificationOf.cs             # Generic abstract with Build() method
+    │           ├── EmailNotificationArgument.cs        # Base argument class
+    │           ├── EmailNotificationArgumentOf.cs      # Generic argument with Payload
+    │           ├── SmtpNotification.cs                # Serializable POCO carrier
+    │           ├── Customer/
+    │           │   ├── SubscriptionConfirmationEmailNotification.cs
+    │           │   ├── SubscriptionConfirmationEmailNotificationPayload.cs
+    │           │   ├── WelcomeEmailNotification.cs
+    │           │   ├── WelcomeEmailNotificationPayload.cs
+    │           │   ├── WeeklySummaryEmailNotification.cs
+    │           │   └── WeeklySummaryEmailNotificationPayload.cs
+    │           └── Exceptions/
+    │               ├── ExceptionOccurredEmailNotification.cs
+    │               └── ExceptionOccurredEmailNotificationPayload.cs
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, service config, auth, endpoints
@@ -99,9 +216,14 @@ My.Talli/
         │   │   ├── AppleAuthenticationHandler.cs
         │   │   ├── GoogleAuthenticationHandler.cs
         │   │   └── MicrosoftAuthenticationHandler.cs
-        │   └── Billing/
-        │       ├── StripeBillingService.cs  # Stripe Checkout & Portal API wrapper
-        │       └── StripeSettings.cs        # Stripe configuration POCO
+        │   ├── Billing/
+        │   │   ├── StripeBillingService.cs  # Stripe Checkout & Portal API wrapper
+        │   │   └── StripeSettings.cs        # Stripe configuration POCO
+        │   └── Email/
+        │       ├── EmailSettings.cs             # SMTP config POCO (IOptions<EmailSettings>)
+        │       ├── ExceptionEmailHandler.cs     # IExceptionHandler — sends email, returns false
+        │       ├── IEmailService.cs             # Email sending interface
+        │       └── SmtpEmailService.cs          # MailKit-based implementation
         ├── ViewModels/
         │   ├── Pages/
         │   │   ├── CancelSubscriptionViewModel.cs
@@ -327,6 +449,61 @@ Full app experience — sign-in takes users to the dashboard, all routes are act
 - **Request ID:** Only shown in Development when an actual exception was caught (not on status-code-only errors)
 - **Falling numbers animation:** Pure CSS `@keyframes` animation — 12 digits from the status code fall through the white space below the swoosh. Decorative only (`aria-hidden="true"`), no JS dependency so it works even when SignalR fails. Digits are generated by `ErrorViewModel.SetFallingDigits()`. Three alternating color/opacity tiers cycle via `nth-child(3n+...)`: **Bold** (`#6c5ce7`, peak 0.28 opacity), **Mid** (`#8b5cf6`, peak 0.18), **Soft** (`#a78bfa`, peak 0.10) — so some digits stand out more than others.
 
+## Email Notifications
+
+### Architecture
+
+Email notifications follow a **Template + Builder** pattern modeled after the Measurement Forms Liquids project:
+
+- **HTML templates** — stored as `EmbeddedResource` files in `Domain/.resources/emails/`, compiled into the assembly, loaded at runtime via `Assembly.GetManifestResourceContent()`
+- **Notification classes** — in `Domain/Notifications/Emails/`, abstract base `EmailNotification` → generic `EmailNotificationOf<T>` → concrete implementations (e.g., `ExceptionOccurredEmailNotification`)
+- **Placeholder replacement** — templates use `[[Placeholder.Name]]` tokens replaced via `string.Replace()` in the `Build()` method. All user-supplied data is HTML-encoded via `WebUtility.HtmlEncode()` before replacement.
+- **SmtpNotification** — serializable POCO carrier returned by `FinalizeEmail()`, passed to `IEmailService.SendAsync()`
+- **MailKit** — `SmtpEmailService` uses MailKit for SMTP delivery (Microsoft's recommended replacement for the obsolete `System.Net.Mail.SmtpClient`)
+
+### Exception Email Pipeline
+
+Unhandled exceptions trigger email notifications via .NET's `IExceptionHandler` interface:
+
+1. Exception occurs → `UseExceptionHandler("/Error")` middleware runs registered `IExceptionHandler` services
+2. `ExceptionEmailHandler.TryHandleAsync()` builds the notification and sends the email
+3. Handler **always returns `false`** — the middleware continues re-executing to `/Error`, preserving the existing Error page behavior
+4. Email failures are caught and logged — they never mask the original exception or break the error page
+
+### Email Configuration
+
+SMTP settings are bound from `appsettings.json` → `Email` section via `IOptions<EmailSettings>`:
+
+- `Host`, `Port`, `Username`, `Password`, `UseSsl` — SMTP connection (sensitive values via `dotnet user-secrets`)
+- `FromAddress` — default `noreply@mytalli.com`
+- `FromDisplayName` — default `MyTalli`
+- `ExceptionRecipients` — list of admin email addresses; if empty, no exception emails are sent
+
+### Email Branding
+
+There are two tiers of email branding:
+
+| Tier | Audience | Branding Level | Example |
+|------|----------|----------------|---------|
+| **Internal** | Developers, admins | Simple — MyTalli text logo, brand colors, clean layout | Exception notifications |
+| **Customer** | End users | Full — polished design, logo image, professional copywriting, mobile-responsive, tested across email clients | Welcome emails, subscription confirmations, weekly summaries |
+
+- **Internal emails** use the current template style: purple header (`#6c5ce7`) with "MyTalli" text (no image dependency), functional layout, monospace stack traces. Acceptable as-is.
+- **Customer-facing emails** require a higher design bar — these have not been designed yet. When created, they should go through a full design pass with proper email client testing (Outlook, Gmail, Apple Mail, mobile).
+
+### Adding a New Email Notification
+
+1. Create a payload class in `Domain/Notifications/Emails/` with the data properties
+2. Create an HTML template in `Domain/.resources/emails/` with `[[Placeholder]]` tokens — use table-based layout with inline styles for email client compatibility
+3. Create a concrete notification class extending `EmailNotificationOf<TPayload>` — implement `Build()` to load the template, replace tokens, and set Subject
+4. The `EmbeddedResource` glob in `Domain.csproj` (`**/*.html`) picks up new templates automatically
+5. Create a handler/trigger in the Web project that builds and sends the notification via `IEmailService`
+
+### Embedded Resource Naming
+
+Templates embedded from `Domain/.resources/emails/` get resource names like:
+`My.Talli.Domain..resources.emails.{FileName}.html` (dots replace path separators, the leading dot in `.resources` creates a double dot). Use `assembly.GetManifestResourceNames()` to debug if a template fails to load.
+
 ## Platform API Notes
 
 Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data.
@@ -407,6 +584,29 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 ### Clean Up NUL Files
 
 - Bash on Windows creates an actual file named `nul` when using `2>nul` redirects (instead of discarding output to the Windows NUL device). **Always delete any `nul`/`NUL` files** that get created in the repo after running shell commands.
+
+### Namespace-First Ordering
+
+- In C# files, the **file-scoped `namespace` declaration comes first**, followed by `using` statements below it.
+- Files with no `using` statements just start with the `namespace`.
+
+```csharp
+/* Correct */
+namespace My.Talli.Web.Services.Email;
+
+using Microsoft.Extensions.Options;
+using My.Talli.Domain.Notifications.Emails;
+
+public class SmtpEmailService { ... }
+
+/* Wrong — do not put usings above the namespace */
+using Microsoft.Extensions.Options;
+using My.Talli.Domain.Notifications.Emails;
+
+namespace My.Talli.Web.Services.Email;
+
+public class SmtpEmailService { ... }
+```
 
 ### No Inline Code Blocks
 
