@@ -122,7 +122,12 @@ My.Talli/
 │   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
 │   ├── og-image.png                # Social share image
 │   ├── robots.txt                  # Allows all crawlers, references sitemap
-│   └── sitemap.xml                 # Site map for search engines
+│   ├── sitemap.xml                 # Site map for search engines
+│   └── emails/                     # Hosted email assets (PNG images for email templates)
+│       ├── email-hero-bg.svg       # Landing Hero background source SVG (600×320)
+│       ├── email-hero-bg.png       # Landing Hero background PNG (rendered from SVG)
+│       ├── email-icon-graph.svg    # Bar graph icon source SVG (40×40)
+│       └── email-icon-graph.png    # Bar graph icon PNG (rendered at 80×80 for retina)
 ├── favicon-concepts/               # Favicon & OG image design assets
 │   ├── favicon-a-lettermark.svg    # Concept A — bold T lettermark
 │   ├── favicon-b-tally.svg         # Concept B — tally marks
@@ -136,6 +141,9 @@ My.Talli/
 │   ├── MyTalli_DarkModePalette.html # Brand color reference sheet (dark mode)
 │   ├── MyTalli_Dashboard.html      # Static dashboard mockup (post-login)
 │   ├── MyTalli_LandingPage.html    # Static landing page mockup
+│   ├── MyTalli_Email_Welcome.html  # Welcome email wireframe (PNG-based hero)
+│   ├── MyTalli_Email_SubscriptionConfirmation.html # Subscription confirmation email wireframe
+│   ├── MyTalli_Email_WeeklySummary.html # Weekly summary email wireframe
 │   ├── MyTalli_SuggestionBoxConcepts.html # Suggestion box design concepts (A/B/C)
 │   └── MyTalli_WaitlistConcepts.html # Waitlist page design concepts (A/B/C)
 └── Source/
@@ -363,7 +371,7 @@ dotnet run --project Source/My.Talli.Web
 - **Auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
 - **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
 - **Google Search Console:** Property `https://www.mytalli.com/` verified via GA4 (2026-03-07). Sitemap submitted. Dashboard at [search.google.com/search-console](https://search.google.com/search-console)
-- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, and `sitemap.xml`
+- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`, and `emails/` (hosted PNG assets for email templates)
 - **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys
 - **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
 - **Migration note:** The `deploy/` and `favicon-concepts/` folders are for the current static HTML landing page era. When the Blazor app is deployed, static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) will move into `wwwroot/` and the `deploy/` folder will no longer be needed.
@@ -489,7 +497,7 @@ There are two tiers of email branding:
 | **Customer** | End users | Full — polished design, logo image, professional copywriting, mobile-responsive, tested across email clients | Welcome emails, subscription confirmations, weekly summaries |
 
 - **Internal emails** use the current template style: purple header (`#6c5ce7`) with "MyTalli" text (no image dependency), functional layout, monospace stack traces. Acceptable as-is.
-- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Custom inline SVG icons (not emoji — emoji render inconsistently across platforms). Three customer emails are built: Welcome, Subscription Confirmation, Weekly Summary.
+- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Hero uses the **bulletproof background image pattern** (`<td background>` + CSS `background-image` + VML conditional comments for Outlook) with hosted PNGs at `https://www.mytalli.com/emails/`. Body icons use HTML entity emojis (render natively, not blocked). Three customer emails are built: Welcome, Subscription Confirmation, Weekly Summary.
 
 ### Adding a New Email Notification
 
