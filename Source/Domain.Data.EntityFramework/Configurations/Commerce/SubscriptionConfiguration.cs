@@ -33,12 +33,14 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
         builder.HasOne(e => e.Product)
             .WithMany()
             .HasForeignKey(e => e.ProductId)
-            .HasConstraintName("FK_Subscription_Product");
+            .HasConstraintName("FK_Subscription_Product")
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(e => e.User)
             .WithMany()
             .HasForeignKey(e => e.UserId)
-            .HasConstraintName("FK_Subscription_User");
+            .HasConstraintName("FK_Subscription_User")
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     #endregion

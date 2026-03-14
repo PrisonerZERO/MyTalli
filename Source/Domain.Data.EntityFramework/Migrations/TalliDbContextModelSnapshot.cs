@@ -733,7 +733,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.HasOne("My.Talli.Domain.Entities.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_Billing_User");
 
@@ -820,14 +820,14 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.HasOne("My.Talli.Domain.Entities.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_Subscription_Product");
 
                     b.HasOne("My.Talli.Domain.Entities.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_Subscription_User");
 

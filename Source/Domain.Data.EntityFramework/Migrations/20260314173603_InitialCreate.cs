@@ -274,7 +274,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         principalSchema: "auth",
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -380,14 +380,14 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         principalSchema: "commerce",
                         principalTable: "Product",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Subscription_User",
                         column: x => x.UserId,
                         principalSchema: "auth",
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(

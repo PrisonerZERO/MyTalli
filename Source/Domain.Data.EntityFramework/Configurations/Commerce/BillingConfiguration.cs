@@ -30,7 +30,8 @@ public class BillingConfiguration : IEntityTypeConfiguration<Billing>
         builder.HasOne(e => e.User)
             .WithMany()
             .HasForeignKey(e => e.UserId)
-            .HasConstraintName("FK_Billing_User");
+            .HasConstraintName("FK_Billing_User")
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     #endregion
