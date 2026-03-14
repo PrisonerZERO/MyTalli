@@ -1,4 +1,4 @@
-namespace My.Talli.Domain.Components.JsonSerializers.UserPreferences;
+namespace My.Talli.Domain.Components.JsonSerializers;
 
 using System.Text.Json;
 using My.Talli.Domain.Framework;

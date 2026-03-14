@@ -57,7 +57,20 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 **`auth.User`** — core MyTalli identity (one row per person)
 - `Id` (PK), `DisplayName`, `FirstName`, `LastName`, `CreatedAt`, `LastLoginAt`, `InitialProvider` (historical — which provider they first signed in with, never changes), `PreferredProvider` (which provider the user prefers, starts equal to InitialProvider), `UserPreferences` (NVARCHAR(MAX), JSON — app settings/toggles, defaults to `'{}'`)
 - Email is **not** stored here — it lives on the provider auth tables. The user's email is resolved via their PreferredProvider.
-- **UserPreferences** stores user-configurable app settings as JSON. This avoids contorting the User table with individual columns as settings grow over time.
+- **UserPreferences** stores user-configurable app settings as JSON. This avoids contorting the User table with individual columns as settings grow over time. Serialized/deserialized by `UserPreferencesJsonSerializer` in `Domain/Components/JsonSerializers/User/`. Current structure:
+  ```json
+  {
+    "emailPreferences": {
+      "unsubscribeAll": false,
+      "subscriptionConfirmationEmail": true,
+      "weeklySummaryEmail": true
+    }
+  }
+  ```
+  - Models: `UserPreferences` (root) → `EmailPreferences` (nested), both in `Domain/Models/`
+  - `unsubscribeAll` is a master kill switch — if `true`, no emails are sent regardless of individual settings
+  - Individual toggles default to `true` (opt-out model). Adding a new email type = new `bool` property with `true` default.
+  - Welcome email is excluded — it's a one-time transactional email, not a recurring subscription.
 
 **`auth.UserAuthenticationGoogle`** — 1-to-1 with User
 - `Id` (PK), `UserId` (FK → User, unique), `GoogleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `AvatarUrl`, `EmailVerified`, `Locale`
@@ -182,8 +195,14 @@ My.Talli/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
     │   ├── Framework/
     │   │   └── Assert.cs                      # Static validation utility (precondition checks)
+    │   ├── Components/
+    │   │   └── JsonSerializers/
+    │   │       └── User/
+    │   │           └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
     │   ├── Models/
     │   │   ├── ActionResponseOf.cs            # Generic response wrapper (ValidationResult + Payload)
+    │   │   ├── EmailPreferences.cs            # Email opt-in/out preferences model
+    │   │   ├── UserPreferences.cs             # Root user preferences model (wraps EmailPreferences)
     │   │   └── ValidationResult.cs            # Abstract base (IsValid, ValidationSummary, WarningSummary)
     │   └── Notifications/
     │       └── Emails/
@@ -212,6 +231,7 @@ My.Talli/
     ├── Domain.Data.EntityFramework/  # EF Core implementation of data access
     │   ├── Domain.Data.EntityFramework.csproj
     │   ├── TalliDbContext.cs              # DbContext with all DbSets
+    │   ├── Migrations/                    # EF Core code-first migrations
     │   ├── Repositories/
     │   │   ├── GenericRepositoryAsync.cs  # IRepositoryAsync<T> implementation
     │   │   └── GenericAuditableRepositoryAsync.cs # IAuditableRepositoryAsync<T> implementation
