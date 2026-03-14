@@ -132,6 +132,39 @@ The consolidation process itself is not yet implemented — the schema supports 
 - **Unique constraints:** `UQ_{TableName}_{ColumnName}` (e.g., `UQ_UserAuthGoogle_UserId`)
 - **Indexes:** `IX_{TableName}_{ColumnName}` (e.g., `IX_Order_UserId`)
 - Every FK column has a non-clustered index for JOIN performance
+- **Views:** `v{AdjectiveNoun}` (e.g., `vAuthenticatedUser`, not `vUserAuthenticated`) — adjective before noun, matching class naming style
+
+### Migration SQL Scripts
+
+All migrations inherit from **`DbMigrationBase`** (`Migrations/DbMigrationBase.cs`) instead of `Migration` directly. The base class automatically discovers and executes embedded `.sql` files organized in versioned subfolders.
+
+**How it works:**
+1. Each migration declares a `MigrationFolder` (e.g., `"01_0"`)
+2. The base class `Up()` runs: Pre-Deployment Scripts → `UpTables()` → Post-Deployment Scripts → Functions → Views → Stored Procedures → Triggers → Assemblies
+3. Each subfolder is scanned for embedded `.sql` resources; if none exist, it's silently skipped
+4. Scripts within each subfolder execute in alphabetical order (use numeric prefixes to control order)
+
+**Concrete migrations override `UpTables()`/`DownTables()`** (not `Up()`/`Down()`) — the EF-generated table/index code goes there.
+
+**Folder convention:**
+```
+Migrations/
+├── DbMigrationBase.cs
+├── {version}/                      # e.g., 01_0, 02_0
+│   ├── Pre-Deployment Scripts/     # Run before table changes
+│   ├── Post-Deployment Scripts/    # Run after table changes (seed data, etc.)
+│   ├── Functions/                  # Scalar & table-valued functions
+│   ├── Views/                      # SQL views
+│   ├── Stored Procedures/          # Stored procedures
+│   ├── Triggers/                   # Triggers
+│   └── Assemblies/                 # CLR assemblies
+```
+
+**SQL file naming:** `{##}.{schema}.{objectName}.sql` — e.g., `00.auth.vAuthenticatedUser.sql`. The numeric prefix controls execution order within the subfolder.
+
+**`.csproj` setup:** A `Migrations\**\*.sql` glob automatically embeds all SQL files as resources — no per-file entries needed.
+
+**Note:** .NET prepends `_` to resource names for folders starting with a digit (`01_0` → `_01_0`). `DbMigrationBase` handles this automatically.
 
 ## Solution Structure
 
