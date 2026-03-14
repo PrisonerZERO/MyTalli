@@ -185,6 +185,28 @@ My.Talli/
     │           └── Exceptions/
     │               ├── ExceptionOccurredEmailNotification.cs
     │               └── ExceptionOccurredEmailNotificationPayload.cs
+    ├── Domain.Entities/             # Domain entity layer (database models)
+    │   ├── Domain.Entities.csproj
+    │   ├── AuditableIdentifiableEntity.cs  # Base class (Id + audit fields)
+    │   ├── DefaultEntity.cs                # Standard entity base (adds IsActive)
+    │   ├── Entities/
+    │   │   ├── Billing.cs
+    │   │   ├── BillingStripe.cs
+    │   │   ├── Order.cs
+    │   │   ├── OrderItem.cs
+    │   │   ├── Product.cs
+    │   │   ├── ProductType.cs
+    │   │   ├── ProductVendor.cs
+    │   │   ├── Subscription.cs
+    │   │   ├── SubscriptionStripe.cs
+    │   │   ├── User.cs
+    │   │   ├── UserAuthenticationApple.cs
+    │   │   ├── UserAuthenticationGoogle.cs
+    │   │   └── UserAuthenticationMicrosoft.cs
+    │   └── Interfaces/
+    │       ├── IAuditable.cs
+    │       ├── IAuditableIdentifiable.cs
+    │       └── IIdentifiable.cs
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, service config, auth, endpoints
