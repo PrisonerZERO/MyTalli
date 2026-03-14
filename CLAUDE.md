@@ -735,7 +735,7 @@ public class GenericAuditableRepositoryAsync<TEntity> { ... }
 namespace My.Talli.Web.Services.Email;
 
 using Microsoft.Extensions.Options;
-using My.Talli.Domain.Notifications.Emails;
+using Domain.Notifications.Emails;
 
 public class SmtpEmailService { ... }
 
@@ -746,6 +746,39 @@ using My.Talli.Domain.Notifications.Emails;
 namespace My.Talli.Web.Services.Email;
 
 public class SmtpEmailService { ... }
+```
+
+### Relative Using Statements
+
+- Because `using` statements appear **below** the file-scoped `namespace`, C# resolves them relative to that namespace's root.
+- Use **shortened relative paths** for internal project references instead of the fully qualified namespace.
+
+```csharp
+/* Correct — under namespace My.Talli.Domain.Components.JsonSerializers */
+using Domain.Framework;
+
+/* Wrong — unnecessarily verbose */
+using My.Talli.Domain.Framework;
+```
+
+### Uppercase Using Aliases
+
+- When creating `using` aliases in C#, the alias name must be **ALL CAPS**.
+- This makes aliases visually distinct from type names and easier to spot.
+- Alias `using` statements are separated from normal `using` statements by a **blank line**, and grouped together.
+
+```csharp
+/* Correct */
+using System.Text.Json;
+using My.Talli.Domain.Framework;
+
+using MODELS = Domain.Models;
+using ENTITIES = Domain.Entities;
+
+/* Wrong — alias mixed in with normal usings, not capitalized, fully qualified */
+using System.Text.Json;
+using Models = My.Talli.Domain.Models;
+using My.Talli.Domain.Framework;
 ```
 
 ### No Inline Code Blocks
