@@ -13,7 +13,7 @@
 
                     <!-- LANDING HERO HEADER -->
                     <tr>
-                        <td background="https://www.mytalli.com/emails/email-hero-bg.png" bgcolor="#6c5ce7" width="600" height="320" valign="top" style="background-color: #6c5ce7; background-image: url(https://www.mytalli.com/emails/email-hero-bg.png); background-size: 600px 320px; background-position: top center; background-repeat: no-repeat; border-radius: 16px 16px 0 0; height: 320px;">
+                        <td background="email-hero-bg.png" bgcolor="#6c5ce7" width="600" height="320" valign="top" style="background-color: #6c5ce7; background-image: url(email-hero-bg.png); background-size: 600px 320px; background-position: top center; background-repeat: no-repeat; border-radius: 16px 16px 0 0; height: 320px;">
                             <!--[if gte mso 9]>
                             <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:320px;">
                             <v:fill type="frame" src="https://www.mytalli.com/emails/email-hero-bg.png" color="#6c5ce7" />
@@ -27,9 +27,9 @@
                                 </tr>
                                 <tr>
                                     <td style="padding: 40px 32px 0;" width="50%">
-                                        <img src="https://www.mytalli.com/emails/email-icon-graph.png" width="40" height="40" alt="MyTalli" style="display: block; margin-bottom: 12px;" />
+                                        <img src="email-icon-graph.png" width="40" height="40" alt="MyTalli" style="display: block; margin-bottom: 12px;" />
                                         <h1 style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2; margin: 0 0 8px;">Your Week in Review</h1>
-                                        <p style="color: #555; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.5; margin: 0;">Here's how you did this week, [[User.FirstName]]. [[Summary.WeekRange]].</p>
+                                        <p style="color: #555; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.5; margin: 0;">Here's how you did this week, Robert. Mar 7 – Mar 13, 2026.</p>
                                     </td>
                                 </tr>
                             </table>
@@ -52,8 +52,8 @@
                                             <tr>
                                                 <td style="padding: 24px 28px;">
                                                     <p style="color: #999; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 500; margin: 0 0 4px; text-transform: uppercase;">Total Revenue</p>
-                                                    <p style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -1px; margin: 0;">[[Summary.TotalRevenue]]</p>
-                                                    <p style="color: #27ae60; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; margin: 8px 0 0;">[[Summary.TrendDirection]] [[Summary.TrendPercent]] vs last week</p>
+                                                    <p style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -1px; margin: 0;">$1,247.50</p>
+                                                    <p style="color: #27ae60; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; margin: 8px 0 0;">&#9650; 12.4% vs last week</p>
                                                 </td>
                                             </tr>
                                         </table>
@@ -62,7 +62,57 @@
                                         <h2 style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 700; margin: 0 0 16px;">By platform</h2>
 
                                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 28px;">
-                                            [[Summary.PlatformRows]]
+                                            <tr>
+                                                <td style="padding: 12px 0; border-bottom: 1px solid #f0edff;">
+                                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td width="4" style="background: #635bff; border-radius: 2px;"></td>
+                                                            <td style="padding-left: 12px;">
+                                                                <p style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; margin: 0;">Stripe</p>
+                                                                <p style="color: #999; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 12px; margin: 2px 0 0;">18 transactions</p>
+                                                            </td>
+                                                            <td align="right" valign="top">
+                                                                <p style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; margin: 0;">$842.00</p>
+                                                                <p style="color: #27ae60; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 12px; margin: 2px 0 0;">&#9650; 8.2%</p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 12px 0; border-bottom: 1px solid #f0edff;">
+                                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td width="4" style="background: #f56400; border-radius: 2px;"></td>
+                                                            <td style="padding-left: 12px;">
+                                                                <p style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; margin: 0;">Etsy</p>
+                                                                <p style="color: #999; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 12px; margin: 2px 0 0;">7 transactions</p>
+                                                            </td>
+                                                            <td align="right" valign="top">
+                                                                <p style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; margin: 0;">$283.50</p>
+                                                                <p style="color: #27ae60; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 12px; margin: 2px 0 0;">&#9650; 22.1%</p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 12px 0;">
+                                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td width="4" style="background: #ff90e8; border-radius: 2px;"></td>
+                                                            <td style="padding-left: 12px;">
+                                                                <p style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; margin: 0;">Gumroad</p>
+                                                                <p style="color: #999; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 12px; margin: 2px 0 0;">3 transactions</p>
+                                                            </td>
+                                                            <td align="right" valign="top">
+                                                                <p style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; margin: 0;">$122.00</p>
+                                                                <p style="color: #e74c3c; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 12px; margin: 2px 0 0;">&#9660; 5.3%</p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
                                         </table>
 
                                         <div style="border-top: 1px solid #f0edff; margin: 0 0 28px;"></div>
@@ -72,8 +122,8 @@
 
                                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 8px;">
                                             <tr>
-                                                <td style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600;">[[Summary.GoalCurrent]] of [[Summary.GoalTarget]]</td>
-                                                <td align="right" style="color: #6c5ce7; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600;">[[Summary.GoalPercent]]</td>
+                                                <td style="color: #1a1a2e; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600;">$2,847.00 of $5,000.00</td>
+                                                <td align="right" style="color: #6c5ce7; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600;">57%</td>
                                             </tr>
                                         </table>
 
@@ -81,12 +131,12 @@
                                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 8px;">
                                             <tr>
                                                 <td style="background: #f0edff; border-radius: 6px; height: 12px; padding: 0;">
-                                                    <div style="background: #6c5ce7; border-radius: 6px; height: 12px; max-width: 100%; width: [[Summary.GoalPercent]];"></div>
+                                                    <div style="background: #6c5ce7; border-radius: 6px; height: 12px; max-width: 100%; width: 57%;"></div>
                                                 </td>
                                             </tr>
                                         </table>
 
-                                        <p style="color: #999; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 13px; margin: 0 0 28px;">[[Summary.GoalRemaining]] to go</p>
+                                        <p style="color: #999; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 13px; margin: 0 0 28px;">$2,153.00 to go</p>
 
                                         <div style="border-top: 1px solid #f0edff; margin: 0 0 28px;"></div>
 
