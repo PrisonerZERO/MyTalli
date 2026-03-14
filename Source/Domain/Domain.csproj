@@ -20,6 +20,7 @@
   <ItemGroup>
     <Folder Include="CommandsAndQueries\" />
     <Folder Include="Handlers\" />
+    <Folder Include="Components\" />
   </ItemGroup>
 
   <ItemGroup>
