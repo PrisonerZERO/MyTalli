@@ -1,4 +1,4 @@
-namespace My.Talli.Domain.Data.Configurations.Auth;
+namespace My.Talli.Domain.Data.EntityFramework.Configurations.Auth;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

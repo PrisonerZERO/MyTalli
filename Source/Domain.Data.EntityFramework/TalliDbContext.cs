@@ -1,4 +1,4 @@
-namespace My.Talli.Domain.Data;
+namespace My.Talli.Domain.Data.EntityFramework;
 
 using Microsoft.EntityFrameworkCore;
 using My.Talli.Domain.Entities.Entities;

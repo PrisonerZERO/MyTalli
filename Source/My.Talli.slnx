@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Foundation/">
     <Project Path="Domain.Data/Domain.Data.csproj" />
+    <Project Path="Domain.Data.EntityFramework/Domain.Data.EntityFramework.csproj" />
     <Project Path="Domain.Entities/Domain.Entities.csproj" Id="5b0686d8-2c73-4966-b6c6-8d5021f7c886" />
     <Project Path="Domain/Domain.csproj" Id="87f46119-76c1-4fb1-af79-7013b7e127fc" />
   </Folder>

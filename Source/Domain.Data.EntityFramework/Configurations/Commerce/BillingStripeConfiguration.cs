@@ -1,4 +1,4 @@
-namespace My.Talli.Domain.Data.Configurations.Commerce;
+namespace My.Talli.Domain.Data.EntityFramework.Configurations.Commerce;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
