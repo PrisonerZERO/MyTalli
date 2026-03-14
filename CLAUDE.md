@@ -167,7 +167,7 @@ My.Talli/
     │   │   ├── UnauthorizedException.cs       # 401
     │   │   ├── SignInFailedException.cs        # 401 (inherits Unauthorized)
     │   │   └── UnexpectedException.cs         # 500
-    │   ├── Extensions/
+    │   ├── .extensions/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
     │   ├── Framework/
     │   │   └── Assert.cs                      # Static validation utility (precondition checks)
