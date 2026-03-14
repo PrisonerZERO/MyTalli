@@ -574,6 +574,29 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 
 - Bash on Windows creates an actual file named `nul` when using `2>nul` redirects (instead of discarding output to the Windows NUL device). **Always delete any `nul`/`NUL` files** that get created in the repo after running shell commands.
 
+### Namespace-First Ordering
+
+- In C# files, the **file-scoped `namespace` declaration comes first**, followed by `using` statements below it.
+- Files with no `using` statements just start with the `namespace`.
+
+```csharp
+/* Correct */
+namespace My.Talli.Web.Services.Email;
+
+using Microsoft.Extensions.Options;
+using My.Talli.Domain.Notifications.Emails;
+
+public class SmtpEmailService { ... }
+
+/* Wrong — do not put usings above the namespace */
+using Microsoft.Extensions.Options;
+using My.Talli.Domain.Notifications.Emails;
+
+namespace My.Talli.Web.Services.Email;
+
+public class SmtpEmailService { ... }
+```
+
 ### No Inline Code Blocks
 
 - **NEVER** use `@code {}` blocks in `.razor` files (pages, components, or layouts).

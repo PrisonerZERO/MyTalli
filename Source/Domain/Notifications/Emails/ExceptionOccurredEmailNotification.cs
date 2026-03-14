@@ -1,8 +1,8 @@
+namespace My.Talli.Domain.Notifications.Emails;
+
 using System.Net;
 using System.Reflection;
 using My.Talli.Domain.Extensions;
-
-namespace My.Talli.Domain.Notifications.Emails;
 
 public class ExceptionOccurredEmailNotification : EmailNotificationOf<ExceptionOccurredEmailNotificationPayload>
 {

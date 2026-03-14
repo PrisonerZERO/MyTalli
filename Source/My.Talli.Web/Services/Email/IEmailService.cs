@@ -1,6 +1,6 @@
-using My.Talli.Domain.Notifications.Emails;
-
 namespace My.Talli.Web.Services.Email;
+
+using My.Talli.Domain.Notifications.Emails;
 
 public interface IEmailService
 {

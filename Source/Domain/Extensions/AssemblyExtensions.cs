@@ -1,6 +1,6 @@
-using System.Reflection;
-
 namespace My.Talli.Domain.Extensions;
+
+using System.Reflection;
 
 public static class AssemblyExtensions
 {
