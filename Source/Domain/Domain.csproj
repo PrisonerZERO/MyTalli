@@ -28,4 +28,8 @@
     <ProjectReference Include="..\Domain.Entities\Domain.Entities.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.*" />
+  </ItemGroup>
+
 </Project>
