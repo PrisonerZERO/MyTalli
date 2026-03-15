@@ -4,7 +4,7 @@ using ENTITIES = Domain.Entities;
 using MODELS = Domain.Models;
 
 /// <summary>Mapper</summary>
-public class UserAuthenticationGoogleMapper : EntityMapperBase<MODELS.UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle>
+public class UserAuthenticationGoogleMapper : EntityMapper<MODELS.UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle>
 {
 	#region <Methods>
 

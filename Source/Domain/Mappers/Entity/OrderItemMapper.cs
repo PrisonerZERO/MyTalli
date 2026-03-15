@@ -4,7 +4,7 @@ using ENTITIES = Domain.Entities;
 using MODELS = Domain.Models;
 
 /// <summary>Mapper</summary>
-public class OrderItemMapper : EntityMapperBase<MODELS.OrderItem, ENTITIES.OrderItem>
+public class OrderItemMapper : EntityMapper<MODELS.OrderItem, ENTITIES.OrderItem>
 {
 	#region <Methods>
 

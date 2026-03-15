@@ -4,7 +4,7 @@ using ENTITIES = Domain.Entities;
 using MODELS = Domain.Models;
 
 /// <summary>Mapper</summary>
-public class UserRoleMapper : EntityMapperBase<MODELS.UserRole, ENTITIES.UserRole>
+public class UserRoleMapper : EntityMapper<MODELS.UserRole, ENTITIES.UserRole>
 {
 	#region <Methods>
 

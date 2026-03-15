@@ -254,7 +254,7 @@ My.Talli/
     │   │   └── Tokens/
     │   │       └── UnsubscribeTokenService.cs  # HMAC-SHA256 token generate/validate for email unsubscribe links
     │   ├── Mappers/
-    │   │   ├── EntityMapperBase.cs             # Abstract base mapper (collection methods via LINQ)
+    │   │   ├── EntityMapper.cs                 # Abstract mapper (collection methods via LINQ)
     │   │   ├── IEntityMapper.cs               # Generic entity↔model mapper interface
     │   │   └── Entity/                        # Concrete mappers (one per entity/model pair)
     │   │       ├── BillingMapper.cs

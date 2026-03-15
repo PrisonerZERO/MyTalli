@@ -4,7 +4,7 @@ using ENTITIES = Domain.Entities;
 using MODELS = Domain.Models;
 
 /// <summary>Mapper</summary>
-public class SubscriptionStripeMapper : EntityMapperBase<MODELS.SubscriptionStripe, ENTITIES.SubscriptionStripe>
+public class SubscriptionStripeMapper : EntityMapper<MODELS.SubscriptionStripe, ENTITIES.SubscriptionStripe>
 {
 	#region <Methods>
 

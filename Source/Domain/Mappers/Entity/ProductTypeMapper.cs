@@ -4,7 +4,7 @@ using ENTITIES = Domain.Entities;
 using MODELS = Domain.Models;
 
 /// <summary>Mapper</summary>
-public class ProductTypeMapper : EntityMapperBase<MODELS.ProductType, ENTITIES.ProductType>
+public class ProductTypeMapper : EntityMapper<MODELS.ProductType, ENTITIES.ProductType>
 {
 	#region <Methods>
 

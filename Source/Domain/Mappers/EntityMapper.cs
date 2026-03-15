@@ -1,7 +1,7 @@
 namespace My.Talli.Domain.Mappers;
 
 /// <summary>Mapper</summary>
-public abstract class EntityMapperBase<TModel, TEntity> : IEntityMapper<TModel, TEntity>
+public abstract class EntityMapper<TModel, TEntity> : IEntityMapper<TModel, TEntity>
 	where TModel : class
 	where TEntity : class
 {
