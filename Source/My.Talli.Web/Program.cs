@@ -324,6 +324,7 @@ app.MapPost("/api/billing/webhook", async (HttpContext context, IConfiguration c
 // EMAIL PREFERENCES
 app.MapPost("/api/email/preferences", async (
     HttpContext context,
+    ICurrentUserService currentUserService,
     UnsubscribeTokenService tokenService,
     RepositoryAdapterAsync<My.Talli.Domain.Models.User, My.Talli.Domain.Entities.User> userAdapter,
     UserPreferencesJsonSerializer preferencesSerializer) =>
@@ -338,6 +339,8 @@ app.MapPost("/api/email/preferences", async (
     var userId = tokenService.ValidateToken(request.Token);
     if (userId is null)
         return Results.BadRequest("Invalid or expired token.");
+
+    currentUserService.Set(userId.Value, "unsubscribe");
 
     var user = await userAdapter.GetByIdAsync(userId.Value);
     if (user is null)
