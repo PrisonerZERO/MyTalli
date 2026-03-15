@@ -21,6 +21,7 @@
     <Folder Include="CommandsAndQueries\" />
     <Folder Include="Mappers\" />
     <Folder Include="Models\Entity\" />
+    <Folder Include="Models\Presentation\" />
   </ItemGroup>
 
   <ItemGroup>
