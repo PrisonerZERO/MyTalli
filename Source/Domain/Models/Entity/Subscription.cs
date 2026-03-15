@@ -1,7 +1,7 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class SubscriptionModel
+public class Subscription
 {
 	#region <Properties>
 

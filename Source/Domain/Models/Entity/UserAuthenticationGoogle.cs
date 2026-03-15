@@ -1,23 +1,27 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class UserAuthenticationAppleModel
+public class UserAuthenticationGoogle
 {
 	#region <Properties>
 
-	public string AppleId { get; set; } = string.Empty;
+	public string AvatarUrl { get; set; } = string.Empty;
 
 	public string DisplayName { get; set; } = string.Empty;
 
 	public string Email { get; set; } = string.Empty;
 
+	public bool EmailVerified { get; set; }
+
 	public string FirstName { get; set; } = string.Empty;
+
+	public string GoogleId { get; set; } = string.Empty;
 
 	public long Id { get; set; }
 
-	public bool IsPrivateRelay { get; set; }
-
 	public string LastName { get; set; } = string.Empty;
+
+	public string Locale { get; set; } = string.Empty;
 
 	public long UserId { get; set; }
 

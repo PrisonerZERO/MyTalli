@@ -1,9 +1,9 @@
 namespace My.Talli.Domain.Mappers;
 
 using AutoMapper;
-using Domain.Models;
 
 using ENTITIES = Domain.Entities;
+using MODELS = Domain.Models;
 
 /// <summary>Profile</summary>
 public class MappingProfile : Profile
@@ -12,19 +12,19 @@ public class MappingProfile : Profile
 
     public MappingProfile()
     {
-        CreateMap<ENTITIES.Billing, BillingModel>();
-        CreateMap<ENTITIES.BillingStripe, BillingStripeModel>();
-        CreateMap<ENTITIES.Order, OrderModel>();
-        CreateMap<ENTITIES.OrderItem, OrderItemModel>();
-        CreateMap<ENTITIES.Product, ProductModel>();
-        CreateMap<ENTITIES.ProductType, ProductTypeModel>();
-        CreateMap<ENTITIES.ProductVendor, ProductVendorModel>();
-        CreateMap<ENTITIES.Subscription, SubscriptionModel>();
-        CreateMap<ENTITIES.SubscriptionStripe, SubscriptionStripeModel>();
-        CreateMap<ENTITIES.User, UserModel>();
-        CreateMap<ENTITIES.UserAuthenticationApple, UserAuthenticationAppleModel>();
-        CreateMap<ENTITIES.UserAuthenticationGoogle, UserAuthenticationGoogleModel>();
-        CreateMap<ENTITIES.UserAuthenticationMicrosoft, UserAuthenticationMicrosoftModel>();
+        CreateMap<ENTITIES.Billing, MODELS.Billing>();
+        CreateMap<ENTITIES.BillingStripe, MODELS.BillingStripe>();
+        CreateMap<ENTITIES.Order, MODELS.Order>();
+        CreateMap<ENTITIES.OrderItem, MODELS.OrderItem>();
+        CreateMap<ENTITIES.Product, MODELS.Product>();
+        CreateMap<ENTITIES.ProductType, MODELS.ProductType>();
+        CreateMap<ENTITIES.ProductVendor, MODELS.ProductVendor>();
+        CreateMap<ENTITIES.Subscription, MODELS.Subscription>();
+        CreateMap<ENTITIES.SubscriptionStripe, MODELS.SubscriptionStripe>();
+        CreateMap<ENTITIES.User, MODELS.User>();
+        CreateMap<ENTITIES.UserAuthenticationApple, MODELS.UserAuthenticationApple>();
+        CreateMap<ENTITIES.UserAuthenticationGoogle, MODELS.UserAuthenticationGoogle>();
+        CreateMap<ENTITIES.UserAuthenticationMicrosoft, MODELS.UserAuthenticationMicrosoft>();
     }
 
     #endregion
