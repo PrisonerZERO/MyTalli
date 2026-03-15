@@ -71,7 +71,7 @@ builder.Services.AddRazorComponents()
 
 // --------------
 // AUTHENTICATION
-builder.Services.AddAuthentication(options =>
+var authBuilder = builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
@@ -106,11 +106,16 @@ builder.Services.AddAuthentication(options =>
             var handler = context.HttpContext.RequestServices.GetRequiredService<MicrosoftAuthenticationHandler>();
             await handler.HandleTicketAsync(context);
         };
-    })
-    .AddApple(options =>
+    });
+
+// Apple Sign-In — only register when credentials are configured
+var appleClientId = builder.Configuration["Authentication:Apple:ClientId"];
+if (!string.IsNullOrEmpty(appleClientId))
+{
+    authBuilder.AddApple(options =>
     {
         // Configuration Uses: dotnet user-secrets
-        options.ClientId = builder.Configuration["Authentication:Apple:ClientId"]!;
+        options.ClientId = appleClientId;
         options.TeamId = builder.Configuration["Authentication:Apple:TeamId"]!;
         options.KeyId = builder.Configuration["Authentication:Apple:KeyId"]!;
         options.GenerateClientSecret = true;
@@ -127,6 +132,7 @@ builder.Services.AddAuthentication(options =>
             await handler.HandleTicketAsync(context);
         };
     });
+}
 
 builder.Services.AddScoped<APPLEAUTHHANDLER>();
 builder.Services.AddScoped<GoogleAuthenticationHandler>();
