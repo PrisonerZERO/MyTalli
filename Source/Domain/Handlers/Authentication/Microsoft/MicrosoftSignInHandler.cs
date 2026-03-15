@@ -2,10 +2,10 @@ namespace My.Talli.Domain.Handlers.Authentication;
 
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
+using Domain.Models;
 using Domain.Repositories;
 
 using ENTITIES = Domain.Entities;
-using MODELS = Domain.Models;
 
 /// <summary>Handler</summary>
 public class MicrosoftSignInHandler
@@ -13,8 +13,8 @@ public class MicrosoftSignInHandler
 	#region <Variables>
 
 	private readonly ICurrentUserService _currentUserService;
-	private readonly RepositoryAdapterAsync<MODELS.UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> _microsoftAuthAdapter;
-	private readonly RepositoryAdapterAsync<MODELS.User, ENTITIES.User> _userAdapter;
+	private readonly RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> _microsoftAuthAdapter;
+	private readonly RepositoryAdapterAsync<User, ENTITIES.User> _userAdapter;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
 	#endregion
@@ -23,8 +23,8 @@ public class MicrosoftSignInHandler
 
 	public MicrosoftSignInHandler(
 		ICurrentUserService currentUserService,
-		RepositoryAdapterAsync<MODELS.UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> microsoftAuthAdapter,
-		RepositoryAdapterAsync<MODELS.User, ENTITIES.User> userAdapter,
+		RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> microsoftAuthAdapter,
+		RepositoryAdapterAsync<User, ENTITIES.User> userAdapter,
 		UserPreferencesJsonSerializer preferencesSerializer)
 	{
 		_currentUserService = currentUserService;
@@ -37,7 +37,7 @@ public class MicrosoftSignInHandler
 
 	#region <Methods>
 
-	public async Task<MODELS.User> HandleAsync(SignInArgumentOf<MicrosoftSignInPayload> argument)
+	public async Task<User> HandleAsync(SignInArgumentOf<MicrosoftSignInPayload> argument)
 	{
 		var existing = (await _microsoftAuthAdapter.FindAsync(x => x.MicrosoftId == argument.Payload.MicrosoftId)).FirstOrDefault();
 
@@ -51,11 +51,11 @@ public class MicrosoftSignInHandler
 		return await CreateUserAsync(argument);
 	}
 
-	private async Task<MODELS.User> CreateUserAsync(SignInArgumentOf<MicrosoftSignInPayload> argument)
+	private async Task<User> CreateUserAsync(SignInArgumentOf<MicrosoftSignInPayload> argument)
 	{
-		var defaultPreferences = _preferencesSerializer.Serialize(new MODELS.UserPreferences());
+		var defaultPreferences = _preferencesSerializer.Serialize(new UserPreferences());
 
-		var user = await _userAdapter.InsertAsync(new MODELS.User
+		var user = await _userAdapter.InsertAsync(new User
 		{
 			DisplayName = argument.DisplayName,
 			FirstName = argument.FirstName,
@@ -68,7 +68,7 @@ public class MicrosoftSignInHandler
 
 		_currentUserService.Set(user.Id, user.DisplayName);
 
-		await _microsoftAuthAdapter.InsertAsync(new MODELS.UserAuthenticationMicrosoft
+		await _microsoftAuthAdapter.InsertAsync(new UserAuthenticationMicrosoft
 		{
 			DisplayName = argument.DisplayName,
 			Email = argument.Email,

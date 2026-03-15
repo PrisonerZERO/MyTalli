@@ -2,10 +2,10 @@ namespace My.Talli.Domain.Handlers.Authentication;
 
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
+using Domain.Models;
 using Domain.Repositories;
 
 using ENTITIES = Domain.Entities;
-using MODELS = Domain.Models;
 
 /// <summary>Handler</summary>
 public class GoogleSignInHandler
@@ -13,8 +13,8 @@ public class GoogleSignInHandler
 	#region <Variables>
 
 	private readonly ICurrentUserService _currentUserService;
-	private readonly RepositoryAdapterAsync<MODELS.UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> _googleAuthAdapter;
-	private readonly RepositoryAdapterAsync<MODELS.User, ENTITIES.User> _userAdapter;
+	private readonly RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> _googleAuthAdapter;
+	private readonly RepositoryAdapterAsync<User, ENTITIES.User> _userAdapter;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
 	#endregion
@@ -23,8 +23,8 @@ public class GoogleSignInHandler
 
 	public GoogleSignInHandler(
 		ICurrentUserService currentUserService,
-		RepositoryAdapterAsync<MODELS.UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> googleAuthAdapter,
-		RepositoryAdapterAsync<MODELS.User, ENTITIES.User> userAdapter,
+		RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> googleAuthAdapter,
+		RepositoryAdapterAsync<User, ENTITIES.User> userAdapter,
 		UserPreferencesJsonSerializer preferencesSerializer)
 	{
 		_currentUserService = currentUserService;
@@ -37,7 +37,7 @@ public class GoogleSignInHandler
 
 	#region <Methods>
 
-	public async Task<MODELS.User> HandleAsync(SignInArgumentOf<GoogleSignInPayload> argument)
+	public async Task<User> HandleAsync(SignInArgumentOf<GoogleSignInPayload> argument)
 	{
 		var existing = (await _googleAuthAdapter.FindAsync(x => x.GoogleId == argument.Payload.GoogleId)).FirstOrDefault();
 
@@ -51,11 +51,11 @@ public class GoogleSignInHandler
 		return await CreateUserAsync(argument);
 	}
 
-	private async Task<MODELS.User> CreateUserAsync(SignInArgumentOf<GoogleSignInPayload> argument)
+	private async Task<User> CreateUserAsync(SignInArgumentOf<GoogleSignInPayload> argument)
 	{
-		var defaultPreferences = _preferencesSerializer.Serialize(new MODELS.UserPreferences());
+		var defaultPreferences = _preferencesSerializer.Serialize(new UserPreferences());
 
-		var user = await _userAdapter.InsertAsync(new MODELS.User
+		var user = await _userAdapter.InsertAsync(new User
 		{
 			DisplayName = argument.DisplayName,
 			FirstName = argument.FirstName,
@@ -68,7 +68,7 @@ public class GoogleSignInHandler
 
 		_currentUserService.Set(user.Id, user.DisplayName);
 
-		await _googleAuthAdapter.InsertAsync(new MODELS.UserAuthenticationGoogle
+		await _googleAuthAdapter.InsertAsync(new UserAuthenticationGoogle
 		{
 			AvatarUrl = argument.Payload.AvatarUrl,
 			DisplayName = argument.DisplayName,
