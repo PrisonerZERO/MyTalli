@@ -2,8 +2,7 @@ namespace My.Talli.Domain.Components.JsonSerializers;
 
 using System.Text.Json;
 using Domain.Framework;
-
-using MODELS = Domain.Models;
+using Domain.Models;
 
 /// <summary>Component</summary>
 public class UserPreferencesJsonSerializer
@@ -20,14 +19,14 @@ public class UserPreferencesJsonSerializer
 
 	#region <Methods>
 
-	public MODELS.UserPreferences Deserialize(string json)
+	public UserPreferences Deserialize(string json)
 	{
 		Assert.IsNullOrWhitespace(json, nameof(json));
 
-		return JsonSerializer.Deserialize<MODELS.UserPreferences>(json, Options) ?? new MODELS.UserPreferences();
+		return JsonSerializer.Deserialize<UserPreferences>(json, Options) ?? new UserPreferences();
 	}
 
-	public string Serialize(MODELS.UserPreferences preferences)
+	public string Serialize(UserPreferences preferences)
 	{
 		Assert.IsNotNull(preferences, nameof(preferences));
 
