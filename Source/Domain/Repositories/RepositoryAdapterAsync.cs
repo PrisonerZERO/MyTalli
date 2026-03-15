@@ -1,10 +1,10 @@
 namespace My.Talli.Domain.Repositories;
 
-using System.Linq.Expressions;
 using AutoMapper;
 using Domain.Data.Interfaces;
 using Domain.Entities.Interfaces;
 using Domain.Framework;
+using System.Linq.Expressions;
 
 /// <summary>Adapter</summary>
 public class RepositoryAdapterAsync<TModel, TEntity>
