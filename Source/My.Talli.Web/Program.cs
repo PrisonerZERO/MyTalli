@@ -140,7 +140,7 @@ builder.Services.AddScoped<StripeBillingService>();
 // -----
 // EMAIL
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
-builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
+builder.Services.AddSingleton<IEmailService, AcsEmailService>();
 builder.Services.AddExceptionHandler<ExceptionEmailHandler>();
 
 // ----------------
