@@ -11,6 +11,8 @@ public class User : DefaultModel
 
 	public string InitialProvider { get; set; } = string.Empty;
 
+	public bool IsNewUser { get; set; }
+
 	public DateTime LastLoginAt { get; set; }
 
 	public string LastName { get; set; } = string.Empty;

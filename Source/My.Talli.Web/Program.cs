@@ -308,7 +308,16 @@ if (app.Environment.IsDevelopment())
     {
         var testRecipient = "hello@mytalli.com";
 
-        // 1. Welcome Email
+        // 1. Waitlist Welcome Email
+        var waitlistNotification = new WaitlistWelcomeEmailNotification();
+        var waitlistEmail = waitlistNotification.Build(new EmailNotificationArgumentOf<WaitlistWelcomeEmailNotificationPayload>
+        {
+            Payload = new WaitlistWelcomeEmailNotificationPayload { FirstName = "Robert" }
+        });
+        waitlistEmail.To = [testRecipient];
+        await emailService.SendAsync(waitlistEmail);
+
+        // 2. Welcome Email
         var welcomeNotification = new WelcomeEmailNotification();
         var welcomeEmail = welcomeNotification.Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
         {
@@ -317,7 +326,7 @@ if (app.Environment.IsDevelopment())
         welcomeEmail.To = [testRecipient];
         await emailService.SendAsync(welcomeEmail);
 
-        // 2. Subscription Confirmation Email
+        // 3. Subscription Confirmation Email
         var subNotification = new SubscriptionConfirmationEmailNotification();
         var subEmail = subNotification.Build(new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload>
         {
@@ -333,7 +342,7 @@ if (app.Environment.IsDevelopment())
         subEmail.To = [testRecipient];
         await emailService.SendAsync(subEmail);
 
-        // 3. Weekly Summary Email
+        // 4. Weekly Summary Email
         var summaryNotification = new WeeklySummaryEmailNotification();
         var summaryEmail = summaryNotification.Build(new EmailNotificationArgumentOf<WeeklySummaryEmailNotificationPayload>
         {
