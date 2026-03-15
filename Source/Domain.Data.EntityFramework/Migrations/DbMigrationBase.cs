@@ -58,7 +58,7 @@ public abstract class DbMigrationBase : Migration
     {
         var type = GetType();
         var resourceFolder = char.IsDigit(migrationFolder[0]) ? $"_{migrationFolder}" : migrationFolder;
-        var path = $"{type.Namespace}.{resourceFolder}.{subFolder.Replace(" ", "_")}.";
+        var path = $"{type.Namespace}.{resourceFolder}.{subFolder.Replace(" ", "_").Replace("-", "_")}.";
 
         var assembly = Assembly.GetExecutingAssembly();
         var resourceNames = assembly.GetManifestResourceNames()
