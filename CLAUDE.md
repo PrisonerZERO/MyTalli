@@ -25,7 +25,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Database:** `MyTalli`
 - **Local (dev):** `localhost`, Windows Authentication (Trusted Connection) — `ConnectionStrings:DefaultConnection`
 - **Azure (prod):** `mytalli-centralus-sql.database.windows.net,1433`, SQL Authentication — `ConnectionStrings:AzureConnection`
-- **App user:** `MyTalli-User` (SQL login) — `db_datareader`, `db_datawriter`, `EXECUTE`. Created by Pre-Deployment Script. Admin user (`MyTalli-Administrator`) is for schema changes only.
+- **App user:** `MyTalli-User` (SQL login) — `db_datareader`, `db_datawriter`, `EXECUTE`. Created by Pre-Deployment Script (uses `TRY/CATCH` for Azure SQL compatibility since `sys.server_principals` isn't accessible from user databases). The server login must be created manually on `master` before running migrations. Admin user (`MyTalli-Administrator`) is for schema changes only.
 - **Rule:** All development and migrations run against localhost. Never run dev operations against the Azure database.
 - **Migrations:** EF Core code-first, stored in `Domain.Data.EntityFramework/Migrations/`. All migrations inherit from `DbMigrationBase` (not `Migration` directly) — see "Migration SQL Scripts" below.
 - **Migration commands (Package Manager Console):**
