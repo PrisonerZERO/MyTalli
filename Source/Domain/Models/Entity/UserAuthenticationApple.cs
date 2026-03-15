@@ -19,7 +19,5 @@ public class UserAuthenticationApple
 
 	public string LastName { get; set; } = string.Empty;
 
-	public long UserId { get; set; }
-
 	#endregion
 }

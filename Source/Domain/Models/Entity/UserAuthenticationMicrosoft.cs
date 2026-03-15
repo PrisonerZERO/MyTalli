@@ -17,7 +17,5 @@ public class UserAuthenticationMicrosoft
 
 	public string MicrosoftId { get; set; } = string.Empty;
 
-	public long UserId { get; set; }
-
 	#endregion
 }

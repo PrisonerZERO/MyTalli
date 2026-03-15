@@ -65,7 +65,7 @@ AS
 		, users.UpdatedOnDate
 		, users.IsActive
 	FROM [auth].[User] users
-	LEFT JOIN [auth].[UserAuthenticationApple]     appleUser     ON appleUser.UserId     = users.Id
-	LEFT JOIN [auth].[UserAuthenticationGoogle]    googleUser    ON googleUser.UserId    = users.Id
-	LEFT JOIN [auth].[UserAuthenticationMicrosoft] microsoftUser ON microsoftUser.UserId = users.Id
+	LEFT JOIN [auth].[UserAuthenticationApple]     appleUser     ON appleUser.Id     = users.Id
+	LEFT JOIN [auth].[UserAuthenticationGoogle]    googleUser    ON googleUser.Id    = users.Id
+	LEFT JOIN [auth].[UserAuthenticationMicrosoft] microsoftUser ON microsoftUser.Id = users.Id
 GO

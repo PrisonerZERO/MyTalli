@@ -13,7 +13,5 @@ public class SubscriptionStripe
 
 	public string StripeSubscriptionId { get; set; } = string.Empty;
 
-	public long SubscriptionId { get; set; }
-
 	#endregion
 }

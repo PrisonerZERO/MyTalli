@@ -7,8 +7,6 @@ public class BillingStripe : DefaultEntity
 
 	public Billing Billing { get; set; } = null!;
 
-	public long BillingId { get; set; }
-
 	public string CardBrand { get; set; } = string.Empty;
 
 	public string CardLastFour { get; set; } = string.Empty;

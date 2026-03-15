@@ -5,8 +5,6 @@ public class BillingStripe
 {
 	#region <Properties>
 
-	public long BillingId { get; set; }
-
 	public string CardBrand { get; set; } = string.Empty;
 
 	public string CardLastFour { get; set; } = string.Empty;

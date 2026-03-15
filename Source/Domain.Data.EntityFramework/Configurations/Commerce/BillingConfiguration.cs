@@ -1,8 +1,8 @@
 namespace My.Talli.Domain.Data.EntityFramework.Configurations.Commerce;
 
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Domain.Entities;
 
 /// <summary>Configuration</summary>
 public class BillingConfiguration : IEntityTypeConfiguration<Billing>
@@ -15,9 +15,17 @@ public class BillingConfiguration : IEntityTypeConfiguration<Billing>
 
         builder.HasKey(e => e.Id).HasName("PK_Billing");
 
-        builder.Property(e => e.Amount).HasColumnType("money").IsRequired();
-        builder.Property(e => e.Currency).HasMaxLength(3).IsRequired();
-        builder.Property(e => e.Status).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Id).HasColumnOrder(0);
+        builder.Property(e => e.OrderId).HasColumnOrder(1);
+        builder.Property(e => e.UserId).HasColumnOrder(2);
+        builder.Property(e => e.Amount).HasColumnType("money").IsRequired().HasColumnOrder(3);
+        builder.Property(e => e.Currency).HasMaxLength(3).IsRequired().HasColumnOrder(4);
+        builder.Property(e => e.Status).HasMaxLength(20).IsRequired().HasColumnOrder(5);
+        builder.Property(e => e.IsActive).HasColumnOrder(6);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(7);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(8);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(9);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(10);
 
         builder.HasIndex(e => e.OrderId).HasDatabaseName("IX_Billing_OrderId");
         builder.HasIndex(e => e.UserId).HasDatabaseName("IX_Billing_UserId");

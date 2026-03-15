@@ -47,7 +47,7 @@ public class MicrosoftSignInHandler
 
 		if (existing is not null)
 		{
-			var user = (await _userAdapter.GetByIdAsync(existing.UserId))!;
+			var user = (await _userAdapter.GetByIdAsync(existing.Id))!;
 			user.LastLoginAt = DateTime.UtcNow;
 			user = await _userAdapter.UpdateAsync(user);
 			user.Roles = await ResolveRolesAsync(user.Id);
@@ -79,9 +79,9 @@ public class MicrosoftSignInHandler
 			DisplayName = argument.DisplayName,
 			Email = argument.Email,
 			FirstName = argument.FirstName,
+			Id = user.Id,
 			LastName = argument.LastName,
-			MicrosoftId = argument.Payload.MicrosoftId,
-			UserId = user.Id
+			MicrosoftId = argument.Payload.MicrosoftId
 		});
 
 		await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = user.Id });

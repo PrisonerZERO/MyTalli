@@ -1,8 +1,8 @@
 namespace My.Talli.Domain.Data.EntityFramework.Configurations.Commerce;
 
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Domain.Entities;
 
 /// <summary>Configuration</summary>
 public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
@@ -15,8 +15,16 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 
         builder.HasKey(e => e.Id).HasName("PK_OrderItem");
 
-        builder.Property(e => e.ProductPriceCharged).HasColumnType("money").IsRequired();
-        builder.Property(e => e.ProductQuantity).IsRequired();
+        builder.Property(e => e.Id).HasColumnOrder(0);
+        builder.Property(e => e.OrderId).HasColumnOrder(1);
+        builder.Property(e => e.ProductId).HasColumnOrder(2);
+        builder.Property(e => e.ProductPriceCharged).HasColumnType("money").IsRequired().HasColumnOrder(3);
+        builder.Property(e => e.ProductQuantity).IsRequired().HasColumnOrder(4);
+        builder.Property(e => e.IsActive).HasColumnOrder(5);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(6);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(7);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(8);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(9);
 
         builder.HasIndex(e => e.OrderId).HasDatabaseName("IX_OrderItem_OrderId");
         builder.HasIndex(e => e.ProductId).HasDatabaseName("IX_OrderItem_ProductId");

@@ -1,8 +1,8 @@
 namespace My.Talli.Domain.Data.EntityFramework.Configurations.Auth;
 
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Domain.Entities;
 
 /// <summary>Configuration</summary>
 public class UserAuthenticationGoogleConfiguration : IEntityTypeConfiguration<UserAuthenticationGoogle>
@@ -15,20 +15,26 @@ public class UserAuthenticationGoogleConfiguration : IEntityTypeConfiguration<Us
 
         builder.HasKey(e => e.Id).HasName("PK_UserAuthGoogle");
 
-        builder.Property(e => e.AvatarUrl).HasMaxLength(500).IsRequired();
-        builder.Property(e => e.DisplayName).HasMaxLength(100).IsRequired();
-        builder.Property(e => e.Email).HasMaxLength(256).IsRequired();
-        builder.Property(e => e.FirstName).HasMaxLength(50).IsRequired();
-        builder.Property(e => e.GoogleId).HasMaxLength(256).IsRequired();
-        builder.Property(e => e.LastName).HasMaxLength(50).IsRequired();
-        builder.Property(e => e.Locale).HasMaxLength(10).IsRequired();
+        builder.Property(e => e.Id).ValueGeneratedNever().HasColumnOrder(0);
+        builder.Property(e => e.AvatarUrl).HasMaxLength(500).IsRequired().HasColumnOrder(1);
+        builder.Property(e => e.DisplayName).HasMaxLength(100).IsRequired().HasColumnOrder(2);
+        builder.Property(e => e.Email).HasMaxLength(256).IsRequired().HasColumnOrder(3);
+        builder.Property(e => e.EmailVerified).HasColumnOrder(4);
+        builder.Property(e => e.FirstName).HasMaxLength(50).IsRequired().HasColumnOrder(5);
+        builder.Property(e => e.GoogleId).HasMaxLength(256).IsRequired().HasColumnOrder(6);
+        builder.Property(e => e.LastName).HasMaxLength(50).IsRequired().HasColumnOrder(7);
+        builder.Property(e => e.Locale).HasMaxLength(10).IsRequired().HasColumnOrder(8);
+        builder.Property(e => e.IsActive).HasColumnOrder(9);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(10);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(11);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(12);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(13);
 
         builder.HasIndex(e => e.GoogleId).IsUnique().HasDatabaseName("UQ_UserAuthGoogle_GoogleId");
-        builder.HasIndex(e => e.UserId).IsUnique().HasDatabaseName("UQ_UserAuthGoogle_UserId");
 
         builder.HasOne(e => e.User)
             .WithOne()
-            .HasForeignKey<UserAuthenticationGoogle>(e => e.UserId)
+            .HasForeignKey<UserAuthenticationGoogle>(e => e.Id)
             .HasConstraintName("FK_UserAuthGoogle_User");
     }
 

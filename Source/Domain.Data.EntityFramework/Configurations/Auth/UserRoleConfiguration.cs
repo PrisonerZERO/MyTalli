@@ -15,7 +15,14 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
 
         builder.HasKey(e => e.Id).HasName("PK_UserRole");
 
-        builder.Property(e => e.Role).HasMaxLength(50).IsRequired();
+        builder.Property(e => e.Id).HasColumnOrder(0);
+        builder.Property(e => e.UserId).HasColumnOrder(1);
+        builder.Property(e => e.Role).HasMaxLength(50).IsRequired().HasColumnOrder(2);
+        builder.Property(e => e.IsActive).HasColumnOrder(3);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(4);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(5);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(6);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(7);
 
         builder.HasIndex(e => e.UserId).HasDatabaseName("IX_UserRole_UserId");
         builder.HasIndex(e => new { e.UserId, e.Role }).IsUnique().HasDatabaseName("UQ_UserRole_UserId_Role");

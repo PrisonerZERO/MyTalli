@@ -23,7 +23,5 @@ public class UserAuthenticationGoogle : DefaultEntity
 
 	public User User { get; set; } = null!;
 
-	public long UserId { get; set; }
-
 	#endregion
 }

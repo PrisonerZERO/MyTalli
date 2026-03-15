@@ -23,7 +23,5 @@ public class UserAuthenticationGoogle
 
 	public string Locale { get; set; } = string.Empty;
 
-	public long UserId { get; set; }
-
 	#endregion
 }

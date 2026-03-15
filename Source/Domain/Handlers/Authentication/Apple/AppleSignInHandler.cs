@@ -47,7 +47,7 @@ public class AppleSignInHandler
 
 		if (existing is not null)
 		{
-			var user = (await _userAdapter.GetByIdAsync(existing.UserId))!;
+			var user = (await _userAdapter.GetByIdAsync(existing.Id))!;
 			user.LastLoginAt = DateTime.UtcNow;
 			user = await _userAdapter.UpdateAsync(user);
 			user.Roles = await ResolveRolesAsync(user.Id);
@@ -80,9 +80,9 @@ public class AppleSignInHandler
 			DisplayName = argument.DisplayName,
 			Email = argument.Email,
 			FirstName = argument.FirstName,
+			Id = user.Id,
 			IsPrivateRelay = argument.Payload.IsPrivateRelay,
-			LastName = argument.LastName,
-			UserId = user.Id
+			LastName = argument.LastName
 		});
 
 		await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = user.Id });

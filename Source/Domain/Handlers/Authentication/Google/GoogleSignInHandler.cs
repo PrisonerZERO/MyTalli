@@ -47,7 +47,7 @@ public class GoogleSignInHandler
 
 		if (existing is not null)
 		{
-			var user = (await _userAdapter.GetByIdAsync(existing.UserId))!;
+			var user = (await _userAdapter.GetByIdAsync(existing.Id))!;
 			user.LastLoginAt = DateTime.UtcNow;
 			user = await _userAdapter.UpdateAsync(user);
 			user.Roles = await ResolveRolesAsync(user.Id);
@@ -82,9 +82,9 @@ public class GoogleSignInHandler
 			EmailVerified = argument.Payload.EmailVerified,
 			FirstName = argument.FirstName,
 			GoogleId = argument.Payload.GoogleId,
+			Id = user.Id,
 			LastName = argument.LastName,
-			Locale = argument.Payload.Locale,
-			UserId = user.Id
+			Locale = argument.Payload.Locale
 		});
 
 		await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = user.Id });
