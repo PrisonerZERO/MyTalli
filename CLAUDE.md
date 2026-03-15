@@ -12,6 +12,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Blazor Server** (Interactive Server render mode) — `blazor.web.js`
 - **Bootstrap** — bundled in `wwwroot/lib/bootstrap/`
 - **C#** — backend language
+- **ElmahCore** — error logging (SQL Server provider, dashboard at `/elmah`)
 - **Entity Framework Core** — ORM (SQL Server provider)
 - **Lamar** — IoC container (replaces default Microsoft DI)
 - **MailKit** — email sending (replaces obsolete `System.Net.Mail.SmtpClient`)
@@ -50,6 +51,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
+| `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
 ### Schema: `auth`

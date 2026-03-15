@@ -18,6 +18,8 @@ using My.Talli.Domain.Notifications.Emails;
 using Microsoft.EntityFrameworkCore;
 using My.Talli.Web.Services.Email;
 using My.Talli.Web.Services.Identity;
+using ElmahCore.Sql;
+using ElmahCore.Mvc;
 
 using APPLEAUTHHANDLER = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
 
@@ -120,6 +122,15 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 builder.Services.AddExceptionHandler<ExceptionEmailHandler>();
 
+// -----
+// ELMAH
+builder.Services.AddElmah<SqlErrorLog>(options =>
+{
+    options.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+    options.SqlServerDatabaseSchemaName = "components";
+    options.OnPermissionCheck = context => context.User.Identity?.IsAuthenticated == true;
+});
+
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
@@ -130,6 +141,7 @@ var app = builder.Build();
 // HTTP REQUEST PIPELINE
 app.UseExceptionHandler("/Error", createScopeForErrors: true);
 app.UseStatusCodePagesWithReExecute("/Error/{0}");
+app.UseElmah();
 
 if (!app.Environment.IsDevelopment())
 {
