@@ -232,6 +232,7 @@ My.Talli/
     │   │   └── emails/              # HTML email templates (EmbeddedResource)
     │   │       ├── ExceptionOccurredEmailNotificationTemplate.html
     │   │       ├── SubscriptionConfirmationEmailNotificationTemplate.html
+    │   │       ├── WaitlistWelcomeEmailNotificationTemplate.html
     │   │       ├── WelcomeEmailNotificationTemplate.html
     │   │       └── WeeklySummaryEmailNotificationTemplate.html
     │   ├── Exceptions/
@@ -248,9 +249,11 @@ My.Talli/
     │   │   ├── Assert.cs                      # Static validation utility (precondition checks)
     │   │   └── Roles.cs                       # Static role name constants (Admin, User)
     │   ├── Components/
-    │   │   └── JsonSerializers/
-    │   │       └── User/
-    │   │           └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
+    │   │   ├── JsonSerializers/
+    │   │   │   └── User/
+    │   │   │       └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
+    │   │   └── Tokens/
+    │   │       └── UnsubscribeTokenService.cs  # HMAC-SHA256 token generate/validate for email unsubscribe links
     │   ├── Mappers/
     │   │   └── MappingProfile.cs              # AutoMapper profile (entity → model mappings)
     │   ├── Models/
@@ -275,6 +278,21 @@ My.Talli/
     │   │   │   ├── UserAuthenticationMicrosoft.cs
     │   │   │   └── UserRole.cs
     │   │   └── Presentation/                  # Aggregate/detail view models (future)
+    │   ├── Handlers/
+    │   │   └── Authentication/                # Sign-in handlers (one per OAuth provider)
+    │   │       ├── SignInArgument.cs           # Base sign-in argument
+    │   │       ├── SignInArgumentOf.cs         # Generic sign-in argument with provider payload
+    │   │       ├── Apple/
+    │   │       │   ├── AppleSignInHandler.cs
+    │   │       │   └── AppleSignInPayload.cs
+    │   │       ├── Google/
+    │   │       │   ├── GoogleSignInHandler.cs
+    │   │       │   └── GoogleSignInPayload.cs
+    │   │       └── Microsoft/
+    │   │           ├── MicrosoftSignInHandler.cs
+    │   │           └── MicrosoftSignInPayload.cs
+    │   ├── Repositories/
+    │   │   └── RepositoryAdapterAsync.cs      # Model↔Entity adapter (only gateway to data layer)
     │   └── Notifications/
     │       └── Emails/
     │           ├── EmailNotification.cs               # Abstract base (FinalizeEmail → SmtpNotification)
@@ -285,6 +303,8 @@ My.Talli/
     │           ├── Customer/
     │           │   ├── SubscriptionConfirmationEmailNotification.cs
     │           │   ├── SubscriptionConfirmationEmailNotificationPayload.cs
+    │           │   ├── WaitlistWelcomeEmailNotification.cs
+    │           │   ├── WaitlistWelcomeEmailNotificationPayload.cs
     │           │   ├── WelcomeEmailNotification.cs
     │           │   ├── WelcomeEmailNotificationPayload.cs
     │           │   ├── WeeklySummaryEmailNotification.cs
@@ -382,7 +402,7 @@ My.Talli/
         │   │   ├── SuggestionBox.razor.css
         │   │   ├── Upgrade.razor         # Upgrade pricing page (route: /upgrade)
         │   │   ├── Upgrade.razor.css
-        │   │   ├── Unsubscribe.razor      # Email unsubscribe confirmation (route: /unsubscribe)
+        │   │   ├── Unsubscribe.razor      # Email preference management (route: /unsubscribe?token=xxx)
         │   │   ├── Unsubscribe.razor.css
         │   │   ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
         │   │   ├── Waitlist.razor.css
@@ -399,11 +419,13 @@ My.Talli/
         │   ├── Billing/
         │   │   ├── StripeBillingService.cs  # Stripe Checkout & Portal API wrapper
         │   │   └── StripeSettings.cs        # Stripe configuration POCO
-        │   └── Email/
-        │       ├── EmailSettings.cs             # SMTP config POCO (IOptions<EmailSettings>)
-        │       ├── ExceptionEmailHandler.cs     # IExceptionHandler — sends email, returns false
-        │       ├── IEmailService.cs             # Email sending interface
-        │       └── SmtpEmailService.cs          # MailKit-based implementation
+        │   ├── Email/
+        │   │   ├── EmailSettings.cs             # SMTP config POCO (IOptions<EmailSettings>)
+        │   │   ├── ExceptionEmailHandler.cs     # IExceptionHandler — sends email, returns false
+        │   │   ├── IEmailService.cs             # Email sending interface
+        │   │   └── SmtpEmailService.cs          # MailKit-based implementation
+        │   └── Tokens/
+        │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
         ├── ViewModels/
         │   ├── Pages/
         │   │   ├── CancelSubscriptionViewModel.cs
@@ -689,7 +711,7 @@ There are two tiers of email branding:
 | **Customer** | End users | Full — polished design, logo image, professional copywriting, mobile-responsive, tested across email clients | Welcome emails, subscription confirmations, weekly summaries |
 
 - **Internal emails** use the current template style: purple header (`#6c5ce7`) with "MyTalli" text (no image dependency), functional layout, monospace stack traces. Acceptable as-is.
-- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Hero uses the **bulletproof background image pattern** (`<td background>` + CSS `background-image` + VML conditional comments for Outlook) with hosted PNGs at `https://www.mytalli.com/emails/`. Body icons use HTML entity emojis (render natively, not blocked). Three customer emails are built: Welcome, Subscription Confirmation, Weekly Summary.
+- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Hero uses the **bulletproof background image pattern** (`<td background>` + CSS `background-image` + VML conditional comments for Outlook) with hosted PNGs at `https://www.mytalli.com/emails/`. Body icons use HTML entity emojis (render natively, not blocked). Four customer emails are built: Waitlist Welcome, Welcome, Subscription Confirmation, Weekly Summary.
 
 ### Adding a New Email Notification
 
@@ -701,7 +723,20 @@ There are two tiers of email branding:
 
 ### Test Emails (Development Only)
 
-A dev-only endpoint at `GET /api/test/emails` sends all 3 customer emails to `hello@mytalli.com` with sample data. Only registered when `app.Environment.IsDevelopment()`. Use with a local SMTP tool like **smtp4dev** (.NET global tool — `dotnet tool install -g Rnwood.Smtp4dev`, SMTP on port 25, web UI at `http://localhost:5000`).
+A dev-only endpoint at `GET /api/test/emails` sends all 4 customer emails to `hello@mytalli.com` with sample data. Only registered when `app.Environment.IsDevelopment()`. Use with a local SMTP tool like **smtp4dev** (.NET global tool — `dotnet tool install -g Rnwood.Smtp4dev`, SMTP on port 25, web UI at `http://localhost:5000`).
+
+A dev-only endpoint at `GET /api/test/unsubscribe-token/{userId:long}` generates an unsubscribe token for testing the `/unsubscribe` page.
+
+### Unsubscribe Token
+
+All customer emails include a tokenized unsubscribe link (`/unsubscribe?token=xxx`) so users can manage email preferences without signing in (CAN-SPAM compliance).
+
+- **Token format:** `Base64Url(userId + "." + HMAC-SHA256-signature)` — no expiration (unsubscribe links must work indefinitely)
+- **Service:** `UnsubscribeTokenService` (`Domain/Components/Tokens/`) — `GenerateToken(long userId)` / `ValidateToken(string? token) → long?`
+- **Config:** `UnsubscribeToken:SecretKey` in `appsettings.json` (bound via `UnsubscribeTokenSettings`)
+- **Generation:** Auth handlers generate the token during sign-up and pass it to the email payload's `UnsubscribeToken` property
+- **Template placeholder:** `[[UnsubscribeUrl]]` — replaced in each notification's `Build()` method with the full tokenized URL
+- **Unsubscribe page:** `/unsubscribe?token=xxx` — validates token, loads user preferences, renders toggle UI for email opt-in/out. Invalid/missing token shows a fallback with "Sign In" CTA.
 
 ### Embedded Resource Naming
 
