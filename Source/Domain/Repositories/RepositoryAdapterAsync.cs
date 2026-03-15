@@ -1,9 +1,9 @@
 namespace My.Talli.Domain.Repositories;
 
-using AutoMapper;
 using Domain.Data.Interfaces;
 using Domain.Entities.Interfaces;
 using Domain.Framework;
+using Domain.Mappers;
 using System.Linq.Expressions;
 
 /// <summary>Adapter</summary>
@@ -14,13 +14,13 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 	#region <Variables>
 
 	private readonly IAuditableRepositoryAsync<TEntity> _repository;
-	private readonly IMapper _mapper;
+	private readonly IEntityMapper<TModel, TEntity> _mapper;
 
 	#endregion
 
 	#region <Constructors>
 
-	public RepositoryAdapterAsync(IAuditableRepositoryAsync<TEntity> repository, IMapper mapper)
+	public RepositoryAdapterAsync(IAuditableRepositoryAsync<TEntity> repository, IEntityMapper<TModel, TEntity> mapper)
 	{
 		_mapper = mapper;
 		_repository = repository;
@@ -40,26 +40,26 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 	{
 		Assert.IsNotNull(models);
 
-		var entities = _mapper.Map<IEnumerable<TEntity>>(models);
+		var entities = _mapper.ToEntities(models);
 		await _repository.DeleteRangeAsync(entities);
 	}
 
 	public async Task<IEnumerable<TModel>> FindAsync(Expression<Func<TEntity, bool>> predicate)
 	{
 		var entities = await _repository.FindAsync(predicate);
-		return _mapper.Map<IEnumerable<TModel>>(entities);
+		return _mapper.ToModels(entities);
 	}
 
 	public async Task<IEnumerable<TModel>> GetAllAsync()
 	{
 		var entities = await _repository.GetAllAsync();
-		return _mapper.Map<IEnumerable<TModel>>(entities);
+		return _mapper.ToModels(entities);
 	}
 
 	public async Task<TModel?> GetByIdAsync(long id)
 	{
 		var entity = await _repository.GetByIdAsync(id);
-		return entity is null ? null : _mapper.Map<TModel>(entity);
+		return entity is null ? null : _mapper.ToModel(entity);
 	}
 
 	public async Task<TModel> InsertAsync(TModel model)
@@ -67,7 +67,7 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 		var entity = MapAndValidate(model);
 		await _repository.InsertAsync(entity);
 
-		_mapper.Map(entity, model);
+		_mapper.ApplyTo(entity, model);
 		return model;
 	}
 
@@ -75,7 +75,7 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 	{
 		Assert.IsNotNull(models);
 
-		var entities = _mapper.Map<IEnumerable<TEntity>>(models);
+		var entities = _mapper.ToEntities(models);
 		await _repository.InsertRangeAsync(entities);
 	}
 
@@ -84,7 +84,7 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 		var entity = MapAndValidate(model);
 		await _repository.UpdateAsync(entity);
 
-		_mapper.Map(entity, model);
+		_mapper.ApplyTo(entity, model);
 		return model;
 	}
 
@@ -92,14 +92,14 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 	{
 		Assert.IsNotNull(models);
 
-		var entities = _mapper.Map<IEnumerable<TEntity>>(models);
+		var entities = _mapper.ToEntities(models);
 		await _repository.UpdateRangeAsync(entities);
 	}
 
 	private TEntity MapAndValidate(TModel model)
 	{
 		Assert.IsNotNull(model);
-		return _mapper.Map<TEntity>(model);
+		return _mapper.ToEntity(model);
 	}
 
 	#endregion

@@ -12,7 +12,6 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Blazor Server** (Interactive Server render mode) — `blazor.web.js`
 - **Bootstrap** — bundled in `wwwroot/lib/bootstrap/`
 - **C#** — backend language
-- **AutoMapper** — object-object mapping (entity → model projection)
 - **ElmahCore** — error logging (SQL Server provider, dashboard at `/elmah`)
 - **Entity Framework Core** — ORM (SQL Server provider)
 - **Lamar** — IoC container (replaces default Microsoft DI)
@@ -255,7 +254,23 @@ My.Talli/
     │   │   └── Tokens/
     │   │       └── UnsubscribeTokenService.cs  # HMAC-SHA256 token generate/validate for email unsubscribe links
     │   ├── Mappers/
-    │   │   └── MappingProfile.cs              # AutoMapper profile (entity → model mappings)
+    │   │   ├── EntityMapperBase.cs             # Abstract base mapper (collection methods via LINQ)
+    │   │   ├── IEntityMapper.cs               # Generic entity↔model mapper interface
+    │   │   └── Entity/                        # Concrete mappers (one per entity/model pair)
+    │   │       ├── BillingMapper.cs
+    │   │       ├── BillingStripeMapper.cs
+    │   │       ├── OrderItemMapper.cs
+    │   │       ├── OrderMapper.cs
+    │   │       ├── ProductMapper.cs
+    │   │       ├── ProductTypeMapper.cs
+    │   │       ├── ProductVendorMapper.cs
+    │   │       ├── SubscriptionMapper.cs
+    │   │       ├── SubscriptionStripeMapper.cs
+    │   │       ├── UserAuthenticationAppleMapper.cs
+    │   │       ├── UserAuthenticationGoogleMapper.cs
+    │   │       ├── UserAuthenticationMicrosoftMapper.cs
+    │   │       ├── UserMapper.cs
+    │   │       └── UserRoleMapper.cs
     │   ├── Models/
     │   │   ├── ActionResponseOf.cs            # Generic response wrapper (ValidationResult + Payload)
     │   │   ├── EmailPreferences.cs            # Email opt-in/out preferences model
@@ -961,7 +976,7 @@ using My.Talli.Domain.Framework;
 
 ### Entity Models
 
-- **Never expose entities directly** to the presentation layer. Always map to a model class via AutoMapper.
+- **Never expose entities directly** to the presentation layer. Always map to a model class via `IEntityMapper`.
 - **Never expose audit fields** (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`) in models.
 - **Never expose navigation properties** in models — use FK IDs instead.
 - **`DefaultModel`** (`Domain/Models/DefaultModel.cs`) — base class for all entity models. Provides `Id`, `IsDeleted`, and `IsVisible`. Mirrors `DefaultEntity` on the entity side. All entity models inherit from `DefaultModel`.
@@ -969,7 +984,7 @@ using My.Talli.Domain.Framework;
 - **`Models/Presentation/`** — aggregate or detail representations (custom shapes for specific UI needs).
 - **No "Model" suffix** — model classes use the same name as their entity. The `Models` namespace already disambiguates.
 - **Namespace:** All models use `My.Talli.Domain.Models` regardless of subfolder (`Entity/` and `Presentation/` are organizational only).
-- **MappingProfile** (`Domain/Mappers/MappingProfile.cs`) — all `CreateMap<Entity, Model>()` calls live here.
+- **IEntityMapper** (`Domain/Mappers/IEntityMapper.cs`) — generic interface for entity↔model mapping. Concrete mappers live in `Domain/Mappers/Entity/` (one per pair). When adding a new entity/model pair, create a mapper and register it in `Program.cs`.
 - **RepositoryAdapterAsync** (`Domain/Repositories/RepositoryAdapterAsync.cs`) — the only gateway to the data layer. Never use `IAuditableRepositoryAsync<TEntity>` or `GenericAuditableRepositoryAsync<TEntity>` directly in presentation-layer code.
 - **Handlers must not touch audit fields** — no handler, service, or any code in or above the Domain layer should set `CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, or `UpdatedOnDate`. Audit field stamping is solely the job of `AuditResolver`. Handlers work with models (which don't have audit fields) via `RepositoryAdapterAsync`.
 

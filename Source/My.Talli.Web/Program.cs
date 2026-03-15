@@ -15,7 +15,6 @@ using My.Talli.Domain.Data.EntityFramework.Repositories;
 using My.Talli.Domain.Data.EntityFramework.Resolvers;
 using My.Talli.Domain.Data.Interfaces;
 using My.Talli.Domain.Handlers.Authentication;
-using AutoMapper;
 using My.Talli.Domain.Mappers;
 using My.Talli.Domain.Notifications.Emails;
 using My.Talli.Domain.Repositories;
@@ -27,6 +26,8 @@ using ElmahCore.Sql;
 using ElmahCore.Mvc;
 
 using APPLEAUTHHANDLER = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
+using ENTITIES = My.Talli.Domain.Entities;
+using MODELS = My.Talli.Domain.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,16 +42,24 @@ builder.Services.AddDbContext<TalliDbContext>(options =>
 
 // ------------
 // REPOSITORIES
-builder.Services.AddSingleton<IMapper>(sp =>
-{
-    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-    var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), loggerFactory);
-    return config.CreateMapper();
-});
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped(typeof(IAuditResolver<>), typeof(AuditResolver<>));
 builder.Services.AddScoped(typeof(IAuditableRepositoryAsync<>), typeof(GenericAuditableRepositoryAsync<>));
 builder.Services.AddScoped(typeof(RepositoryAdapterAsync<,>));
+builder.Services.AddScoped<IEntityMapper<MODELS.Billing, ENTITIES.Billing>, BillingMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.BillingStripe, ENTITIES.BillingStripe>, BillingStripeMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.Order, ENTITIES.Order>, OrderMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.OrderItem, ENTITIES.OrderItem>, OrderItemMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.Product, ENTITIES.Product>, ProductMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.ProductType, ENTITIES.ProductType>, ProductTypeMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.ProductVendor, ENTITIES.ProductVendor>, ProductVendorMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.Subscription, ENTITIES.Subscription>, SubscriptionMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.SubscriptionStripe, ENTITIES.SubscriptionStripe>, SubscriptionStripeMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.User, ENTITIES.User>, UserMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.UserAuthenticationApple, ENTITIES.UserAuthenticationApple>, UserAuthenticationAppleMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle>, UserAuthenticationGoogleMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft>, UserAuthenticationMicrosoftMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.UserRole, ENTITIES.UserRole>, UserRoleMapper>();
 builder.Services.AddScoped<UserPreferencesJsonSerializer>();
 builder.Services.AddScoped<AppleSignInHandler>();
 builder.Services.AddScoped<GoogleSignInHandler>();
