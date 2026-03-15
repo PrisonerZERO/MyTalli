@@ -66,6 +66,7 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
     public virtual async Task UpdateAsync(TEntity entity)
     {
         AuditResolver.Resolve(entity, updating: true);
+        DetachTrackedInstance(entity);
         _dbSet.Attach(entity);
         _dbContext.Entry(entity).State = EntityState.Modified;
         await _dbContext.SaveChangesAsync();
@@ -76,11 +77,20 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
         foreach (var entity in entities)
         {
             AuditResolver.Resolve(entity, updating: true);
+            DetachTrackedInstance(entity);
             _dbSet.Attach(entity);
             _dbContext.Entry(entity).State = EntityState.Modified;
         }
 
         await _dbContext.SaveChangesAsync();
+    }
+
+    private void DetachTrackedInstance(TEntity entity)
+    {
+        var tracked = _dbSet.Local.FirstOrDefault(e => e.Id == entity.Id);
+
+        if (tracked is not null && !ReferenceEquals(tracked, entity))
+            _dbContext.Entry(tracked).State = EntityState.Detached;
     }
 
     #endregion

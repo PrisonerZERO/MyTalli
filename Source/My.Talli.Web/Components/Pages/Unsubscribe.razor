@@ -1,8 +1,9 @@
 @page "/unsubscribe"
 @layout Layout.LandingLayout
 @inherits My.Talli.Web.ViewModels.Pages.UnsubscribeViewModel
+@rendermode InteractiveServer
 
-<PageTitle>Unsubscribed — MyTalli</PageTitle>
+<PageTitle>Email Preferences — MyTalli</PageTitle>
 
 <a href="#main" class="skip-link">Skip to main content</a>
 
@@ -13,19 +14,99 @@
 
     <main id="main" aria-labelledby="unsub-heading">
         <div class="unsub-shell">
-            <div class="unsub-icon-wrap" aria-hidden="true">
-                <svg class="unsub-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                    <polyline points="22,6 12,13 2,6" />
-                    <line x1="2" x2="9" y1="20" y2="13" />
-                    <line x1="15" x2="22" y1="13" y2="20" />
-                </svg>
-            </div>
+            @if (IsLoading)
+            {
+                <div class="unsub-loading" aria-live="polite">
+                    <p class="unsub-loading-text">Loading preferences...</p>
+                </div>
+            }
+            else if (!IsValid)
+            {
+                <div class="unsub-invalid" aria-live="polite">
+                    <div class="unsub-icon-wrap" aria-hidden="true">
+                        <svg class="unsub-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" x2="12" y1="8" y2="12" />
+                            <line x1="12" x2="12.01" y1="16" y2="16" />
+                        </svg>
+                    </div>
+                    <h1 id="unsub-heading" class="unsub-title">Invalid Link</h1>
+                    <p class="unsub-desc">This unsubscribe link is invalid or has expired. Please use the link from a recent MyTalli email, or sign in to manage your preferences.</p>
+                    <a href="/signin" class="unsub-cta">Sign In</a>
+                </div>
+            }
+            else
+            {
+                <div class="unsub-icon-wrap" aria-hidden="true">
+                    <svg class="unsub-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                </div>
 
-            <h1 id="unsub-heading" class="unsub-title">You've been <span class="unsub-gold">unsubscribed</span></h1>
-            <p class="unsub-desc">You won't receive any more emails from MyTalli. If this was a mistake, you can re-enable notifications from your dashboard settings.</p>
+                <h1 id="unsub-heading" class="unsub-title">Email <span class="unsub-purple">Preferences</span></h1>
+                <p class="unsub-desc">Choose which emails you'd like to receive, @UserFirstName.</p>
 
-            <a href="https://www.mytalli.com" class="unsub-cta">Back to MyTalli</a>
+                <section class="unsub-prefs" aria-label="Email preference toggles">
+                    <div class="unsub-toggle-card">
+                        <div class="unsub-toggle-row">
+                            <div class="unsub-toggle-info">
+                                <span class="unsub-toggle-label">Unsubscribe from all</span>
+                                <span class="unsub-toggle-hint">Stop all emails from MyTalli</span>
+                            </div>
+                            <label class="unsub-switch" aria-label="Unsubscribe from all emails">
+                                <input type="checkbox" @bind="UnsubscribeAll" @bind:after="OnToggleChanged" />
+                                <span class="unsub-slider unsub-slider-danger"></span>
+                            </label>
+                        </div>
+
+                        <hr class="unsub-divider" aria-hidden="true" />
+
+                        <div class="unsub-toggle-row @(UnsubscribeAll ? "unsub-disabled" : "")">
+                            <div class="unsub-toggle-info">
+                                <span class="unsub-toggle-label">Weekly Summary</span>
+                                <span class="unsub-toggle-hint">Revenue digest every week</span>
+                            </div>
+                            <label class="unsub-switch" aria-label="Toggle weekly summary emails">
+                                <input type="checkbox" @bind="WeeklySummaryEmail" @bind:after="OnToggleChanged" disabled="@UnsubscribeAll" />
+                                <span class="unsub-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="unsub-toggle-row @(UnsubscribeAll ? "unsub-disabled" : "")">
+                            <div class="unsub-toggle-info">
+                                <span class="unsub-toggle-label">Subscription Confirmations</span>
+                                <span class="unsub-toggle-hint">Plan changes and billing updates</span>
+                            </div>
+                            <label class="unsub-switch" aria-label="Toggle subscription confirmation emails">
+                                <input type="checkbox" @bind="SubscriptionConfirmationEmail" @bind:after="OnToggleChanged" disabled="@UnsubscribeAll" />
+                                <span class="unsub-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="unsub-save" @onclick="SavePreferencesAsync" disabled="@IsSaving" aria-label="Save email preferences">
+                        @if (IsSaving)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Preferences</span>
+                        }
+                    </button>
+
+                    @if (IsSaved)
+                    {
+                        <div class="unsub-success" role="status" aria-live="polite">
+                            <svg class="unsub-check-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            <span>Preferences saved</span>
+                        </div>
+                    }
+                </section>
+            }
         </div>
     </main>
 </div>

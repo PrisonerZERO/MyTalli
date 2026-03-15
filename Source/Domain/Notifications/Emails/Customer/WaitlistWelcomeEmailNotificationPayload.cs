@@ -7,5 +7,7 @@ public class WaitlistWelcomeEmailNotificationPayload
 
 	public string FirstName { get; set; } = string.Empty;
 
+	public string UnsubscribeToken { get; set; } = string.Empty;
+
 	#endregion
 }

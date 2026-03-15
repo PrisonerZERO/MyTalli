@@ -1,5 +1,6 @@
 namespace My.Talli.Web.Services.Authentication;
 
+using Domain.Components.Tokens;
 using Domain.Handlers.Authentication;
 using Domain.Notifications.Emails;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -13,6 +14,7 @@ public class MicrosoftAuthenticationHandler
 
     private readonly IEmailService _emailService;
     private readonly MicrosoftSignInHandler _signInHandler;
+    private readonly UnsubscribeTokenService _unsubscribeTokenService;
 
     #endregion
 
@@ -20,10 +22,12 @@ public class MicrosoftAuthenticationHandler
 
     public MicrosoftAuthenticationHandler(
         IEmailService emailService,
-        MicrosoftSignInHandler signInHandler)
+        MicrosoftSignInHandler signInHandler,
+        UnsubscribeTokenService unsubscribeTokenService)
     {
         _emailService = emailService;
         _signInHandler = signInHandler;
+        _unsubscribeTokenService = unsubscribeTokenService;
     }
 
     #endregion
@@ -49,7 +53,7 @@ public class MicrosoftAuthenticationHandler
         var user = await _signInHandler.HandleAsync(argument);
 
         if (user.IsNewUser)
-            await SendWaitlistWelcomeEmailAsync(argument.Email, user.FirstName);
+            await SendWaitlistWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
 
         var identity = (ClaimsIdentity)principal.Identity!;
         identity.AddClaim(new Claim("UserId", user.Id.ToString()));
@@ -58,12 +62,16 @@ public class MicrosoftAuthenticationHandler
             identity.AddClaim(new Claim(ClaimTypes.Role, role));
     }
 
-    private async Task SendWaitlistWelcomeEmailAsync(string email, string firstName)
+    private async Task SendWaitlistWelcomeEmailAsync(string email, string firstName, long userId)
     {
         var notification = new WaitlistWelcomeEmailNotification();
         var smtp = notification.Build(new EmailNotificationArgumentOf<WaitlistWelcomeEmailNotificationPayload>
         {
-            Payload = new WaitlistWelcomeEmailNotificationPayload { FirstName = firstName }
+            Payload = new WaitlistWelcomeEmailNotificationPayload
+            {
+                FirstName = firstName,
+                UnsubscribeToken = _unsubscribeTokenService.GenerateToken(userId)
+            }
         });
         smtp.To = [email];
         await _emailService.SendAsync(smtp);

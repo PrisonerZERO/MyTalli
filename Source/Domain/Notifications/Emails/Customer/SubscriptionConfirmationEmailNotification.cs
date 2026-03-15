@@ -22,6 +22,7 @@ public class SubscriptionConfirmationEmailNotification : EmailNotificationOf<Sub
         var template = Assembly.GetExecutingAssembly().GetManifestResourceContent(TemplateResourceName);
 
         Body = template
+            .Replace("[[UnsubscribeUrl]]", $"https://www.mytalli.com/unsubscribe?token={WebUtility.UrlEncode(payload.UnsubscribeToken)}")
             .Replace("[[Card.LastFour]]", WebUtility.HtmlEncode(payload.CardLastFour))
             .Replace("[[Subscription.Amount]]", WebUtility.HtmlEncode(payload.Amount))
             .Replace("[[Subscription.Plan]]", WebUtility.HtmlEncode(payload.Plan))

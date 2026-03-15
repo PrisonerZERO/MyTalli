@@ -22,6 +22,7 @@ public class WelcomeEmailNotification : EmailNotificationOf<WelcomeEmailNotifica
         var template = Assembly.GetExecutingAssembly().GetManifestResourceContent(TemplateResourceName);
 
         Body = template
+            .Replace("[[UnsubscribeUrl]]", $"https://www.mytalli.com/unsubscribe?token={WebUtility.UrlEncode(payload.UnsubscribeToken)}")
             .Replace("[[User.FirstName]]", WebUtility.HtmlEncode(payload.FirstName));
 
         Subject = $"Welcome to MyTalli, {payload.FirstName}!";
