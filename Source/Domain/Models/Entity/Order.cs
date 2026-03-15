@@ -1,11 +1,9 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class Order
+public class Order : DefaultModel
 {
 	#region <Properties>
-
-	public long Id { get; set; }
 
 	public DateTime OrderDateTime { get; set; }
 

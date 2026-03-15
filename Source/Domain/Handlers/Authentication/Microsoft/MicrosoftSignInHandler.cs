@@ -85,6 +85,7 @@ public class MicrosoftSignInHandler
 		});
 
 		await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = user.Id });
+		user.IsNewUser = true;
 		user.Roles = [Roles.User];
 
 		return user;

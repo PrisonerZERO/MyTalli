@@ -58,12 +58,15 @@ AS
 		, users.UserPreferences
 		, users.LastLoginAt
 
+		-- Flags
+		, users.IsDeleted
+		, users.IsVisible
+
 		-- Audit
 		, users.CreateByUserId
 		, users.CreatedOnDateTime
 		, users.UpdatedByUserId
 		, users.UpdatedOnDate
-		, users.IsActive
 	FROM [auth].[User] users
 	LEFT JOIN [auth].[UserAuthenticationApple]     appleUser     ON appleUser.UserId     = users.Id
 	LEFT JOIN [auth].[UserAuthenticationGoogle]    googleUser    ON googleUser.UserId    = users.Id

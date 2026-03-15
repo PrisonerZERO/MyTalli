@@ -21,11 +21,12 @@ public class UserAuthenticationMicrosoftConfiguration : IEntityTypeConfiguration
         builder.Property(e => e.FirstName).HasMaxLength(50).IsRequired().HasColumnOrder(3);
         builder.Property(e => e.LastName).HasMaxLength(50).IsRequired().HasColumnOrder(4);
         builder.Property(e => e.MicrosoftId).HasMaxLength(256).IsRequired().HasColumnOrder(5);
-        builder.Property(e => e.IsActive).HasColumnOrder(6);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(7);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(8);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(9);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(10);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(6);
+        builder.Property(e => e.IsVisible).HasColumnOrder(7);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(8);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(9);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(10);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(11);
 
         builder.HasIndex(e => e.MicrosoftId).IsUnique().HasDatabaseName("UQ_UserAuthMicrosoft_MicrosoftId");
 
@@ -33,6 +34,8 @@ public class UserAuthenticationMicrosoftConfiguration : IEntityTypeConfiguration
             .WithOne()
             .HasForeignKey<UserAuthenticationMicrosoft>(e => e.Id)
             .HasConstraintName("FK_UserAuthMicrosoft_User");
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

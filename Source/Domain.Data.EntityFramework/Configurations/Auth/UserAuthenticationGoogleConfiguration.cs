@@ -24,11 +24,12 @@ public class UserAuthenticationGoogleConfiguration : IEntityTypeConfiguration<Us
         builder.Property(e => e.GoogleId).HasMaxLength(256).IsRequired().HasColumnOrder(6);
         builder.Property(e => e.LastName).HasMaxLength(50).IsRequired().HasColumnOrder(7);
         builder.Property(e => e.Locale).HasMaxLength(10).IsRequired().HasColumnOrder(8);
-        builder.Property(e => e.IsActive).HasColumnOrder(9);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(10);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(11);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(12);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(13);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(9);
+        builder.Property(e => e.IsVisible).HasColumnOrder(10);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(11);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(12);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(13);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(14);
 
         builder.HasIndex(e => e.GoogleId).IsUnique().HasDatabaseName("UQ_UserAuthGoogle_GoogleId");
 
@@ -36,6 +37,8 @@ public class UserAuthenticationGoogleConfiguration : IEntityTypeConfiguration<Us
             .WithOne()
             .HasForeignKey<UserAuthenticationGoogle>(e => e.Id)
             .HasConstraintName("FK_UserAuthGoogle_User");
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

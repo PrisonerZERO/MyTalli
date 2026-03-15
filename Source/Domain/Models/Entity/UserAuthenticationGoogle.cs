@@ -1,7 +1,7 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class UserAuthenticationGoogle
+public class UserAuthenticationGoogle : DefaultModel
 {
 	#region <Properties>
 
@@ -16,8 +16,6 @@ public class UserAuthenticationGoogle
 	public string FirstName { get; set; } = string.Empty;
 
 	public string GoogleId { get; set; } = string.Empty;
-
-	public long Id { get; set; }
 
 	public string LastName { get; set; } = string.Empty;
 

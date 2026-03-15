@@ -23,11 +23,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(e => e.LastName).HasMaxLength(50).IsRequired().HasColumnOrder(5);
         builder.Property(e => e.PreferredProvider).HasMaxLength(20).IsRequired().HasColumnOrder(6);
         builder.Property(e => e.UserPreferences).IsRequired().HasColumnOrder(7);
-        builder.Property(e => e.IsActive).HasColumnOrder(8);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(9);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(10);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(11);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(12);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(8);
+        builder.Property(e => e.IsVisible).HasColumnOrder(9);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(10);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(11);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(12);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(13);
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

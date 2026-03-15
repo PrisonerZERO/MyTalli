@@ -1,7 +1,7 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class User
+public class User : DefaultModel
 {
 	#region <Properties>
 
@@ -9,9 +9,9 @@ public class User
 
 	public string FirstName { get; set; } = string.Empty;
 
-	public long Id { get; set; }
-
 	public string InitialProvider { get; set; } = string.Empty;
+
+	public bool IsNewUser { get; set; }
 
 	public DateTime LastLoginAt { get; set; }
 

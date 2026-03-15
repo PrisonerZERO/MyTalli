@@ -37,11 +37,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.Property<string>("Currency")
                         .IsRequired()
@@ -49,9 +49,13 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasColumnType("nvarchar(3)")
                         .HasColumnOrder(4);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(6);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(7);
 
                     b.Property<long>("OrderId")
                         .HasColumnType("bigint")
@@ -65,11 +69,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
@@ -108,15 +112,19 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(5);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(6);
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
@@ -132,11 +140,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.HasKey("Id")
                         .HasName("PK_BillingStripe");
@@ -155,15 +163,19 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(5);
+                        .HasColumnOrder(6);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(4);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(5);
 
                     b.Property<DateTime>("OrderDateTime")
                         .HasColumnType("datetime2")
@@ -175,11 +187,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
@@ -205,15 +217,19 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(5);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(6);
 
                     b.Property<long>("OrderId")
                         .HasColumnType("bigint")
@@ -233,11 +249,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.HasKey("Id")
                         .HasName("PK_OrderItem");
@@ -262,15 +278,19 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(5);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(6);
 
                     b.Property<string>("ProductName")
                         .IsRequired()
@@ -284,11 +304,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<long>("VendorId")
                         .HasColumnType("bigint")
@@ -321,15 +341,19 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(3);
+                        .HasColumnOrder(4);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(4);
+                        .HasColumnOrder(5);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(2);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
 
                     b.Property<string>("ProductTypeName")
                         .IsRequired()
@@ -339,11 +363,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(5);
+                        .HasColumnOrder(6);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
                     b.HasKey("Id")
                         .HasName("PK_ProductType");
@@ -362,23 +386,27 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(3);
+                        .HasColumnOrder(4);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(4);
+                        .HasColumnOrder(5);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(2);
 
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(5);
+                        .HasColumnOrder(6);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
                     b.Property<string>("VendorName")
                         .IsRequired()
@@ -407,19 +435,23 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(12);
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2")
                         .HasColumnOrder(5);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(9);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(10);
 
                     b.Property<long>("OrderItemId")
                         .HasColumnType("bigint")
@@ -445,11 +477,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(14);
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
@@ -479,15 +511,19 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(5);
+                        .HasColumnOrder(6);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(4);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(5);
 
                     b.Property<string>("StripeCustomerId")
                         .IsRequired()
@@ -509,11 +545,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.HasKey("Id")
                         .HasName("PK_SubscriptionStripe");
@@ -532,11 +568,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
@@ -556,9 +592,13 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasColumnType("nvarchar(20)")
                         .HasColumnOrder(3);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(8);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(9);
 
                     b.Property<DateTime>("LastLoginAt")
                         .HasColumnType("datetime2")
@@ -578,11 +618,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(12);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<string>("UserPreferences")
                         .IsRequired()
@@ -610,11 +650,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
@@ -634,13 +674,17 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnOrder(4);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(7);
 
                     b.Property<bool>("IsPrivateRelay")
                         .HasColumnType("bit")
                         .HasColumnOrder(5);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(8);
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -650,11 +694,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(12);
 
                     b.HasKey("Id")
                         .HasName("PK_UserAuthApple");
@@ -681,11 +725,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(12);
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
@@ -715,9 +759,13 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasColumnType("nvarchar(256)")
                         .HasColumnOrder(6);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(9);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(10);
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -733,11 +781,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(14);
 
                     b.HasKey("Id")
                         .HasName("PK_UserAuthGoogle");
@@ -758,11 +806,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
@@ -782,9 +830,13 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnOrder(3);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(6);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(7);
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -800,11 +852,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.HasKey("Id")
                         .HasName("PK_UserAuthMicrosoft");
@@ -827,15 +879,19 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(4);
+                        .HasColumnOrder(5);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(5);
+                        .HasColumnOrder(6);
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnOrder(3);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(4);
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -845,11 +901,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")

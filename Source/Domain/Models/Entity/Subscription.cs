@@ -1,15 +1,13 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class Subscription
+public class Subscription : DefaultModel
 {
 	#region <Properties>
 
 	public DateTime CancelledDate { get; set; }
 
 	public DateTime EndDate { get; set; }
-
-	public long Id { get; set; }
 
 	public long OrderItemId { get; set; }
 

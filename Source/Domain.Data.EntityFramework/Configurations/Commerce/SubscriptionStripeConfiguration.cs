@@ -19,16 +19,19 @@ public class SubscriptionStripeConfiguration : IEntityTypeConfiguration<Subscrip
         builder.Property(e => e.StripeCustomerId).HasMaxLength(256).IsRequired().HasColumnOrder(1);
         builder.Property(e => e.StripePriceId).HasMaxLength(256).IsRequired().HasColumnOrder(2);
         builder.Property(e => e.StripeSubscriptionId).HasMaxLength(256).IsRequired().HasColumnOrder(3);
-        builder.Property(e => e.IsActive).HasColumnOrder(4);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(5);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(6);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(7);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(8);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(4);
+        builder.Property(e => e.IsVisible).HasColumnOrder(5);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(6);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(7);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(8);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(9);
 
         builder.HasOne(e => e.Subscription)
             .WithOne()
             .HasForeignKey<SubscriptionStripe>(e => e.Id)
             .HasConstraintName("FK_SubscriptionStripe_Subscription");
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

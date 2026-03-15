@@ -22,11 +22,12 @@ public class UserAuthenticationAppleConfiguration : IEntityTypeConfiguration<Use
         builder.Property(e => e.FirstName).HasMaxLength(50).IsRequired().HasColumnOrder(4);
         builder.Property(e => e.IsPrivateRelay).HasColumnOrder(5);
         builder.Property(e => e.LastName).HasMaxLength(50).IsRequired().HasColumnOrder(6);
-        builder.Property(e => e.IsActive).HasColumnOrder(7);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(8);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(9);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(10);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(11);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(7);
+        builder.Property(e => e.IsVisible).HasColumnOrder(8);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(9);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(10);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(11);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(12);
 
         builder.HasIndex(e => e.AppleId).IsUnique().HasDatabaseName("UQ_UserAuthApple_AppleId");
 
@@ -34,6 +35,8 @@ public class UserAuthenticationAppleConfiguration : IEntityTypeConfiguration<Use
             .WithOne()
             .HasForeignKey<UserAuthenticationApple>(e => e.Id)
             .HasConstraintName("FK_UserAuthApple_User");
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

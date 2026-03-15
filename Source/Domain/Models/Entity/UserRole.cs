@@ -1,11 +1,9 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class UserRole
+public class UserRole : DefaultModel
 {
 	#region <Properties>
-
-	public long Id { get; set; }
 
 	public string Role { get; set; } = string.Empty;
 

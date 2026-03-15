@@ -20,16 +20,19 @@ public class BillingStripeConfiguration : IEntityTypeConfiguration<BillingStripe
         builder.Property(e => e.CardLastFour).HasMaxLength(4).IsRequired().HasColumnOrder(2);
         builder.Property(e => e.PaymentMethod).HasMaxLength(50).IsRequired().HasColumnOrder(3);
         builder.Property(e => e.StripePaymentIntentId).HasMaxLength(256).IsRequired().HasColumnOrder(4);
-        builder.Property(e => e.IsActive).HasColumnOrder(5);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(6);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(7);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(8);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(9);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(5);
+        builder.Property(e => e.IsVisible).HasColumnOrder(6);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(7);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(8);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(9);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(10);
 
         builder.HasOne(e => e.Billing)
             .WithOne()
             .HasForeignKey<BillingStripe>(e => e.Id)
             .HasConstraintName("FK_BillingStripe_Billing");
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

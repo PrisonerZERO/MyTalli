@@ -20,11 +20,12 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(e => e.VendorId).HasColumnOrder(2);
         builder.Property(e => e.ProductName).HasMaxLength(100).IsRequired().HasColumnOrder(3);
         builder.Property(e => e.VendorPrice).HasColumnType("money").IsRequired().HasColumnOrder(4);
-        builder.Property(e => e.IsActive).HasColumnOrder(5);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(6);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(7);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(8);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(9);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(5);
+        builder.Property(e => e.IsVisible).HasColumnOrder(6);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(7);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(8);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(9);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(10);
 
         builder.HasIndex(e => e.ProductTypeId).HasDatabaseName("IX_Product_ProductTypeId");
         builder.HasIndex(e => e.VendorId).HasDatabaseName("IX_Product_VendorId");
@@ -38,6 +39,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithMany()
             .HasForeignKey(e => e.VendorId)
             .HasConstraintName("FK_Product_ProductVendor");
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

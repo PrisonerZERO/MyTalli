@@ -1,11 +1,9 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class SubscriptionStripe
+public class SubscriptionStripe : DefaultModel
 {
 	#region <Properties>
-
-	public long Id { get; set; }
 
 	public string StripeCustomerId { get; set; } = string.Empty;
 
