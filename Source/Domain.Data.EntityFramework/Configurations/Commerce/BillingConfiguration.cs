@@ -21,11 +21,12 @@ public class BillingConfiguration : IEntityTypeConfiguration<Billing>
         builder.Property(e => e.Amount).HasColumnType("money").IsRequired().HasColumnOrder(3);
         builder.Property(e => e.Currency).HasMaxLength(3).IsRequired().HasColumnOrder(4);
         builder.Property(e => e.Status).HasMaxLength(20).IsRequired().HasColumnOrder(5);
-        builder.Property(e => e.IsActive).HasColumnOrder(6);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(7);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(8);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(9);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(10);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(6);
+        builder.Property(e => e.IsVisible).HasColumnOrder(7);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(8);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(9);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(10);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(11);
 
         builder.HasIndex(e => e.OrderId).HasDatabaseName("IX_Billing_OrderId");
         builder.HasIndex(e => e.UserId).HasDatabaseName("IX_Billing_UserId");
@@ -40,6 +41,8 @@ public class BillingConfiguration : IEntityTypeConfiguration<Billing>
             .HasForeignKey(e => e.UserId)
             .HasConstraintName("FK_Billing_User")
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

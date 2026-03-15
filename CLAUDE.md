@@ -42,7 +42,8 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **No nulls** — provider-specific data lives in dedicated tables, not nullable columns on base tables
 - **Provider separation** — auth providers (Google, Apple, Microsoft) and billing providers (Stripe, etc.) each get their own table with a 1-to-1 relationship to the base table. Adding a new provider = new table, no schema changes to existing tables.
 - **Shared primary key for 1-to-1 tables** — 1-to-1 tables (e.g., `UserAuthenticationGoogle`, `BillingStripe`) use the parent's PK as their own PK. No separate identity column or FK column — `Id` serves as both PK and FK. Configured with `ValueGeneratedNever()` and `HasForeignKey<T>(e => e.Id)`. The C# property stays `Id` (so `IIdentifiable` and the repository chain work unchanged), but the **database column is renamed** via `HasColumnName()` to show data lineage: `UserId` for auth provider tables, `BillingId` for `BillingStripe`, `SubscriptionId` for `SubscriptionStripe`.
-- **Column ordering convention** — EF configurations use `HasColumnOrder(N)` on every property. Order: PK (0) → FK columns (alphabetical, starting at 1) → domain columns (alphabetical) → `IsActive` → audit columns (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`).
+- **Column ordering convention** — EF configurations use `HasColumnOrder(N)` on every property. Order: PK (0) → FK columns (alphabetical, starting at 1) → domain columns (alphabetical) → `IsDeleted` → `IsVisible` → audit columns (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`).
+- **Soft delete** — every entity has `IsDeleted` (default `false`) for logical deletion and `IsVisible` (default `true`) for hiding active records from views. All entities have a global query filter `HasQueryFilter(e => !e.IsDeleted)` so soft-deleted records are automatically excluded from queries. To include soft-deleted records, use `IgnoreQueryFilters()`.
 - **Schema separation** — tables are organized into SQL schemas by functional domain (`auth`, `commerce`). `dbo` is reserved/empty.
 - **Orders as the backbone** — subscriptions, modules, and any future products all flow through the same Order → OrderItem pipeline. A subscription is just a product.
 - **No separate waitlist table** — the `auth.User` table doubles as the waitlist during Waitlist Mode. A signed-up user *is* a waitlist user until Dashboard Mode is enabled.
@@ -332,7 +333,7 @@ My.Talli/
     ├── Domain.Entities/             # Domain entity layer (database models)
     │   ├── Domain.Entities.csproj
     │   ├── AuditableIdentifiableEntity.cs  # Base class (Id + audit fields)
-    │   ├── DefaultEntity.cs                # Standard entity base (adds IsActive)
+    │   ├── DefaultEntity.cs                # Standard entity base (adds IsDeleted, IsVisible)
     │   ├── Entities/
     │   │   ├── Billing.cs
     │   │   ├── BillingStripe.cs
@@ -925,7 +926,7 @@ using My.Talli.Domain.Framework;
 ### Entity Models
 
 - **Never expose entities directly** to the presentation layer. Always map to a model class via AutoMapper.
-- **Never expose audit fields** (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`) or `IsActive` in models.
+- **Never expose audit fields** (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`), `IsDeleted`, or `IsVisible` in models.
 - **Never expose navigation properties** in models — use FK IDs instead.
 - **`Models/Entity/`** — 1-to-1 representations of an entity (same class name, no suffix). Disambiguate from entities via using aliases (`ENTITIES`, `MODELS`).
 - **`Models/Presentation/`** — aggregate or detail representations (custom shapes for specific UI needs).

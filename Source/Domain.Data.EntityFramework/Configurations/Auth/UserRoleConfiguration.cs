@@ -18,11 +18,12 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
         builder.Property(e => e.Id).HasColumnOrder(0);
         builder.Property(e => e.UserId).HasColumnOrder(1);
         builder.Property(e => e.Role).HasMaxLength(50).IsRequired().HasColumnOrder(2);
-        builder.Property(e => e.IsActive).HasColumnOrder(3);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(4);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(5);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(6);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(7);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(3);
+        builder.Property(e => e.IsVisible).HasColumnOrder(4);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(5);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(6);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(7);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(8);
 
         builder.HasIndex(e => e.UserId).HasDatabaseName("IX_UserRole_UserId");
         builder.HasIndex(e => new { e.UserId, e.Role }).IsUnique().HasDatabaseName("UQ_UserRole_UserId_Role");
@@ -31,6 +32,8 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
             .WithMany()
             .HasForeignKey(e => e.UserId)
             .HasConstraintName("FK_UserRole_User");
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

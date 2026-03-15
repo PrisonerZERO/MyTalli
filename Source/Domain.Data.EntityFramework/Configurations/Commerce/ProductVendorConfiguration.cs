@@ -17,11 +17,14 @@ public class ProductVendorConfiguration : IEntityTypeConfiguration<ProductVendor
 
         builder.Property(e => e.Id).HasColumnOrder(0);
         builder.Property(e => e.VendorName).HasMaxLength(100).IsRequired().HasColumnOrder(1);
-        builder.Property(e => e.IsActive).HasColumnOrder(2);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(3);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(4);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(5);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(6);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(2);
+        builder.Property(e => e.IsVisible).HasColumnOrder(3);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(4);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(5);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(6);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(7);
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

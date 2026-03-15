@@ -20,11 +20,12 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.Property(e => e.ProductId).HasColumnOrder(2);
         builder.Property(e => e.ProductPriceCharged).HasColumnType("money").IsRequired().HasColumnOrder(3);
         builder.Property(e => e.ProductQuantity).IsRequired().HasColumnOrder(4);
-        builder.Property(e => e.IsActive).HasColumnOrder(5);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(6);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(7);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(8);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(9);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(5);
+        builder.Property(e => e.IsVisible).HasColumnOrder(6);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(7);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(8);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(9);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(10);
 
         builder.HasIndex(e => e.OrderId).HasDatabaseName("IX_OrderItem_OrderId");
         builder.HasIndex(e => e.ProductId).HasDatabaseName("IX_OrderItem_ProductId");
@@ -38,6 +39,8 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
             .WithMany()
             .HasForeignKey(e => e.ProductId)
             .HasConstraintName("FK_OrderItem_Product");
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
     #endregion

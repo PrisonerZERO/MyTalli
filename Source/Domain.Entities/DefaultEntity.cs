@@ -5,7 +5,9 @@ public class DefaultEntity : AuditableIdentifiableEntity
 {
     #region <Properties>
 
-    public bool IsActive { get; set; } = true;
+    public bool IsDeleted { get; set; }
+
+    public bool IsVisible { get; set; } = true;
 
 	#endregion
 }
