@@ -15,16 +15,18 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **ElmahCore** — error logging (SQL Server provider, dashboard at `/elmah`)
 - **Entity Framework Core** — ORM (SQL Server provider)
 - **Lamar** — IoC container (replaces default Microsoft DI)
-- **MailKit** — email sending (replaces obsolete `System.Net.Mail.SmtpClient`)
+- **Azure Communication Services (ACS) Email** — transactional email sending (NuGet: `Azure.Communication.Email`)
 - **Razor Components** — UI layer (`.razor` files)
 - **SQL Server** — database (localhost, Windows Auth)
 
 ## Database
 
-- **Engine:** SQL Server (localhost)
+- **Engine:** SQL Server
 - **Database:** `MyTalli`
-- **Connection:** Windows Authentication (Trusted Connection)
-- **Connection string key:** `ConnectionStrings:DefaultConnection` (in `appsettings.Development.json`)
+- **Local (dev):** `localhost`, Windows Authentication (Trusted Connection) — `ConnectionStrings:DefaultConnection`
+- **Azure (prod):** `mytalli-centralus-sql.database.windows.net,1433`, SQL Authentication — `ConnectionStrings:AzureConnection`
+- **App user:** `MyTalli-User` (SQL login) — `db_datareader`, `db_datawriter`, `EXECUTE`. Created by Pre-Deployment Script. Admin user (`MyTalli-Administrator`) is for schema changes only.
+- **Rule:** All development and migrations run against localhost. Never run dev operations against the Azure database.
 - **Migrations:** EF Core code-first, stored in `Domain.Data.EntityFramework/Migrations/`. All migrations inherit from `DbMigrationBase` (not `Migration` directly) — see "Migration SQL Scripts" below.
 - **Migration commands (Package Manager Console):**
   - Add: `Add-Migration <Name> -Project Domain.Data.EntityFramework -StartupProject My.Talli.Web`
@@ -340,6 +342,8 @@ My.Talli/
     │   ├── Migrations/                    # EF Core code-first migrations
     │   │   ├── DbMigrationBase.cs           # Abstract migration base (embedded SQL script execution)
     │   │   ├── 01_0/                        # SQL scripts for InitialCreate migration
+    │   │   │   ├── Pre-Deployment Scripts/
+    │   │   │   │   └── 00.dbo.MyTalli-User.sql  # App database user creation (least privilege)
     │   │   │   ├── Post-Deployment Scripts/
     │   │   │   │   └── 00.components.ELMAH_Error.sql
     │   │   │   └── Views/
@@ -438,7 +442,8 @@ My.Talli/
         │   │   ├── EmailSettings.cs             # SMTP config POCO (IOptions<EmailSettings>)
         │   │   ├── ExceptionEmailHandler.cs     # IExceptionHandler — sends email, returns false
         │   │   ├── IEmailService.cs             # Email sending interface
-        │   │   └── SmtpEmailService.cs          # MailKit-based implementation
+        │   │   ├── AcsEmailService.cs           # Azure Communication Services implementation (active)
+        │   │   └── SmtpEmailService.cs          # MailKit-based implementation (local dev fallback)
         │   └── Tokens/
         │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
         ├── ViewModels/
@@ -696,7 +701,7 @@ Email notifications follow a **Template + Builder** pattern modeled after the Me
 - **Notification classes** — in `Domain/Notifications/Emails/`, abstract base `EmailNotification` → generic `EmailNotificationOf<T>` → concrete implementations (e.g., `ExceptionOccurredEmailNotification`)
 - **Placeholder replacement** — templates use `[[Placeholder.Name]]` tokens replaced via `string.Replace()` in the `Build()` method. All user-supplied data is HTML-encoded via `WebUtility.HtmlEncode()` before replacement.
 - **SmtpNotification** — serializable POCO carrier returned by `FinalizeEmail()`, passed to `IEmailService.SendAsync()`
-- **MailKit** — `SmtpEmailService` uses MailKit for SMTP delivery (Microsoft's recommended replacement for the obsolete `System.Net.Mail.SmtpClient`)
+- **Azure Communication Services** — `AcsEmailService` (active) sends via ACS Email SDK. `SmtpEmailService` (MailKit) retained as fallback for local dev with smtp4dev.
 
 ### Exception Email Pipeline
 
@@ -709,12 +714,16 @@ Unhandled exceptions trigger email notifications via .NET's `IExceptionHandler` 
 
 ### Email Configuration
 
-SMTP settings are bound from `appsettings.json` → `Email` section via `IOptions<EmailSettings>`:
+**ACS settings** are bound from `appsettings.json` → `AzureCommunicationServices` section:
 
-- `Host`, `Port`, `Username`, `Password`, `UseSsl` — SMTP connection (sensitive values via `dotnet user-secrets`)
-- `FromAddress` — default `DoNotReply@mytalli.com`
+- `ConnectionString` — ACS connection string (stored in `dotnet user-secrets` for dev, Azure Key Vault for prod)
+
+**Email settings** are bound from `appsettings.json` → `Email` section via `IOptions<EmailSettings>`:
+
+- `FromAddress` — default `DoNotReply@mytalli.com` (must match an ACS verified sender)
 - `FromDisplayName` — default `MyTalli`
 - `ExceptionRecipients` — list of admin email addresses; if empty, no exception emails are sent
+- `Host`, `Port`, `Username`, `Password`, `UseSsl` — SMTP settings (only used by `SmtpEmailService` fallback)
 
 ### Email Branding
 
@@ -738,7 +747,7 @@ There are two tiers of email branding:
 
 ### Test Emails (Development Only)
 
-A dev-only endpoint at `GET /api/test/emails` sends all 4 customer emails to `hello@mytalli.com` with sample data. Only registered when `app.Environment.IsDevelopment()`. Use with a local SMTP tool like **smtp4dev** (.NET global tool — `dotnet tool install -g Rnwood.Smtp4dev`, SMTP on port 25, web UI at `http://localhost:5000`).
+A dev-only endpoint at `GET /api/test/emails` sends all 4 customer emails to `hello@mytalli.com` with sample data via ACS. Only registered when `app.Environment.IsDevelopment()`.
 
 A dev-only endpoint at `GET /api/test/unsubscribe-token/{userId:long}` generates an unsubscribe token for testing the `/unsubscribe` page.
 
