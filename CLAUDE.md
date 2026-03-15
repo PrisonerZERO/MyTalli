@@ -36,6 +36,23 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
   - Add: `dotnet ef migrations add <Name> --project Domain.Data.EntityFramework --startup-project My.Talli.Web --output-dir Migrations`
   - Apply: `dotnet ef database update --project Domain.Data.EntityFramework --startup-project My.Talli.Web`
   - Remove last: `dotnet ef migrations remove --project Domain.Data.EntityFramework --startup-project My.Talli.Web`
+  - Generate script: `dotnet ef migrations script --project Domain.Data.EntityFramework --startup-project My.Talli.Web --output ../migrations/<MigrationName>.sql`
+- **Production deployment:** Never run `dotnet ef database update` against production. Instead, generate a SQL script, review it, and run it manually in SSMS against the Azure database.
+- **Migration script folder:** `migrations/` (git-ignored) — stores generated `.sql` deployment scripts
+- **Migration script guard:** Every generated migration script must have a guard block prepended at the top that checks `__EFMigrationsHistory` for the migration ID and aborts with `RAISERROR` + `RETURN` if already applied. This prevents accidental re-runs against production.
+  ```sql
+  IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NOT NULL
+      AND EXISTS (
+          SELECT 1
+          FROM [__EFMigrationsHistory]
+          WHERE [MigrationId] = N'<MigrationId>'
+      )
+  BEGIN
+      RAISERROR('Migration <MigrationId> has already been applied. Script aborted.', 16, 1);
+      RETURN;
+  END
+  GO
+  ```
 - **Cascade delete restrictions:** `FK_Billing_User`, `FK_Subscription_User`, and `FK_Subscription_Product` use `DeleteBehavior.Restrict` to avoid SQL Server multiple cascade path errors. These entities are still reachable via indirect cascade paths (e.g., User → Order → Billing).
 
 ### Design Principles
