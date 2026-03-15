@@ -25,6 +25,7 @@ public class MappingProfile : Profile
         CreateMap<ENTITIES.UserAuthenticationApple, MODELS.UserAuthenticationApple>().ReverseMap();
         CreateMap<ENTITIES.UserAuthenticationGoogle, MODELS.UserAuthenticationGoogle>().ReverseMap();
         CreateMap<ENTITIES.UserAuthenticationMicrosoft, MODELS.UserAuthenticationMicrosoft>().ReverseMap();
+        CreateMap<ENTITIES.UserRole, MODELS.UserRole>().ReverseMap();
     }
 
     #endregion

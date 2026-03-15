@@ -2,6 +2,7 @@ namespace My.Talli.Domain.Handlers.Authentication;
 
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
+using Domain.Framework;
 using Domain.Models;
 using Domain.Repositories;
 
@@ -13,8 +14,9 @@ public class AppleSignInHandler
 	#region <Variables>
 
 	private readonly ICurrentUserService _currentUserService;
-	private readonly RepositoryAdapterAsync<UserAuthenticationApple, ENTITIES.UserAuthenticationApple> _appleAuthAdapter;
 	private readonly RepositoryAdapterAsync<User, ENTITIES.User> _userAdapter;
+	private readonly RepositoryAdapterAsync<UserAuthenticationApple, ENTITIES.UserAuthenticationApple> _appleAuthAdapter;
+	private readonly RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> _userRoleAdapter;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
 	#endregion
@@ -23,14 +25,16 @@ public class AppleSignInHandler
 
 	public AppleSignInHandler(
 		ICurrentUserService currentUserService,
-		RepositoryAdapterAsync<UserAuthenticationApple, ENTITIES.UserAuthenticationApple> appleAuthAdapter,
 		RepositoryAdapterAsync<User, ENTITIES.User> userAdapter,
+		RepositoryAdapterAsync<UserAuthenticationApple, ENTITIES.UserAuthenticationApple> appleAuthAdapter,
+		RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> userRoleAdapter,
 		UserPreferencesJsonSerializer preferencesSerializer)
 	{
 		_appleAuthAdapter = appleAuthAdapter;
 		_currentUserService = currentUserService;
 		_preferencesSerializer = preferencesSerializer;
 		_userAdapter = userAdapter;
+		_userRoleAdapter = userRoleAdapter;
 	}
 
 	#endregion
@@ -45,7 +49,9 @@ public class AppleSignInHandler
 		{
 			var user = (await _userAdapter.GetByIdAsync(existing.UserId))!;
 			user.LastLoginAt = DateTime.UtcNow;
-			return await _userAdapter.UpdateAsync(user);
+			user = await _userAdapter.UpdateAsync(user);
+			user.Roles = await ResolveRolesAsync(user.Id);
+			return user;
 		}
 
 		return await CreateUserAsync(argument);
@@ -79,7 +85,23 @@ public class AppleSignInHandler
 			UserId = user.Id
 		});
 
+		await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = user.Id });
+		user.Roles = [Roles.User];
+
 		return user;
+	}
+
+	private async Task<List<string>> ResolveRolesAsync(long userId)
+	{
+		var roles = (await _userRoleAdapter.FindAsync(x => x.UserId == userId)).Select(r => r.Role).ToList();
+
+		if (roles.Count == 0)
+		{
+			await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = userId });
+			roles = [Roles.User];
+		}
+
+		return roles;
 	}
 
 	#endregion

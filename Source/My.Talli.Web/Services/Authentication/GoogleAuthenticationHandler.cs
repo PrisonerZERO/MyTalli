@@ -47,6 +47,9 @@ public class GoogleAuthenticationHandler
 
         var identity = (ClaimsIdentity)principal.Identity!;
         identity.AddClaim(new Claim("UserId", user.Id.ToString()));
+
+        foreach (var role in user.Roles)
+            identity.AddClaim(new Claim(ClaimTypes.Role, role));
     }
 
     #endregion

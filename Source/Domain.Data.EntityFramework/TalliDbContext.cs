@@ -40,6 +40,8 @@ public class TalliDbContext : DbContext
 
     public DbSet<UserAuthenticationMicrosoft> UserAuthenticationMicrosofts { get; set; } = null!;
 
+    public DbSet<UserRole> UserRoles { get; set; } = null!;
+
     #endregion
 
     #region <Methods>

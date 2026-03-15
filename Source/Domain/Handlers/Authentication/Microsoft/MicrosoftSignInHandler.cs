@@ -2,6 +2,7 @@ namespace My.Talli.Domain.Handlers.Authentication;
 
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
+using Domain.Framework;
 using Domain.Models;
 using Domain.Repositories;
 
@@ -13,8 +14,9 @@ public class MicrosoftSignInHandler
 	#region <Variables>
 
 	private readonly ICurrentUserService _currentUserService;
-	private readonly RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> _microsoftAuthAdapter;
 	private readonly RepositoryAdapterAsync<User, ENTITIES.User> _userAdapter;
+	private readonly RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> _microsoftAuthAdapter;
+	private readonly RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> _userRoleAdapter;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
 	#endregion
@@ -23,14 +25,16 @@ public class MicrosoftSignInHandler
 
 	public MicrosoftSignInHandler(
 		ICurrentUserService currentUserService,
-		RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> microsoftAuthAdapter,
 		RepositoryAdapterAsync<User, ENTITIES.User> userAdapter,
+		RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> microsoftAuthAdapter,
+		RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> userRoleAdapter,
 		UserPreferencesJsonSerializer preferencesSerializer)
 	{
 		_currentUserService = currentUserService;
 		_microsoftAuthAdapter = microsoftAuthAdapter;
 		_preferencesSerializer = preferencesSerializer;
 		_userAdapter = userAdapter;
+		_userRoleAdapter = userRoleAdapter;
 	}
 
 	#endregion
@@ -45,7 +49,9 @@ public class MicrosoftSignInHandler
 		{
 			var user = (await _userAdapter.GetByIdAsync(existing.UserId))!;
 			user.LastLoginAt = DateTime.UtcNow;
-			return await _userAdapter.UpdateAsync(user);
+			user = await _userAdapter.UpdateAsync(user);
+			user.Roles = await ResolveRolesAsync(user.Id);
+			return user;
 		}
 
 		return await CreateUserAsync(argument);
@@ -78,7 +84,23 @@ public class MicrosoftSignInHandler
 			UserId = user.Id
 		});
 
+		await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = user.Id });
+		user.Roles = [Roles.User];
+
 		return user;
+	}
+
+	private async Task<List<string>> ResolveRolesAsync(long userId)
+	{
+		var roles = (await _userRoleAdapter.FindAsync(x => x.UserId == userId)).Select(r => r.Role).ToList();
+
+		if (roles.Count == 0)
+		{
+			await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = userId });
+			roles = [Roles.User];
+		}
+
+		return roles;
 	}
 
 	#endregion

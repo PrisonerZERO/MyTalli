@@ -19,6 +19,8 @@ public class User
 
 	public string PreferredProvider { get; set; } = string.Empty;
 
+	public List<string> Roles { get; set; } = [];
+
 	public string UserPreferences { get; set; } = "{}";
 
 	#endregion

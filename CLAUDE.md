@@ -53,7 +53,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 
 | Schema | Purpose | Tables |
 |--------|---------|--------|
-| `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft |
+| `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
@@ -86,6 +86,13 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 
 **`auth.UserAuthenticationMicrosoft`** — 1-to-1 with User
 - `Id` (PK), `UserId` (FK → User, unique), `MicrosoftId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`
+
+**`auth.UserRole`** — role assignments (1-to-many with User)
+- `Id` (PK), `UserId` (FK → User), `Role` (string, max 50)
+- Unique constraint on `(UserId, Role)` prevents duplicate assignments
+- Role values are code constants defined in `Domain/Framework/Roles.cs` (no lookup table)
+- Current roles: `Admin`, `User`
+- Self-healing: if a user signs in with no roles, the `User` role is automatically assigned
 
 ### Schema: `commerce`
 
@@ -235,7 +242,8 @@ My.Talli/
     │   ├── .extensions/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
     │   ├── Framework/
-    │   │   └── Assert.cs                      # Static validation utility (precondition checks)
+    │   │   ├── Assert.cs                      # Static validation utility (precondition checks)
+    │   │   └── Roles.cs                       # Static role name constants (Admin, User)
     │   ├── Components/
     │   │   └── JsonSerializers/
     │   │       └── User/
@@ -260,7 +268,8 @@ My.Talli/
     │   │   │   ├── User.cs
     │   │   │   ├── UserAuthenticationApple.cs
     │   │   │   ├── UserAuthenticationGoogle.cs
-    │   │   │   └── UserAuthenticationMicrosoft.cs
+    │   │   │   ├── UserAuthenticationMicrosoft.cs
+    │   │   │   └── UserRole.cs
     │   │   └── Presentation/                  # Aggregate/detail view models (future)
     │   └── Notifications/
     │       └── Emails/
@@ -306,7 +315,8 @@ My.Talli/
     │       │   ├── UserConfiguration.cs
     │       │   ├── UserAuthenticationAppleConfiguration.cs
     │       │   ├── UserAuthenticationGoogleConfiguration.cs
-    │       │   └── UserAuthenticationMicrosoftConfiguration.cs
+    │       │   ├── UserAuthenticationMicrosoftConfiguration.cs
+    │       │   └── UserRoleConfiguration.cs
     │       └── Commerce/                  # Entity configs for commerce schema
     │           ├── BillingConfiguration.cs
     │           ├── BillingStripeConfiguration.cs
@@ -334,7 +344,8 @@ My.Talli/
     │   │   ├── User.cs
     │   │   ├── UserAuthenticationApple.cs
     │   │   ├── UserAuthenticationGoogle.cs
-    │   │   └── UserAuthenticationMicrosoft.cs
+    │   │   ├── UserAuthenticationMicrosoft.cs
+    │   │   └── UserRole.cs
     │   └── Interfaces/
     │       ├── IAuditable.cs
     │       ├── IAuditableIdentifiable.cs
@@ -586,6 +597,14 @@ Deploy folder also contains:
 - **Logout endpoint:** `/api/auth/logout` — clears cookie, redirects to `/?signed-out&name={name}`
 - **Sign-out toast:** Landing page detects `?signed-out` query param and shows a personalized auto-dismissing toast ("You've been signed out, {name}. See you next time!"), then strips the query param from the URL via `history.replaceState`
 - **Waitlist route:** `/waitlist` — launch progress tracker with milestone timeline (not a dead-end confirmation)
+
+## Authorization
+
+- **Role-based** — roles are stored in `auth.UserRole` (junction table, 1-to-many with User) and added as `ClaimTypes.Role` claims during OAuth sign-in
+- **Role constants** — defined in `Domain/Framework/Roles.cs` (no database lookup table). Current roles: `Admin`, `User`
+- **Default role** — every new user gets the `User` role on sign-up. Existing users with no roles are self-healed on next sign-in.
+- **Admin assignment** — no UI yet. Assign via direct database insert into `auth.UserRole`.
+- **Claims flow** — domain sign-in handlers query `UserRole`, populate `User.Roles` on the model → web auth handlers map each role to a `ClaimTypes.Role` claim on the identity
 
 ## App Modes
 
