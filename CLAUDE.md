@@ -888,6 +888,7 @@ using My.Talli.Domain.Framework;
 - **No "Model" suffix** — model classes use the same name as their entity. The `Models` namespace already disambiguates.
 - **Namespace:** All models use `My.Talli.Domain.Models` regardless of subfolder (`Entity/` and `Presentation/` are organizational only).
 - **MappingProfile** (`Domain/Mappers/MappingProfile.cs`) — all `CreateMap<Entity, Model>()` calls live here.
+- **RepositoryAdapterAsync** (`Domain/Repositories/RepositoryAdapterAsync.cs`) — the only gateway to the data layer. Never use `IAuditableRepositoryAsync<TEntity>` or `GenericAuditableRepositoryAsync<TEntity>` directly in presentation-layer code.
 
 ### C# Region Convention
 
