@@ -1,8 +1,8 @@
 namespace My.Talli.Domain.Data.EntityFramework.Migrations;
 
+using Microsoft.EntityFrameworkCore.Migrations;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore.Migrations;
 
 /// <summary>Migration base</summary>
 public abstract class DbMigrationBase : Migration

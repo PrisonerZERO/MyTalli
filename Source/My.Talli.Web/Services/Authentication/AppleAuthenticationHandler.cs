@@ -1,8 +1,8 @@
 namespace My.Talli.Web.Services.Authentication;
 
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.OAuth;
 using Domain.Handlers.Authentication;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using System.Security.Claims;
 
 /// <summary>Handler</summary>
 public class AppleAuthenticationHandler

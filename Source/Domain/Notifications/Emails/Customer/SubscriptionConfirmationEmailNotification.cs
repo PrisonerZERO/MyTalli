@@ -1,8 +1,8 @@
 namespace My.Talli.Domain.Notifications.Emails;
 
+using Domain.Extensions;
 using System.Net;
 using System.Reflection;
-using Domain.Extensions;
 
 /// <summary>Notification</summary>
 public class SubscriptionConfirmationEmailNotification : EmailNotificationOf<SubscriptionConfirmationEmailNotificationPayload>

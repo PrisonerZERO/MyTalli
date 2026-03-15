@@ -1,7 +1,7 @@
 namespace My.Talli.Domain.Data.Interfaces;
 
-using System.Linq.Expressions;
 using Domain.Entities.Interfaces;
+using System.Linq.Expressions;
 
 /// <summary>Repository</summary>
 public interface IRepositoryAsync<T> where T : class, IIdentifiable

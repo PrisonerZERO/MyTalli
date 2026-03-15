@@ -1,9 +1,9 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Framework.Exceptions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Diagnostics;
-using Domain.Framework.Exceptions;
 
 /// <summary>View Model</summary>
 public class ErrorViewModel : ComponentBase

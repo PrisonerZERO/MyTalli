@@ -839,6 +839,26 @@ using Domain.Framework;
 using My.Talli.Domain.Framework;
 ```
 
+### Alphabetical Using Order
+
+- All `using` statements must be listed in **alphabetical order**.
+- Regular (non-alias) usings are sorted alphabetically among themselves.
+- Alias usings are sorted alphabetically among themselves (in their own group, separated by a blank line).
+
+```csharp
+/* Correct */
+using Domain.Data.Interfaces;
+using Domain.Entities.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+
+/* Wrong — not alphabetical */
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Domain.Data.Interfaces;
+using Domain.Entities.Interfaces;
+```
+
 ### Uppercase Using Aliases
 
 - When creating `using` aliases in C#, the alias name must be **ALL CAPS**.
@@ -847,13 +867,13 @@ using My.Talli.Domain.Framework;
 
 ```csharp
 /* Correct */
+using Domain.Framework;
 using System.Text.Json;
-using My.Talli.Domain.Framework;
 
-using MODELS = Domain.Models;
 using ENTITIES = Domain.Entities;
+using MODELS = Domain.Models;
 
-/* Wrong — alias mixed in with normal usings, not capitalized, fully qualified */
+/* Wrong — alias mixed in with normal usings, not capitalized, not alphabetical */
 using System.Text.Json;
 using Models = My.Talli.Domain.Models;
 using My.Talli.Domain.Framework;

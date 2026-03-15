@@ -1,9 +1,9 @@
 namespace My.Talli.Domain.Data.EntityFramework.Repositories;
 
-using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
 using Domain.Data.Interfaces;
 using Domain.Entities.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 /// <summary>Repository</summary>
 public class GenericRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where TEntity : class, IIdentifiable
