@@ -168,7 +168,7 @@ Migrations/
 
 **`GO` batch splitting:** SQL scripts may contain `GO` batch separators (required for DDL like `CREATE VIEW`, `CREATE PROCEDURE`). `DbMigrationBase` splits on `GO` lines and executes each batch as a separate `migrationBuilder.Sql()` call, since EF Core does not natively support `GO`.
 
-**Note:** .NET prepends `_` to resource names for folders starting with a digit (`01_0` → `_01_0`). `DbMigrationBase` handles this automatically.
+**Note:** .NET prepends `_` to resource names for folders starting with a digit (`01_0` → `_01_0`) and replaces hyphens with underscores (`Post-Deployment Scripts` → `Post_Deployment_Scripts`). `DbMigrationBase` handles both transformations automatically.
 
 ## Solution Structure
 
@@ -271,6 +271,8 @@ My.Talli/
     │   ├── Migrations/                    # EF Core code-first migrations
     │   │   ├── DbMigrationBase.cs           # Abstract migration base (embedded SQL script execution)
     │   │   ├── 01_0/                        # SQL scripts for InitialCreate migration
+    │   │   │   ├── Post-Deployment Scripts/
+    │   │   │   │   └── 00.components.ELMAH_Error.sql
     │   │   │   └── Views/
     │   │   │       └── 00.auth.vAuthenticatedUser.sql
     │   ├── Repositories/

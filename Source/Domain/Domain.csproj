@@ -19,6 +19,8 @@
 
   <ItemGroup>
     <Folder Include="CommandsAndQueries\" />
+    <Folder Include="Mappers\" />
+    <Folder Include="Models\Entity\" />
   </ItemGroup>
 
   <ItemGroup>
