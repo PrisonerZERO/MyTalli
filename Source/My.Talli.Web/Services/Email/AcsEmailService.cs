@@ -34,7 +34,7 @@ public class AcsEmailService : IEmailService
         try
         {
             var from = string.IsNullOrEmpty(notification.From)
-                ? $"{_settings.FromDisplayName} <{_settings.FromAddress}>"
+                ? _settings.FromAddress
                 : notification.From;
 
             var content = notification.IsBodyHtml
