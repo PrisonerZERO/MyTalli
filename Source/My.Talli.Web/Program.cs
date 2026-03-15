@@ -480,7 +480,12 @@ if (app.Environment.IsDevelopment())
         summaryEmail.To = [testRecipient];
         await emailService.SendAsync(summaryEmail);
 
-        return Results.Text("3 test emails sent to hello@mytalli.com — check smtp4dev at http://localhost:5000");
+        return Results.Text("4 test emails sent to hello@mytalli.com");
+    });
+
+    app.MapGet("/api/test/error", () =>
+    {
+        throw new InvalidOperationException("Test exception — verifying error email pipeline is working.");
     });
 }
 

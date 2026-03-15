@@ -1,6 +1,7 @@
 namespace My.Talli.Web.Services.Email;
 
 using Domain.Notifications.Emails;
+using ElmahCore;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Options;
 
@@ -36,6 +37,8 @@ public class ExceptionEmailHandler : IExceptionHandler
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
+        ElmahExtensions.RaiseError(httpContext, exception);
+
         if (_settings.ExceptionRecipients.Count == 0)
             return false;
 
