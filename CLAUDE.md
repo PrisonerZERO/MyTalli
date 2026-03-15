@@ -237,11 +237,28 @@ My.Talli/
     │   │   └── JsonSerializers/
     │   │       └── User/
     │   │           └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
+    │   ├── Mappers/
+    │   │   └── MappingProfile.cs              # AutoMapper profile (entity → model mappings)
     │   ├── Models/
     │   │   ├── ActionResponseOf.cs            # Generic response wrapper (ValidationResult + Payload)
     │   │   ├── EmailPreferences.cs            # Email opt-in/out preferences model
     │   │   ├── UserPreferences.cs             # Root user preferences model (wraps EmailPreferences)
-    │   │   └── ValidationResult.cs            # Abstract base (IsValid, ValidationSummary, WarningSummary)
+    │   │   ├── ValidationResult.cs            # Abstract base (IsValid, ValidationSummary, WarningSummary)
+    │   │   ├── Entity/                        # 1-to-1 entity representations (no audit fields, no nav properties)
+    │   │   │   ├── Billing.cs
+    │   │   │   ├── BillingStripe.cs
+    │   │   │   ├── Order.cs
+    │   │   │   ├── OrderItem.cs
+    │   │   │   ├── Product.cs
+    │   │   │   ├── ProductType.cs
+    │   │   │   ├── ProductVendor.cs
+    │   │   │   ├── Subscription.cs
+    │   │   │   ├── SubscriptionStripe.cs
+    │   │   │   ├── User.cs
+    │   │   │   ├── UserAuthenticationApple.cs
+    │   │   │   ├── UserAuthenticationGoogle.cs
+    │   │   │   └── UserAuthenticationMicrosoft.cs
+    │   │   └── Presentation/                  # Aggregate/detail view models (future)
     │   └── Notifications/
     │       └── Emails/
     │           ├── EmailNotification.cs               # Abstract base (FinalizeEmail → SmtpNotification)
@@ -860,6 +877,17 @@ using My.Talli.Domain.Framework;
   - `Components/Layout/MainLayout.razor` → `ViewModels/Layout/MainLayoutViewModel.cs`
   - `Components/Shared/BrandHeader.razor` → `ViewModels/Shared/BrandHeaderViewModel.cs`
 - Namespace follows the folder: `My.Talli.Web.ViewModels.Pages`, `My.Talli.Web.ViewModels.Layout`, `My.Talli.Web.ViewModels.Shared`, etc.
+
+### Entity Models
+
+- **Never expose entities directly** to the presentation layer. Always map to a model class via AutoMapper.
+- **Never expose audit fields** (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`) or `IsActive` in models.
+- **Never expose navigation properties** in models — use FK IDs instead.
+- **`Models/Entity/`** — 1-to-1 representations of an entity (same class name, no suffix). Disambiguate from entities via using aliases (`ENTITIES`, `MODELS`).
+- **`Models/Presentation/`** — aggregate or detail representations (custom shapes for specific UI needs).
+- **No "Model" suffix** — model classes use the same name as their entity. The `Models` namespace already disambiguates.
+- **Namespace:** All models use `My.Talli.Domain.Models` regardless of subfolder (`Entity/` and `Presentation/` are organizational only).
+- **MappingProfile** (`Domain/Mappers/MappingProfile.cs`) — all `CreateMap<Entity, Model>()` calls live here.
 
 ### C# Region Convention
 
