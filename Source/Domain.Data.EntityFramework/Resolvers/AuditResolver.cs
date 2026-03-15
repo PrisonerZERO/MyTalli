@@ -37,8 +37,8 @@ public class AuditResolver<TEntity> : IAuditResolver<TEntity> where TEntity : cl
         {
             entity.CreateByUserId = userId;
             entity.CreatedOnDateTime = timestamp;
-            entity.UpdatedByUserId = userId;
-            entity.UpdatedOnDate = timestamp;
+            entity.UpdatedByUserId = null;
+            entity.UpdatedOnDate = null;
             return;
         }
 

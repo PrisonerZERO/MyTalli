@@ -65,8 +65,6 @@ public class GoogleSignInHandler
 			LastLoginAt = now,
 			LastName = argument.LastName,
 			PreferredProvider = "Google",
-			UpdatedByUserId = 0,
-			UpdatedOnDate = now,
 			UserPreferences = defaultPreferences
 		};
 
@@ -85,8 +83,6 @@ public class GoogleSignInHandler
 			GoogleId = argument.Payload.GoogleId,
 			LastName = argument.LastName,
 			Locale = argument.Payload.Locale,
-			UpdatedByUserId = user.Id,
-			UpdatedOnDate = now,
 			UserId = user.Id
 		};
 

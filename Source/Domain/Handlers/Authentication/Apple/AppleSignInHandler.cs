@@ -65,8 +65,6 @@ public class AppleSignInHandler
 			LastLoginAt = now,
 			LastName = argument.LastName,
 			PreferredProvider = "Apple",
-			UpdatedByUserId = 0,
-			UpdatedOnDate = now,
 			UserPreferences = defaultPreferences
 		};
 
@@ -83,8 +81,6 @@ public class AppleSignInHandler
 			FirstName = argument.FirstName,
 			IsPrivateRelay = argument.Payload.IsPrivateRelay,
 			LastName = argument.LastName,
-			UpdatedByUserId = user.Id,
-			UpdatedOnDate = now,
 			UserId = user.Id
 		};
 

@@ -65,8 +65,6 @@ public class MicrosoftSignInHandler
 			LastLoginAt = now,
 			LastName = argument.LastName,
 			PreferredProvider = "Microsoft",
-			UpdatedByUserId = 0,
-			UpdatedOnDate = now,
 			UserPreferences = defaultPreferences
 		};
 
@@ -82,8 +80,6 @@ public class MicrosoftSignInHandler
 			FirstName = argument.FirstName,
 			LastName = argument.LastName,
 			MicrosoftId = argument.Payload.MicrosoftId,
-			UpdatedByUserId = user.Id,
-			UpdatedOnDate = now,
 			UserId = user.Id
 		};
 
