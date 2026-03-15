@@ -91,6 +91,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .HasColumnType("bigint")
+                        .HasColumnName("BillingId")
                         .HasColumnOrder(0);
 
                     b.Property<string>("CardBrand")
@@ -473,6 +474,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .HasColumnType("bigint")
+                        .HasColumnName("SubscriptionId")
                         .HasColumnOrder(0);
 
                     b.Property<long>("CreateByUserId")
@@ -597,6 +599,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .HasColumnType("bigint")
+                        .HasColumnName("UserId")
                         .HasColumnOrder(0);
 
                     b.Property<string>("AppleId")
@@ -667,6 +670,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .HasColumnType("bigint")
+                        .HasColumnName("UserId")
                         .HasColumnOrder(0);
 
                     b.Property<string>("AvatarUrl")
@@ -749,6 +753,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .HasColumnType("bigint")
+                        .HasColumnName("UserId")
                         .HasColumnOrder(0);
 
                     b.Property<long>("CreateByUserId")

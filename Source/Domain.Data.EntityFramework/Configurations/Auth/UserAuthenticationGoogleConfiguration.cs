@@ -15,7 +15,7 @@ public class UserAuthenticationGoogleConfiguration : IEntityTypeConfiguration<Us
 
         builder.HasKey(e => e.Id).HasName("PK_UserAuthGoogle");
 
-        builder.Property(e => e.Id).ValueGeneratedNever().HasColumnOrder(0);
+        builder.Property(e => e.Id).HasColumnName("UserId").ValueGeneratedNever().HasColumnOrder(0);
         builder.Property(e => e.AvatarUrl).HasMaxLength(500).IsRequired().HasColumnOrder(1);
         builder.Property(e => e.DisplayName).HasMaxLength(100).IsRequired().HasColumnOrder(2);
         builder.Property(e => e.Email).HasMaxLength(256).IsRequired().HasColumnOrder(3);

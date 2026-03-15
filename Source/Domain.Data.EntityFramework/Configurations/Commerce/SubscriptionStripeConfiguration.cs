@@ -15,7 +15,7 @@ public class SubscriptionStripeConfiguration : IEntityTypeConfiguration<Subscrip
 
         builder.HasKey(e => e.Id).HasName("PK_SubscriptionStripe");
 
-        builder.Property(e => e.Id).ValueGeneratedNever().HasColumnOrder(0);
+        builder.Property(e => e.Id).HasColumnName("SubscriptionId").ValueGeneratedNever().HasColumnOrder(0);
         builder.Property(e => e.StripeCustomerId).HasMaxLength(256).IsRequired().HasColumnOrder(1);
         builder.Property(e => e.StripePriceId).HasMaxLength(256).IsRequired().HasColumnOrder(2);
         builder.Property(e => e.StripeSubscriptionId).HasMaxLength(256).IsRequired().HasColumnOrder(3);

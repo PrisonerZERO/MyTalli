@@ -15,7 +15,7 @@ public class BillingStripeConfiguration : IEntityTypeConfiguration<BillingStripe
 
         builder.HasKey(e => e.Id).HasName("PK_BillingStripe");
 
-        builder.Property(e => e.Id).ValueGeneratedNever().HasColumnOrder(0);
+        builder.Property(e => e.Id).HasColumnName("BillingId").ValueGeneratedNever().HasColumnOrder(0);
         builder.Property(e => e.CardBrand).HasMaxLength(20).IsRequired().HasColumnOrder(1);
         builder.Property(e => e.CardLastFour).HasMaxLength(4).IsRequired().HasColumnOrder(2);
         builder.Property(e => e.PaymentMethod).HasMaxLength(50).IsRequired().HasColumnOrder(3);
