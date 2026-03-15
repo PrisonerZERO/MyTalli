@@ -7,7 +7,7 @@ public class EmailSettings
 
     public List<string> ExceptionRecipients { get; set; } = [];
 
-    public string FromAddress { get; set; } = "noreply@mytalli.com";
+    public string FromAddress { get; set; } = "DoNotReply@mytalli.com";
 
     public string FromDisplayName { get; set; } = "MyTalli";
 

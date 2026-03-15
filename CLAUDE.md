@@ -712,7 +712,7 @@ Unhandled exceptions trigger email notifications via .NET's `IExceptionHandler` 
 SMTP settings are bound from `appsettings.json` → `Email` section via `IOptions<EmailSettings>`:
 
 - `Host`, `Port`, `Username`, `Password`, `UseSsl` — SMTP connection (sensitive values via `dotnet user-secrets`)
-- `FromAddress` — default `noreply@mytalli.com`
+- `FromAddress` — default `DoNotReply@mytalli.com`
 - `FromDisplayName` — default `MyTalli`
 - `ExceptionRecipients` — list of admin email addresses; if empty, no exception emails are sent
 
