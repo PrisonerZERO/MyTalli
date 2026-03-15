@@ -41,7 +41,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 
 - **No nulls** — provider-specific data lives in dedicated tables, not nullable columns on base tables
 - **Provider separation** — auth providers (Google, Apple, Microsoft) and billing providers (Stripe, etc.) each get their own table with a 1-to-1 relationship to the base table. Adding a new provider = new table, no schema changes to existing tables.
-- **Shared primary key for 1-to-1 tables** — 1-to-1 tables (e.g., `UserAuthenticationGoogle`, `BillingStripe`) use the parent's PK as their own PK. No separate identity column or FK column — `Id` serves as both PK and FK. Configured with `ValueGeneratedNever()` and `HasForeignKey<T>(e => e.Id)`.
+- **Shared primary key for 1-to-1 tables** — 1-to-1 tables (e.g., `UserAuthenticationGoogle`, `BillingStripe`) use the parent's PK as their own PK. No separate identity column or FK column — `Id` serves as both PK and FK. Configured with `ValueGeneratedNever()` and `HasForeignKey<T>(e => e.Id)`. The C# property stays `Id` (so `IIdentifiable` and the repository chain work unchanged), but the **database column is renamed** via `HasColumnName()` to show data lineage: `UserId` for auth provider tables, `BillingId` for `BillingStripe`, `SubscriptionId` for `SubscriptionStripe`.
 - **Column ordering convention** — EF configurations use `HasColumnOrder(N)` on every property. Order: PK (0) → FK columns (alphabetical, starting at 1) → domain columns (alphabetical) → `IsActive` → audit columns (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`).
 - **Schema separation** — tables are organized into SQL schemas by functional domain (`auth`, `commerce`). `dbo` is reserved/empty.
 - **Orders as the backbone** — subscriptions, modules, and any future products all flow through the same Order → OrderItem pipeline. A subscription is just a product.
@@ -81,13 +81,13 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
   - Welcome email is excluded — it's a one-time transactional email, not a recurring subscription.
 
 **`auth.UserAuthenticationGoogle`** — 1-to-1 with User (shared PK)
-- `Id` (PK/FK → User), `GoogleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `AvatarUrl`, `EmailVerified`, `Locale`
+- `UserId` (PK/FK → User, C# property: `Id`), `GoogleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `AvatarUrl`, `EmailVerified`, `Locale`
 
 **`auth.UserAuthenticationApple`** — 1-to-1 with User (shared PK)
-- `Id` (PK/FK → User), `AppleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `IsPrivateRelay`
+- `UserId` (PK/FK → User, C# property: `Id`), `AppleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `IsPrivateRelay`
 
 **`auth.UserAuthenticationMicrosoft`** — 1-to-1 with User (shared PK)
-- `Id` (PK/FK → User), `MicrosoftId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`
+- `UserId` (PK/FK → User, C# property: `Id`), `MicrosoftId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`
 
 **`auth.UserRole`** — role assignments (1-to-many with User)
 - `Id` (PK), `UserId` (FK → User), `Role` (string, max 50)
@@ -119,14 +119,14 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - `OrderItemId` answers "which order supports this subscription?"
 
 **`commerce.SubscriptionStripe`** — Stripe-specific subscription data (1-to-1 with Subscription, shared PK)
-- `Id` (PK/FK → Subscription), `StripeCustomerId`, `StripeSubscriptionId`, `StripePriceId`
+- `SubscriptionId` (PK/FK → Subscription, C# property: `Id`), `StripeCustomerId`, `StripeSubscriptionId`, `StripePriceId`
 
 **`commerce.Billing`** — a payment event tied to an order
 - `Id` (PK), `UserId` (FK → auth.User), `OrderId` (FK → Order), `Amount`, `Currency`, `Status`
 - `OrderId` answers "which billing satisfied this order?"
 
 **`commerce.BillingStripe`** — Stripe-specific payment data (1-to-1 with Billing, shared PK)
-- `Id` (PK/FK → Billing), `StripePaymentIntentId`, `PaymentMethod`, `CardBrand`, `CardLastFour`
+- `BillingId` (PK/FK → Billing, C# property: `Id`), `StripePaymentIntentId`, `PaymentMethod`, `CardBrand`, `CardLastFour`
 
 ### Account Linking (Consolidation)
 
