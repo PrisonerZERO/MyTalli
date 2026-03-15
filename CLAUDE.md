@@ -257,6 +257,7 @@ My.Talli/
     │   │   ├── ActionResponseOf.cs            # Generic response wrapper (ValidationResult + Payload)
     │   │   ├── EmailPreferences.cs            # Email opt-in/out preferences model
     │   │   ├── UserPreferences.cs             # Root user preferences model (wraps EmailPreferences)
+    │   │   ├── DefaultModel.cs                # Standard model base (Id + IsDeleted + IsVisible)
     │   │   ├── ValidationResult.cs            # Abstract base (IsValid, ValidationSummary, WarningSummary)
     │   │   ├── Entity/                        # 1-to-1 entity representations (no audit fields, no nav properties)
     │   │   │   ├── Billing.cs
@@ -926,8 +927,9 @@ using My.Talli.Domain.Framework;
 ### Entity Models
 
 - **Never expose entities directly** to the presentation layer. Always map to a model class via AutoMapper.
-- **Never expose audit fields** (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`), `IsDeleted`, or `IsVisible` in models.
+- **Never expose audit fields** (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`) in models.
 - **Never expose navigation properties** in models — use FK IDs instead.
+- **`DefaultModel`** (`Domain/Models/DefaultModel.cs`) — base class for all entity models. Provides `Id`, `IsDeleted`, and `IsVisible`. Mirrors `DefaultEntity` on the entity side. All entity models inherit from `DefaultModel`.
 - **`Models/Entity/`** — 1-to-1 representations of an entity (same class name, no suffix). Disambiguate from entities via using aliases (`ENTITIES`, `MODELS`).
 - **`Models/Presentation/`** — aggregate or detail representations (custom shapes for specific UI needs).
 - **No "Model" suffix** — model classes use the same name as their entity. The `Models` namespace already disambiguates.

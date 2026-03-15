@@ -1,11 +1,9 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class Product
+public class Product : DefaultModel
 {
 	#region <Properties>
-
-	public long Id { get; set; }
 
 	public string ProductName { get; set; } = string.Empty;
 

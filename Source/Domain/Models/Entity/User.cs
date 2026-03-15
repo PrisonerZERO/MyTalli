@@ -1,15 +1,13 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class User
+public class User : DefaultModel
 {
 	#region <Properties>
 
 	public string DisplayName { get; set; } = string.Empty;
 
 	public string FirstName { get; set; } = string.Empty;
-
-	public long Id { get; set; }
 
 	public string InitialProvider { get; set; } = string.Empty;
 

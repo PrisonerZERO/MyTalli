@@ -1,15 +1,13 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class Billing
+public class Billing : DefaultModel
 {
 	#region <Properties>
 
 	public decimal Amount { get; set; }
 
 	public string Currency { get; set; } = string.Empty;
-
-	public long Id { get; set; }
 
 	public long OrderId { get; set; }
 
