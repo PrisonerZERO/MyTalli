@@ -2,7 +2,9 @@ namespace My.Talli.Domain.Handlers.Authentication;
 
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
+using Domain.Framework;
 using Domain.Models;
+using Domain.Repositories;
 
 using ENTITIES = Domain.Entities;
 
@@ -11,8 +13,10 @@ public class GoogleSignInHandler
 {
 	#region <Variables>
 
-	private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
-	private readonly IAuditableRepositoryAsync<ENTITIES.UserAuthenticationGoogle> _googleAuthRepository;
+	private readonly ICurrentUserService _currentUserService;
+	private readonly RepositoryAdapterAsync<User, ENTITIES.User> _userAdapter;
+	private readonly RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> _googleAuthAdapter;
+	private readonly RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> _userRoleAdapter;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
 	#endregion
@@ -20,80 +24,86 @@ public class GoogleSignInHandler
 	#region <Constructors>
 
 	public GoogleSignInHandler(
-		IAuditableRepositoryAsync<ENTITIES.User> userRepository,
-		IAuditableRepositoryAsync<ENTITIES.UserAuthenticationGoogle> googleAuthRepository,
+		ICurrentUserService currentUserService,
+		RepositoryAdapterAsync<User, ENTITIES.User> userAdapter,
+		RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> googleAuthAdapter,
+		RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> userRoleAdapter,
 		UserPreferencesJsonSerializer preferencesSerializer)
 	{
-		_googleAuthRepository = googleAuthRepository;
+		_currentUserService = currentUserService;
+		_googleAuthAdapter = googleAuthAdapter;
 		_preferencesSerializer = preferencesSerializer;
-		_userRepository = userRepository;
+		_userAdapter = userAdapter;
+		_userRoleAdapter = userRoleAdapter;
 	}
 
 	#endregion
 
 	#region <Methods>
 
-	public async Task<ENTITIES.User> HandleAsync(SignInArgumentOf<GoogleSignInPayload> argument)
+	public async Task<User> HandleAsync(SignInArgumentOf<GoogleSignInPayload> argument)
 	{
-		var existing = (await _googleAuthRepository.FindAsync(x => x.GoogleId == argument.Payload.GoogleId)).FirstOrDefault();
+		var existing = (await _googleAuthAdapter.FindAsync(x => x.GoogleId == argument.Payload.GoogleId)).FirstOrDefault();
 
 		if (existing is not null)
 		{
-			var user = await _userRepository.GetByIdAsync(existing.UserId);
-			user!.LastLoginAt = DateTime.UtcNow;
-			user.UpdatedByUserId = user.Id;
-			user.UpdatedOnDate = DateTime.UtcNow;
-			await _userRepository.SaveChangesAsync();
+			var user = (await _userAdapter.GetByIdAsync(existing.Id))!;
+			user.LastLoginAt = DateTime.UtcNow;
+			user = await _userAdapter.UpdateAsync(user);
+			user.Roles = await ResolveRolesAsync(user.Id);
 			return user;
 		}
 
 		return await CreateUserAsync(argument);
 	}
 
-	private async Task<ENTITIES.User> CreateUserAsync(SignInArgumentOf<GoogleSignInPayload> argument)
+	private async Task<User> CreateUserAsync(SignInArgumentOf<GoogleSignInPayload> argument)
 	{
-		var now = DateTime.UtcNow;
 		var defaultPreferences = _preferencesSerializer.Serialize(new UserPreferences());
 
-		var user = new ENTITIES.User
+		var user = await _userAdapter.InsertAsync(new User
 		{
-			CreateByUserId = 0,
-			CreatedOnDateTime = now,
 			DisplayName = argument.DisplayName,
 			FirstName = argument.FirstName,
 			InitialProvider = "Google",
-			LastLoginAt = now,
+			LastLoginAt = DateTime.UtcNow,
 			LastName = argument.LastName,
 			PreferredProvider = "Google",
-			UpdatedByUserId = 0,
-			UpdatedOnDate = now,
 			UserPreferences = defaultPreferences
-		};
+		});
 
-		await _userRepository.AddAsync(user);
-		await _userRepository.SaveChangesAsync();
+		_currentUserService.Set(user.Id, user.DisplayName);
 
-		var googleAuth = new ENTITIES.UserAuthenticationGoogle
+		await _googleAuthAdapter.InsertAsync(new UserAuthenticationGoogle
 		{
 			AvatarUrl = argument.Payload.AvatarUrl,
-			CreateByUserId = user.Id,
-			CreatedOnDateTime = now,
 			DisplayName = argument.DisplayName,
 			Email = argument.Email,
 			EmailVerified = argument.Payload.EmailVerified,
 			FirstName = argument.FirstName,
 			GoogleId = argument.Payload.GoogleId,
+			Id = user.Id,
 			LastName = argument.LastName,
-			Locale = argument.Payload.Locale,
-			UpdatedByUserId = user.Id,
-			UpdatedOnDate = now,
-			UserId = user.Id
-		};
+			Locale = argument.Payload.Locale
+		});
 
-		await _googleAuthRepository.AddAsync(googleAuth);
-		await _googleAuthRepository.SaveChangesAsync();
+		await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = user.Id });
+		user.Roles = [Roles.User];
 
 		return user;
+	}
+
+	private async Task<List<string>> ResolveRolesAsync(long userId)
+	{
+		var roles = (await _userRoleAdapter.FindAsync(x => x.UserId == userId)).Select(r => r.Role).ToList();
+
+		if (roles.Count == 0)
+		{
+			await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = userId });
+			roles = [Roles.User];
+		}
+
+		return roles;
 	}
 
 	#endregion

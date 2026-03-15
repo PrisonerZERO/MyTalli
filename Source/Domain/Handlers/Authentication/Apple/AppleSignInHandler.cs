@@ -2,7 +2,9 @@ namespace My.Talli.Domain.Handlers.Authentication;
 
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
+using Domain.Framework;
 using Domain.Models;
+using Domain.Repositories;
 
 using ENTITIES = Domain.Entities;
 
@@ -11,8 +13,10 @@ public class AppleSignInHandler
 {
 	#region <Variables>
 
-	private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
-	private readonly IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> _appleAuthRepository;
+	private readonly ICurrentUserService _currentUserService;
+	private readonly RepositoryAdapterAsync<User, ENTITIES.User> _userAdapter;
+	private readonly RepositoryAdapterAsync<UserAuthenticationApple, ENTITIES.UserAuthenticationApple> _appleAuthAdapter;
+	private readonly RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> _userRoleAdapter;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
 	#endregion
@@ -20,78 +24,84 @@ public class AppleSignInHandler
 	#region <Constructors>
 
 	public AppleSignInHandler(
-		IAuditableRepositoryAsync<ENTITIES.User> userRepository,
-		IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> appleAuthRepository,
+		ICurrentUserService currentUserService,
+		RepositoryAdapterAsync<User, ENTITIES.User> userAdapter,
+		RepositoryAdapterAsync<UserAuthenticationApple, ENTITIES.UserAuthenticationApple> appleAuthAdapter,
+		RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> userRoleAdapter,
 		UserPreferencesJsonSerializer preferencesSerializer)
 	{
-		_appleAuthRepository = appleAuthRepository;
+		_appleAuthAdapter = appleAuthAdapter;
+		_currentUserService = currentUserService;
 		_preferencesSerializer = preferencesSerializer;
-		_userRepository = userRepository;
+		_userAdapter = userAdapter;
+		_userRoleAdapter = userRoleAdapter;
 	}
 
 	#endregion
 
 	#region <Methods>
 
-	public async Task<ENTITIES.User> HandleAsync(SignInArgumentOf<AppleSignInPayload> argument)
+	public async Task<User> HandleAsync(SignInArgumentOf<AppleSignInPayload> argument)
 	{
-		var existing = (await _appleAuthRepository.FindAsync(x => x.AppleId == argument.Payload.AppleId)).FirstOrDefault();
+		var existing = (await _appleAuthAdapter.FindAsync(x => x.AppleId == argument.Payload.AppleId)).FirstOrDefault();
 
 		if (existing is not null)
 		{
-			var user = await _userRepository.GetByIdAsync(existing.UserId);
-			user!.LastLoginAt = DateTime.UtcNow;
-			user.UpdatedByUserId = user.Id;
-			user.UpdatedOnDate = DateTime.UtcNow;
-			await _userRepository.SaveChangesAsync();
+			var user = (await _userAdapter.GetByIdAsync(existing.Id))!;
+			user.LastLoginAt = DateTime.UtcNow;
+			user = await _userAdapter.UpdateAsync(user);
+			user.Roles = await ResolveRolesAsync(user.Id);
 			return user;
 		}
 
 		return await CreateUserAsync(argument);
 	}
 
-	private async Task<ENTITIES.User> CreateUserAsync(SignInArgumentOf<AppleSignInPayload> argument)
+	private async Task<User> CreateUserAsync(SignInArgumentOf<AppleSignInPayload> argument)
 	{
-		var now = DateTime.UtcNow;
 		var defaultPreferences = _preferencesSerializer.Serialize(new UserPreferences());
 
-		var user = new ENTITIES.User
+		var user = await _userAdapter.InsertAsync(new User
 		{
-			CreateByUserId = 0,
-			CreatedOnDateTime = now,
 			DisplayName = argument.DisplayName,
 			FirstName = argument.FirstName,
 			InitialProvider = "Apple",
-			LastLoginAt = now,
+			LastLoginAt = DateTime.UtcNow,
 			LastName = argument.LastName,
 			PreferredProvider = "Apple",
-			UpdatedByUserId = 0,
-			UpdatedOnDate = now,
 			UserPreferences = defaultPreferences
-		};
+		});
 
-		await _userRepository.AddAsync(user);
-		await _userRepository.SaveChangesAsync();
+		_currentUserService.Set(user.Id, user.DisplayName);
 
-		var appleAuth = new ENTITIES.UserAuthenticationApple
+		await _appleAuthAdapter.InsertAsync(new UserAuthenticationApple
 		{
 			AppleId = argument.Payload.AppleId,
-			CreateByUserId = user.Id,
-			CreatedOnDateTime = now,
 			DisplayName = argument.DisplayName,
 			Email = argument.Email,
 			FirstName = argument.FirstName,
+			Id = user.Id,
 			IsPrivateRelay = argument.Payload.IsPrivateRelay,
-			LastName = argument.LastName,
-			UpdatedByUserId = user.Id,
-			UpdatedOnDate = now,
-			UserId = user.Id
-		};
+			LastName = argument.LastName
+		});
 
-		await _appleAuthRepository.AddAsync(appleAuth);
-		await _appleAuthRepository.SaveChangesAsync();
+		await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = user.Id });
+		user.Roles = [Roles.User];
 
 		return user;
+	}
+
+	private async Task<List<string>> ResolveRolesAsync(long userId)
+	{
+		var roles = (await _userRoleAdapter.FindAsync(x => x.UserId == userId)).Select(r => r.Role).ToList();
+
+		if (roles.Count == 0)
+		{
+			await _userRoleAdapter.InsertAsync(new UserRole { Role = Roles.User, UserId = userId });
+			roles = [Roles.User];
+		}
+
+		return roles;
 	}
 
 	#endregion

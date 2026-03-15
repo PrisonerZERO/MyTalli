@@ -1,8 +1,8 @@
 namespace My.Talli.Web.Services.Email;
 
+using Domain.Notifications.Emails;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Options;
-using My.Talli.Domain.Notifications.Emails;
 
 /// <summary>Handler</summary>
 public class ExceptionEmailHandler : IExceptionHandler

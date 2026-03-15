@@ -19,11 +19,18 @@
 
   <ItemGroup>
     <Folder Include="CommandsAndQueries\" />
+    <Folder Include="Mappers\" />
+    <Folder Include="Models\Entity\" />
+    <Folder Include="Models\Presentation\" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Domain.Data\Domain.Data.csproj" />
     <ProjectReference Include="..\Domain.Entities\Domain.Entities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.*" />
   </ItemGroup>
 
 </Project>

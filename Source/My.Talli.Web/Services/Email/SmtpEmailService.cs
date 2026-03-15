@@ -1,10 +1,10 @@
 namespace My.Talli.Web.Services.Email;
 
+using Domain.Notifications.Emails;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using My.Talli.Domain.Notifications.Emails;
 
 /// <summary>Service</summary>
 public class SmtpEmailService : IEmailService

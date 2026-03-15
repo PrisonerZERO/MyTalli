@@ -1,7 +1,7 @@
 namespace My.Talli.Domain.Data.EntityFramework;
 
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using My.Talli.Domain.Entities;
 
 /// <summary>Database Context</summary>
 public class TalliDbContext : DbContext
@@ -39,6 +39,8 @@ public class TalliDbContext : DbContext
     public DbSet<UserAuthenticationGoogle> UserAuthenticationGoogles { get; set; } = null!;
 
     public DbSet<UserAuthenticationMicrosoft> UserAuthenticationMicrosofts { get; set; } = null!;
+
+    public DbSet<UserRole> UserRoles { get; set; } = null!;
 
     #endregion
 

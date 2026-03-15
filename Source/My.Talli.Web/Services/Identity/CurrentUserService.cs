@@ -1,8 +1,8 @@
 namespace My.Talli.Web.Services.Identity;
 
-using My.Talli.Domain.Data.Interfaces;
+using Domain.Data.Interfaces;
 
-/// <summary>Identity</summary>
+/// <summary>Service</summary>
 public class CurrentUserService : ICurrentUserService
 {
     #region <Properties>

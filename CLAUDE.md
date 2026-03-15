@@ -12,6 +12,8 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Blazor Server** (Interactive Server render mode) — `blazor.web.js`
 - **Bootstrap** — bundled in `wwwroot/lib/bootstrap/`
 - **C#** — backend language
+- **AutoMapper** — object-object mapping (entity → model projection)
+- **ElmahCore** — error logging (SQL Server provider, dashboard at `/elmah`)
 - **Entity Framework Core** — ORM (SQL Server provider)
 - **Lamar** — IoC container (replaces default Microsoft DI)
 - **MailKit** — email sending (replaces obsolete `System.Net.Mail.SmtpClient`)
@@ -39,17 +41,23 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 
 - **No nulls** — provider-specific data lives in dedicated tables, not nullable columns on base tables
 - **Provider separation** — auth providers (Google, Apple, Microsoft) and billing providers (Stripe, etc.) each get their own table with a 1-to-1 relationship to the base table. Adding a new provider = new table, no schema changes to existing tables.
+- **Shared primary key for 1-to-1 tables** — 1-to-1 tables (e.g., `UserAuthenticationGoogle`, `BillingStripe`) use the parent's PK as their own PK. No separate identity column or FK column — `Id` serves as both PK and FK. Configured with `ValueGeneratedNever()` and `HasForeignKey<T>(e => e.Id)`. The C# property stays `Id` (so `IIdentifiable` and the repository chain work unchanged), but the **database column is renamed** via `HasColumnName()` to show data lineage: `UserId` for auth provider tables, `BillingId` for `BillingStripe`, `SubscriptionId` for `SubscriptionStripe`.
+- **Column ordering convention** — EF configurations use `HasColumnOrder(N)` on every property. Order: PK (0) → FK columns (alphabetical, starting at 1) → domain columns (alphabetical) → `IsActive` → audit columns (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`).
 - **Schema separation** — tables are organized into SQL schemas by functional domain (`auth`, `commerce`). `dbo` is reserved/empty.
 - **Orders as the backbone** — subscriptions, modules, and any future products all flow through the same Order → OrderItem pipeline. A subscription is just a product.
 - **No separate waitlist table** — the `auth.User` table doubles as the waitlist during Waitlist Mode. A signed-up user *is* a waitlist user until Dashboard Mode is enabled.
 - **No milestones table** — milestones are hardcoded in the Waitlist page UI, not stored in the database.
+- **No third-party table creation** — third-party packages (e.g., ElmahCore) must never create their own tables. All tables are created by our migrations so we own the schema, naming conventions, and migration history. If a package needs a table, create it in a migration SQL script with an `IF NOT EXISTS` guard.
+- **Audit field self-creation sentinel** — `CreateByUserId = 0` means "self-created" (the user created their own account). This avoids a second database round-trip to self-stamp the generated Id. Only applies to `auth.User` rows created during OAuth sign-up.
+- **Audit fields on insert** — on INSERT, only `CreateByUserId` and `CreatedOnDateTime` are populated. `UpdatedByUserId` and `UpdatedOnDate` remain `null` — nothing has been updated yet. They are only set on the first actual UPDATE.
 
 ### Schemas
 
 | Schema | Purpose | Tables |
 |--------|---------|--------|
-| `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft |
+| `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
+| `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
 ### Schema: `auth`
@@ -72,14 +80,21 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
   - Individual toggles default to `true` (opt-out model). Adding a new email type = new `bool` property with `true` default.
   - Welcome email is excluded — it's a one-time transactional email, not a recurring subscription.
 
-**`auth.UserAuthenticationGoogle`** — 1-to-1 with User
-- `Id` (PK), `UserId` (FK → User, unique), `GoogleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `AvatarUrl`, `EmailVerified`, `Locale`
+**`auth.UserAuthenticationGoogle`** — 1-to-1 with User (shared PK)
+- `UserId` (PK/FK → User, C# property: `Id`), `GoogleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `AvatarUrl`, `EmailVerified`, `Locale`
 
-**`auth.UserAuthenticationApple`** — 1-to-1 with User
-- `Id` (PK), `UserId` (FK → User, unique), `AppleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `IsPrivateRelay`
+**`auth.UserAuthenticationApple`** — 1-to-1 with User (shared PK)
+- `UserId` (PK/FK → User, C# property: `Id`), `AppleId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`, `IsPrivateRelay`
 
-**`auth.UserAuthenticationMicrosoft`** — 1-to-1 with User
-- `Id` (PK), `UserId` (FK → User, unique), `MicrosoftId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`
+**`auth.UserAuthenticationMicrosoft`** — 1-to-1 with User (shared PK)
+- `UserId` (PK/FK → User, C# property: `Id`), `MicrosoftId` (unique), `Email`, `DisplayName`, `FirstName`, `LastName`
+
+**`auth.UserRole`** — role assignments (1-to-many with User)
+- `Id` (PK), `UserId` (FK → User), `Role` (string, max 50)
+- Unique constraint on `(UserId, Role)` prevents duplicate assignments
+- Role values are code constants defined in `Domain/Framework/Roles.cs` (no lookup table)
+- Current roles: `Admin`, `User`
+- Self-healing: if a user signs in with no roles, the `User` role is automatically assigned
 
 ### Schema: `commerce`
 
@@ -103,15 +118,15 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - `ProductId` answers "which product does this subscription track?"
 - `OrderItemId` answers "which order supports this subscription?"
 
-**`commerce.SubscriptionStripe`** — Stripe-specific subscription data (1-to-1 with Subscription)
-- `Id` (PK), `SubscriptionId` (FK → Subscription, unique), `StripeCustomerId`, `StripeSubscriptionId`, `StripePriceId`
+**`commerce.SubscriptionStripe`** — Stripe-specific subscription data (1-to-1 with Subscription, shared PK)
+- `SubscriptionId` (PK/FK → Subscription, C# property: `Id`), `StripeCustomerId`, `StripeSubscriptionId`, `StripePriceId`
 
 **`commerce.Billing`** — a payment event tied to an order
 - `Id` (PK), `UserId` (FK → auth.User), `OrderId` (FK → Order), `Amount`, `Currency`, `Status`
 - `OrderId` answers "which billing satisfied this order?"
 
-**`commerce.BillingStripe`** — Stripe-specific payment data (1-to-1 with Billing)
-- `Id` (PK), `BillingId` (FK → Billing, unique), `StripePaymentIntentId`, `PaymentMethod`, `CardBrand`, `CardLastFour`
+**`commerce.BillingStripe`** — Stripe-specific payment data (1-to-1 with Billing, shared PK)
+- `BillingId` (PK/FK → Billing, C# property: `Id`), `StripePaymentIntentId`, `PaymentMethod`, `CardBrand`, `CardLastFour`
 
 ### Account Linking (Consolidation)
 
@@ -166,7 +181,7 @@ Migrations/
 
 **`GO` batch splitting:** SQL scripts may contain `GO` batch separators (required for DDL like `CREATE VIEW`, `CREATE PROCEDURE`). `DbMigrationBase` splits on `GO` lines and executes each batch as a separate `migrationBuilder.Sql()` call, since EF Core does not natively support `GO`.
 
-**Note:** .NET prepends `_` to resource names for folders starting with a digit (`01_0` → `_01_0`). `DbMigrationBase` handles this automatically.
+**Note:** .NET prepends `_` to resource names for folders starting with a digit (`01_0` → `_01_0`) and replaces hyphens with underscores (`Post-Deployment Scripts` → `Post_Deployment_Scripts`). `DbMigrationBase` handles both transformations automatically.
 
 ## Solution Structure
 
@@ -229,16 +244,35 @@ My.Talli/
     │   ├── .extensions/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
     │   ├── Framework/
-    │   │   └── Assert.cs                      # Static validation utility (precondition checks)
+    │   │   ├── Assert.cs                      # Static validation utility (precondition checks)
+    │   │   └── Roles.cs                       # Static role name constants (Admin, User)
     │   ├── Components/
     │   │   └── JsonSerializers/
     │   │       └── User/
     │   │           └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
+    │   ├── Mappers/
+    │   │   └── MappingProfile.cs              # AutoMapper profile (entity → model mappings)
     │   ├── Models/
     │   │   ├── ActionResponseOf.cs            # Generic response wrapper (ValidationResult + Payload)
     │   │   ├── EmailPreferences.cs            # Email opt-in/out preferences model
     │   │   ├── UserPreferences.cs             # Root user preferences model (wraps EmailPreferences)
-    │   │   └── ValidationResult.cs            # Abstract base (IsValid, ValidationSummary, WarningSummary)
+    │   │   ├── ValidationResult.cs            # Abstract base (IsValid, ValidationSummary, WarningSummary)
+    │   │   ├── Entity/                        # 1-to-1 entity representations (no audit fields, no nav properties)
+    │   │   │   ├── Billing.cs
+    │   │   │   ├── BillingStripe.cs
+    │   │   │   ├── Order.cs
+    │   │   │   ├── OrderItem.cs
+    │   │   │   ├── Product.cs
+    │   │   │   ├── ProductType.cs
+    │   │   │   ├── ProductVendor.cs
+    │   │   │   ├── Subscription.cs
+    │   │   │   ├── SubscriptionStripe.cs
+    │   │   │   ├── User.cs
+    │   │   │   ├── UserAuthenticationApple.cs
+    │   │   │   ├── UserAuthenticationGoogle.cs
+    │   │   │   ├── UserAuthenticationMicrosoft.cs
+    │   │   │   └── UserRole.cs
+    │   │   └── Presentation/                  # Aggregate/detail view models (future)
     │   └── Notifications/
     │       └── Emails/
     │           ├── EmailNotification.cs               # Abstract base (FinalizeEmail → SmtpNotification)
@@ -269,6 +303,8 @@ My.Talli/
     │   ├── Migrations/                    # EF Core code-first migrations
     │   │   ├── DbMigrationBase.cs           # Abstract migration base (embedded SQL script execution)
     │   │   ├── 01_0/                        # SQL scripts for InitialCreate migration
+    │   │   │   ├── Post-Deployment Scripts/
+    │   │   │   │   └── 00.components.ELMAH_Error.sql
     │   │   │   └── Views/
     │   │   │       └── 00.auth.vAuthenticatedUser.sql
     │   ├── Repositories/
@@ -281,7 +317,8 @@ My.Talli/
     │       │   ├── UserConfiguration.cs
     │       │   ├── UserAuthenticationAppleConfiguration.cs
     │       │   ├── UserAuthenticationGoogleConfiguration.cs
-    │       │   └── UserAuthenticationMicrosoftConfiguration.cs
+    │       │   ├── UserAuthenticationMicrosoftConfiguration.cs
+    │       │   └── UserRoleConfiguration.cs
     │       └── Commerce/                  # Entity configs for commerce schema
     │           ├── BillingConfiguration.cs
     │           ├── BillingStripeConfiguration.cs
@@ -309,7 +346,8 @@ My.Talli/
     │   │   ├── User.cs
     │   │   ├── UserAuthenticationApple.cs
     │   │   ├── UserAuthenticationGoogle.cs
-    │   │   └── UserAuthenticationMicrosoft.cs
+    │   │   ├── UserAuthenticationMicrosoft.cs
+    │   │   └── UserRole.cs
     │   └── Interfaces/
     │       ├── IAuditable.cs
     │       ├── IAuditableIdentifiable.cs
@@ -561,6 +599,14 @@ Deploy folder also contains:
 - **Logout endpoint:** `/api/auth/logout` — clears cookie, redirects to `/?signed-out&name={name}`
 - **Sign-out toast:** Landing page detects `?signed-out` query param and shows a personalized auto-dismissing toast ("You've been signed out, {name}. See you next time!"), then strips the query param from the URL via `history.replaceState`
 - **Waitlist route:** `/waitlist` — launch progress tracker with milestone timeline (not a dead-end confirmation)
+
+## Authorization
+
+- **Role-based** — roles are stored in `auth.UserRole` (junction table, 1-to-many with User) and added as `ClaimTypes.Role` claims during OAuth sign-in
+- **Role constants** — defined in `Domain/Framework/Roles.cs` (no database lookup table). Current roles: `Admin`, `User`
+- **Default role** — every new user gets the `User` role on sign-up. Existing users with no roles are self-healed on next sign-in.
+- **Admin assignment** — no UI yet. Assign via direct database insert into `auth.UserRole`.
+- **Claims flow** — domain sign-in handlers query `UserRole`, populate `User.Roles` on the model → web auth handlers map each role to a `ClaimTypes.Role` claim on the identity
 
 ## App Modes
 
@@ -815,6 +861,26 @@ using Domain.Framework;
 using My.Talli.Domain.Framework;
 ```
 
+### Alphabetical Using Order
+
+- All `using` statements must be listed in **alphabetical order**.
+- Regular (non-alias) usings are sorted alphabetically among themselves.
+- Alias usings are sorted alphabetically among themselves (in their own group, separated by a blank line).
+
+```csharp
+/* Correct */
+using Domain.Data.Interfaces;
+using Domain.Entities.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+
+/* Wrong — not alphabetical */
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Domain.Data.Interfaces;
+using Domain.Entities.Interfaces;
+```
+
 ### Uppercase Using Aliases
 
 - When creating `using` aliases in C#, the alias name must be **ALL CAPS**.
@@ -823,13 +889,13 @@ using My.Talli.Domain.Framework;
 
 ```csharp
 /* Correct */
+using Domain.Framework;
 using System.Text.Json;
-using My.Talli.Domain.Framework;
 
-using MODELS = Domain.Models;
 using ENTITIES = Domain.Entities;
+using MODELS = Domain.Models;
 
-/* Wrong — alias mixed in with normal usings, not capitalized, fully qualified */
+/* Wrong — alias mixed in with normal usings, not capitalized, not alphabetical */
 using System.Text.Json;
 using Models = My.Talli.Domain.Models;
 using My.Talli.Domain.Framework;
@@ -855,6 +921,19 @@ using My.Talli.Domain.Framework;
   - `Components/Layout/MainLayout.razor` → `ViewModels/Layout/MainLayoutViewModel.cs`
   - `Components/Shared/BrandHeader.razor` → `ViewModels/Shared/BrandHeaderViewModel.cs`
 - Namespace follows the folder: `My.Talli.Web.ViewModels.Pages`, `My.Talli.Web.ViewModels.Layout`, `My.Talli.Web.ViewModels.Shared`, etc.
+
+### Entity Models
+
+- **Never expose entities directly** to the presentation layer. Always map to a model class via AutoMapper.
+- **Never expose audit fields** (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`) or `IsActive` in models.
+- **Never expose navigation properties** in models — use FK IDs instead.
+- **`Models/Entity/`** — 1-to-1 representations of an entity (same class name, no suffix). Disambiguate from entities via using aliases (`ENTITIES`, `MODELS`).
+- **`Models/Presentation/`** — aggregate or detail representations (custom shapes for specific UI needs).
+- **No "Model" suffix** — model classes use the same name as their entity. The `Models` namespace already disambiguates.
+- **Namespace:** All models use `My.Talli.Domain.Models` regardless of subfolder (`Entity/` and `Presentation/` are organizational only).
+- **MappingProfile** (`Domain/Mappers/MappingProfile.cs`) — all `CreateMap<Entity, Model>()` calls live here.
+- **RepositoryAdapterAsync** (`Domain/Repositories/RepositoryAdapterAsync.cs`) — the only gateway to the data layer. Never use `IAuditableRepositoryAsync<TEntity>` or `GenericAuditableRepositoryAsync<TEntity>` directly in presentation-layer code.
+- **Handlers must not touch audit fields** — no handler, service, or any code in or above the Domain layer should set `CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, or `UpdatedOnDate`. Audit field stamping is solely the job of `AuditResolver`. Handlers work with models (which don't have audit fields) via `RepositoryAdapterAsync`.
 
 ### C# Region Convention
 

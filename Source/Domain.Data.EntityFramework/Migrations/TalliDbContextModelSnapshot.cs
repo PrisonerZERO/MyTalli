@@ -26,43 +26,54 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("money");
+                        .HasColumnType("money")
+                        .HasColumnOrder(3);
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(7);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)");
+                        .HasColumnType("nvarchar(3)")
+                        .HasColumnOrder(4);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(6);
 
                     b.Property<long>("OrderId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnOrder(5);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(9);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(10);
 
                     b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(2);
 
                     b.HasKey("Id")
                         .HasName("PK_Billing");
@@ -79,55 +90,56 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
             modelBuilder.Entity("My.Talli.Domain.Entities.BillingStripe", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("BillingId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("BillingId")
+                        .HasColumnOrder(0);
 
                     b.Property<string>("CardBrand")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnOrder(1);
 
                     b.Property<string>("CardLastFour")
                         .IsRequired()
                         .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
+                        .HasColumnType("nvarchar(4)")
+                        .HasColumnOrder(2);
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(6);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(5);
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(3);
 
                     b.Property<string>("StripePaymentIntentId")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnOrder(4);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(9);
 
                     b.HasKey("Id")
                         .HasName("PK_BillingStripe");
-
-                    b.HasIndex("BillingId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_BillingStripe_BillingId");
 
                     b.ToTable("BillingStripe", "commerce");
                 });
@@ -136,33 +148,42 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(5);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(6);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(4);
 
                     b.Property<DateTime>("OrderDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(2);
 
                     b.Property<decimal>("TaxCharged")
-                        .HasColumnType("money");
+                        .HasColumnType("money")
+                        .HasColumnOrder(3);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(7);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
 
                     b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
 
                     b.HasKey("Id")
                         .HasName("PK_Order");
@@ -177,36 +198,46 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(6);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(5);
 
                     b.Property<long>("OrderId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
 
                     b.Property<long>("ProductId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(2);
 
                     b.Property<decimal>("ProductPriceCharged")
-                        .HasColumnType("money");
+                        .HasColumnType("money")
+                        .HasColumnOrder(3);
 
                     b.Property<int>("ProductQuantity")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnOrder(4);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(9);
 
                     b.HasKey("Id")
                         .HasName("PK_OrderItem");
@@ -224,38 +255,48 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(6);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(5);
 
                     b.Property<string>("ProductName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(3);
 
                     b.Property<long>("ProductTypeId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(9);
 
                     b.Property<long>("VendorId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(2);
 
                     b.Property<decimal>("VendorPrice")
-                        .HasColumnType("money");
+                        .HasColumnType("money")
+                        .HasColumnOrder(4);
 
                     b.HasKey("Id")
                         .HasName("PK_Product");
@@ -273,29 +314,36 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(3);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(4);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(2);
 
                     b.Property<string>("ProductTypeName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(1);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(5);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(6);
 
                     b.HasKey("Id")
                         .HasName("PK_ProductType");
@@ -307,29 +355,36 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(3);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(4);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(2);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(5);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(6);
 
                     b.Property<string>("VendorName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(1);
 
                     b.HasKey("Id")
                         .HasName("PK_ProductVendor");
@@ -341,50 +396,64 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CancelledDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(4);
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(10);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(11);
 
                     b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(5);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(9);
 
                     b.Property<long>("OrderItemId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
 
                     b.Property<long>("ProductId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(2);
 
                     b.Property<DateTime>("RenewalDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(6);
 
                     b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnOrder(8);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(12);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(13);
 
                     b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(3);
 
                     b.HasKey("Id")
                         .HasName("PK_Subscription");
@@ -404,50 +473,50 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
             modelBuilder.Entity("My.Talli.Domain.Entities.SubscriptionStripe", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("bigint")
+                        .HasColumnName("SubscriptionId")
+                        .HasColumnOrder(0);
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(5);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(6);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(4);
 
                     b.Property<string>("StripeCustomerId")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnOrder(1);
 
                     b.Property<string>("StripePriceId")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnOrder(2);
 
                     b.Property<string>("StripeSubscriptionId")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<long>("SubscriptionId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnOrder(3);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(7);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
 
                     b.HasKey("Id")
                         .HasName("PK_SubscriptionStripe");
-
-                    b.HasIndex("SubscriptionId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_SubscriptionStripe_SubscriptionId");
 
                     b.ToTable("SubscriptionStripe", "commerce");
                 });
@@ -456,56 +525,69 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(9);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(10);
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(1);
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(2);
 
                     b.Property<string>("InitialProvider")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnOrder(3);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime>("LastLoginAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(4);
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(5);
 
                     b.Property<string>("PreferredProvider")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnOrder(6);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(11);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(12);
 
                     b.Property<string>("UserPreferences")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(7);
 
                     b.HasKey("Id")
                         .HasName("PK_User");
@@ -516,56 +598,63 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
             modelBuilder.Entity("My.Talli.Domain.Entities.UserAuthenticationApple", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("bigint")
+                        .HasColumnName("UserId")
+                        .HasColumnOrder(0);
 
                     b.Property<string>("AppleId")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnOrder(1);
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(9);
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(2);
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnOrder(3);
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(4);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(7);
 
                     b.Property<bool>("IsPrivateRelay")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(5);
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(6);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(10);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(11);
 
                     b.HasKey("Id")
                         .HasName("PK_UserAuthApple");
@@ -574,76 +663,81 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .IsUnique()
                         .HasDatabaseName("UQ_UserAuthApple_AppleId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_UserAuthApple_UserId");
-
                     b.ToTable("UserAuthenticationApple", "auth");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.UserAuthenticationGoogle", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("bigint")
+                        .HasColumnName("UserId")
+                        .HasColumnOrder(0);
 
                     b.Property<string>("AvatarUrl")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnOrder(1);
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(10);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(11);
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(2);
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnOrder(3);
 
                     b.Property<bool>("EmailVerified")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(4);
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(5);
 
                     b.Property<string>("GoogleId")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnOrder(6);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(9);
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(7);
 
                     b.Property<string>("Locale")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnOrder(8);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(12);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(13);
 
                     b.HasKey("Id")
                         .HasName("PK_UserAuthGoogle");
@@ -652,63 +746,65 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .IsUnique()
                         .HasDatabaseName("UQ_UserAuthGoogle_GoogleId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_UserAuthGoogle_UserId");
-
                     b.ToTable("UserAuthenticationGoogle", "auth");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.UserAuthenticationMicrosoft", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("bigint")
+                        .HasColumnName("UserId")
+                        .HasColumnOrder(0);
 
                     b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(7);
 
                     b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(1);
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnOrder(2);
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(3);
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnOrder(6);
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(4);
 
                     b.Property<string>("MicrosoftId")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnOrder(5);
 
                     b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(9);
 
                     b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(10);
 
                     b.HasKey("Id")
                         .HasName("PK_UserAuthMicrosoft");
@@ -717,11 +813,59 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .IsUnique()
                         .HasDatabaseName("UQ_UserAuthMicrosoft_MicrosoftId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_UserAuthMicrosoft_UserId");
-
                     b.ToTable("UserAuthenticationMicrosoft", "auth");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.UserRole", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(4);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(2);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
+
+                    b.HasKey("Id")
+                        .HasName("PK_UserRole");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_UserRole_UserId");
+
+                    b.HasIndex("UserId", "Role")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_UserRole_UserId_Role");
+
+                    b.ToTable("UserRole", "auth");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.Billing", b =>
@@ -749,7 +893,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.HasOne("My.Talli.Domain.Entities.Billing", "Billing")
                         .WithOne()
-                        .HasForeignKey("My.Talli.Domain.Entities.BillingStripe", "BillingId")
+                        .HasForeignKey("My.Talli.Domain.Entities.BillingStripe", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_BillingStripe_Billing");
@@ -845,7 +989,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.HasOne("My.Talli.Domain.Entities.Subscription", "Subscription")
                         .WithOne()
-                        .HasForeignKey("My.Talli.Domain.Entities.SubscriptionStripe", "SubscriptionId")
+                        .HasForeignKey("My.Talli.Domain.Entities.SubscriptionStripe", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_SubscriptionStripe_Subscription");
@@ -857,7 +1001,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithOne()
-                        .HasForeignKey("My.Talli.Domain.Entities.UserAuthenticationApple", "UserId")
+                        .HasForeignKey("My.Talli.Domain.Entities.UserAuthenticationApple", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserAuthApple_User");
@@ -869,7 +1013,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithOne()
-                        .HasForeignKey("My.Talli.Domain.Entities.UserAuthenticationGoogle", "UserId")
+                        .HasForeignKey("My.Talli.Domain.Entities.UserAuthenticationGoogle", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserAuthGoogle_User");
@@ -881,10 +1025,22 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                 {
                     b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithOne()
-                        .HasForeignKey("My.Talli.Domain.Entities.UserAuthenticationMicrosoft", "UserId")
+                        .HasForeignKey("My.Talli.Domain.Entities.UserAuthenticationMicrosoft", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserAuthMicrosoft_User");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.UserRole", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_UserRole_User");
 
                     b.Navigation("User");
                 });

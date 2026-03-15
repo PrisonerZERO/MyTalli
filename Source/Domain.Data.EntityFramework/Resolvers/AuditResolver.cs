@@ -1,7 +1,7 @@
 namespace My.Talli.Domain.Data.EntityFramework.Resolvers;
 
-using My.Talli.Domain.Data.Interfaces;
-using My.Talli.Domain.Entities.Interfaces;
+using Domain.Data.Interfaces;
+using Domain.Entities.Interfaces;
 
 /// <summary>Resolver</summary>
 public class AuditResolver<TEntity> : IAuditResolver<TEntity> where TEntity : class, IAuditableIdentifiable
@@ -27,18 +27,18 @@ public class AuditResolver<TEntity> : IAuditResolver<TEntity> where TEntity : cl
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        if (!CurrentUserService.IsAuthenticated || !CurrentUserService.UserId.HasValue)
+        if (updating && (!CurrentUserService.IsAuthenticated || !CurrentUserService.UserId.HasValue))
             throw new InvalidOperationException("Cannot resolve audit fields — no authenticated user.");
 
-        var userId = CurrentUserService.UserId.Value;
+        var userId = CurrentUserService.UserId ?? 0;
         var timestamp = DateTime.UtcNow;
 
         if (!updating)
         {
             entity.CreateByUserId = userId;
             entity.CreatedOnDateTime = timestamp;
-            entity.UpdatedByUserId = userId;
-            entity.UpdatedOnDate = timestamp;
+            entity.UpdatedByUserId = null;
+            entity.UpdatedOnDate = null;
             return;
         }
 

@@ -14,12 +14,17 @@ using My.Talli.Domain.Data.EntityFramework.Repositories;
 using My.Talli.Domain.Data.EntityFramework.Resolvers;
 using My.Talli.Domain.Data.Interfaces;
 using My.Talli.Domain.Handlers.Authentication;
+using AutoMapper;
+using My.Talli.Domain.Mappers;
 using My.Talli.Domain.Notifications.Emails;
+using My.Talli.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using My.Talli.Web.Services.Email;
 using My.Talli.Web.Services.Identity;
+using ElmahCore.Sql;
+using ElmahCore.Mvc;
 
-using AppleAuthHandler = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
+using APPLEAUTHHANDLER = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,9 +39,16 @@ builder.Services.AddDbContext<TalliDbContext>(options =>
 
 // ------------
 // REPOSITORIES
+builder.Services.AddSingleton<IMapper>(sp =>
+{
+    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+    var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), loggerFactory);
+    return config.CreateMapper();
+});
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped(typeof(IAuditResolver<>), typeof(AuditResolver<>));
 builder.Services.AddScoped(typeof(IAuditableRepositoryAsync<>), typeof(GenericAuditableRepositoryAsync<>));
+builder.Services.AddScoped(typeof(RepositoryAdapterAsync<,>));
 builder.Services.AddScoped<UserPreferencesJsonSerializer>();
 builder.Services.AddScoped<AppleSignInHandler>();
 builder.Services.AddScoped<GoogleSignInHandler>();
@@ -100,12 +112,12 @@ builder.Services.AddAuthentication(options =>
         };
         options.Events.OnCreatingTicket = async context =>
         {
-            var handler = context.HttpContext.RequestServices.GetRequiredService<AppleAuthHandler>();
+            var handler = context.HttpContext.RequestServices.GetRequiredService<APPLEAUTHHANDLER>();
             await handler.HandleTicketAsync(context);
         };
     });
 
-builder.Services.AddScoped<AppleAuthHandler>();
+builder.Services.AddScoped<APPLEAUTHHANDLER>();
 builder.Services.AddScoped<GoogleAuthenticationHandler>();
 builder.Services.AddScoped<MicrosoftAuthenticationHandler>();
 
@@ -120,6 +132,15 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 builder.Services.AddExceptionHandler<ExceptionEmailHandler>();
 
+// -----
+// ELMAH
+builder.Services.AddElmah<SqlErrorLog>(options =>
+{
+    options.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+    options.SqlServerDatabaseSchemaName = "components";
+    options.OnPermissionCheck = context => context.User.Identity?.IsAuthenticated == true;
+});
+
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
@@ -130,6 +151,7 @@ var app = builder.Build();
 // HTTP REQUEST PIPELINE
 app.UseExceptionHandler("/Error", createScopeForErrors: true);
 app.UseStatusCodePagesWithReExecute("/Error/{0}");
+app.UseElmah();
 
 if (!app.Environment.IsDevelopment())
 {

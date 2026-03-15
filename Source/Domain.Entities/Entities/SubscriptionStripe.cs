@@ -13,7 +13,5 @@ public class SubscriptionStripe : DefaultEntity
 
 	public Subscription Subscription { get; set; } = null!;
 
-	public long SubscriptionId { get; set; }
-
 	#endregion
 }

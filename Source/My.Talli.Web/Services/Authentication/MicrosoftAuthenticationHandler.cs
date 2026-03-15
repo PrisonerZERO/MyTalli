@@ -1,8 +1,8 @@
 namespace My.Talli.Web.Services.Authentication;
 
-using System.Security.Claims;
+using Domain.Handlers.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
-using My.Talli.Domain.Handlers.Authentication;
+using System.Security.Claims;
 
 /// <summary>Handler</summary>
 public class MicrosoftAuthenticationHandler
@@ -44,6 +44,9 @@ public class MicrosoftAuthenticationHandler
 
         var identity = (ClaimsIdentity)principal.Identity!;
         identity.AddClaim(new Claim("UserId", user.Id.ToString()));
+
+        foreach (var role in user.Roles)
+            identity.AddClaim(new Claim(ClaimTypes.Role, role));
     }
 
     #endregion

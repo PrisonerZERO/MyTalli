@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Components;
-
 namespace My.Talli.Web.ViewModels.Pages;
+
+using Microsoft.AspNetCore.Components;
 
 /// <summary>View Model</summary>
 public class DashboardViewModel : ComponentBase
