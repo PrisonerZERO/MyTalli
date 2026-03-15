@@ -492,3 +492,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Production migration scripts (generated, may contain sensitive connection info)
+migrations/
