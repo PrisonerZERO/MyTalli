@@ -14,7 +14,10 @@ using My.Talli.Domain.Data.EntityFramework.Repositories;
 using My.Talli.Domain.Data.EntityFramework.Resolvers;
 using My.Talli.Domain.Data.Interfaces;
 using My.Talli.Domain.Handlers.Authentication;
+using AutoMapper;
+using My.Talli.Domain.Mappers;
 using My.Talli.Domain.Notifications.Emails;
+using My.Talli.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using My.Talli.Web.Services.Email;
 using My.Talli.Web.Services.Identity;
@@ -36,9 +39,16 @@ builder.Services.AddDbContext<TalliDbContext>(options =>
 
 // ------------
 // REPOSITORIES
+builder.Services.AddSingleton<IMapper>(sp =>
+{
+    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+    var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), loggerFactory);
+    return config.CreateMapper();
+});
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped(typeof(IAuditResolver<>), typeof(AuditResolver<>));
 builder.Services.AddScoped(typeof(IAuditableRepositoryAsync<>), typeof(GenericAuditableRepositoryAsync<>));
+builder.Services.AddScoped(typeof(RepositoryAdapterAsync<,>));
 builder.Services.AddScoped<UserPreferencesJsonSerializer>();
 builder.Services.AddScoped<AppleSignInHandler>();
 builder.Services.AddScoped<GoogleSignInHandler>();

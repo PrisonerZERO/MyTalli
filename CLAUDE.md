@@ -891,6 +891,7 @@ using My.Talli.Domain.Framework;
 - **Namespace:** All models use `My.Talli.Domain.Models` regardless of subfolder (`Entity/` and `Presentation/` are organizational only).
 - **MappingProfile** (`Domain/Mappers/MappingProfile.cs`) — all `CreateMap<Entity, Model>()` calls live here.
 - **RepositoryAdapterAsync** (`Domain/Repositories/RepositoryAdapterAsync.cs`) — the only gateway to the data layer. Never use `IAuditableRepositoryAsync<TEntity>` or `GenericAuditableRepositoryAsync<TEntity>` directly in presentation-layer code.
+- **Handlers must not touch audit fields** — no handler, service, or any code in or above the Domain layer should set `CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, or `UpdatedOnDate`. Audit field stamping is solely the job of `AuditResolver`. Handlers work with models (which don't have audit fields) via `RepositoryAdapterAsync`.
 
 ### C# Region Convention
 

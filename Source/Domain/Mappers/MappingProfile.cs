@@ -12,19 +12,19 @@ public class MappingProfile : Profile
 
     public MappingProfile()
     {
-        CreateMap<ENTITIES.Billing, MODELS.Billing>();
-        CreateMap<ENTITIES.BillingStripe, MODELS.BillingStripe>();
-        CreateMap<ENTITIES.Order, MODELS.Order>();
-        CreateMap<ENTITIES.OrderItem, MODELS.OrderItem>();
-        CreateMap<ENTITIES.Product, MODELS.Product>();
-        CreateMap<ENTITIES.ProductType, MODELS.ProductType>();
-        CreateMap<ENTITIES.ProductVendor, MODELS.ProductVendor>();
-        CreateMap<ENTITIES.Subscription, MODELS.Subscription>();
-        CreateMap<ENTITIES.SubscriptionStripe, MODELS.SubscriptionStripe>();
-        CreateMap<ENTITIES.User, MODELS.User>();
-        CreateMap<ENTITIES.UserAuthenticationApple, MODELS.UserAuthenticationApple>();
-        CreateMap<ENTITIES.UserAuthenticationGoogle, MODELS.UserAuthenticationGoogle>();
-        CreateMap<ENTITIES.UserAuthenticationMicrosoft, MODELS.UserAuthenticationMicrosoft>();
+        CreateMap<ENTITIES.Billing, MODELS.Billing>().ReverseMap();
+        CreateMap<ENTITIES.BillingStripe, MODELS.BillingStripe>().ReverseMap();
+        CreateMap<ENTITIES.Order, MODELS.Order>().ReverseMap();
+        CreateMap<ENTITIES.OrderItem, MODELS.OrderItem>().ReverseMap();
+        CreateMap<ENTITIES.Product, MODELS.Product>().ReverseMap();
+        CreateMap<ENTITIES.ProductType, MODELS.ProductType>().ReverseMap();
+        CreateMap<ENTITIES.ProductVendor, MODELS.ProductVendor>().ReverseMap();
+        CreateMap<ENTITIES.Subscription, MODELS.Subscription>().ReverseMap();
+        CreateMap<ENTITIES.SubscriptionStripe, MODELS.SubscriptionStripe>().ReverseMap();
+        CreateMap<ENTITIES.User, MODELS.User>().ReverseMap();
+        CreateMap<ENTITIES.UserAuthenticationApple, MODELS.UserAuthenticationApple>().ReverseMap();
+        CreateMap<ENTITIES.UserAuthenticationGoogle, MODELS.UserAuthenticationGoogle>().ReverseMap();
+        CreateMap<ENTITIES.UserAuthenticationMicrosoft, MODELS.UserAuthenticationMicrosoft>().ReverseMap();
     }
 
     #endregion

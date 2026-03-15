@@ -27,10 +27,10 @@ public class AuditResolver<TEntity> : IAuditResolver<TEntity> where TEntity : cl
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        if (!CurrentUserService.IsAuthenticated || !CurrentUserService.UserId.HasValue)
+        if (updating && (!CurrentUserService.IsAuthenticated || !CurrentUserService.UserId.HasValue))
             throw new InvalidOperationException("Cannot resolve audit fields — no authenticated user.");
 
-        var userId = CurrentUserService.UserId.Value;
+        var userId = CurrentUserService.UserId ?? 0;
         var timestamp = DateTime.UtcNow;
 
         if (!updating)

@@ -2,17 +2,19 @@ namespace My.Talli.Domain.Handlers.Authentication;
 
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
-using Domain.Models;
+using Domain.Repositories;
 
 using ENTITIES = Domain.Entities;
+using MODELS = Domain.Models;
 
 /// <summary>Handler</summary>
 public class AppleSignInHandler
 {
 	#region <Variables>
 
-	private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
-	private readonly IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> _appleAuthRepository;
+	private readonly ICurrentUserService _currentUserService;
+	private readonly RepositoryAdapterAsync<MODELS.UserAuthenticationApple, ENTITIES.UserAuthenticationApple> _appleAuthAdapter;
+	private readonly RepositoryAdapterAsync<MODELS.User, ENTITIES.User> _userAdapter;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
 	#endregion
@@ -20,72 +22,62 @@ public class AppleSignInHandler
 	#region <Constructors>
 
 	public AppleSignInHandler(
-		IAuditableRepositoryAsync<ENTITIES.User> userRepository,
-		IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> appleAuthRepository,
+		ICurrentUserService currentUserService,
+		RepositoryAdapterAsync<MODELS.UserAuthenticationApple, ENTITIES.UserAuthenticationApple> appleAuthAdapter,
+		RepositoryAdapterAsync<MODELS.User, ENTITIES.User> userAdapter,
 		UserPreferencesJsonSerializer preferencesSerializer)
 	{
-		_appleAuthRepository = appleAuthRepository;
+		_appleAuthAdapter = appleAuthAdapter;
+		_currentUserService = currentUserService;
 		_preferencesSerializer = preferencesSerializer;
-		_userRepository = userRepository;
+		_userAdapter = userAdapter;
 	}
 
 	#endregion
 
 	#region <Methods>
 
-	public async Task<ENTITIES.User> HandleAsync(SignInArgumentOf<AppleSignInPayload> argument)
+	public async Task<MODELS.User> HandleAsync(SignInArgumentOf<AppleSignInPayload> argument)
 	{
-		var existing = (await _appleAuthRepository.FindAsync(x => x.AppleId == argument.Payload.AppleId)).FirstOrDefault();
+		var existing = (await _appleAuthAdapter.FindAsync(x => x.AppleId == argument.Payload.AppleId)).FirstOrDefault();
 
 		if (existing is not null)
 		{
-			var user = await _userRepository.GetByIdAsync(existing.UserId);
-			user!.LastLoginAt = DateTime.UtcNow;
-			user.UpdatedByUserId = user.Id;
-			user.UpdatedOnDate = DateTime.UtcNow;
-			await _userRepository.SaveChangesAsync();
-			return user;
+			var user = (await _userAdapter.GetByIdAsync(existing.UserId))!;
+			user.LastLoginAt = DateTime.UtcNow;
+			return await _userAdapter.UpdateAsync(user);
 		}
 
 		return await CreateUserAsync(argument);
 	}
 
-	private async Task<ENTITIES.User> CreateUserAsync(SignInArgumentOf<AppleSignInPayload> argument)
+	private async Task<MODELS.User> CreateUserAsync(SignInArgumentOf<AppleSignInPayload> argument)
 	{
-		var now = DateTime.UtcNow;
-		var defaultPreferences = _preferencesSerializer.Serialize(new UserPreferences());
+		var defaultPreferences = _preferencesSerializer.Serialize(new MODELS.UserPreferences());
 
-		var user = new ENTITIES.User
+		var user = await _userAdapter.InsertAsync(new MODELS.User
 		{
-			CreateByUserId = 0,
-			CreatedOnDateTime = now,
 			DisplayName = argument.DisplayName,
 			FirstName = argument.FirstName,
 			InitialProvider = "Apple",
-			LastLoginAt = now,
+			LastLoginAt = DateTime.UtcNow,
 			LastName = argument.LastName,
 			PreferredProvider = "Apple",
 			UserPreferences = defaultPreferences
-		};
+		});
 
-		await _userRepository.AddAsync(user);
-		await _userRepository.SaveChangesAsync();
+		_currentUserService.Set(user.Id, user.DisplayName);
 
-		var appleAuth = new ENTITIES.UserAuthenticationApple
+		await _appleAuthAdapter.InsertAsync(new MODELS.UserAuthenticationApple
 		{
 			AppleId = argument.Payload.AppleId,
-			CreateByUserId = user.Id,
-			CreatedOnDateTime = now,
 			DisplayName = argument.DisplayName,
 			Email = argument.Email,
 			FirstName = argument.FirstName,
 			IsPrivateRelay = argument.Payload.IsPrivateRelay,
 			LastName = argument.LastName,
 			UserId = user.Id
-		};
-
-		await _appleAuthRepository.AddAsync(appleAuth);
-		await _appleAuthRepository.SaveChangesAsync();
+		});
 
 		return user;
 	}
