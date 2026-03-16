@@ -606,6 +606,13 @@ dotnet run --project Source/My.Talli.Web
 - HTTPS: `https://localhost:7012`
 - HTTP: `http://localhost:5034`
 
+### Local Secrets
+
+- **All local dev secrets live in `appsettings.Development.json`** — OAuth credentials, ACS connection strings, email settings, unsubscribe token keys, etc.
+- **Do not use `dotnet user-secrets`** — keep one source of truth for local config.
+- **Azure (production)** uses App Service Configuration (environment variables) for the same values.
+- `appsettings.Development.json` is **not git-ignored** — this is acceptable for a side project with a single developer. If collaborators are added, secrets should move to `dotnet user-secrets` or a `.env` file.
+
 ## Infrastructure
 
 - **Domain registrar:** GoDaddy — `mytalli.com`
@@ -749,7 +756,7 @@ Unhandled exceptions trigger email notifications via .NET's `IExceptionHandler` 
 
 **ACS settings** are bound from `appsettings.json` → `AzureCommunicationServices` section:
 
-- `ConnectionString` — ACS connection string (stored in `dotnet user-secrets` for dev, Azure Key Vault for prod)
+- `ConnectionString` — ACS connection string (in `appsettings.Development.json` for dev, App Service Configuration for prod)
 
 **Email settings** are bound from `appsettings.json` → `Email` section via `IOptions<EmailSettings>`:
 
