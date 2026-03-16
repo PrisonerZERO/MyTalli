@@ -609,15 +609,28 @@ dotnet run --project Source/My.Talli.Web
 ## Infrastructure
 
 - **Domain registrar:** GoDaddy — `mytalli.com`
-- **Hosting:** Azure Static Web Apps (Free tier) — "coming soon" landing page
-- **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned)
-- **Auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
+- **Landing page hosting:** Azure Static Web Apps (Free tier) — "coming soon" landing page
+- **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned on SWA)
+- **SWA auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
 - **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
 - **Google Search Console:** Property `https://www.mytalli.com/` verified via GA4 (2026-03-07). Sitemap submitted. Dashboard at [search.google.com/search-console](https://search.google.com/search-console)
-- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`, and `emails/` (hosted PNG assets for email templates)
+- **SWA Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`, and `emails/` (hosted PNG assets for email templates)
 - **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys
 - **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
 - **Migration note:** The `deploy/` and `favicon-concepts/` folders are for the current static HTML landing page era. When the Blazor app is deployed, static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) will move into `wwwroot/` and the `deploy/` folder will no longer be needed.
+
+### Azure App Service (Blazor Server)
+
+- **App Service Plan:** `mytalli-centralus-asp` (Linux, Basic B1, Central US) — ~$13/mo
+- **App Service:** `mytalli-web` (Linux, .NET 10.0)
+- **Default domain:** `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`
+- **Resource Group:** `MyTalli-CentralUS-ResourceGroup`
+- **Deployment:** Kudu ZIP deploy via curl to `https://<app>.scm.azurewebsites.net/api/zipdeploy` (basic auth enabled on SCM endpoint)
+- **Publish command:** `dotnet publish Source/My.Talli.Web -c Release -o ./publish` → zip `publish/` → deploy via Kudu API
+- **Deployment slots:** Not available on Basic B1 tier. Upgrade to Standard S1 (~$55/mo) when ready for staging/production swap.
+- **Connection string:** `DefaultConnection` configured as SQLAzure type in App Service Configuration
+- **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
+- **ElmahCore dependency:** `System.Data.SqlClient` NuGet package explicitly added to `My.Talli.Web.csproj` — required on Linux where ElmahCore.Sql cannot resolve it automatically
 
 ### SEO
 
@@ -653,7 +666,10 @@ Deploy folder also contains:
 ## Authentication
 
 - **No local passwords** — MyTalli does not store or manage usernames/passwords.
-- **External providers only:** Google, Apple, Microsoft (via OAuth) — all working
+- **External providers only:** Google, Apple, Microsoft (via OAuth). Google and Microsoft are active. Apple is optional — the app starts without Apple credentials configured.
+- **OAuth redirect URIs:** Each provider requires redirect URIs registered for every environment. Callback paths: `/signin-google`, `/signin-microsoft`, `/signin-apple`. Registered origins: `https://localhost:7012` (dev), `https://mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net` (Azure), `https://www.mytalli.com` (production).
+- **Google OAuth:** Managed in [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → OAuth 2.0 Client ID "MyTalli Web" (project: `mytalli`)
+- **Microsoft OAuth:** Managed in Azure Portal → Microsoft Entra ID → App registrations → "My.Talli" (tenant: `MyCloud` / `robertmjordan.onmicrosoft.com`, **not** the `MyTalli` / `mytalli.com` tenant). Client ID: `df5e535c-719e-4bb9-a642-7908ee40e507`
 - **Cookie auth** with 30-day sliding expiration
 - **Sign-in route:** `/signin` — provider selection page
 - **Login endpoint:** `/api/auth/login/{provider}` — triggers OAuth challenge, redirects to `/waitlist` on success
