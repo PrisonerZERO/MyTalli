@@ -12,20 +12,21 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Blazor Server** (Interactive Server render mode) — `blazor.web.js`
 - **Bootstrap** — bundled in `wwwroot/lib/bootstrap/`
 - **C#** — backend language
-- **AutoMapper** — object-object mapping (entity → model projection)
 - **ElmahCore** — error logging (SQL Server provider, dashboard at `/elmah`)
 - **Entity Framework Core** — ORM (SQL Server provider)
 - **Lamar** — IoC container (replaces default Microsoft DI)
-- **MailKit** — email sending (replaces obsolete `System.Net.Mail.SmtpClient`)
+- **Azure Communication Services (ACS) Email** — transactional email sending (NuGet: `Azure.Communication.Email`)
 - **Razor Components** — UI layer (`.razor` files)
 - **SQL Server** — database (localhost, Windows Auth)
 
 ## Database
 
-- **Engine:** SQL Server (localhost)
+- **Engine:** SQL Server
 - **Database:** `MyTalli`
-- **Connection:** Windows Authentication (Trusted Connection)
-- **Connection string key:** `ConnectionStrings:DefaultConnection` (in `appsettings.Development.json`)
+- **Local (dev):** `localhost`, Windows Authentication (Trusted Connection) — `ConnectionStrings:DefaultConnection`
+- **Azure (prod):** `mytalli-centralus-sql.database.windows.net,1433`, SQL Authentication — `ConnectionStrings:AzureConnection`
+- **App user:** `MyTalli-User` (SQL login) — `db_datareader`, `db_datawriter`, `EXECUTE`. Created by Pre-Deployment Script (uses `TRY/CATCH` for Azure SQL compatibility since `sys.server_principals` isn't accessible from user databases). The server login must be created manually on `master` before running migrations. Admin user (`MyTalli-Administrator`) is for schema changes only.
+- **Rule:** All development and migrations run against localhost. Never run dev operations against the Azure database.
 - **Migrations:** EF Core code-first, stored in `Domain.Data.EntityFramework/Migrations/`. All migrations inherit from `DbMigrationBase` (not `Migration` directly) — see "Migration SQL Scripts" below.
 - **Migration commands (Package Manager Console):**
   - Add: `Add-Migration <Name> -Project Domain.Data.EntityFramework -StartupProject My.Talli.Web`
@@ -35,6 +36,23 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
   - Add: `dotnet ef migrations add <Name> --project Domain.Data.EntityFramework --startup-project My.Talli.Web --output-dir Migrations`
   - Apply: `dotnet ef database update --project Domain.Data.EntityFramework --startup-project My.Talli.Web`
   - Remove last: `dotnet ef migrations remove --project Domain.Data.EntityFramework --startup-project My.Talli.Web`
+  - Generate script: `dotnet ef migrations script --project Domain.Data.EntityFramework --startup-project My.Talli.Web --output ../migrations/<MigrationName>.sql`
+- **Production deployment:** Never run `dotnet ef database update` against production. Instead, generate a SQL script, review it, and run it manually in SSMS against the Azure database.
+- **Migration script folder:** `migrations/` (git-ignored) — stores generated `.sql` deployment scripts
+- **Migration script guard:** Every generated migration script must have a guard block prepended at the top that checks `__EFMigrationsHistory` for the migration ID and aborts with `RAISERROR` + `RETURN` if already applied. This prevents accidental re-runs against production.
+  ```sql
+  IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NOT NULL
+      AND EXISTS (
+          SELECT 1
+          FROM [__EFMigrationsHistory]
+          WHERE [MigrationId] = N'<MigrationId>'
+      )
+  BEGIN
+      RAISERROR('Migration <MigrationId> has already been applied. Script aborted.', 16, 1);
+      RETURN;
+  END
+  GO
+  ```
 - **Cascade delete restrictions:** `FK_Billing_User`, `FK_Subscription_User`, and `FK_Subscription_Product` use `DeleteBehavior.Restrict` to avoid SQL Server multiple cascade path errors. These entities are still reachable via indirect cascade paths (e.g., User → Order → Billing).
 
 ### Design Principles
@@ -232,6 +250,7 @@ My.Talli/
     │   │   └── emails/              # HTML email templates (EmbeddedResource)
     │   │       ├── ExceptionOccurredEmailNotificationTemplate.html
     │   │       ├── SubscriptionConfirmationEmailNotificationTemplate.html
+    │   │       ├── WaitlistWelcomeEmailNotificationTemplate.html
     │   │       ├── WelcomeEmailNotificationTemplate.html
     │   │       └── WeeklySummaryEmailNotificationTemplate.html
     │   ├── Exceptions/
@@ -248,11 +267,29 @@ My.Talli/
     │   │   ├── Assert.cs                      # Static validation utility (precondition checks)
     │   │   └── Roles.cs                       # Static role name constants (Admin, User)
     │   ├── Components/
-    │   │   └── JsonSerializers/
-    │   │       └── User/
-    │   │           └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
+    │   │   ├── JsonSerializers/
+    │   │   │   └── User/
+    │   │   │       └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
+    │   │   └── Tokens/
+    │   │       └── UnsubscribeTokenService.cs  # HMAC-SHA256 token generate/validate for email unsubscribe links
     │   ├── Mappers/
-    │   │   └── MappingProfile.cs              # AutoMapper profile (entity → model mappings)
+    │   │   ├── EntityMapper.cs                 # Abstract mapper (collection methods via LINQ)
+    │   │   ├── IEntityMapper.cs               # Generic entity↔model mapper interface
+    │   │   └── Entity/                        # Concrete mappers (one per entity/model pair)
+    │   │       ├── BillingMapper.cs
+    │   │       ├── BillingStripeMapper.cs
+    │   │       ├── OrderItemMapper.cs
+    │   │       ├── OrderMapper.cs
+    │   │       ├── ProductMapper.cs
+    │   │       ├── ProductTypeMapper.cs
+    │   │       ├── ProductVendorMapper.cs
+    │   │       ├── SubscriptionMapper.cs
+    │   │       ├── SubscriptionStripeMapper.cs
+    │   │       ├── UserAuthenticationAppleMapper.cs
+    │   │       ├── UserAuthenticationGoogleMapper.cs
+    │   │       ├── UserAuthenticationMicrosoftMapper.cs
+    │   │       ├── UserMapper.cs
+    │   │       └── UserRoleMapper.cs
     │   ├── Models/
     │   │   ├── ActionResponseOf.cs            # Generic response wrapper (ValidationResult + Payload)
     │   │   ├── EmailPreferences.cs            # Email opt-in/out preferences model
@@ -275,6 +312,21 @@ My.Talli/
     │   │   │   ├── UserAuthenticationMicrosoft.cs
     │   │   │   └── UserRole.cs
     │   │   └── Presentation/                  # Aggregate/detail view models (future)
+    │   ├── Handlers/
+    │   │   └── Authentication/                # Sign-in handlers (one per OAuth provider)
+    │   │       ├── SignInArgument.cs           # Base sign-in argument
+    │   │       ├── SignInArgumentOf.cs         # Generic sign-in argument with provider payload
+    │   │       ├── Apple/
+    │   │       │   ├── AppleSignInHandler.cs
+    │   │       │   └── AppleSignInPayload.cs
+    │   │       ├── Google/
+    │   │       │   ├── GoogleSignInHandler.cs
+    │   │       │   └── GoogleSignInPayload.cs
+    │   │       └── Microsoft/
+    │   │           ├── MicrosoftSignInHandler.cs
+    │   │           └── MicrosoftSignInPayload.cs
+    │   ├── Repositories/
+    │   │   └── RepositoryAdapterAsync.cs      # Model↔Entity adapter (only gateway to data layer)
     │   └── Notifications/
     │       └── Emails/
     │           ├── EmailNotification.cs               # Abstract base (FinalizeEmail → SmtpNotification)
@@ -285,6 +337,8 @@ My.Talli/
     │           ├── Customer/
     │           │   ├── SubscriptionConfirmationEmailNotification.cs
     │           │   ├── SubscriptionConfirmationEmailNotificationPayload.cs
+    │           │   ├── WaitlistWelcomeEmailNotification.cs
+    │           │   ├── WaitlistWelcomeEmailNotificationPayload.cs
     │           │   ├── WelcomeEmailNotification.cs
     │           │   ├── WelcomeEmailNotificationPayload.cs
     │           │   ├── WeeklySummaryEmailNotification.cs
@@ -305,6 +359,8 @@ My.Talli/
     │   ├── Migrations/                    # EF Core code-first migrations
     │   │   ├── DbMigrationBase.cs           # Abstract migration base (embedded SQL script execution)
     │   │   ├── 01_0/                        # SQL scripts for InitialCreate migration
+    │   │   │   ├── Pre-Deployment Scripts/
+    │   │   │   │   └── 00.dbo.MyTalli-User.sql  # App database user creation (least privilege)
     │   │   │   ├── Post-Deployment Scripts/
     │   │   │   │   └── 00.components.ELMAH_Error.sql
     │   │   │   └── Views/
@@ -382,7 +438,7 @@ My.Talli/
         │   │   ├── SuggestionBox.razor.css
         │   │   ├── Upgrade.razor         # Upgrade pricing page (route: /upgrade)
         │   │   ├── Upgrade.razor.css
-        │   │   ├── Unsubscribe.razor      # Email unsubscribe confirmation (route: /unsubscribe)
+        │   │   ├── Unsubscribe.razor      # Email preference management (route: /unsubscribe?token=xxx)
         │   │   ├── Unsubscribe.razor.css
         │   │   ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
         │   │   ├── Waitlist.razor.css
@@ -399,11 +455,14 @@ My.Talli/
         │   ├── Billing/
         │   │   ├── StripeBillingService.cs  # Stripe Checkout & Portal API wrapper
         │   │   └── StripeSettings.cs        # Stripe configuration POCO
-        │   └── Email/
-        │       ├── EmailSettings.cs             # SMTP config POCO (IOptions<EmailSettings>)
-        │       ├── ExceptionEmailHandler.cs     # IExceptionHandler — sends email, returns false
-        │       ├── IEmailService.cs             # Email sending interface
-        │       └── SmtpEmailService.cs          # MailKit-based implementation
+        │   ├── Email/
+        │   │   ├── EmailSettings.cs             # SMTP config POCO (IOptions<EmailSettings>)
+        │   │   ├── ExceptionEmailHandler.cs     # IExceptionHandler — sends email, returns false
+        │   │   ├── IEmailService.cs             # Email sending interface
+        │   │   ├── AcsEmailService.cs           # Azure Communication Services implementation (active)
+        │   │   └── SmtpEmailService.cs          # MailKit-based implementation (local dev fallback)
+        │   └── Tokens/
+        │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
         ├── ViewModels/
         │   ├── Pages/
         │   │   ├── CancelSubscriptionViewModel.cs
@@ -550,15 +609,28 @@ dotnet run --project Source/My.Talli.Web
 ## Infrastructure
 
 - **Domain registrar:** GoDaddy — `mytalli.com`
-- **Hosting:** Azure Static Web Apps (Free tier) — "coming soon" landing page
-- **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned)
-- **Auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
+- **Landing page hosting:** Azure Static Web Apps (Free tier) — "coming soon" landing page
+- **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned on SWA)
+- **SWA auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
 - **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
 - **Google Search Console:** Property `https://www.mytalli.com/` verified via GA4 (2026-03-07). Sitemap submitted. Dashboard at [search.google.com/search-console](https://search.google.com/search-console)
-- **Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`, and `emails/` (hosted PNG assets for email templates)
+- **SWA Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`, and `emails/` (hosted PNG assets for email templates)
 - **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys
 - **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
 - **Migration note:** The `deploy/` and `favicon-concepts/` folders are for the current static HTML landing page era. When the Blazor app is deployed, static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) will move into `wwwroot/` and the `deploy/` folder will no longer be needed.
+
+### Azure App Service (Blazor Server)
+
+- **App Service Plan:** `mytalli-centralus-asp` (Linux, Basic B1, Central US) — ~$13/mo
+- **App Service:** `mytalli-web` (Linux, .NET 10.0)
+- **Default domain:** `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`
+- **Resource Group:** `MyTalli-CentralUS-ResourceGroup`
+- **Deployment:** Kudu ZIP deploy via curl to `https://<app>.scm.azurewebsites.net/api/zipdeploy` (basic auth enabled on SCM endpoint)
+- **Publish command:** `dotnet publish Source/My.Talli.Web -c Release -o ./publish` → zip `publish/` → deploy via Kudu API
+- **Deployment slots:** Not available on Basic B1 tier. Upgrade to Standard S1 (~$55/mo) when ready for staging/production swap.
+- **Connection string:** `DefaultConnection` configured as SQLAzure type in App Service Configuration
+- **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
+- **ElmahCore dependency:** `System.Data.SqlClient` NuGet package explicitly added to `My.Talli.Web.csproj` — required on Linux where ElmahCore.Sql cannot resolve it automatically
 
 ### SEO
 
@@ -594,7 +666,10 @@ Deploy folder also contains:
 ## Authentication
 
 - **No local passwords** — MyTalli does not store or manage usernames/passwords.
-- **External providers only:** Google, Apple, Microsoft (via OAuth) — all working
+- **External providers only:** Google, Apple, Microsoft (via OAuth). Google and Microsoft are active. Apple is optional — the app starts without Apple credentials configured.
+- **OAuth redirect URIs:** Each provider requires redirect URIs registered for every environment. Callback paths: `/signin-google`, `/signin-microsoft`, `/signin-apple`. Registered origins: `https://localhost:7012` (dev), `https://mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net` (Azure), `https://www.mytalli.com` (production).
+- **Google OAuth:** Managed in [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → OAuth 2.0 Client ID "MyTalli Web" (project: `mytalli`)
+- **Microsoft OAuth:** Managed in Azure Portal → Microsoft Entra ID → App registrations → "My.Talli" (tenant: `MyCloud` / `robertmjordan.onmicrosoft.com`, **not** the `MyTalli` / `mytalli.com` tenant). Client ID: `df5e535c-719e-4bb9-a642-7908ee40e507`
 - **Cookie auth** with 30-day sliding expiration
 - **Sign-in route:** `/signin` — provider selection page
 - **Login endpoint:** `/api/auth/login/{provider}` — triggers OAuth challenge, redirects to `/waitlist` on success
@@ -659,7 +734,7 @@ Email notifications follow a **Template + Builder** pattern modeled after the Me
 - **Notification classes** — in `Domain/Notifications/Emails/`, abstract base `EmailNotification` → generic `EmailNotificationOf<T>` → concrete implementations (e.g., `ExceptionOccurredEmailNotification`)
 - **Placeholder replacement** — templates use `[[Placeholder.Name]]` tokens replaced via `string.Replace()` in the `Build()` method. All user-supplied data is HTML-encoded via `WebUtility.HtmlEncode()` before replacement.
 - **SmtpNotification** — serializable POCO carrier returned by `FinalizeEmail()`, passed to `IEmailService.SendAsync()`
-- **MailKit** — `SmtpEmailService` uses MailKit for SMTP delivery (Microsoft's recommended replacement for the obsolete `System.Net.Mail.SmtpClient`)
+- **Azure Communication Services** — `AcsEmailService` (active) sends via ACS Email SDK. `SmtpEmailService` (MailKit) retained as fallback for local dev with smtp4dev.
 
 ### Exception Email Pipeline
 
@@ -672,12 +747,16 @@ Unhandled exceptions trigger email notifications via .NET's `IExceptionHandler` 
 
 ### Email Configuration
 
-SMTP settings are bound from `appsettings.json` → `Email` section via `IOptions<EmailSettings>`:
+**ACS settings** are bound from `appsettings.json` → `AzureCommunicationServices` section:
 
-- `Host`, `Port`, `Username`, `Password`, `UseSsl` — SMTP connection (sensitive values via `dotnet user-secrets`)
-- `FromAddress` — default `noreply@mytalli.com`
+- `ConnectionString` — ACS connection string (stored in `dotnet user-secrets` for dev, Azure Key Vault for prod)
+
+**Email settings** are bound from `appsettings.json` → `Email` section via `IOptions<EmailSettings>`:
+
+- `FromAddress` — default `DoNotReply@mytalli.com` (must match an ACS verified sender)
 - `FromDisplayName` — default `MyTalli`
 - `ExceptionRecipients` — list of admin email addresses; if empty, no exception emails are sent
+- `Host`, `Port`, `Username`, `Password`, `UseSsl` — SMTP settings (only used by `SmtpEmailService` fallback)
 
 ### Email Branding
 
@@ -689,7 +768,7 @@ There are two tiers of email branding:
 | **Customer** | End users | Full — polished design, logo image, professional copywriting, mobile-responsive, tested across email clients | Welcome emails, subscription confirmations, weekly summaries |
 
 - **Internal emails** use the current template style: purple header (`#6c5ce7`) with "MyTalli" text (no image dependency), functional layout, monospace stack traces. Acceptable as-is.
-- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Hero uses the **bulletproof background image pattern** (`<td background>` + CSS `background-image` + VML conditional comments for Outlook) with hosted PNGs at `https://www.mytalli.com/emails/`. Body icons use HTML entity emojis (render natively, not blocked). Three customer emails are built: Welcome, Subscription Confirmation, Weekly Summary.
+- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Hero uses the **bulletproof background image pattern** (`<td background>` + CSS `background-image` + VML conditional comments for Outlook) with hosted PNGs at `https://www.mytalli.com/emails/`. Body icons use HTML entity emojis (render natively, not blocked). Four customer emails are built: Waitlist Welcome, Welcome, Subscription Confirmation, Weekly Summary.
 
 ### Adding a New Email Notification
 
@@ -701,7 +780,20 @@ There are two tiers of email branding:
 
 ### Test Emails (Development Only)
 
-A dev-only endpoint at `GET /api/test/emails` sends all 3 customer emails to `hello@mytalli.com` with sample data. Only registered when `app.Environment.IsDevelopment()`. Use with a local SMTP tool like **smtp4dev** (.NET global tool — `dotnet tool install -g Rnwood.Smtp4dev`, SMTP on port 25, web UI at `http://localhost:5000`).
+A dev-only endpoint at `GET /api/test/emails` sends all 4 customer emails to `hello@mytalli.com` with sample data via ACS. Only registered when `app.Environment.IsDevelopment()`.
+
+A dev-only endpoint at `GET /api/test/unsubscribe-token/{userId:long}` generates an unsubscribe token for testing the `/unsubscribe` page.
+
+### Unsubscribe Token
+
+All customer emails include a tokenized unsubscribe link (`/unsubscribe?token=xxx`) so users can manage email preferences without signing in (CAN-SPAM compliance).
+
+- **Token format:** `Base64Url(userId + "." + HMAC-SHA256-signature)` — no expiration (unsubscribe links must work indefinitely)
+- **Service:** `UnsubscribeTokenService` (`Domain/Components/Tokens/`) — `GenerateToken(long userId)` / `ValidateToken(string? token) → long?`
+- **Config:** `UnsubscribeToken:SecretKey` in `appsettings.json` (bound via `UnsubscribeTokenSettings`)
+- **Generation:** Auth handlers generate the token during sign-up and pass it to the email payload's `UnsubscribeToken` property
+- **Template placeholder:** `[[UnsubscribeUrl]]` — replaced in each notification's `Build()` method with the full tokenized URL
+- **Unsubscribe page:** `/unsubscribe?token=xxx` — validates token, loads user preferences, renders toggle UI for email opt-in/out. Invalid/missing token shows a fallback with "Sign In" CTA.
 
 ### Embedded Resource Naming
 
@@ -926,7 +1018,7 @@ using My.Talli.Domain.Framework;
 
 ### Entity Models
 
-- **Never expose entities directly** to the presentation layer. Always map to a model class via AutoMapper.
+- **Never expose entities directly** to the presentation layer. Always map to a model class via `IEntityMapper`.
 - **Never expose audit fields** (`CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, `UpdatedOnDate`) in models.
 - **Never expose navigation properties** in models — use FK IDs instead.
 - **`DefaultModel`** (`Domain/Models/DefaultModel.cs`) — base class for all entity models. Provides `Id`, `IsDeleted`, and `IsVisible`. Mirrors `DefaultEntity` on the entity side. All entity models inherit from `DefaultModel`.
@@ -934,7 +1026,7 @@ using My.Talli.Domain.Framework;
 - **`Models/Presentation/`** — aggregate or detail representations (custom shapes for specific UI needs).
 - **No "Model" suffix** — model classes use the same name as their entity. The `Models` namespace already disambiguates.
 - **Namespace:** All models use `My.Talli.Domain.Models` regardless of subfolder (`Entity/` and `Presentation/` are organizational only).
-- **MappingProfile** (`Domain/Mappers/MappingProfile.cs`) — all `CreateMap<Entity, Model>()` calls live here.
+- **IEntityMapper** (`Domain/Mappers/IEntityMapper.cs`) — generic interface for entity↔model mapping. Concrete mappers live in `Domain/Mappers/Entity/` (one per pair). When adding a new entity/model pair, create a mapper and register it in `Program.cs`.
 - **RepositoryAdapterAsync** (`Domain/Repositories/RepositoryAdapterAsync.cs`) — the only gateway to the data layer. Never use `IAuditableRepositoryAsync<TEntity>` or `GenericAuditableRepositoryAsync<TEntity>` directly in presentation-layer code.
 - **Handlers must not touch audit fields** — no handler, service, or any code in or above the Domain layer should set `CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, or `UpdatedOnDate`. Audit field stamping is solely the job of `AuditResolver`. Handlers work with models (which don't have audit fields) via `RepositoryAdapterAsync`.
 

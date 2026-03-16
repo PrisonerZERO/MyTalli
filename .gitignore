@@ -9,6 +9,15 @@
 # Local secrets (deployment tokens, API keys)
 .secrets
 
+# Deployment artifacts
+deploy.zip
+deploy.bat
+deploy-to-azure.ps1
+check-deploy.ps1
+check-logs.ps1
+check-site.ps1
+publish/
+
 # Apple Sign-In private key
 *.p8
 
@@ -492,3 +501,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Production migration scripts (generated, may contain sensitive connection info)
+migrations/

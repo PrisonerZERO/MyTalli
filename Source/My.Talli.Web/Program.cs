@@ -9,22 +9,25 @@ using My.Talli.Web.Components;
 using My.Talli.Web.Services.Authentication;
 using My.Talli.Web.Services.Billing;
 using My.Talli.Domain.Components.JsonSerializers;
+using My.Talli.Domain.Components.Tokens;
 using My.Talli.Domain.Data.EntityFramework;
 using My.Talli.Domain.Data.EntityFramework.Repositories;
 using My.Talli.Domain.Data.EntityFramework.Resolvers;
 using My.Talli.Domain.Data.Interfaces;
 using My.Talli.Domain.Handlers.Authentication;
-using AutoMapper;
 using My.Talli.Domain.Mappers;
 using My.Talli.Domain.Notifications.Emails;
 using My.Talli.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using My.Talli.Web.Services.Email;
 using My.Talli.Web.Services.Identity;
+using My.Talli.Web.Services.Tokens;
 using ElmahCore.Sql;
 using ElmahCore.Mvc;
 
 using APPLEAUTHHANDLER = My.Talli.Web.Services.Authentication.AppleAuthenticationHandler;
+using ENTITIES = My.Talli.Domain.Entities;
+using MODELS = My.Talli.Domain.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,16 +42,24 @@ builder.Services.AddDbContext<TalliDbContext>(options =>
 
 // ------------
 // REPOSITORIES
-builder.Services.AddSingleton<IMapper>(sp =>
-{
-    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-    var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), loggerFactory);
-    return config.CreateMapper();
-});
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped(typeof(IAuditResolver<>), typeof(AuditResolver<>));
 builder.Services.AddScoped(typeof(IAuditableRepositoryAsync<>), typeof(GenericAuditableRepositoryAsync<>));
 builder.Services.AddScoped(typeof(RepositoryAdapterAsync<,>));
+builder.Services.AddScoped<IEntityMapper<MODELS.Billing, ENTITIES.Billing>, BillingMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.BillingStripe, ENTITIES.BillingStripe>, BillingStripeMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.Order, ENTITIES.Order>, OrderMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.OrderItem, ENTITIES.OrderItem>, OrderItemMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.Product, ENTITIES.Product>, ProductMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.ProductType, ENTITIES.ProductType>, ProductTypeMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.ProductVendor, ENTITIES.ProductVendor>, ProductVendorMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.Subscription, ENTITIES.Subscription>, SubscriptionMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.SubscriptionStripe, ENTITIES.SubscriptionStripe>, SubscriptionStripeMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.User, ENTITIES.User>, UserMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.UserAuthenticationApple, ENTITIES.UserAuthenticationApple>, UserAuthenticationAppleMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle>, UserAuthenticationGoogleMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft>, UserAuthenticationMicrosoftMapper>();
+builder.Services.AddScoped<IEntityMapper<MODELS.UserRole, ENTITIES.UserRole>, UserRoleMapper>();
 builder.Services.AddScoped<UserPreferencesJsonSerializer>();
 builder.Services.AddScoped<AppleSignInHandler>();
 builder.Services.AddScoped<GoogleSignInHandler>();
@@ -60,7 +71,7 @@ builder.Services.AddRazorComponents()
 
 // --------------
 // AUTHENTICATION
-builder.Services.AddAuthentication(options =>
+var authBuilder = builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
@@ -95,11 +106,16 @@ builder.Services.AddAuthentication(options =>
             var handler = context.HttpContext.RequestServices.GetRequiredService<MicrosoftAuthenticationHandler>();
             await handler.HandleTicketAsync(context);
         };
-    })
-    .AddApple(options =>
+    });
+
+// Apple Sign-In — only register when credentials are configured
+var appleClientId = builder.Configuration["Authentication:Apple:ClientId"];
+if (!string.IsNullOrEmpty(appleClientId))
+{
+    authBuilder.AddApple(options =>
     {
         // Configuration Uses: dotnet user-secrets
-        options.ClientId = builder.Configuration["Authentication:Apple:ClientId"]!;
+        options.ClientId = appleClientId;
         options.TeamId = builder.Configuration["Authentication:Apple:TeamId"]!;
         options.KeyId = builder.Configuration["Authentication:Apple:KeyId"]!;
         options.GenerateClientSecret = true;
@@ -116,6 +132,7 @@ builder.Services.AddAuthentication(options =>
             await handler.HandleTicketAsync(context);
         };
     });
+}
 
 builder.Services.AddScoped<APPLEAUTHHANDLER>();
 builder.Services.AddScoped<GoogleAuthenticationHandler>();
@@ -129,8 +146,17 @@ builder.Services.AddScoped<StripeBillingService>();
 // -----
 // EMAIL
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
-builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
+builder.Services.AddSingleton<IEmailService, AcsEmailService>();
 builder.Services.AddExceptionHandler<ExceptionEmailHandler>();
+
+// ----------------
+// UNSUBSCRIBE TOKEN
+builder.Services.Configure<UnsubscribeTokenSettings>(builder.Configuration.GetSection("UnsubscribeToken"));
+builder.Services.AddScoped<UnsubscribeTokenService>(sp =>
+{
+    var settings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<UnsubscribeTokenSettings>>().Value;
+    return new UnsubscribeTokenService(settings.SecretKey);
+});
 
 // -----
 // ELMAH
@@ -300,19 +326,63 @@ app.MapPost("/api/billing/webhook", async (HttpContext context, IConfiguration c
     }
 }).DisableAntiforgery();
 
+// -----------------
+// EMAIL PREFERENCES
+app.MapPost("/api/email/preferences", async (
+    HttpContext context,
+    ICurrentUserService currentUserService,
+    UnsubscribeTokenService tokenService,
+    RepositoryAdapterAsync<My.Talli.Domain.Models.User, My.Talli.Domain.Entities.User> userAdapter,
+    UserPreferencesJsonSerializer preferencesSerializer) =>
+{
+    using var reader = new StreamReader(context.Request.Body);
+    var json = await reader.ReadToEndAsync();
+    var request = System.Text.Json.JsonSerializer.Deserialize<EmailPreferencesRequest>(json);
+
+    if (request is null || string.IsNullOrWhiteSpace(request.Token))
+        return Results.BadRequest("Invalid request.");
+
+    var userId = tokenService.ValidateToken(request.Token);
+    if (userId is null)
+        return Results.BadRequest("Invalid or expired token.");
+
+    currentUserService.Set(userId.Value, "unsubscribe");
+
+    var user = await userAdapter.GetByIdAsync(userId.Value);
+    if (user is null)
+        return Results.BadRequest("User not found.");
+
+    var preferences = preferencesSerializer.Deserialize(user.UserPreferences);
+    preferences.EmailPreferences.SubscriptionConfirmationEmail = request.SubscriptionConfirmationEmail;
+    preferences.EmailPreferences.UnsubscribeAll = request.UnsubscribeAll;
+    preferences.EmailPreferences.WeeklySummaryEmail = request.WeeklySummaryEmail;
+    user.UserPreferences = preferencesSerializer.Serialize(preferences);
+
+    await userAdapter.UpdateAsync(user);
+
+    return Results.Ok();
+}).DisableAntiforgery();
+
 // ----------
 // TEST EMAILS (Development only)
 if (app.Environment.IsDevelopment())
 {
-    app.MapGet("/api/test/emails", async (IEmailService emailService) =>
+    app.MapGet("/api/test/unsubscribe-token/{userId:long}", (long userId, UnsubscribeTokenService tokenService) =>
+    {
+        var token = tokenService.GenerateToken(userId);
+        return Results.Text(token);
+    });
+
+    app.MapGet("/api/test/emails", async (IEmailService emailService, UnsubscribeTokenService tokenService) =>
     {
         var testRecipient = "hello@mytalli.com";
+        var testToken = tokenService.GenerateToken(1);
 
         // 1. Waitlist Welcome Email
         var waitlistNotification = new WaitlistWelcomeEmailNotification();
         var waitlistEmail = waitlistNotification.Build(new EmailNotificationArgumentOf<WaitlistWelcomeEmailNotificationPayload>
         {
-            Payload = new WaitlistWelcomeEmailNotificationPayload { FirstName = "Robert" }
+            Payload = new WaitlistWelcomeEmailNotificationPayload { FirstName = "Robert", UnsubscribeToken = testToken }
         });
         waitlistEmail.To = [testRecipient];
         await emailService.SendAsync(waitlistEmail);
@@ -321,7 +391,7 @@ if (app.Environment.IsDevelopment())
         var welcomeNotification = new WelcomeEmailNotification();
         var welcomeEmail = welcomeNotification.Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
         {
-            Payload = new WelcomeEmailNotificationPayload { FirstName = "Robert" }
+            Payload = new WelcomeEmailNotificationPayload { FirstName = "Robert", UnsubscribeToken = testToken }
         });
         welcomeEmail.To = [testRecipient];
         await emailService.SendAsync(welcomeEmail);
@@ -336,7 +406,8 @@ if (app.Environment.IsDevelopment())
                 CardLastFour = "4242",
                 FirstName = "Robert",
                 Plan = "Pro",
-                RenewalDate = "April 14, 2026"
+                RenewalDate = "April 14, 2026",
+                UnsubscribeToken = testToken
             }
         });
         subEmail.To = [testRecipient];
@@ -349,6 +420,7 @@ if (app.Environment.IsDevelopment())
             Payload = new WeeklySummaryEmailNotificationPayload
             {
                 FirstName = "Robert",
+                UnsubscribeToken = testToken,
                 GoalCurrent = "$2,847.00",
                 GoalPercent = "57%",
                 GoalRemaining = "$2,153.00",
@@ -414,8 +486,19 @@ if (app.Environment.IsDevelopment())
         summaryEmail.To = [testRecipient];
         await emailService.SendAsync(summaryEmail);
 
-        return Results.Text("3 test emails sent to hello@mytalli.com — check smtp4dev at http://localhost:5000");
+        return Results.Text("4 test emails sent to hello@mytalli.com");
+    });
+
+    app.MapGet("/api/test/error", () =>
+    {
+        throw new InvalidOperationException("Test exception — verifying error email pipeline is working.");
     });
 }
 
 app.Run();
+
+record EmailPreferencesRequest(
+    string Token,
+    bool SubscriptionConfirmationEmail,
+    bool UnsubscribeAll,
+    bool WeeklySummaryEmail);

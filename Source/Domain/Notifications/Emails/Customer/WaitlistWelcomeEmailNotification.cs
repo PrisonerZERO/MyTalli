@@ -22,6 +22,7 @@ public class WaitlistWelcomeEmailNotification : EmailNotificationOf<WaitlistWelc
 		var template = Assembly.GetExecutingAssembly().GetManifestResourceContent(TemplateResourceName);
 
 		Body = template
+			.Replace("[[UnsubscribeUrl]]", $"https://www.mytalli.com/unsubscribe?token={WebUtility.UrlEncode(payload.UnsubscribeToken)}")
 			.Replace("[[User.FirstName]]", WebUtility.HtmlEncode(payload.FirstName));
 
 		Subject = $"You're on the list, {payload.FirstName}!";

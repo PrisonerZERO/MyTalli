@@ -22,6 +22,7 @@ public class WeeklySummaryEmailNotification : EmailNotificationOf<WeeklySummaryE
         var template = Assembly.GetExecutingAssembly().GetManifestResourceContent(TemplateResourceName);
 
         Body = template
+            .Replace("[[UnsubscribeUrl]]", $"https://www.mytalli.com/unsubscribe?token={WebUtility.UrlEncode(payload.UnsubscribeToken)}")
             .Replace("[[Summary.GoalCurrent]]", WebUtility.HtmlEncode(payload.GoalCurrent))
             .Replace("[[Summary.GoalPercent]]", WebUtility.HtmlEncode(payload.GoalPercent))
             .Replace("[[Summary.GoalRemaining]]", WebUtility.HtmlEncode(payload.GoalRemaining))

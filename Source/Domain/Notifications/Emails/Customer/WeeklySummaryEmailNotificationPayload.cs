@@ -23,6 +23,8 @@ public class WeeklySummaryEmailNotificationPayload
 
     public string TrendPercent { get; set; } = string.Empty;
 
+    public string UnsubscribeToken { get; set; } = string.Empty;
+
     public string WeekRange { get; set; } = string.Empty;
 
     #endregion

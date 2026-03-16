@@ -48,6 +48,7 @@ public class AppleSignInHandler
 		if (existing is not null)
 		{
 			var user = (await _userAdapter.GetByIdAsync(existing.Id))!;
+			_currentUserService.Set(user.Id, user.DisplayName);
 			user.LastLoginAt = DateTime.UtcNow;
 			user = await _userAdapter.UpdateAsync(user);
 			user.Roles = await ResolveRolesAsync(user.Id);
