@@ -147,17 +147,29 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 **`commerce.BillingStripe`** — Stripe-specific payment data (1-to-1 with Billing, shared PK)
 - `BillingId` (PK/FK → Billing, C# property: `Id`), `StripePaymentIntentId`, `PaymentMethod`, `CardBrand`, `CardLastFour`
 
-### Account Linking (Consolidation)
+### Duplicate Prevention
 
-Users may sign in with different providers over time and accidentally create multiple accounts. The auth table design supports **account consolidation**:
+When a user signs in with a new provider but uses an **email that already exists** on another provider's auth table, the app must detect this and link the new provider to the **existing** User record instead of creating a duplicate. This is automatic — the user is the same person, same email, just a different sign-in method.
 
-1. User signs in with Google → `auth.User` + `auth.UserAuthenticationGoogle` created
-2. Later signs in with Apple → second `auth.User` + `auth.UserAuthenticationApple` created (empty account)
-3. User realizes their data is on the Google account and triggers consolidation
-4. Consolidation moves the Apple auth row to point at the original User record, deletes the orphaned User record
+- **Detection:** During sign-in, query all provider auth tables for the incoming email address
+- **Match found:** Create the new provider auth row pointing at the existing User (no new User record). Update `LastLoginAt`.
+- **No match:** Create a new User + provider auth row as normal (new account)
+
+This prevents the "same person, same email, two accounts" problem.
+
+### Account Consolidation
+
+A user may have **different emails** on different providers (e.g., `robertmerrilljordan@gmail.com` on Google, `hello@mytalli.com` on Microsoft). These correctly create separate User records — the app has no way to know they're the same person.
+
+Account consolidation is a **user-initiated** action where someone chooses to merge two accounts they own:
+
+1. User signs in with Google (`gmail`) → `auth.User` #1 + `auth.UserAuthenticationGoogle` created
+2. Later signs in with Microsoft (`mytalli.com`) → `auth.User` #2 + `auth.UserAuthenticationMicrosoft` created
+3. User realizes they want one account and triggers consolidation
+4. Consolidation moves the Microsoft auth row to point at User #1, migrates any data, deletes the orphaned User #2
 5. User can now sign in with either provider and land on the same account
 
-The consolidation process itself is not yet implemented — the schema supports it, the UX flow will be designed later.
+The consolidation process is not yet implemented — the schema supports it, the UX flow will be designed later.
 
 ### Naming Conventions
 
