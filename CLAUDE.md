@@ -669,7 +669,7 @@ Deploy folder also contains:
 - **External providers only:** Google, Apple, Microsoft (via OAuth). Google and Microsoft are active. Apple is optional — the app starts without Apple credentials configured.
 - **OAuth redirect URIs:** Each provider requires redirect URIs registered for every environment. Callback paths: `/signin-google`, `/signin-microsoft`, `/signin-apple`. Registered origins: `https://localhost:7012` (dev), `https://mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net` (Azure), `https://www.mytalli.com` (production).
 - **Google OAuth:** Managed in [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → OAuth 2.0 Client ID "MyTalli Web" (project: `mytalli`)
-- **Microsoft OAuth:** Managed in Azure Portal → Microsoft Entra ID → App registrations → "My.Talli" (tenant: `MyCloud` / `robertmjordan.onmicrosoft.com`, **not** the `MyTalli` / `mytalli.com` tenant). Client ID: `df5e535c-719e-4bb9-a642-7908ee40e507`
+- **Microsoft OAuth:** Managed in Azure Portal → Microsoft Entra ID → App registrations → "My.Talli" (tenant: `MyTalli` / `mytalli.com`, account: `hello@mytalli.com`). Client ID: `bf93e9cf-78b4-4827-9ef5-71877e392f63`. Client secret description: `MyTalli-Microsoft-OAuth` (expires 2028-03-15, 24 months).
 - **Cookie auth** with 30-day sliding expiration
 - **Sign-in route:** `/signin` — provider selection page
 - **Login endpoint:** `/api/auth/login/{provider}` — triggers OAuth challenge, redirects to `/waitlist` on success
