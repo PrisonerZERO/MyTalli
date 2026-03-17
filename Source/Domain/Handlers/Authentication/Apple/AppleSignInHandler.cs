@@ -13,6 +13,7 @@ public class AppleSignInHandler
 {
 	#region <Variables>
 
+	private readonly EmailLookupService _emailLookupService;
 	private readonly ICurrentUserService _currentUserService;
 	private readonly RepositoryAdapterAsync<User, ENTITIES.User> _userAdapter;
 	private readonly RepositoryAdapterAsync<UserAuthenticationApple, ENTITIES.UserAuthenticationApple> _appleAuthAdapter;
@@ -24,6 +25,7 @@ public class AppleSignInHandler
 	#region <Constructors>
 
 	public AppleSignInHandler(
+		EmailLookupService emailLookupService,
 		ICurrentUserService currentUserService,
 		RepositoryAdapterAsync<User, ENTITIES.User> userAdapter,
 		RepositoryAdapterAsync<UserAuthenticationApple, ENTITIES.UserAuthenticationApple> appleAuthAdapter,
@@ -32,6 +34,7 @@ public class AppleSignInHandler
 	{
 		_appleAuthAdapter = appleAuthAdapter;
 		_currentUserService = currentUserService;
+		_emailLookupService = emailLookupService;
 		_preferencesSerializer = preferencesSerializer;
 		_userAdapter = userAdapter;
 		_userRoleAdapter = userRoleAdapter;
@@ -54,6 +57,11 @@ public class AppleSignInHandler
 			user.Roles = await ResolveRolesAsync(user.Id);
 			return user;
 		}
+
+		var existingUserId = await _emailLookupService.FindUserIdByEmailAsync(argument.Email);
+
+		if (existingUserId.HasValue)
+			return await LinkProviderAsync(existingUserId.Value, argument);
 
 		return await CreateUserAsync(argument);
 	}
@@ -90,6 +98,28 @@ public class AppleSignInHandler
 		user.IsNewUser = true;
 		user.Roles = [Roles.User];
 
+		return user;
+	}
+
+	private async Task<User> LinkProviderAsync(long userId, SignInArgumentOf<AppleSignInPayload> argument)
+	{
+		var user = (await _userAdapter.GetByIdAsync(userId))!;
+		_currentUserService.Set(user.Id, user.DisplayName);
+		user.LastLoginAt = DateTime.UtcNow;
+		user = await _userAdapter.UpdateAsync(user);
+
+		await _appleAuthAdapter.InsertAsync(new UserAuthenticationApple
+		{
+			AppleId = argument.Payload.AppleId,
+			DisplayName = argument.DisplayName,
+			Email = argument.Email,
+			FirstName = argument.FirstName,
+			Id = user.Id,
+			IsPrivateRelay = argument.Payload.IsPrivateRelay,
+			LastName = argument.LastName
+		});
+
+		user.Roles = await ResolveRolesAsync(user.Id);
 		return user;
 	}
 

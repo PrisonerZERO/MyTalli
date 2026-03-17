@@ -62,6 +62,7 @@ builder.Services.AddScoped<IEntityMapper<MODELS.UserAuthenticationMicrosoft, ENT
 builder.Services.AddScoped<IEntityMapper<MODELS.UserRole, ENTITIES.UserRole>, UserRoleMapper>();
 builder.Services.AddScoped<UserPreferencesJsonSerializer>();
 builder.Services.AddScoped<AppleSignInHandler>();
+builder.Services.AddScoped<EmailLookupService>();
 builder.Services.AddScoped<GoogleSignInHandler>();
 builder.Services.AddScoped<MicrosoftSignInHandler>();
 
