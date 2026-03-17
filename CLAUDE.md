@@ -644,8 +644,8 @@ dotnet run --project Source/My.Talli.Web
 - **App Service:** `mytalli-web` (Linux, .NET 10.0)
 - **Default domain:** `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`
 - **Resource Group:** `MyTalli-CentralUS-ResourceGroup`
-- **Deployment:** Kudu ZIP deploy via curl to `https://<app>.scm.azurewebsites.net/api/zipdeploy` (basic auth enabled on SCM endpoint)
-- **Publish command:** `dotnet publish Source/My.Talli.Web -c Release -o ./publish` → zip `publish/` → deploy via Kudu API
+- **Deployment (preferred):** Visual Studio Publish — right-click `My.Talli.Web` → Publish → Azure App Service (Linux) → `mytalli-web`. Publish profile stored at `Properties/PublishProfiles/mytalli-web - Zip Deploy.pubxml`. Sign in as `hello@mytalli.com` (MyTalli tenant).
+- **Deployment (fallback):** Kudu ZIP deploy via curl to `https://<app>.scm.azurewebsites.net/api/zipdeploy` — `dotnet publish Source/My.Talli.Web -c Release -o ./publish` → zip `publish/` → deploy via Kudu API (basic auth on SCM endpoint)
 - **Deployment slots:** Not available on Basic B1 tier. Upgrade to Standard S1 (~$55/mo) when ready for staging/production swap.
 - **Connection string:** `DefaultConnection` configured as SQLAzure type in App Service Configuration
 - **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
