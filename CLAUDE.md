@@ -326,6 +326,7 @@ My.Talli/
     │   │   └── Presentation/                  # Aggregate/detail view models (future)
     │   ├── Handlers/
     │   │   └── Authentication/                # Sign-in handlers (one per OAuth provider)
+    │   │       ├── EmailLookupService.cs       # Cross-provider email lookup for duplicate prevention
     │   │       ├── SignInArgument.cs           # Base sign-in argument
     │   │       ├── SignInArgumentOf.cs         # Generic sign-in argument with provider payload
     │   │       ├── Apple/
@@ -459,6 +460,8 @@ My.Talli/
         │   └── Shared/
         │       ├── BrandHeader.razor     # Reusable purple swoosh header (logo + action slot)
         │       └── BrandHeader.razor.css
+        ├── Helpers/
+        │   └── LayoutHelper.cs            # Static helpers (CurrentYear, VersionNumber) for layouts
         ├── Services/
         │   ├── Authentication/
         │   │   ├── AppleAuthenticationHandler.cs
@@ -617,6 +620,15 @@ dotnet run --project Source/My.Talli.Web
 
 - HTTPS: `https://localhost:7012`
 - HTTP: `http://localhost:5034`
+
+### Version Number
+
+- **`<Version>0.1.0</Version>`** in `My.Talli.Web.csproj` — single source of truth for the app version
+- **`LayoutHelper.VersionNumber`** reads `AssemblyInformationalVersionAttribute` (set by `<Version>`) at runtime
+- **`LayoutHelper.CurrentYear`** provides the current year for copyright footers
+- **Landing Page** — version shown inline in footer: `© 2026 MyTalli v0.1.0 — All rights reserved.`
+- **MainLayout pages** — version shown in a subtle `div.app-version` at the bottom of the content area
+- **LandingLayout pages** (Sign-In, Waitlist, Error) — no version displayed
 
 ### Local Secrets
 
