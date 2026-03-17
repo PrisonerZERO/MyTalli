@@ -9,7 +9,7 @@ public static class LayoutHelper
 
 	public static string CurrentYear { get { return DateTime.Now.Year.ToString(); } }
 
-	public static string VersionNumber { get { return Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0"; } }
+	public static string VersionNumber { get { return Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0] ?? "0.0.0"; } }
 
 	#endregion
 }
