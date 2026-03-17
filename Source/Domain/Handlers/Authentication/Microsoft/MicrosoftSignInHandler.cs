@@ -13,6 +13,7 @@ public class MicrosoftSignInHandler
 {
 	#region <Variables>
 
+	private readonly EmailLookupService _emailLookupService;
 	private readonly ICurrentUserService _currentUserService;
 	private readonly RepositoryAdapterAsync<User, ENTITIES.User> _userAdapter;
 	private readonly RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> _microsoftAuthAdapter;
@@ -24,6 +25,7 @@ public class MicrosoftSignInHandler
 	#region <Constructors>
 
 	public MicrosoftSignInHandler(
+		EmailLookupService emailLookupService,
 		ICurrentUserService currentUserService,
 		RepositoryAdapterAsync<User, ENTITIES.User> userAdapter,
 		RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> microsoftAuthAdapter,
@@ -31,6 +33,7 @@ public class MicrosoftSignInHandler
 		UserPreferencesJsonSerializer preferencesSerializer)
 	{
 		_currentUserService = currentUserService;
+		_emailLookupService = emailLookupService;
 		_microsoftAuthAdapter = microsoftAuthAdapter;
 		_preferencesSerializer = preferencesSerializer;
 		_userAdapter = userAdapter;
@@ -54,6 +57,11 @@ public class MicrosoftSignInHandler
 			user.Roles = await ResolveRolesAsync(user.Id);
 			return user;
 		}
+
+		var existingUserId = await _emailLookupService.FindUserIdByEmailAsync(argument.Email);
+
+		if (existingUserId.HasValue)
+			return await LinkProviderAsync(existingUserId.Value, argument);
 
 		return await CreateUserAsync(argument);
 	}
@@ -89,6 +97,27 @@ public class MicrosoftSignInHandler
 		user.IsNewUser = true;
 		user.Roles = [Roles.User];
 
+		return user;
+	}
+
+	private async Task<User> LinkProviderAsync(long userId, SignInArgumentOf<MicrosoftSignInPayload> argument)
+	{
+		var user = (await _userAdapter.GetByIdAsync(userId))!;
+		_currentUserService.Set(user.Id, user.DisplayName);
+		user.LastLoginAt = DateTime.UtcNow;
+		user = await _userAdapter.UpdateAsync(user);
+
+		await _microsoftAuthAdapter.InsertAsync(new UserAuthenticationMicrosoft
+		{
+			DisplayName = argument.DisplayName,
+			Email = argument.Email,
+			FirstName = argument.FirstName,
+			Id = user.Id,
+			LastName = argument.LastName,
+			MicrosoftId = argument.Payload.MicrosoftId
+		});
+
+		user.Roles = await ResolveRolesAsync(user.Id);
 		return user;
 	}
 

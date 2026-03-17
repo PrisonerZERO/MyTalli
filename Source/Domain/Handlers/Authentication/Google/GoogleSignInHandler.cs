@@ -13,6 +13,7 @@ public class GoogleSignInHandler
 {
 	#region <Variables>
 
+	private readonly EmailLookupService _emailLookupService;
 	private readonly ICurrentUserService _currentUserService;
 	private readonly RepositoryAdapterAsync<User, ENTITIES.User> _userAdapter;
 	private readonly RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> _googleAuthAdapter;
@@ -24,6 +25,7 @@ public class GoogleSignInHandler
 	#region <Constructors>
 
 	public GoogleSignInHandler(
+		EmailLookupService emailLookupService,
 		ICurrentUserService currentUserService,
 		RepositoryAdapterAsync<User, ENTITIES.User> userAdapter,
 		RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> googleAuthAdapter,
@@ -31,6 +33,7 @@ public class GoogleSignInHandler
 		UserPreferencesJsonSerializer preferencesSerializer)
 	{
 		_currentUserService = currentUserService;
+		_emailLookupService = emailLookupService;
 		_googleAuthAdapter = googleAuthAdapter;
 		_preferencesSerializer = preferencesSerializer;
 		_userAdapter = userAdapter;
@@ -54,6 +57,11 @@ public class GoogleSignInHandler
 			user.Roles = await ResolveRolesAsync(user.Id);
 			return user;
 		}
+
+		var existingUserId = await _emailLookupService.FindUserIdByEmailAsync(argument.Email);
+
+		if (existingUserId.HasValue)
+			return await LinkProviderAsync(existingUserId.Value, argument);
 
 		return await CreateUserAsync(argument);
 	}
@@ -92,6 +100,30 @@ public class GoogleSignInHandler
 		user.IsNewUser = true;
 		user.Roles = [Roles.User];
 
+		return user;
+	}
+
+	private async Task<User> LinkProviderAsync(long userId, SignInArgumentOf<GoogleSignInPayload> argument)
+	{
+		var user = (await _userAdapter.GetByIdAsync(userId))!;
+		_currentUserService.Set(user.Id, user.DisplayName);
+		user.LastLoginAt = DateTime.UtcNow;
+		user = await _userAdapter.UpdateAsync(user);
+
+		await _googleAuthAdapter.InsertAsync(new UserAuthenticationGoogle
+		{
+			AvatarUrl = argument.Payload.AvatarUrl,
+			DisplayName = argument.DisplayName,
+			Email = argument.Email,
+			EmailVerified = argument.Payload.EmailVerified,
+			FirstName = argument.FirstName,
+			GoogleId = argument.Payload.GoogleId,
+			Id = user.Id,
+			LastName = argument.LastName,
+			Locale = argument.Payload.Locale
+		});
+
+		user.Roles = await ResolveRolesAsync(user.Id);
 		return user;
 	}
 

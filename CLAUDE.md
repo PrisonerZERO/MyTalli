@@ -147,17 +147,29 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 **`commerce.BillingStripe`** — Stripe-specific payment data (1-to-1 with Billing, shared PK)
 - `BillingId` (PK/FK → Billing, C# property: `Id`), `StripePaymentIntentId`, `PaymentMethod`, `CardBrand`, `CardLastFour`
 
-### Account Linking (Consolidation)
+### Duplicate Prevention
 
-Users may sign in with different providers over time and accidentally create multiple accounts. The auth table design supports **account consolidation**:
+When a user signs in with a new provider but uses an **email that already exists** on another provider's auth table, the app must detect this and link the new provider to the **existing** User record instead of creating a duplicate. This is automatic — the user is the same person, same email, just a different sign-in method.
 
-1. User signs in with Google → `auth.User` + `auth.UserAuthenticationGoogle` created
-2. Later signs in with Apple → second `auth.User` + `auth.UserAuthenticationApple` created (empty account)
-3. User realizes their data is on the Google account and triggers consolidation
-4. Consolidation moves the Apple auth row to point at the original User record, deletes the orphaned User record
+- **Detection:** During sign-in, query all provider auth tables for the incoming email address
+- **Match found:** Create the new provider auth row pointing at the existing User (no new User record). Update `LastLoginAt`.
+- **No match:** Create a new User + provider auth row as normal (new account)
+
+This prevents the "same person, same email, two accounts" problem.
+
+### Account Consolidation
+
+A user may have **different emails** on different providers (e.g., `robertmerrilljordan@gmail.com` on Google, `hello@mytalli.com` on Microsoft). These correctly create separate User records — the app has no way to know they're the same person.
+
+Account consolidation is a **user-initiated** action where someone chooses to merge two accounts they own:
+
+1. User signs in with Google (`gmail`) → `auth.User` #1 + `auth.UserAuthenticationGoogle` created
+2. Later signs in with Microsoft (`mytalli.com`) → `auth.User` #2 + `auth.UserAuthenticationMicrosoft` created
+3. User realizes they want one account and triggers consolidation
+4. Consolidation moves the Microsoft auth row to point at User #1, migrates any data, deletes the orphaned User #2
 5. User can now sign in with either provider and land on the same account
 
-The consolidation process itself is not yet implemented — the schema supports it, the UX flow will be designed later.
+The consolidation process is not yet implemented — the schema supports it, the UX flow will be designed later.
 
 ### Naming Conventions
 
@@ -314,6 +326,7 @@ My.Talli/
     │   │   └── Presentation/                  # Aggregate/detail view models (future)
     │   ├── Handlers/
     │   │   └── Authentication/                # Sign-in handlers (one per OAuth provider)
+    │   │       ├── EmailLookupService.cs       # Cross-provider email lookup for duplicate prevention
     │   │       ├── SignInArgument.cs           # Base sign-in argument
     │   │       ├── SignInArgumentOf.cs         # Generic sign-in argument with provider payload
     │   │       ├── Apple/
@@ -447,6 +460,8 @@ My.Talli/
         │   └── Shared/
         │       ├── BrandHeader.razor     # Reusable purple swoosh header (logo + action slot)
         │       └── BrandHeader.razor.css
+        ├── Helpers/
+        │   └── LayoutHelper.cs            # Static helpers (CurrentYear, VersionNumber) for layouts
         ├── Services/
         │   ├── Authentication/
         │   │   ├── AppleAuthenticationHandler.cs
@@ -606,6 +621,22 @@ dotnet run --project Source/My.Talli.Web
 - HTTPS: `https://localhost:7012`
 - HTTP: `http://localhost:5034`
 
+### Version Number
+
+- **`<Version>0.1.0</Version>`** in `My.Talli.Web.csproj` — single source of truth for the app version
+- **`LayoutHelper.VersionNumber`** reads `AssemblyInformationalVersionAttribute` (set by `<Version>`) at runtime
+- **`LayoutHelper.CurrentYear`** provides the current year for copyright footers
+- **Landing Page** — version shown inline in footer: `© 2026 MyTalli v0.1.0 — All rights reserved.`
+- **MainLayout pages** — version shown in a subtle `div.app-version` at the bottom of the content area
+- **LandingLayout pages** (Sign-In, Waitlist, Error) — no version displayed
+
+### Local Secrets
+
+- **All local dev secrets live in `appsettings.Development.json`** — OAuth credentials, ACS connection strings, email settings, unsubscribe token keys, etc.
+- **Do not use `dotnet user-secrets`** — keep one source of truth for local config.
+- **Azure (production)** uses App Service Configuration (environment variables) for the same values.
+- `appsettings.Development.json` is **not git-ignored** — this is acceptable for a side project with a single developer. If collaborators are added, secrets should move to `dotnet user-secrets` or a `.env` file.
+
 ## Infrastructure
 
 - **Domain registrar:** GoDaddy — `mytalli.com`
@@ -625,8 +656,8 @@ dotnet run --project Source/My.Talli.Web
 - **App Service:** `mytalli-web` (Linux, .NET 10.0)
 - **Default domain:** `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`
 - **Resource Group:** `MyTalli-CentralUS-ResourceGroup`
-- **Deployment:** Kudu ZIP deploy via curl to `https://<app>.scm.azurewebsites.net/api/zipdeploy` (basic auth enabled on SCM endpoint)
-- **Publish command:** `dotnet publish Source/My.Talli.Web -c Release -o ./publish` → zip `publish/` → deploy via Kudu API
+- **Deployment (preferred):** Visual Studio Publish — right-click `My.Talli.Web` → Publish → Azure App Service (Linux) → `mytalli-web`. Publish profile stored at `Properties/PublishProfiles/mytalli-web - Zip Deploy.pubxml`. Sign in as `hello@mytalli.com` (MyTalli tenant).
+- **Deployment (fallback):** Kudu ZIP deploy via curl to `https://<app>.scm.azurewebsites.net/api/zipdeploy` — `dotnet publish Source/My.Talli.Web -c Release -o ./publish` → zip `publish/` → deploy via Kudu API (basic auth on SCM endpoint)
 - **Deployment slots:** Not available on Basic B1 tier. Upgrade to Standard S1 (~$55/mo) when ready for staging/production swap.
 - **Connection string:** `DefaultConnection` configured as SQLAzure type in App Service Configuration
 - **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
@@ -669,7 +700,7 @@ Deploy folder also contains:
 - **External providers only:** Google, Apple, Microsoft (via OAuth). Google and Microsoft are active. Apple is optional — the app starts without Apple credentials configured.
 - **OAuth redirect URIs:** Each provider requires redirect URIs registered for every environment. Callback paths: `/signin-google`, `/signin-microsoft`, `/signin-apple`. Registered origins: `https://localhost:7012` (dev), `https://mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net` (Azure), `https://www.mytalli.com` (production).
 - **Google OAuth:** Managed in [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → OAuth 2.0 Client ID "MyTalli Web" (project: `mytalli`)
-- **Microsoft OAuth:** Managed in Azure Portal → Microsoft Entra ID → App registrations → "My.Talli" (tenant: `MyCloud` / `robertmjordan.onmicrosoft.com`, **not** the `MyTalli` / `mytalli.com` tenant). Client ID: `df5e535c-719e-4bb9-a642-7908ee40e507`
+- **Microsoft OAuth:** Managed in Azure Portal → Microsoft Entra ID → App registrations → "My.Talli" (tenant: `MyTalli` / `mytalli.com`, account: `hello@mytalli.com`). Client ID: `bf93e9cf-78b4-4827-9ef5-71877e392f63`. Client secret description: `MyTalli-Microsoft-OAuth` (expires 2028-03-15, 24 months).
 - **Cookie auth** with 30-day sliding expiration
 - **Sign-in route:** `/signin` — provider selection page
 - **Login endpoint:** `/api/auth/login/{provider}` — triggers OAuth challenge, redirects to `/waitlist` on success
@@ -749,7 +780,7 @@ Unhandled exceptions trigger email notifications via .NET's `IExceptionHandler` 
 
 **ACS settings** are bound from `appsettings.json` → `AzureCommunicationServices` section:
 
-- `ConnectionString` — ACS connection string (stored in `dotnet user-secrets` for dev, Azure Key Vault for prod)
+- `ConnectionString` — ACS connection string (in `appsettings.Development.json` for dev, App Service Configuration for prod)
 
 **Email settings** are bound from `appsettings.json` → `Email` section via `IOptions<EmailSettings>`:
 
