@@ -706,7 +706,7 @@ Deploy folder also contains:
   - **Registered domains:** `mytalli.com`, `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`, `www.mytalli.com`
   - **Return URLs:** `https://mytalli.com/signin-apple`, `https://mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net/signin-apple`, `https://www.mytalli.com/signin-apple`
   - **No localhost:** Apple requires TLS-verified domains — `localhost` cannot be registered. Apple Sign-In cannot be tested locally. The app handles this gracefully (conditional registration in `Program.cs`).
-  - **Private key:** `.p8` file downloaded from Keys section — only downloadable once. Store securely.
+  - **Key:** `MyTalli Sign In` / Key ID `Z8J35PS4U6` — `.p8` file (`Apple.AuthKey_Z8J35PS4U6.p8`, git-ignored). Local dev uses `PrivateKeyPath` (file path); Azure uses `PrivateKeyContent` (key text as env var).
 - **Microsoft OAuth:** Managed in Azure Portal → Microsoft Entra ID → App registrations → "My.Talli" (tenant: `MyTalli` / `mytalli.com`, account: `hello@mytalli.com`). Client ID: `bf93e9cf-78b4-4827-9ef5-71877e392f63`. Client secret description: `MyTalli-Microsoft-OAuth` (expires 2028-03-15, 24 months).
 - **Cookie auth** with 30-day sliding expiration
 - **Sign-in route:** `/signin` — provider selection page
