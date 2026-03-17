@@ -115,7 +115,6 @@ if (!string.IsNullOrEmpty(appleClientId))
 {
     authBuilder.AddApple(options =>
     {
-        // Configuration Uses: dotnet user-secrets
         options.ClientId = appleClientId;
         options.TeamId = builder.Configuration["Authentication:Apple:TeamId"]!;
         options.KeyId = builder.Configuration["Authentication:Apple:KeyId"]!;
@@ -123,9 +122,12 @@ if (!string.IsNullOrEmpty(appleClientId))
         options.CallbackPath = "/signin-apple";
         options.PrivateKey = async (keyId, cancellationToken) =>
         {
+            var keyContent = builder.Configuration["Authentication:Apple:PrivateKeyContent"];
+            if (!string.IsNullOrEmpty(keyContent))
+                return keyContent.AsMemory();
+
             var keyPath = builder.Configuration["Authentication:Apple:PrivateKeyPath"]!;
-            var keyText = await File.ReadAllTextAsync(keyPath, cancellationToken);
-            return keyText.AsMemory();
+            return (await File.ReadAllTextAsync(keyPath, cancellationToken)).AsMemory();
         };
         options.Events.OnCreatingTicket = async context =>
         {
