@@ -652,15 +652,15 @@ dotnet run --project Source/My.Talli.Web
 
 ### Azure App Service (Blazor Server)
 
-- **App Service Plan:** `mytalli-centralus-asp` (Linux, Basic B1, Central US) — ~$13/mo
+- **App Service Plan:** `mytalli-centralus-asp` (Linux, Standard S1, Central US) — ~$69/mo
 - **App Service:** `mytalli-web` (Linux, .NET 10.0)
 - **Default domain:** `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`
 - **Resource Group:** `MyTalli-CentralUS-ResourceGroup`
-- **Deployment (preferred):** Visual Studio Publish — right-click `My.Talli.Web` → Publish → Azure App Service (Linux) → `mytalli-web`. Publish profile stored at `Properties/PublishProfiles/mytalli-web - Zip Deploy.pubxml`. Sign in as `hello@mytalli.com` (MyTalli tenant).
+- **Deployment (preferred):** Visual Studio Publish to the **staging** slot → verify → **Swap** to production (zero downtime). Sign in as `hello@mytalli.com` (MyTalli tenant).
 - **Deployment (fallback):** Kudu ZIP deploy via curl to `https://<app>.scm.azurewebsites.net/api/zipdeploy` — `dotnet publish Source/My.Talli.Web -c Release -o ./publish` → zip `publish/` → deploy via Kudu API (basic auth on SCM endpoint)
-- **Deployment slots:** Not available on Basic B1 tier. Upgrade to Standard S1 (~$55/mo) when ready for staging/production swap.
+- **Deployment slots:** Standard S1 tier — `mytalli-web` (production, 100% traffic) and `mytalli-web-staging` (staging, 0% traffic). Deploy to staging first, warm up, then swap to production for zero-downtime releases.
 - **Connection string:** `DefaultConnection` configured as SQLAzure type in App Service Configuration
-- **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
+- **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`, `Authentication__Apple__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
 - **ElmahCore dependency:** `System.Data.SqlClient` NuGet package explicitly added to `My.Talli.Web.csproj` — required on Linux where ElmahCore.Sql cannot resolve it automatically
 
 ### SEO
