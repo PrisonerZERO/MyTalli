@@ -640,15 +640,13 @@ dotnet run --project Source/My.Talli.Web
 ## Infrastructure
 
 - **Domain registrar:** GoDaddy — `mytalli.com`
-- **Landing page hosting:** Azure Static Web Apps (Free tier) — "coming soon" landing page
-- **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned on SWA)
-- **SWA auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
+- **Custom domain:** `www.mytalli.com` — CNAME pointing to `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`, SSL via App Service Managed Certificate (SNI SSL, auto-renewing)
+- **DNS verification:** TXT record `asuid.www` with Custom Domain Verification ID for Azure domain ownership proof
+- **Previous hosting:** Azure Static Web Apps (Free tier) — `delightful-grass-000c17010.6.azurestaticapps.net` (static "coming soon" landing page, now superseded by the Blazor app on App Service)
 - **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
 - **Google Search Console:** Property `https://www.mytalli.com/` verified via GA4 (2026-03-07). Sitemap submitted. Dashboard at [search.google.com/search-console](https://search.google.com/search-console)
-- **SWA Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`, and `emails/` (hosted PNG assets for email templates)
-- **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys
-- **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
-- **Migration note:** The `deploy/` and `favicon-concepts/` folders are for the current static HTML landing page era. When the Blazor app is deployed, static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) will move into `wwwroot/` and the `deploy/` folder will no longer be needed.
+- **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys (legacy)
+- **Static assets note:** The `deploy/` and `favicon-concepts/` folders are from the static HTML era. Static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) now live in `wwwroot/`. The `deploy/emails/` folder is still needed — it hosts PNG images referenced by customer-facing email templates.
 
 ### Azure App Service (Blazor Server)
 
