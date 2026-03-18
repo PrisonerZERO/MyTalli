@@ -1163,3 +1163,4 @@ Features already shipped in the static HTML landing page (`deploy/index.html`) t
 Upcoming features:
 
 - [ ] **Admin Page** — role-based admin section (`/admin`) for managing waitlist signups, viewing all suggestion box submissions, user management, platform connection health, and feature flag/tier management. Accessible only to accounts with an `Admin` role.
+- [ ] **Email Asset Hosting** — migrate email image assets (`email-hero-bg.png`, `email-icon-graph.png`) from `wwwroot/emails/` to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`). Update all 4 customer email template URLs to point to Blob Storage. This decouples email assets from app deployments so images are always available regardless of deploy state. Currently served from `wwwroot/emails/` as an interim solution.
