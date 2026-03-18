@@ -652,15 +652,15 @@ dotnet run --project Source/My.Talli.Web
 
 ### Azure App Service (Blazor Server)
 
-- **App Service Plan:** `mytalli-centralus-asp` (Linux, Basic B1, Central US) — ~$13/mo
+- **App Service Plan:** `mytalli-centralus-asp` (Linux, Standard S1, Central US) — ~$69/mo
 - **App Service:** `mytalli-web` (Linux, .NET 10.0)
 - **Default domain:** `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`
 - **Resource Group:** `MyTalli-CentralUS-ResourceGroup`
-- **Deployment (preferred):** Visual Studio Publish — right-click `My.Talli.Web` → Publish → Azure App Service (Linux) → `mytalli-web`. Publish profile stored at `Properties/PublishProfiles/mytalli-web - Zip Deploy.pubxml`. Sign in as `hello@mytalli.com` (MyTalli tenant).
+- **Deployment (preferred):** Visual Studio Publish to the **staging** slot → verify → **Swap** to production (zero downtime). Sign in as `hello@mytalli.com` (MyTalli tenant).
 - **Deployment (fallback):** Kudu ZIP deploy via curl to `https://<app>.scm.azurewebsites.net/api/zipdeploy` — `dotnet publish Source/My.Talli.Web -c Release -o ./publish` → zip `publish/` → deploy via Kudu API (basic auth on SCM endpoint)
-- **Deployment slots:** Not available on Basic B1 tier. Upgrade to Standard S1 (~$55/mo) when ready for staging/production swap.
+- **Deployment slots:** Standard S1 tier — `mytalli-web` (production, 100% traffic) and `mytalli-web-staging` (staging, 0% traffic). Deploy to staging first, warm up, then swap to production for zero-downtime releases.
 - **Connection string:** `DefaultConnection` configured as SQLAzure type in App Service Configuration
-- **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
+- **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`, `Authentication__Apple__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
 - **ElmahCore dependency:** `System.Data.SqlClient` NuGet package explicitly added to `My.Talli.Web.csproj` — required on Linux where ElmahCore.Sql cannot resolve it automatically
 
 ### SEO
@@ -700,6 +700,13 @@ Deploy folder also contains:
 - **External providers only:** Google, Apple, Microsoft (via OAuth). Google and Microsoft are active. Apple is optional — the app starts without Apple credentials configured.
 - **OAuth redirect URIs:** Each provider requires redirect URIs registered for every environment. Callback paths: `/signin-google`, `/signin-microsoft`, `/signin-apple`. Registered origins: `https://localhost:7012` (dev), `https://mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net` (Azure), `https://www.mytalli.com` (production).
 - **Google OAuth:** Managed in [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → OAuth 2.0 Client ID "MyTalli Web" (project: `mytalli`)
+- **Apple OAuth:** Managed in [Apple Developer Portal](https://developer.apple.com/account) → Certificates, Identifiers & Profiles. Account: Robert Jordan. Team ID: `9T4K978XVF`.
+  - **App ID:** `MyTalli` / `com.mytalli.web` — "Sign in with Apple" capability enabled
+  - **Services ID:** `MyTalli Web` / `com.mytalli.web.auth` — this is the `ClientId` for web OAuth
+  - **Registered domains:** `mytalli.com`, `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`, `www.mytalli.com`
+  - **Return URLs:** `https://mytalli.com/signin-apple`, `https://mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net/signin-apple`, `https://www.mytalli.com/signin-apple`
+  - **No localhost:** Apple requires TLS-verified domains — `localhost` cannot be registered. Apple Sign-In cannot be tested locally. The app handles this gracefully (conditional registration in `Program.cs`).
+  - **Key:** `MyTalli Sign In` / Key ID `Z8J35PS4U6` — `.p8` file (`Apple.AuthKey_Z8J35PS4U6.p8`, git-ignored). Local dev uses `PrivateKeyPath` (file path); Azure uses `PrivateKeyContent` (key text as env var).
 - **Microsoft OAuth:** Managed in Azure Portal → Microsoft Entra ID → App registrations → "My.Talli" (tenant: `MyTalli` / `mytalli.com`, account: `hello@mytalli.com`). Client ID: `bf93e9cf-78b4-4827-9ef5-71877e392f63`. Client secret description: `MyTalli-Microsoft-OAuth` (expires 2028-03-15, 24 months).
 - **Cookie auth** with 30-day sliding expiration
 - **Sign-in route:** `/signin` — provider selection page
