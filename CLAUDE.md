@@ -654,8 +654,7 @@ dotnet run --project Source/My.Talli.Web
 - **App Service:** `mytalli-web` (Linux, .NET 10.0)
 - **Default domain:** `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`
 - **Resource Group:** `MyTalli-CentralUS-ResourceGroup`
-- **Deployment (preferred):** Visual Studio Publish to the **staging** slot → verify → **Swap** to production (zero downtime). Sign in as `hello@mytalli.com` (MyTalli tenant).
-- **Deployment (fallback):** Kudu ZIP deploy via curl to `https://<app>.scm.azurewebsites.net/api/zipdeploy` — `dotnet publish Source/My.Talli.Web -c Release -o ./publish` → zip `publish/` → deploy via Kudu API (basic auth on SCM endpoint)
+- **Deployment:** Visual Studio Publish to the **staging** slot → verify → **Swap** to production (zero downtime). Sign in as `hello@mytalli.com` (MyTalli tenant). The publish profile (`mytalli-web-staging - Zip Deploy.pubxml`) targets the staging slot directly. Do not use Kudu ZIP deploy — it was unreliable.
 - **Deployment slots:** Standard S1 tier — `mytalli-web` (production, 100% traffic) and `mytalli-web-staging` (staging, 0% traffic). Deploy to staging first, warm up, then swap to production for zero-downtime releases.
 - **Connection string:** `DefaultConnection` configured as SQLAzure type in App Service Configuration
 - **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`, `Authentication__Apple__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
@@ -1163,4 +1162,4 @@ Features already shipped in the static HTML landing page (`deploy/index.html`) t
 Upcoming features:
 
 - [ ] **Admin Page** — role-based admin section (`/admin`) for managing waitlist signups, viewing all suggestion box submissions, user management, platform connection health, and feature flag/tier management. Accessible only to accounts with an `Admin` role.
-- [ ] **Email Asset Hosting** — migrate email image assets (`email-hero-bg.png`, `email-icon-graph.png`) from `wwwroot/emails/` to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`). Update all 4 customer email template URLs to point to Blob Storage. This decouples email assets from app deployments so images are always available regardless of deploy state. Currently served from `wwwroot/emails/` as an interim solution.
+- [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 4 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.
