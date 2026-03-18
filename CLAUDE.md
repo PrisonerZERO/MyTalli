@@ -640,15 +640,13 @@ dotnet run --project Source/My.Talli.Web
 ## Infrastructure
 
 - **Domain registrar:** GoDaddy — `mytalli.com`
-- **Landing page hosting:** Azure Static Web Apps (Free tier) — "coming soon" landing page
-- **Custom domain:** `www.mytalli.com` (validated, SSL auto-provisioned on SWA)
-- **SWA auto-generated URL:** `delightful-grass-000c17010.6.azurestaticapps.net`
+- **Custom domain:** `www.mytalli.com` — CNAME pointing to `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`, SSL via App Service Managed Certificate (SNI SSL, auto-renewing)
+- **DNS verification:** TXT record `asuid.www` with Custom Domain Verification ID for Azure domain ownership proof
+- **Previous hosting:** Azure Static Web Apps (Free tier) — `delightful-grass-000c17010.6.azurestaticapps.net` (static "coming soon" landing page, now superseded by the Blazor app on App Service)
 - **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
 - **Google Search Console:** Property `https://www.mytalli.com/` verified via GA4 (2026-03-07). Sitemap submitted. Dashboard at [search.google.com/search-console](https://search.google.com/search-console)
-- **SWA Deployment:** SWA CLI (`swa deploy ./deploy --deployment-token TOKEN --env production`) — the `deploy/` folder contains `index.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`, and `emails/` (hosted PNG assets for email templates)
-- **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys
-- **Note:** Azure Static Web Apps Free tier does not emit CDN metrics — GA is the only visit tracking
-- **Migration note:** The `deploy/` and `favicon-concepts/` folders are for the current static HTML landing page era. When the Blazor app is deployed, static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) will move into `wwwroot/` and the `deploy/` folder will no longer be needed.
+- **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys (legacy)
+- **Static assets note:** The `deploy/` and `favicon-concepts/` folders are from the static HTML era. Static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) now live in `wwwroot/`. The `deploy/emails/` folder is still needed — it hosts PNG images referenced by customer-facing email templates.
 
 ### Azure App Service (Blazor Server)
 
@@ -656,8 +654,7 @@ dotnet run --project Source/My.Talli.Web
 - **App Service:** `mytalli-web` (Linux, .NET 10.0)
 - **Default domain:** `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`
 - **Resource Group:** `MyTalli-CentralUS-ResourceGroup`
-- **Deployment (preferred):** Visual Studio Publish to the **staging** slot → verify → **Swap** to production (zero downtime). Sign in as `hello@mytalli.com` (MyTalli tenant).
-- **Deployment (fallback):** Kudu ZIP deploy via curl to `https://<app>.scm.azurewebsites.net/api/zipdeploy` — `dotnet publish Source/My.Talli.Web -c Release -o ./publish` → zip `publish/` → deploy via Kudu API (basic auth on SCM endpoint)
+- **Deployment:** Visual Studio Publish to the **staging** slot → verify → **Swap** to production (zero downtime). Sign in as `hello@mytalli.com` (MyTalli tenant). The publish profile (`mytalli-web-staging - Zip Deploy.pubxml`) targets the staging slot directly. Do not use Kudu ZIP deploy — it was unreliable.
 - **Deployment slots:** Standard S1 tier — `mytalli-web` (production, 100% traffic) and `mytalli-web-staging` (staging, 0% traffic). Deploy to staging first, warm up, then swap to production for zero-downtime releases.
 - **Connection string:** `DefaultConnection` configured as SQLAzure type in App Service Configuration
 - **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`, `Authentication__Apple__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
@@ -1165,3 +1162,4 @@ Features already shipped in the static HTML landing page (`deploy/index.html`) t
 Upcoming features:
 
 - [ ] **Admin Page** — role-based admin section (`/admin`) for managing waitlist signups, viewing all suggestion box submissions, user management, platform connection health, and feature flag/tier management. Accessible only to accounts with an `Admin` role.
+- [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 4 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.

@@ -11,6 +11,7 @@
 
 # Deployment artifacts
 deploy.zip
+deploy-package.zip
 deploy.bat
 deploy-to-azure.ps1
 check-deploy.ps1
