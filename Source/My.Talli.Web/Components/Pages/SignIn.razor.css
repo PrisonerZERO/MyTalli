@@ -19,6 +19,14 @@
 .login-btn-microsoft { background: #ffffff; border: 2px solid #e0dce8; color: #1a1a2e; }
 .login-btn-microsoft:hover { border-color: #d0cbe0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
 
+/* ─── SIGNING-IN STATE ─── */
+.login-btn:disabled { cursor: not-allowed; opacity: 0.5; transform: none; }
+.login-btn:disabled:hover { box-shadow: none; }
+.signing-in-status { align-items: center; display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.signing-in-spinner { animation: spin 1s linear infinite; border: 3px solid #e0dce8; border-radius: 50%; border-top-color: #6c5ce7; height: 28px; width: 28px; }
+.signing-in-text { color: #6c5ce7; font-size: 14px; font-weight: 600; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ─── RESPONSIVE ─── */
 @media (max-width: 480px) {
     .signin-page { padding: 0 16px 60px; }
