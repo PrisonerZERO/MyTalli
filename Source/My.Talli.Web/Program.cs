@@ -203,6 +203,14 @@ app.Use(async (context, next) =>
 {
     var path = context.Request.Path.Value ?? "";
 
+    // OPTIONS — used by Office link probes (Word, Outlook) and CORS preflights.
+    // This Blazor app has no CORS or OPTIONS endpoints, so short-circuit with 204.
+    if (context.Request.Method == HttpMethods.Options)
+    {
+        context.Response.StatusCode = 204;
+        return;
+    }
+
     if (path.Contains(".env", StringComparison.OrdinalIgnoreCase)
         || path.Contains(".git", StringComparison.OrdinalIgnoreCase)
         || path.Contains("wp-login", StringComparison.OrdinalIgnoreCase)
