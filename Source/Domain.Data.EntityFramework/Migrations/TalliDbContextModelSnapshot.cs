@@ -152,6 +152,73 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("BillingStripe", "commerce");
                 });
 
+            modelBuilder.Entity("My.Talli.Domain.Entities.Milestone", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(8);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(9);
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnOrder(1);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(6);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(7);
+
+                    b.Property<string>("MilestoneGroup")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(2);
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(4);
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnOrder(5);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(10);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(11);
+
+                    b.HasKey("Id")
+                        .HasName("PK_Milestone");
+
+                    b.ToTable("Milestone", "app");
+                });
+
             modelBuilder.Entity("My.Talli.Domain.Entities.Order", b =>
                 {
                     b.Property<long>("Id")
