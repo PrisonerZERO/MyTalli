@@ -4,7 +4,7 @@
 
 MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and freelancers connect their payment platforms (Stripe, Etsy, Gumroad, PayPal, Shopify, etc.) and see all their income in one unified dashboard with real-time tracking, trends, goals, and CSV export.
 
-**Status:** Early development — **Waitlist Mode** active (see below). Landing page, sign-in, waitlist, and dashboard pages are built. OAuth authentication is working (Google, Apple, Microsoft). Sign-in currently redirects to the waitlist; dashboard and other routes are disabled until Dashboard Mode is enabled.
+**Status:** Early development — **Dashboard Mode** active (see below). Landing page, sign-in, waitlist, dashboard, and other pages are built. OAuth authentication is working (Google, Apple, Microsoft). Sign-in redirects to the dashboard. All routes are active.
 
 ## Tech Stack
 
@@ -64,7 +64,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Soft delete** — every entity has `IsDeleted` (default `false`) for logical deletion and `IsVisible` (default `true`) for hiding active records from views. All entities have a global query filter `HasQueryFilter(e => !e.IsDeleted)` so soft-deleted records are automatically excluded from queries. To include soft-deleted records, use `IgnoreQueryFilters()`.
 - **Schema separation** — tables are organized into SQL schemas by functional domain (`auth`, `commerce`). `dbo` is reserved/empty.
 - **Orders as the backbone** — subscriptions, modules, and any future products all flow through the same Order → OrderItem pipeline. A subscription is just a product.
-- **No separate waitlist table** — the `auth.User` table doubles as the waitlist during Waitlist Mode. A signed-up user *is* a waitlist user until Dashboard Mode is enabled.
+- **No separate waitlist table** — the `auth.User` table doubled as the waitlist during Waitlist Mode. A signed-up user *was* a waitlist user until Dashboard Mode was enabled.
 - **Milestones in database** — waitlist milestones are stored in `app.Milestone` (not hardcoded). Update milestone statuses directly in the database — no deployment needed.
 - **No third-party table creation** — third-party packages (e.g., ElmahCore) must never create their own tables. All tables are created by our migrations so we own the schema, naming conventions, and migration history. If a package needs a table, create it in a migration SQL script with an `IF NOT EXISTS` guard.
 - **Audit field self-creation sentinel** — `CreateByUserId = 0` means "self-created" (the user created their own account). This avoids a second database round-trip to self-stamp the generated Id. Only applies to `auth.User` rows created during OAuth sign-up.
@@ -756,9 +756,9 @@ Deploy folder also contains:
 
 ## App Modes
 
-The app operates in one of two modes. The **current mode is Waitlist Mode**.
+The app operates in one of two modes. The **current mode is Dashboard Mode**.
 
-### Waitlist Mode ← CURRENT
+### Waitlist Mode
 
 Only the landing page, sign-in, waitlist, and error pages are active. All other routes redirect to `/waitlist`. Use this mode while building out platform connectors and dashboard features before public launch.
 
@@ -766,10 +766,11 @@ Only the landing page, sign-in, waitlist, and error pages are active. All other 
 - **Disabled routes:** `/dashboard`, `/suggestions`, `/subscription`, `/subscription/cancel`, `/upgrade` — all redirect to `/waitlist`
 - **Active routes:** `/` (landing), `/signin`, `/waitlist`, `/unsubscribe`, `/Error`, `/Error/{StatusCode}`
 - **OAuth redirect:** Set to `/waitlist` in the login endpoint (`Program.cs`)
+- **Snapshot branch:** `main_WAITLIST` — frozen copy of `main` at the end of Waitlist Mode. Use this branch if a hotfix is needed for the waitlist version of the app in production.
 
-### Dashboard Mode
+### Dashboard Mode ← CURRENT
 
-Full app experience — sign-in takes users to the dashboard, all routes are active, sidebar navigation is functional. Enable this mode when platform connectors and the dashboard are ready.
+Full app experience — sign-in takes users to the dashboard, all routes are active, sidebar navigation is functional.
 
 - **Active routes:** All routes (`/dashboard`, `/suggestions`, `/subscription`, `/upgrade`, etc.)
 - **OAuth redirect:** Set to `/dashboard` in the login endpoint (`Program.cs`)
