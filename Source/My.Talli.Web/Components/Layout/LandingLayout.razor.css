@@ -1,2 +1,11 @@
+.site-footer { align-items: center; border-top: 1px solid #eee; display: flex; justify-content: space-between; padding: 32px 80px; }
+.site-footer p { color: #999; font-size: 13px; margin: 0; }
+.site-footer a { color: #999; font-size: 13px; text-decoration: none; }
+.site-footer a:hover { color: #6c5ce7; }
+
+@media (max-width: 640.98px) {
+    .site-footer { flex-direction: column; gap: 8px; padding: 24px 20px; text-align: center; }
+}
+
 #blazor-error-ui { background: lightyellow; bottom: 0; box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2); box-sizing: border-box; color-scheme: light only; display: none; left: 0; padding: 0.6rem 1.25rem 0.7rem 1.25rem; position: fixed; width: 100%; z-index: 1000; }
 #blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: 0.75rem; top: 0.5rem; }
