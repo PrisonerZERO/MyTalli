@@ -1,10 +1,8 @@
-using AspNet.Security.OAuth.Apple;
 using ElmahCore.Mvc;
 using ElmahCore.Sql;
 using Lamar.Microsoft.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 using Microsoft.EntityFrameworkCore;
 using My.Talli.Domain.Components.JsonSerializers;
 using My.Talli.Domain.Components.Tokens;
