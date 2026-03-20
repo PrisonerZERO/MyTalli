@@ -1130,6 +1130,7 @@ private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
 ```csharp
 /* Correct — parameters sorted by type, assignments sorted by variable name */
 #region <Constructors>
+
 public AppleSignInHandler(
     IAuditableRepositoryAsync<ENTITIES.User> userRepository,
     IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> appleAuthRepository,
@@ -1139,6 +1140,7 @@ public AppleSignInHandler(
     _preferencesSerializer = preferencesSerializer;
     _userRepository = userRepository;
 }
+
 #endregion
 ```
 
