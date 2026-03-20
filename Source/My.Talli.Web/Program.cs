@@ -95,6 +95,12 @@ var authBuilder = builder.Services.AddAuthentication(options =>
             var handler = context.HttpContext.RequestServices.GetRequiredService<GoogleAuthenticationHandler>();
             await handler.HandleTicketAsync(context);
         };
+        options.Events.OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/signin");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        };
     })
     .AddMicrosoftAccount(options =>
     {
@@ -106,6 +112,12 @@ var authBuilder = builder.Services.AddAuthentication(options =>
         {
             var handler = context.HttpContext.RequestServices.GetRequiredService<MicrosoftAuthenticationHandler>();
             await handler.HandleTicketAsync(context);
+        };
+        options.Events.OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/signin");
+            context.HandleResponse();
+            return Task.CompletedTask;
         };
     });
 
@@ -133,6 +145,12 @@ if (!string.IsNullOrEmpty(appleClientId))
         {
             var handler = context.HttpContext.RequestServices.GetRequiredService<APPLEAUTHHANDLER>();
             await handler.HandleTicketAsync(context);
+        };
+        options.Events.OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/signin");
+            context.HandleResponse();
+            return Task.CompletedTask;
         };
     });
 }
@@ -178,6 +196,44 @@ var app = builder.Build();
 
 // ---------------------
 // HTTP REQUEST PIPELINE
+
+// BOT/SCANNER PROBE FILTER — short-circuit known vulnerability scan paths
+// Returns a bare 404 before the request reaches Elmah, error pages, or Blazor routing
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? "";
+
+    // OPTIONS — used by Office link probes (Word, Outlook) and CORS preflights.
+    // This Blazor app has no CORS or OPTIONS endpoints, so short-circuit with 204.
+    if (context.Request.Method == HttpMethods.Options)
+    {
+        context.Response.StatusCode = 204;
+        return;
+    }
+
+    if (path.Contains(".env", StringComparison.OrdinalIgnoreCase)
+        || path.Contains(".git", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("wp-login", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("wp-admin", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("wp-includes", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("wp-content", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("xmlrpc", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("phpmy", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("phpmyadmin", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("admin/config", StringComparison.OrdinalIgnoreCase)
+        || path.EndsWith(".php", StringComparison.OrdinalIgnoreCase)
+        || path.EndsWith(".asp", StringComparison.OrdinalIgnoreCase)
+        || path.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase)
+        || path.EndsWith(".jsp", StringComparison.OrdinalIgnoreCase)
+        || path.EndsWith(".cgi", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.StatusCode = 404;
+        return;
+    }
+
+    await next();
+});
+
 app.UseExceptionHandler("/Error", createScopeForErrors: true);
 app.UseStatusCodePagesWithReExecute("/Error/{0}");
 app.UseElmah();

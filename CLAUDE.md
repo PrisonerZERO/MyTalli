@@ -623,10 +623,11 @@ dotnet run --project Source/My.Talli.Web
 
 ### Version Number
 
-- **`<Version>0.1.0</Version>`** in `My.Talli.Web.csproj` — single source of truth for the app version
+- **`<Version>0.1.0.0</Version>`** in `My.Talli.Web.csproj` — single source of truth for the app version. Format: `Major.Minor.Patch.Revision`.
+- **Revision number** — incremented with each fix deployment. Only the revision (4th segment) changes per fix. The version (`Major.Minor.Patch`) only changes for feature releases or breaking changes. The full 4-segment version is always displayed in the UI so deployment slots (staging vs production) can be visually distinguished.
 - **`LayoutHelper.VersionNumber`** reads `AssemblyInformationalVersionAttribute` (set by `<Version>`) at runtime
 - **`LayoutHelper.CurrentYear`** provides the current year for copyright footers
-- **Landing Page** — version shown inline in footer: `© 2026 MyTalli v0.1.0 — All rights reserved.`
+- **Landing Page** — version shown inline in footer: `© 2026 MyTalli v0.1.0.0 — All rights reserved.`
 - **MainLayout pages** — version shown in a subtle `div.app-version` at the bottom of the content area
 - **LandingLayout pages** (Sign-In, Waitlist, Error) — no version displayed
 
