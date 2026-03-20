@@ -84,6 +84,8 @@ var authBuilder = builder.Services.AddAuthentication(options =>
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
         options.SlidingExpiration = true;
     })
+
+    // GOOGLE SIGN-IN
     .AddGoogle(options =>
     {
         // Configuration Uses: dotnet user-secrets
@@ -102,6 +104,8 @@ var authBuilder = builder.Services.AddAuthentication(options =>
             return Task.CompletedTask;
         };
     })
+
+    // MICROSOFT SIGN-IN
     .AddMicrosoftAccount(options =>
     {
         // Configuration Uses: dotnet user-secrets
@@ -121,7 +125,7 @@ var authBuilder = builder.Services.AddAuthentication(options =>
         };
     });
 
-// Apple Sign-In — only register when credentials are configured
+// APPLE SIGN-IN — only register when credentials are configured
 var appleClientId = builder.Configuration["Authentication:Apple:ClientId"];
 if (!string.IsNullOrEmpty(appleClientId))
 {
