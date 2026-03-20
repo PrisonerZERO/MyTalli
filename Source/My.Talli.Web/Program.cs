@@ -95,6 +95,12 @@ var authBuilder = builder.Services.AddAuthentication(options =>
             var handler = context.HttpContext.RequestServices.GetRequiredService<GoogleAuthenticationHandler>();
             await handler.HandleTicketAsync(context);
         };
+        options.Events.OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/signin");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        };
     })
     .AddMicrosoftAccount(options =>
     {
@@ -106,6 +112,12 @@ var authBuilder = builder.Services.AddAuthentication(options =>
         {
             var handler = context.HttpContext.RequestServices.GetRequiredService<MicrosoftAuthenticationHandler>();
             await handler.HandleTicketAsync(context);
+        };
+        options.Events.OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/signin");
+            context.HandleResponse();
+            return Task.CompletedTask;
         };
     });
 
@@ -133,6 +145,12 @@ if (!string.IsNullOrEmpty(appleClientId))
         {
             var handler = context.HttpContext.RequestServices.GetRequiredService<APPLEAUTHHANDLER>();
             await handler.HandleTicketAsync(context);
+        };
+        options.Events.OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/signin");
+            context.HandleResponse();
+            return Task.CompletedTask;
         };
     });
 }
