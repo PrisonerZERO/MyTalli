@@ -207,8 +207,15 @@ app.Use(async (context, next) =>
 {
     var path = context.Request.Path.Value ?? "";
 
-    // OPTIONS — used by Office link probes (Word, Outlook) and CORS preflights.
-    // This Blazor app has no CORS or OPTIONS endpoints, so short-circuit with 204.
+    // BLAZOR DISCONNECT — Expired Circuits return 400, polluting Elmah. Short-circuit with 200.
+    if (path.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase)
+        && context.Request.Method == HttpMethods.Post)
+    {
+        context.Response.StatusCode = 200;
+        return;
+    }
+
+    // OPTIONS — Is used by "Office link probes (Word, Outlook)" and CORS preflights.  Short-circuit with 200.
     if (context.Request.Method == HttpMethods.Options)
     {
         context.Response.StatusCode = 204;
