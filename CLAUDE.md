@@ -1094,6 +1094,7 @@ using My.Talli.Domain.Framework;
 
 - Every C# class **must** use `#region` / `#endregion` to organize its members.
 - Region names use angle brackets: `#region <Name>`
+- **Blank line after `#region`** and **blank line before `#endregion`** — content is always separated from the region boundaries by one empty line.
 - Only include regions the class actually needs — omit empty ones.
 - Allowed regions (in order):
   1. `<Variables>` — fields, constants, injected services
@@ -1106,14 +1107,16 @@ using My.Talli.Domain.Framework;
 - **Within each access level**, alphabetize members by **type/class name** (not by variable name)
 
 ```csharp
-/* Correct — sorted by class name: IAuditableRepositoryAsync<User>, IAuditableRepositoryAsync<UserAuthenticationApple>, UserPreferencesJsonSerializer */
+/* Correct — sorted by class name, blank lines around content */
 #region <Variables>
+
 private readonly IAuditableRepositoryAsync<ENTITIES.User> _userRepository;
 private readonly IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> _appleAuthRepository;
 private readonly UserPreferencesJsonSerializer _preferencesSerializer;
+
 #endregion
 
-/* Wrong — sorted by variable name */
+/* Wrong — no blank lines, sorted by variable name */
 #region <Variables>
 private readonly IAuditableRepositoryAsync<ENTITIES.UserAuthenticationApple> _appleAuthRepository;
 private readonly UserPreferencesJsonSerializer _preferencesSerializer;
