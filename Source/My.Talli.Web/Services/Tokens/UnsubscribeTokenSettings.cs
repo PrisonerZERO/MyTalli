@@ -7,5 +7,6 @@ public class UnsubscribeTokenSettings
 
     public string SecretKey { get; set; } = string.Empty;
 
+
     #endregion
 }

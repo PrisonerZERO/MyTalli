@@ -38,5 +38,6 @@ public class OrderMapper : EntityMapper<MODELS.Order, ENTITIES.Order>
 		UserId = entity.UserId,
 	};
 
+
 	#endregion
 }

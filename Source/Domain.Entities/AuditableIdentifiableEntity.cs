@@ -17,5 +17,6 @@ public class AuditableIdentifiableEntity : IAuditableIdentifiable
     
     public long Id { get; set; }
 
+
     #endregion
 }

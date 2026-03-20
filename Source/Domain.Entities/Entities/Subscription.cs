@@ -27,5 +27,6 @@ public class Subscription : DefaultEntity
 
 	public long UserId { get; set; }
 
+
 	#endregion
 }

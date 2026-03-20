@@ -35,5 +35,6 @@ public class BillingStripeConfiguration : IEntityTypeConfiguration<BillingStripe
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
+
     #endregion
 }

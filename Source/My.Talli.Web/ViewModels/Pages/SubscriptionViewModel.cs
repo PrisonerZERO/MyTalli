@@ -10,6 +10,7 @@ public class SubscriptionViewModel : ComponentBase
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
 
+
     #endregion
 
     #region <Properties>
@@ -26,6 +27,7 @@ public class SubscriptionViewModel : ComponentBase
 
     public string PlanStatus { get; private set; } = string.Empty;
 
+
     #endregion
 
     #region <Events>
@@ -40,6 +42,7 @@ public class SubscriptionViewModel : ComponentBase
         NextBillingDate = "Apr 7, 2026";
         MemberSince = "Jan 15, 2026";
     }
+
 
     #endregion
 
@@ -59,6 +62,7 @@ public class SubscriptionViewModel : ComponentBase
     {
         Navigation.NavigateTo("/api/billing/create-portal-session", forceLoad: true);
     }
+
 
     #endregion
 }

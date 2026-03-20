@@ -7,6 +7,7 @@ public class UnexpectedException : TalliException
 
     public override int HttpStatusCode => 500;
 
+
     #endregion
 
     #region <Constructors>
@@ -16,6 +17,7 @@ public class UnexpectedException : TalliException
     public UnexpectedException(string message) : base(message) { }
 
     public UnexpectedException(string message, Exception innerException) : base(message, innerException) { }
+
 
     #endregion
 }

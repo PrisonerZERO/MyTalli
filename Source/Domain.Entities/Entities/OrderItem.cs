@@ -17,5 +17,6 @@ public class OrderItem : DefaultEntity
 
 	public int ProductQuantity { get; set; }
 
+
 	#endregion
 }

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 public static class AuthEndpoints
 {
     #region <Methods>
+
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext context) =>
@@ -38,5 +39,6 @@ public static class AuthEndpoints
             context.Response.Redirect(redirect);
         });
     }
+
     #endregion
 }

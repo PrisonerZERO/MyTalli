@@ -15,6 +15,7 @@ public class CancelSubscriptionViewModel : ComponentBase
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
 
+
     #endregion
 
     #region <Properties>
@@ -22,6 +23,7 @@ public class CancelSubscriptionViewModel : ComponentBase
     public string SelectedReason { get; set; } = string.Empty;
 
     public bool ShowKeptToast { get; private set; }
+
 
     #endregion
 
@@ -46,6 +48,7 @@ public class CancelSubscriptionViewModel : ComponentBase
         }
     }
 
+
     #endregion
 
     #region <Methods>
@@ -64,6 +67,7 @@ public class CancelSubscriptionViewModel : ComponentBase
     {
         Navigation.NavigateTo("/dashboard");
     }
+
 
     #endregion
 }

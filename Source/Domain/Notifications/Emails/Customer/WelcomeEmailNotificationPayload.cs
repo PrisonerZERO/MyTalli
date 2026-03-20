@@ -9,5 +9,6 @@ public class WelcomeEmailNotificationPayload
 
     public string UnsubscribeToken { get; set; } = string.Empty;
 
+
     #endregion
 }

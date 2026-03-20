@@ -24,11 +24,13 @@ public abstract class DbMigrationBase : Migration
         "Assemblies"
     ];
 
+
     #endregion
 
     #region <Properties>
 
     protected abstract string MigrationFolder { get; }
+
 
     #endregion
 
@@ -83,6 +85,7 @@ public abstract class DbMigrationBase : Migration
             }
         });
     }
+
 
     #endregion
 }

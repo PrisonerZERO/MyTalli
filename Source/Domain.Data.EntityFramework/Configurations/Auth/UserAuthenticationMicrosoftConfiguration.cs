@@ -38,5 +38,6 @@ public class UserAuthenticationMicrosoftConfiguration : IEntityTypeConfiguration
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
+
     #endregion
 }

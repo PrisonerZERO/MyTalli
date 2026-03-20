@@ -11,5 +11,6 @@ public class DatabaseConnectionFailedException : ForbiddenException
 
     public DatabaseConnectionFailedException(string message, Exception innerException) : base(message, innerException) { }
 
+
     #endregion
 }

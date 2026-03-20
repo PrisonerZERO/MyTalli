@@ -7,5 +7,6 @@ public class ActionResponseOf<T> : ValidationResult
 
 	public T Payload { get; set; } = default!;
 
+
 	#endregion
 }

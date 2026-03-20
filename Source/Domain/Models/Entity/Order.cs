@@ -11,5 +11,6 @@ public class Order : DefaultModel
 
 	public long UserId { get; set; }
 
+
 	#endregion
 }

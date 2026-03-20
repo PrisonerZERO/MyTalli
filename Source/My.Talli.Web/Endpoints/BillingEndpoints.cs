@@ -7,6 +7,7 @@ using Web.Services.Billing;
 public static class BillingEndpoints
 {
     #region <Methods>
+
     public static void MapBillingEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/billing/create-checkout-session", async (HttpContext context, StripeBillingService billing) =>
@@ -93,5 +94,6 @@ public static class BillingEndpoints
             }
         }).DisableAntiforgery();
     }
+
     #endregion
 }

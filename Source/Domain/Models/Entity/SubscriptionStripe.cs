@@ -11,5 +11,6 @@ public class SubscriptionStripe : DefaultModel
 
 	public string StripeSubscriptionId { get; set; } = string.Empty;
 
+
 	#endregion
 }

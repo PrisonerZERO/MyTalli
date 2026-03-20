@@ -20,6 +20,7 @@ public class GoogleSignInHandler
 	private readonly RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> _userRoleAdapter;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
+
 	#endregion
 
 	#region <Constructors>
@@ -39,6 +40,7 @@ public class GoogleSignInHandler
 		_userAdapter = userAdapter;
 		_userRoleAdapter = userRoleAdapter;
 	}
+
 
 	#endregion
 
@@ -139,6 +141,7 @@ public class GoogleSignInHandler
 
 		return roles;
 	}
+
 
 	#endregion
 }

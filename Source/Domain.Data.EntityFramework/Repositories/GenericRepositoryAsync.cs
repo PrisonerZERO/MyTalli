@@ -13,6 +13,7 @@ public class GenericRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where T
     protected readonly DbSet<TEntity> _dbSet;
     protected readonly TalliDbContext _dbContext;
 
+
     #endregion
 
     #region <Constructors>
@@ -22,6 +23,7 @@ public class GenericRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where T
         _dbSet = dbContext.Set<TEntity>();
         _dbContext = dbContext;
     }
+
 
     #endregion
 
@@ -57,6 +59,7 @@ public class GenericRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where T
         _dbSet.Attach(entity);
         _dbContext.Entry(entity).State = EntityState.Modified;
     }
+
 
     #endregion
 }

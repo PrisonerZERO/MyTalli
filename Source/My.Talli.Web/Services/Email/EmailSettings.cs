@@ -21,5 +21,6 @@ public class EmailSettings
 
     public bool UseSsl { get; set; } = true;
 
+
     #endregion
 }

@@ -7,6 +7,7 @@ using ElmahCore.Sql;
 public static class ElmahConfiguration
 {
     #region <Methods>
+
     public static void AddElmahLogging(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddElmah<SqlErrorLog>(options =>
@@ -16,5 +17,6 @@ public static class ElmahConfiguration
             options.OnPermissionCheck = context => context.User.Identity?.IsAuthenticated == true;
         });
     }
+
     #endregion
 }

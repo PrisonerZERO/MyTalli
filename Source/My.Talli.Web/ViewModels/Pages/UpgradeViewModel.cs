@@ -15,6 +15,7 @@ public class UpgradeViewModel : ComponentBase
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
 
+
     #endregion
 
     #region <Properties>
@@ -24,6 +25,7 @@ public class UpgradeViewModel : ComponentBase
     public bool ShowCancelledToast { get; private set; }
 
     public bool ShowSuccessToast { get; private set; }
+
 
     #endregion
 
@@ -56,6 +58,7 @@ public class UpgradeViewModel : ComponentBase
         }
     }
 
+
     #endregion
 
     #region <Methods>
@@ -77,6 +80,7 @@ public class UpgradeViewModel : ComponentBase
     {
         SelectedPlan = plan;
     }
+
 
     #endregion
 }

@@ -9,6 +9,7 @@ using Web.Services.Tokens;
 public static class EmailConfiguration
 {
     #region <Methods>
+
     public static void AddEmailServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<EmailSettings>(configuration.GetSection("Email"));
@@ -22,5 +23,6 @@ public static class EmailConfiguration
             return new UnsubscribeTokenService(settings.SecretKey);
         });
     }
+
     #endregion
 }

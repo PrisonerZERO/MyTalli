@@ -21,5 +21,6 @@ public class UserAuthenticationGoogle : DefaultModel
 
 	public string Locale { get; set; } = string.Empty;
 
+
 	#endregion
 }

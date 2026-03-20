@@ -16,6 +16,7 @@ using MODELS = Domain.Models;
 public static class RepositoryConfiguration
 {
     #region <Methods>
+
     public static void AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -42,5 +43,6 @@ public static class RepositoryConfiguration
         services.AddScoped<GoogleSignInHandler>();
         services.AddScoped<MicrosoftSignInHandler>();
     }
+
     #endregion
 }

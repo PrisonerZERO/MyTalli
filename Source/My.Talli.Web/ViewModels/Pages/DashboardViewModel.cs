@@ -51,6 +51,7 @@ public class DashboardViewModel : ComponentBase
 
     public string UserFirstName { get; private set; } = "Sarah";
 
+
     #endregion
 
     #region <Events>
@@ -59,6 +60,7 @@ public class DashboardViewModel : ComponentBase
     {
         LoadMockData();
     }
+
 
     #endregion
 
@@ -96,6 +98,7 @@ public class DashboardViewModel : ComponentBase
             new Transaction("Etsy", "#f56400", "Ceramic Mug — Speckled", "Feb 25", 34.00m)
         ];
     }
+
 
     #endregion
 }

@@ -8,6 +8,7 @@ using Web.Services.Email;
 public static class TestEndpoints
 {
     #region <Methods>
+
     public static void MapTestEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/test/unsubscribe-token/{userId:long}", (long userId, UnsubscribeTokenService tokenService) =>
@@ -137,5 +138,6 @@ public static class TestEndpoints
             throw new InvalidOperationException("Test exception — verifying error email pipeline is working.");
         });
     }
+
     #endregion
 }

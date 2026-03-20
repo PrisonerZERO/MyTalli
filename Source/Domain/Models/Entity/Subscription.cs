@@ -21,5 +21,6 @@ public class Subscription : DefaultModel
 
 	public long UserId { get; set; }
 
+
 	#endregion
 }

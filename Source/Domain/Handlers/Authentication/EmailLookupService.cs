@@ -14,6 +14,7 @@ public class EmailLookupService
 	private readonly RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> _googleAuthAdapter;
 	private readonly RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> _microsoftAuthAdapter;
 
+
 	#endregion
 
 	#region <Constructors>
@@ -27,6 +28,7 @@ public class EmailLookupService
 		_googleAuthAdapter = googleAuthAdapter;
 		_microsoftAuthAdapter = microsoftAuthAdapter;
 	}
+
 
 	#endregion
 
@@ -45,6 +47,7 @@ public class EmailLookupService
 
 		return null;
 	}
+
 
 	#endregion
 }

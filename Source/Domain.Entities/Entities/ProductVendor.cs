@@ -7,5 +7,6 @@ public class ProductVendor : DefaultEntity
 
 	public string VendorName { get; set; } = string.Empty;
 
+
 	#endregion
 }

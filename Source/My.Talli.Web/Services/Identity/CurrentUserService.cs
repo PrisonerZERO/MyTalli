@@ -13,6 +13,7 @@ public class CurrentUserService : ICurrentUserService
 
     public long? UserId { get; private set; }
 
+
     #endregion
 
     #region <Methods>
@@ -28,6 +29,7 @@ public class CurrentUserService : ICurrentUserService
         UserId = userId;
         DisplayName = displayName;
     }
+
 
     #endregion
 }

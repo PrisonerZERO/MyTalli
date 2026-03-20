@@ -33,5 +33,6 @@ public class AuthenticatedUser
 
 	public string UserPreferences { get; set; } = "{}";
 
+
 	#endregion
 }

@@ -17,5 +17,6 @@ public class UserAuthenticationApple : DefaultModel
 
 	public string LastName { get; set; } = string.Empty;
 
+
 	#endregion
 }

@@ -9,11 +9,13 @@ public interface IAuditResolver<TEntity> where TEntity : class, IAuditableIdenti
 
     ICurrentUserService CurrentUserService { get; }
 
+
     #endregion
 
     #region <Methods>
 
     void Resolve(TEntity entity, bool updating = false);
+
 
     #endregion
 }

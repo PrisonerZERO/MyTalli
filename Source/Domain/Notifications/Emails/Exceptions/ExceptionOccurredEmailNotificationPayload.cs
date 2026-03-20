@@ -19,5 +19,6 @@ public class ExceptionOccurredEmailNotificationPayload
 
     public string RequestPath { get; set; } = string.Empty;
 
+
     #endregion
 }

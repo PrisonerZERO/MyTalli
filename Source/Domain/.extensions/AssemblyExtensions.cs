@@ -17,5 +17,6 @@ public static class AssemblyExtensions
         return reader.ReadToEnd();
     }
 
+
     #endregion
 }

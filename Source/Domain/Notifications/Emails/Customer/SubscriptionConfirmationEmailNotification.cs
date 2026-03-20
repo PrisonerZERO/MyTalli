@@ -11,6 +11,7 @@ public class SubscriptionConfirmationEmailNotification : EmailNotificationOf<Sub
 
     private const string TemplateResourceName = "My.Talli.Domain..resources.emails.SubscriptionConfirmationEmailNotificationTemplate.html";
 
+
     #endregion
 
     #region <Methods>
@@ -33,6 +34,7 @@ public class SubscriptionConfirmationEmailNotification : EmailNotificationOf<Sub
 
         return FinalizeEmail();
     }
+
 
     #endregion
 }

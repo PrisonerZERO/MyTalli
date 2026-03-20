@@ -11,6 +11,7 @@ public class WeeklySummaryEmailNotification : EmailNotificationOf<WeeklySummaryE
 
     private const string TemplateResourceName = "My.Talli.Domain..resources.emails.WeeklySummaryEmailNotificationTemplate.html";
 
+
     #endregion
 
     #region <Methods>
@@ -38,6 +39,7 @@ public class WeeklySummaryEmailNotification : EmailNotificationOf<WeeklySummaryE
 
         return FinalizeEmail();
     }
+
 
     #endregion
 }

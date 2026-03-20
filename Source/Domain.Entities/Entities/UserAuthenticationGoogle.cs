@@ -23,5 +23,6 @@ public class UserAuthenticationGoogle : DefaultEntity
 
 	public User User { get; set; } = null!;
 
+
 	#endregion
 }

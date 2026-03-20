@@ -55,5 +55,6 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
+
     #endregion
 }

@@ -19,6 +19,7 @@ public abstract class EmailNotification
 
     public List<string> To { get; set; } = [];
 
+
     #endregion
 
     #region <Methods>
@@ -36,6 +37,7 @@ public abstract class EmailNotification
             To = To
         };
     }
+
 
     #endregion
 }

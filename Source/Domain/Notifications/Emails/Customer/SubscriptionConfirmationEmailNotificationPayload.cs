@@ -17,5 +17,6 @@ public class SubscriptionConfirmationEmailNotificationPayload
 
     public string UnsubscribeToken { get; set; } = string.Empty;
 
+
     #endregion
 }

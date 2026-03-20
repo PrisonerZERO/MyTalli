@@ -41,5 +41,6 @@ public class ProductMapper : EntityMapper<MODELS.Product, ENTITIES.Product>
 		VendorPrice = entity.VendorPrice,
 	};
 
+
 	#endregion
 }

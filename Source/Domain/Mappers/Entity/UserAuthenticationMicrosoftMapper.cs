@@ -44,5 +44,6 @@ public class UserAuthenticationMicrosoftMapper : EntityMapper<MODELS.UserAuthent
 		MicrosoftId = entity.MicrosoftId,
 	};
 
+
 	#endregion
 }

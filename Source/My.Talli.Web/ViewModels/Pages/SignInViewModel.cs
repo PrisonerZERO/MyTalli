@@ -10,6 +10,7 @@ public class SignInViewModel : ComponentBase
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
 
+
     #endregion
 
     #region <Properties>
@@ -17,6 +18,7 @@ public class SignInViewModel : ComponentBase
     protected bool IsSigningIn { get; private set; }
 
     protected string? SigningInProvider { get; private set; }
+
 
     #endregion
 
@@ -48,6 +50,7 @@ public class SignInViewModel : ComponentBase
         SigningInProvider = "Microsoft";
         Navigation.NavigateTo("/api/auth/login/microsoft", forceLoad: true);
     }
+
 
     #endregion
 }

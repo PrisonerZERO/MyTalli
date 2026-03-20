@@ -65,5 +65,6 @@ public static class Assert
 			throw new InvalidOperationException(message ?? $"The string must contain the substring '{substring}'. Actual: {actual}.");
 	}
 
+
 	#endregion
 }

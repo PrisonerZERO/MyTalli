@@ -53,5 +53,6 @@ public class SubscriptionMapper : EntityMapper<MODELS.Subscription, ENTITIES.Sub
 		UserId = entity.UserId,
 	};
 
+
 	#endregion
 }

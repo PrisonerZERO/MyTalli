@@ -16,6 +16,7 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 	private readonly IAuditableRepositoryAsync<TEntity> _repository;
 	private readonly IEntityMapper<TModel, TEntity> _mapper;
 
+
 	#endregion
 
 	#region <Constructors>
@@ -25,6 +26,7 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 		_mapper = mapper;
 		_repository = repository;
 	}
+
 
 	#endregion
 
@@ -101,6 +103,7 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 		Assert.IsNotNull(model);
 		return _mapper.ToEntity(model);
 	}
+
 
 	#endregion
 }

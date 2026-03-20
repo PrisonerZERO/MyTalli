@@ -12,6 +12,7 @@ using MODELS = Domain.Models;
 public static class EmailEndpoints
 {
     #region <Methods>
+
     public static void MapEmailEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapPost("/api/email/preferences", async (
@@ -49,6 +50,7 @@ public static class EmailEndpoints
             return Results.Ok();
         }).DisableAntiforgery();
     }
+
     #endregion
 }
 

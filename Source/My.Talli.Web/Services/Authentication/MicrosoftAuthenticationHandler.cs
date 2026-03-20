@@ -16,6 +16,7 @@ public class MicrosoftAuthenticationHandler
     private readonly MicrosoftSignInHandler _signInHandler;
     private readonly UnsubscribeTokenService _unsubscribeTokenService;
 
+
     #endregion
 
     #region <Constructors>
@@ -29,6 +30,7 @@ public class MicrosoftAuthenticationHandler
         _signInHandler = signInHandler;
         _unsubscribeTokenService = unsubscribeTokenService;
     }
+
 
     #endregion
 
@@ -76,6 +78,7 @@ public class MicrosoftAuthenticationHandler
         smtp.To = [email];
         await _emailService.SendAsync(smtp);
     }
+
 
     #endregion
 }

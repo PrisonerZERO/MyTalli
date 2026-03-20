@@ -34,5 +34,6 @@ public class SubscriptionStripeConfiguration : IEntityTypeConfiguration<Subscrip
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
+
     #endregion
 }

@@ -7,5 +7,6 @@ public class ProductVendor : DefaultModel
 
 	public string VendorName { get; set; } = string.Empty;
 
+
 	#endregion
 }

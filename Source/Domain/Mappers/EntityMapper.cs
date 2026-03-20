@@ -17,5 +17,6 @@ public abstract class EntityMapper<TModel, TEntity> : IEntityMapper<TModel, TEnt
 
 	public IEnumerable<TModel> ToModels(IEnumerable<TEntity> entities) => entities.Select(ToModel);
 
+
 	#endregion
 }

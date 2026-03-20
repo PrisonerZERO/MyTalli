@@ -12,6 +12,7 @@ using APPLE_AUTH_HANDLER = Web.Services.Authentication.AppleAuthenticationHandle
 public static class AuthenticationConfiguration
 {
     #region <Methods>
+
     public static void AddAuthenticationProviders(this IServiceCollection services, IConfiguration configuration)
     {
         var authBuilder = services.AddAuthentication(options =>
@@ -106,5 +107,6 @@ public static class AuthenticationConfiguration
         services.AddAuthorization();
         services.AddCascadingAuthenticationState();
     }
+
     #endregion
 }

@@ -30,11 +30,13 @@ public class SuggestionBoxViewModel : ComponentBase
 
     public int YourSuggestions => Suggestions.Count(s => s.IsOwn);
 
+
     #endregion
 
     #region <Variables>
 
     private List<SuggestionItem> Suggestions { get; set; } = [];
+
 
     #endregion
 
@@ -45,6 +47,7 @@ public class SuggestionBoxViewModel : ComponentBase
         Suggestions = GetMockSuggestions();
         ApplyFilters();
     }
+
 
     #endregion
 
@@ -172,6 +175,7 @@ public class SuggestionBoxViewModel : ComponentBase
         ];
     }
 
+
     #endregion
 }
 
@@ -214,6 +218,7 @@ public class SuggestionItem
     public string Title { get; set; } = "";
 
     public int Votes { get; set; }
+
 
     #endregion
 }

@@ -33,5 +33,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
+
     #endregion
 }

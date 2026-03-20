@@ -6,6 +6,7 @@ public class ProbeFilterMiddleware
     #region <Variables>
 
     private readonly RequestDelegate _next;
+
     
     #endregion
 
@@ -15,6 +16,7 @@ public class ProbeFilterMiddleware
     {
         _next = next;
     }
+
 
     #endregion
 
@@ -62,6 +64,7 @@ public class ProbeFilterMiddleware
         await _next(context);
     }
 
+
     #endregion
 }
 
@@ -74,6 +77,7 @@ public static class ProbeFilterMiddlewareExtensions
     {
         return app.UseMiddleware<ProbeFilterMiddleware>();
     }
+
 
     #endregion
 }

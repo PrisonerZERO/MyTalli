@@ -19,5 +19,6 @@ public class UserAuthenticationApple : DefaultEntity
 
 	public User User { get; set; } = null!;
 
+
 	#endregion
 }

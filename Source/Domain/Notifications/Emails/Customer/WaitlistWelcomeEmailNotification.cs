@@ -11,6 +11,7 @@ public class WaitlistWelcomeEmailNotification : EmailNotificationOf<WaitlistWelc
 
 	private const string TemplateResourceName = "My.Talli.Domain..resources.emails.WaitlistWelcomeEmailNotificationTemplate.html";
 
+
 	#endregion
 
 	#region <Methods>
@@ -29,6 +30,7 @@ public class WaitlistWelcomeEmailNotification : EmailNotificationOf<WaitlistWelc
 
 		return FinalizeEmail();
 	}
+
 
 	#endregion
 }

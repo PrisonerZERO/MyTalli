@@ -11,5 +11,6 @@ public class DefaultModel
 
 	public bool IsVisible { get; set; } = true;
 
+
 	#endregion
 }

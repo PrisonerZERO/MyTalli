@@ -44,5 +44,6 @@ public class BillingMapper : EntityMapper<MODELS.Billing, ENTITIES.Billing>
 		UserId = entity.UserId,
 	};
 
+
 	#endregion
 }

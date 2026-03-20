@@ -7,5 +7,6 @@ public abstract class EmailNotificationOf<T> : EmailNotification
 
     public abstract SmtpNotification Build(EmailNotificationArgumentOf<T> arguments);
 
+
     #endregion
 }

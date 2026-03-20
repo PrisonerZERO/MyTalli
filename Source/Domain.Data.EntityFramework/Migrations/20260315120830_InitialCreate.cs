@@ -11,6 +11,7 @@ public partial class InitialCreate : DbMigrationBase
 
     protected override string MigrationFolder => "01_0";
 
+
     #endregion
 
     #region <Methods>
@@ -610,6 +611,7 @@ public partial class InitialCreate : DbMigrationBase
                 name: "ProductVendor",
                 schema: "commerce");
     }
+
 
     #endregion
 }

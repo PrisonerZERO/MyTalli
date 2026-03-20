@@ -13,5 +13,6 @@ public class Order : DefaultEntity
 
 	public long UserId { get; set; }
 
+
 	#endregion
 }
