@@ -65,7 +65,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Schema separation** — tables are organized into SQL schemas by functional domain (`auth`, `commerce`). `dbo` is reserved/empty.
 - **Orders as the backbone** — subscriptions, modules, and any future products all flow through the same Order → OrderItem pipeline. A subscription is just a product.
 - **No separate waitlist table** — the `auth.User` table doubles as the waitlist during Waitlist Mode. A signed-up user *is* a waitlist user until Dashboard Mode is enabled.
-- **No milestones table** — milestones are hardcoded in the Waitlist page UI, not stored in the database.
+- **Milestones in database** — waitlist milestones are stored in `app.Milestone` (not hardcoded). Update milestone statuses directly in the database — no deployment needed.
 - **No third-party table creation** — third-party packages (e.g., ElmahCore) must never create their own tables. All tables are created by our migrations so we own the schema, naming conventions, and migration history. If a package needs a table, create it in a migration SQL script with an `IF NOT EXISTS` guard.
 - **Audit field self-creation sentinel** — `CreateByUserId = 0` means "self-created" (the user created their own account). This avoids a second database round-trip to self-stamp the generated Id. Only applies to `auth.User` rows created during OAuth sign-up.
 - **Audit fields on insert** — on INSERT, only `CreateByUserId` and `CreatedOnDateTime` are populated. `UpdatedByUserId` and `UpdatedOnDate` remain `null` — nothing has been updated yet. They are only set on the first actual UPDATE.
@@ -76,8 +76,17 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
+| `app` | Application configuration | Milestone |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
+
+### Schema: `app`
+
+**`app.Milestone`** — waitlist progress tracker milestones
+- `Id` (PK), `Description`, `MilestoneGroup` (Beta, FullLaunch), `SortOrder` (display order within group), `Status` (Complete, InProgress, Upcoming), `Title`
+- Status constants: `MilestoneStatuses` in `Domain/Framework/MilestoneStatuses.cs`
+- Group constants: `MilestoneGroups` in `Domain/Framework/MilestoneGroups.cs`
+- To update milestone status without deploying: `UPDATE app.Milestone SET Status = 'InProgress' WHERE Id = 3`
 
 ### Schema: `auth`
 
@@ -277,6 +286,8 @@ My.Talli/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
     │   ├── Framework/
     │   │   ├── Assert.cs                      # Static validation utility (precondition checks)
+    │   │   ├── MilestoneGroups.cs             # Static milestone group constants (Beta, FullLaunch)
+    │   │   ├── MilestoneStatuses.cs           # Static milestone status constants (Complete, InProgress, Upcoming)
     │   │   └── Roles.cs                       # Static role name constants (Admin, User)
     │   ├── Components/
     │   │   ├── JsonSerializers/
@@ -290,6 +301,7 @@ My.Talli/
     │   │   └── Entity/                        # Concrete mappers (one per entity/model pair)
     │   │       ├── BillingMapper.cs
     │   │       ├── BillingStripeMapper.cs
+    │   │       ├── MilestoneMapper.cs
     │   │       ├── OrderItemMapper.cs
     │   │       ├── OrderMapper.cs
     │   │       ├── ProductMapper.cs
@@ -311,6 +323,7 @@ My.Talli/
     │   │   ├── Entity/                        # 1-to-1 entity representations (no audit fields, no nav properties)
     │   │   │   ├── Billing.cs
     │   │   │   ├── BillingStripe.cs
+    │   │   │   ├── Milestone.cs
     │   │   │   ├── Order.cs
     │   │   │   ├── OrderItem.cs
     │   │   │   ├── Product.cs
@@ -378,12 +391,17 @@ My.Talli/
     │   │   │   │   └── 00.components.ELMAH_Error.sql
     │   │   │   └── Views/
     │   │   │       └── 00.auth.vAuthenticatedUser.sql
+    │   │   └── 02_0/                        # SQL scripts for AddMilestone migration
+    │   │       └── Post-Deployment Scripts/
+    │   │           └── 00.app.Milestone.sql  # Seed milestone data (17 rows)
     │   ├── Repositories/
     │   │   ├── GenericRepositoryAsync.cs  # IRepositoryAsync<T> implementation
     │   │   └── GenericAuditableRepositoryAsync.cs # IAuditableRepositoryAsync<T> implementation
     │   ├── Resolvers/
     │   │   └── AuditResolver.cs           # IAuditResolver<T> implementation
     │   └── Configurations/
+    │       ├── App/                       # Entity configs for app schema
+    │       │   └── MilestoneConfiguration.cs
     │       ├── Auth/                      # Entity configs for auth schema
     │       │   ├── UserConfiguration.cs
     │       │   ├── UserAuthenticationAppleConfiguration.cs
@@ -407,6 +425,7 @@ My.Talli/
     │   ├── Entities/
     │   │   ├── Billing.cs
     │   │   ├── BillingStripe.cs
+    │   │   ├── Milestone.cs
     │   │   ├── Order.cs
     │   │   ├── OrderItem.cs
     │   │   ├── Product.cs

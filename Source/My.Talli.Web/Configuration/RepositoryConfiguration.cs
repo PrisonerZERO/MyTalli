@@ -25,6 +25,7 @@ public static class RepositoryConfiguration
         services.AddScoped(typeof(RepositoryAdapterAsync<,>));
         services.AddScoped<IEntityMapper<MODELS.Billing, ENTITIES.Billing>, BillingMapper>();
         services.AddScoped<IEntityMapper<MODELS.BillingStripe, ENTITIES.BillingStripe>, BillingStripeMapper>();
+        services.AddScoped<IEntityMapper<MODELS.Milestone, ENTITIES.Milestone>, MilestoneMapper>();
         services.AddScoped<IEntityMapper<MODELS.Order, ENTITIES.Order>, OrderMapper>();
         services.AddScoped<IEntityMapper<MODELS.OrderItem, ENTITIES.OrderItem>, OrderItemMapper>();
         services.AddScoped<IEntityMapper<MODELS.Product, ENTITIES.Product>, ProductMapper>();

@@ -19,6 +19,8 @@ public class TalliDbContext : DbContext
 
     public DbSet<BillingStripe> BillingStripes { get; set; } = null!;
 
+    public DbSet<Milestone> Milestones { get; set; } = null!;
+
     public DbSet<Order> Orders { get; set; } = null!;
 
     public DbSet<OrderItem> OrderItems { get; set; } = null!;
