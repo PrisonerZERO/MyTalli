@@ -425,7 +425,19 @@ My.Talli/
     │       └── IIdentifiable.cs
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
-        ├── Program.cs              # App entry point, service config, auth, endpoints
+        ├── Program.cs              # App entry point, pipeline setup (delegates to Configuration/ and Endpoints/)
+        ├── Configuration/             # Service registration extension methods (one per concern)
+        │   ├── AuthenticationConfiguration.cs  # OAuth providers (Google, Microsoft, Apple) + auth handlers
+        │   ├── BillingConfiguration.cs         # Stripe settings + service
+        │   ├── DatabaseConfiguration.cs        # DbContext registration
+        │   ├── ElmahConfiguration.cs           # Elmah error logging
+        │   ├── EmailConfiguration.cs           # Email services + unsubscribe token
+        │   └── RepositoryConfiguration.cs      # Repositories, mappers, sign-in handlers
+        ├── Endpoints/                 # Minimal API endpoint extension methods (one per route group)
+        │   ├── AuthEndpoints.cs       # /api/auth/login, /api/auth/logout
+        │   ├── BillingEndpoints.cs    # /api/billing/create-checkout-session, portal, webhook
+        │   ├── EmailEndpoints.cs      # /api/email/preferences
+        │   └── TestEndpoints.cs       # /api/test/* (dev-only)
         ├── Components/
         │   ├── App.razor           # Root HTML document
         │   ├── Routes.razor        # Routing setup
@@ -1031,6 +1043,15 @@ using System.Text.Json;
 using Models = My.Talli.Domain.Models;
 using My.Talli.Domain.Framework;
 ```
+
+### Program.cs Organization
+
+- **Program.cs** is a thin orchestrator — it calls extension methods, not inline logic.
+- **Service registration** goes in `Configuration/` — one static class per concern, each exposing an `IServiceCollection` extension method (e.g., `AddAuthenticationProviders`, `AddDatabase`, `AddRepositories`). Methods that need config values accept `IConfiguration` as a parameter.
+- **Endpoint mapping** goes in `Endpoints/` — one static class per route group, each exposing an `IEndpointRouteBuilder` extension method (e.g., `MapAuthEndpoints`, `MapBillingEndpoints`).
+- **Middleware** (probe filter, waitlist mode) stays inline in Program.cs — pipeline ordering is easier to read in sequence.
+- When adding a new service concern, create a new `Configuration/{Name}Configuration.cs` file. When adding new API routes, create a new `Endpoints/{Name}Endpoints.cs` file. Do not add inline registrations or endpoint lambdas to Program.cs.
+- Namespace: `My.Talli.Web.Configuration` for configuration classes, `My.Talli.Web.Endpoints` for endpoint classes.
 
 ### No Inline Code Blocks
 
