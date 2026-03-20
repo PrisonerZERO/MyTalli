@@ -7,5 +7,6 @@ public class MicrosoftSignInPayload
 
 	public string MicrosoftId { get; set; } = string.Empty;
 
+
 	#endregion
 }

@@ -11,6 +11,7 @@ public class ExceptionOccurredEmailNotification : EmailNotificationOf<ExceptionO
 
     private const string TemplateResourceName = "My.Talli.Domain..resources.emails.ExceptionOccurredEmailNotificationTemplate.html";
 
+
     #endregion
 
     #region <Methods>
@@ -34,6 +35,7 @@ public class ExceptionOccurredEmailNotification : EmailNotificationOf<ExceptionO
 
         return FinalizeEmail();
     }
+
 
     #endregion
 }

@@ -11,5 +11,6 @@ public abstract class ValidationResult
 
 	public List<string> WarningSummary { get; set; } = [];
 
+
 	#endregion
 }

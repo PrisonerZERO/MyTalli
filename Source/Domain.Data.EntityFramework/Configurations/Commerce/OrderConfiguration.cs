@@ -36,5 +36,6 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
+
     #endregion
 }

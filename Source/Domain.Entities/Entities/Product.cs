@@ -17,5 +17,6 @@ public class Product : DefaultEntity
 
 	public long VendorId { get; set; }
 
+
 	#endregion
 }

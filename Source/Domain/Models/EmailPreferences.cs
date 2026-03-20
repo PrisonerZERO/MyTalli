@@ -11,5 +11,6 @@ public class EmailPreferences
 
 	public bool WeeklySummaryEmail { get; set; } = true;
 
+
 	#endregion
 }

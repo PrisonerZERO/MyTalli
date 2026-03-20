@@ -41,5 +41,6 @@ public class OrderItemMapper : EntityMapper<MODELS.OrderItem, ENTITIES.OrderItem
 		ProductQuantity = entity.ProductQuantity,
 	};
 
+
 	#endregion
 }

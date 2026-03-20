@@ -11,5 +11,6 @@ public class UserRole : DefaultEntity
 
 	public long UserId { get; set; }
 
+
 	#endregion
 }

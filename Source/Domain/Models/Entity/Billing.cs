@@ -15,5 +15,6 @@ public class Billing : DefaultModel
 
 	public long UserId { get; set; }
 
+
 	#endregion
 }

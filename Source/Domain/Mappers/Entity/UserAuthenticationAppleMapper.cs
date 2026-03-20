@@ -47,5 +47,6 @@ public class UserAuthenticationAppleMapper : EntityMapper<MODELS.UserAuthenticat
 		LastName = entity.LastName,
 	};
 
+
 	#endregion
 }

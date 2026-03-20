@@ -11,6 +11,7 @@ public interface ICurrentUserService
 
     bool IsAuthenticated { get; }
 
+
     #endregion
 
     #region <Methods>
@@ -18,6 +19,7 @@ public interface ICurrentUserService
     void Set(long userId, string displayName);
 
     void Clear();
+
 
     #endregion
 }

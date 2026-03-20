@@ -14,6 +14,7 @@ public class AcsEmailService : IEmailService
     private readonly EmailSettings _settings;
     private readonly ILogger<AcsEmailService> _logger;
 
+
     #endregion
 
     #region <Constructors>
@@ -24,6 +25,7 @@ public class AcsEmailService : IEmailService
         _logger = logger;
         _settings = settings.Value;
     }
+
 
     #endregion
 
@@ -69,6 +71,7 @@ public class AcsEmailService : IEmailService
                 notification.Subject, string.Join(", ", notification.To));
         }
     }
+
 
     #endregion
 }

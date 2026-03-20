@@ -53,5 +53,6 @@ public class UserAuthenticationGoogleMapper : EntityMapper<MODELS.UserAuthentica
 		Locale = entity.Locale,
 	};
 
+
 	#endregion
 }

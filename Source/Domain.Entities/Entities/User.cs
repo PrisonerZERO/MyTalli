@@ -19,5 +19,6 @@ public class User : DefaultEntity
 
 	public string UserPreferences { get; set; } = "{}";
 
+
 	#endregion
 }

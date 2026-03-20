@@ -32,5 +32,6 @@ public class ProductVendorMapper : EntityMapper<MODELS.ProductVendor, ENTITIES.P
 		VendorName = entity.VendorName,
 	};
 
+
 	#endregion
 }

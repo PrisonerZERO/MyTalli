@@ -9,6 +9,7 @@ public interface IAuditableRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> 
 
     IAuditResolver<TEntity> AuditResolver { get; }
 
+
     #endregion
 
     #region <Methods>
@@ -26,6 +27,7 @@ public interface IAuditableRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> 
     Task DeleteRangeAsync(IEnumerable<TEntity> entities);
 
     Task<int> SaveChangesAsync();
+
 
     #endregion
 }

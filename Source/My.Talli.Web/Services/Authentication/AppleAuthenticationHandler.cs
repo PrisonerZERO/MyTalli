@@ -16,6 +16,7 @@ public class AppleAuthenticationHandler
     private readonly AppleSignInHandler _signInHandler;
     private readonly UnsubscribeTokenService _unsubscribeTokenService;
 
+
     #endregion
 
     #region <Constructors>
@@ -29,6 +30,7 @@ public class AppleAuthenticationHandler
         _signInHandler = signInHandler;
         _unsubscribeTokenService = unsubscribeTokenService;
     }
+
 
     #endregion
 
@@ -77,6 +79,7 @@ public class AppleAuthenticationHandler
         smtp.To = [email];
         await _emailService.SendAsync(smtp);
     }
+
 
     #endregion
 }

@@ -27,5 +27,6 @@ public class ProductTypeConfiguration : IEntityTypeConfiguration<ProductType>
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
+
     #endregion
 }

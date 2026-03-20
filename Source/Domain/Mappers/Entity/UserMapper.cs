@@ -50,5 +50,6 @@ public class UserMapper : EntityMapper<MODELS.User, ENTITIES.User>
 		UserPreferences = entity.UserPreferences,
 	};
 
+
 	#endregion
 }

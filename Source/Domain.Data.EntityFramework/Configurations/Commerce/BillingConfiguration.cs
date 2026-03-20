@@ -45,5 +45,6 @@ public class BillingConfiguration : IEntityTypeConfiguration<Billing>
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
+
     #endregion
 }

@@ -9,5 +9,6 @@ public interface IEmailService
 
     Task SendAsync(SmtpNotification notification, CancellationToken cancellationToken = default);
 
+
     #endregion
 }

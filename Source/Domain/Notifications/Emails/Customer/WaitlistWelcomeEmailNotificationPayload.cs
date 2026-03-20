@@ -9,5 +9,6 @@ public class WaitlistWelcomeEmailNotificationPayload
 
 	public string UnsubscribeToken { get; set; } = string.Empty;
 
+
 	#endregion
 }

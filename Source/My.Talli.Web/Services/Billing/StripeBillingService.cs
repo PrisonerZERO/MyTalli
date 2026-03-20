@@ -12,6 +12,7 @@ public class StripeBillingService
     private readonly ILogger<StripeBillingService> _logger;
     private readonly StripeSettings _settings;
 
+
     #endregion
 
     #region <Constructors>
@@ -24,6 +25,7 @@ public class StripeBillingService
         _settings = settings.Value;
         StripeConfiguration.ApiKey = _settings.SecretKey;
     }
+
 
     #endregion
 
@@ -86,6 +88,7 @@ public class StripeBillingService
     public string GetPublishableKey() => _settings.PublishableKey;
 
     public string GetYearlyPriceId() => _settings.YearlyPriceId;
+
 
     #endregion
 }

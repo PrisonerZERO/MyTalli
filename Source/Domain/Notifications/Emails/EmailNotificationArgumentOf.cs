@@ -7,5 +7,6 @@ public class EmailNotificationArgumentOf<T> : EmailNotificationArgument
 
     public required T Payload { get; init; }
 
+
     #endregion
 }

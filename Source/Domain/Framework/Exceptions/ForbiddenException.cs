@@ -7,6 +7,7 @@ public class ForbiddenException : TalliException
 
     public override int HttpStatusCode => 403;
 
+
     #endregion
 
     #region <Constructors>
@@ -16,6 +17,7 @@ public class ForbiddenException : TalliException
     public ForbiddenException(string message) : base(message) { }
 
     public ForbiddenException(string message, Exception innerException) : base(message, innerException) { }
+
 
     #endregion
 }

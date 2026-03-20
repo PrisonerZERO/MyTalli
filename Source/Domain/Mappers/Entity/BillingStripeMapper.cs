@@ -41,5 +41,6 @@ public class BillingStripeMapper : EntityMapper<MODELS.BillingStripe, ENTITIES.B
 		StripePaymentIntentId = entity.StripePaymentIntentId,
 	};
 
+
 	#endregion
 }

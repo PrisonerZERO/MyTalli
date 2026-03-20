@@ -17,6 +17,7 @@ public class LandingPageViewModel : ComponentBase, IAsyncDisposable
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
 
+
     #endregion
 
     #region <Properties>
@@ -24,6 +25,7 @@ public class LandingPageViewModel : ComponentBase, IAsyncDisposable
     public bool ShowSignedOutToast { get; private set; }
 
     public string SignedOutName { get; private set; } = string.Empty;
+
 
     #endregion
 
@@ -58,6 +60,7 @@ public class LandingPageViewModel : ComponentBase, IAsyncDisposable
             await _module.InvokeVoidAsync("initLanding");
         }
     }
+
 
     #endregion
 
@@ -95,6 +98,7 @@ public class LandingPageViewModel : ComponentBase, IAsyncDisposable
         if (_module is not null)
             await _module.InvokeVoidAsync("scrollToTop");
     }
+
 
     #endregion
 }

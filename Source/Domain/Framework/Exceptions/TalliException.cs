@@ -7,6 +7,7 @@ public abstract class TalliException : Exception
 
     public abstract int HttpStatusCode { get; }
 
+
     #endregion
 
     #region <Constructors>
@@ -16,6 +17,7 @@ public abstract class TalliException : Exception
     protected TalliException(string message) : base(message) { }
 
     protected TalliException(string message, Exception innerException) : base(message, innerException) { }
+
 
     #endregion
 }

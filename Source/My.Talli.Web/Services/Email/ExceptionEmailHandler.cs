@@ -15,6 +15,7 @@ public class ExceptionEmailHandler : IExceptionHandler
     private readonly IHostEnvironment _environment;
     private readonly ILogger<ExceptionEmailHandler> _logger;
 
+
     #endregion
 
     #region <Constructors>
@@ -30,6 +31,7 @@ public class ExceptionEmailHandler : IExceptionHandler
         _logger = logger;
         _settings = settings.Value;
     }
+
 
     #endregion
 
@@ -74,6 +76,7 @@ public class ExceptionEmailHandler : IExceptionHandler
 
         return false;
     }
+
 
     #endregion
 }

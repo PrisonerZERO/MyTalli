@@ -41,5 +41,6 @@ public class UserAuthenticationGoogleConfiguration : IEntityTypeConfiguration<Us
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
+
     #endregion
 }

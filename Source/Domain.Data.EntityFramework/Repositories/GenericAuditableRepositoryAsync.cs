@@ -11,6 +11,7 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
 
     public IAuditResolver<TEntity> AuditResolver { get; }
 
+
     #endregion
 
     #region <Constructors>
@@ -19,6 +20,7 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
     {
         AuditResolver = auditResolver;
     }
+
 
     #endregion
 
@@ -92,6 +94,7 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
         if (tracked is not null && !ReferenceEquals(tracked, entity))
             _dbContext.Entry(tracked).State = EntityState.Detached;
     }
+
 
     #endregion
 }

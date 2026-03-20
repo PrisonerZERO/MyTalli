@@ -15,5 +15,6 @@ public class BillingStripe : DefaultEntity
 
 	public string StripePaymentIntentId { get; set; } = string.Empty;
 
+
 	#endregion
 }

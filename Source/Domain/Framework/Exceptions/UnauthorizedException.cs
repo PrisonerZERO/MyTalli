@@ -7,6 +7,7 @@ public class UnauthorizedException : TalliException
 
     public override int HttpStatusCode => 401;
 
+
     #endregion
 
     #region <Constructors>
@@ -16,6 +17,7 @@ public class UnauthorizedException : TalliException
     public UnauthorizedException(string message) : base(message) { }
 
     public UnauthorizedException(string message, Exception innerException) : base(message, innerException) { }
+
 
     #endregion
 }

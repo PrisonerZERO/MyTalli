@@ -31,6 +31,7 @@ public class UnsubscribeViewModel : ComponentBase
 
     private long? _userId;
 
+
     #endregion
 
     #region <Properties>
@@ -50,6 +51,7 @@ public class UnsubscribeViewModel : ComponentBase
     public string UserFirstName { get; private set; } = string.Empty;
 
     public bool WeeklySummaryEmail { get; set; } = true;
+
 
     #endregion
 
@@ -83,6 +85,7 @@ public class UnsubscribeViewModel : ComponentBase
 
         IsLoading = false;
     }
+
 
     #endregion
 
@@ -122,6 +125,7 @@ public class UnsubscribeViewModel : ComponentBase
     {
         IsSaved = false;
     }
+
 
     #endregion
 }

@@ -19,5 +19,6 @@ public class Billing : DefaultEntity
 
 	public long UserId { get; set; }
 
+
 	#endregion
 }

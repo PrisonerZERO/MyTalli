@@ -32,5 +32,6 @@ public class ProductTypeMapper : EntityMapper<MODELS.ProductType, ENTITIES.Produ
 		ProductTypeName = entity.ProductTypeName,
 	};
 
+
 	#endregion
 }

@@ -10,6 +10,7 @@ public class AuditResolver<TEntity> : IAuditResolver<TEntity> where TEntity : cl
 
     public ICurrentUserService CurrentUserService { get; }
 
+
     #endregion
 
     #region <Constructors>
@@ -18,6 +19,7 @@ public class AuditResolver<TEntity> : IAuditResolver<TEntity> where TEntity : cl
     {
         CurrentUserService = currentUserService;
     }
+
 
     #endregion
 
@@ -45,6 +47,7 @@ public class AuditResolver<TEntity> : IAuditResolver<TEntity> where TEntity : cl
         entity.UpdatedByUserId = userId;
         entity.UpdatedOnDate = timestamp;
     }
+
 
     #endregion
 }

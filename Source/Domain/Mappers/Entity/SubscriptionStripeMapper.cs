@@ -38,5 +38,6 @@ public class SubscriptionStripeMapper : EntityMapper<MODELS.SubscriptionStripe, 
 		StripeSubscriptionId = entity.StripeSubscriptionId,
 	};
 
+
 	#endregion
 }

@@ -7,5 +7,6 @@ public class ProductType : DefaultModel
 
 	public string ProductTypeName { get; set; } = string.Empty;
 
+
 	#endregion
 }

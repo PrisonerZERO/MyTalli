@@ -23,5 +23,6 @@ public class User : DefaultModel
 
 	public string UserPreferences { get; set; } = "{}";
 
+
 	#endregion
 }

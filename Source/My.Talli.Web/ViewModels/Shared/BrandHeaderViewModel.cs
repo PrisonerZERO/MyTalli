@@ -10,5 +10,6 @@ public class BrandHeaderViewModel : ComponentBase
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+
     #endregion
 }

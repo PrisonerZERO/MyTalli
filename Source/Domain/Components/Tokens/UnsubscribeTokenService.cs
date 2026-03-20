@@ -11,6 +11,7 @@ public class UnsubscribeTokenService
 
 	private readonly byte[] _secretKey;
 
+
 	#endregion
 
 	#region <Constructors>
@@ -21,6 +22,7 @@ public class UnsubscribeTokenService
 
 		_secretKey = Encoding.UTF8.GetBytes(secretKey);
 	}
+
 
 	#endregion
 
@@ -93,6 +95,7 @@ public class UnsubscribeTokenService
 		var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
 		return Convert.ToBase64String(hash);
 	}
+
 
 	#endregion
 }

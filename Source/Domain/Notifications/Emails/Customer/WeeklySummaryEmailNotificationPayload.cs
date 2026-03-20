@@ -27,5 +27,6 @@ public class WeeklySummaryEmailNotificationPayload
 
     public string WeekRange { get; set; } = string.Empty;
 
+
     #endregion
 }

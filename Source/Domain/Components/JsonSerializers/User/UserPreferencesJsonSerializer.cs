@@ -15,6 +15,7 @@ public class UserPreferencesJsonSerializer
 		WriteIndented = false
 	};
 
+
 	#endregion
 
 	#region <Methods>
@@ -32,6 +33,7 @@ public class UserPreferencesJsonSerializer
 
 		return JsonSerializer.Serialize(preferences, Options);
 	}
+
 
 	#endregion
 }

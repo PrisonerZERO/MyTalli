@@ -20,6 +20,7 @@ public class AppleSignInHandler
 	private readonly RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> _userRoleAdapter;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
+
 	#endregion
 
 	#region <Constructors>
@@ -39,6 +40,7 @@ public class AppleSignInHandler
 		_userAdapter = userAdapter;
 		_userRoleAdapter = userRoleAdapter;
 	}
+
 
 	#endregion
 
@@ -135,6 +137,7 @@ public class AppleSignInHandler
 
 		return roles;
 	}
+
 
 	#endregion
 }

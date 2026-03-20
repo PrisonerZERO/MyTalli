@@ -9,5 +9,6 @@ public class DefaultEntity : AuditableIdentifiableEntity
 
     public bool IsVisible { get; set; } = true;
 
+
 	#endregion
 }

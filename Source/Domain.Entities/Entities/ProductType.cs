@@ -7,5 +7,6 @@ public class ProductType : DefaultEntity
 
 	public string ProductTypeName { get; set; } = string.Empty;
 
+
 	#endregion
 }

@@ -10,6 +10,7 @@ public class TalliDbContext : DbContext
 
     public TalliDbContext(DbContextOptions<TalliDbContext> options) : base(options) { }
 
+
     #endregion
 
     #region <Properties>
@@ -42,6 +43,7 @@ public class TalliDbContext : DbContext
 
     public DbSet<UserRole> UserRoles { get; set; } = null!;
 
+
     #endregion
 
     #region <Methods>
@@ -50,6 +52,7 @@ public class TalliDbContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TalliDbContext).Assembly);
     }
+
 
     #endregion
 }

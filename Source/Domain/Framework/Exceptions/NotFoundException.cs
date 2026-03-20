@@ -7,6 +7,7 @@ public class NotFoundException : TalliException
 
     public override int HttpStatusCode => 404;
 
+
     #endregion
 
     #region <Constructors>
@@ -16,6 +17,7 @@ public class NotFoundException : TalliException
     public NotFoundException(string message) : base(message) { }
 
     public NotFoundException(string message, Exception innerException) : base(message, innerException) { }
+
 
     #endregion
 }

@@ -11,6 +11,7 @@ public class WelcomeEmailNotification : EmailNotificationOf<WelcomeEmailNotifica
 
     private const string TemplateResourceName = "My.Talli.Domain..resources.emails.WelcomeEmailNotificationTemplate.html";
 
+
     #endregion
 
     #region <Methods>
@@ -29,6 +30,7 @@ public class WelcomeEmailNotification : EmailNotificationOf<WelcomeEmailNotifica
 
         return FinalizeEmail();
     }
+
 
     #endregion
 }

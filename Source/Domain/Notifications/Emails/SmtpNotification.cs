@@ -19,5 +19,6 @@ public class SmtpNotification
 
     public List<string> To { get; set; } = [];
 
+
     #endregion
 }

@@ -16,6 +16,7 @@ public class ErrorViewModel : ComponentBase
     [Inject]
     private IHostEnvironment Environment { get; set; } = default!;
 
+
     #endregion
 
     #region <Properties>
@@ -37,6 +38,7 @@ public class ErrorViewModel : ComponentBase
     [Parameter]
     public int? StatusCode { get; set; }
 
+
     #endregion
 
     #region <Events>
@@ -48,6 +50,7 @@ public class ErrorViewModel : ComponentBase
         SetFallingDigits();
         CaptureRequestId();
     }
+
 
     #endregion
 
@@ -132,6 +135,7 @@ public class ErrorViewModel : ComponentBase
             FallingDigits.Add(codeChars[i % codeChars.Length]);
         }
     }
+
 
     #endregion
 }

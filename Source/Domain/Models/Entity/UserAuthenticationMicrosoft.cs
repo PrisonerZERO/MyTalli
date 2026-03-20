@@ -15,5 +15,6 @@ public class UserAuthenticationMicrosoft : DefaultModel
 
 	public string MicrosoftId { get; set; } = string.Empty;
 
+
 	#endregion
 }

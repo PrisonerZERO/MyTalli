@@ -13,5 +13,6 @@ public class Product : DefaultModel
 
 	public decimal VendorPrice { get; set; }
 
+
 	#endregion
 }

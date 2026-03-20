@@ -35,5 +35,6 @@ public class UserRoleMapper : EntityMapper<MODELS.UserRole, ENTITIES.UserRole>
 		UserId = entity.UserId,
 	};
 
+
 	#endregion
 }

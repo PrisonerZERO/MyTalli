@@ -13,5 +13,6 @@ public class OrderItem : DefaultModel
 
 	public int ProductQuantity { get; set; }
 
+
 	#endregion
 }

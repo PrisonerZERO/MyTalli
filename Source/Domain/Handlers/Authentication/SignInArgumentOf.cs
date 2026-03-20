@@ -7,5 +7,6 @@ public class SignInArgumentOf<T> : SignInArgument
 
 	public required T Payload { get; init; }
 
+
 	#endregion
 }

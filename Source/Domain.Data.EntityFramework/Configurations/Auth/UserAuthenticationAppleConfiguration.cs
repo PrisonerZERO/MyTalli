@@ -39,5 +39,6 @@ public class UserAuthenticationAppleConfiguration : IEntityTypeConfiguration<Use
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 
+
     #endregion
 }

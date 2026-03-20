@@ -7,5 +7,6 @@ public class UserPreferences
 
 	public EmailPreferences EmailPreferences { get; set; } = new();
 
+
 	#endregion
 }

@@ -14,6 +14,7 @@ public class SmtpEmailService : IEmailService
     private readonly EmailSettings _settings;
     private readonly ILogger<SmtpEmailService> _logger;
 
+
     #endregion
 
     #region <Constructors>
@@ -23,6 +24,7 @@ public class SmtpEmailService : IEmailService
         _logger = logger;
         _settings = settings.Value;
     }
+
 
     #endregion
 
@@ -74,6 +76,7 @@ public class SmtpEmailService : IEmailService
             _logger.LogError(ex, "Failed to send email. Subject: {Subject}, To: {To}", notification.Subject, string.Join(", ", notification.To));
         }
     }
+
 
     #endregion
 }

@@ -12,6 +12,7 @@ public class WaitlistViewModel : ComponentBase
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
+
     #endregion
 
     #region <Properties>
@@ -21,6 +22,7 @@ public class WaitlistViewModel : ComponentBase
     public List<Milestone> FullLaunchMilestones { get; private set; } = [];
 
     public string UserName { get; private set; } = string.Empty;
+
 
     #endregion
 
@@ -41,6 +43,7 @@ public class WaitlistViewModel : ComponentBase
             }
         }
     }
+
 
     #endregion
 
@@ -124,6 +127,7 @@ public class WaitlistViewModel : ComponentBase
                 MilestoneStatus.Upcoming)
         ];
     }
+
 
     #endregion
 }

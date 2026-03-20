@@ -15,5 +15,6 @@ public class StripeSettings
 
     public string YearlyPriceId { get; set; } = string.Empty;
 
+
     #endregion
 }

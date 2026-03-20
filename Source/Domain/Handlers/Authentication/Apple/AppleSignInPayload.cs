@@ -9,5 +9,6 @@ public class AppleSignInPayload
 
 	public bool IsPrivateRelay { get; set; }
 
+
 	#endregion
 }

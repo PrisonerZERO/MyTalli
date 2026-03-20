@@ -20,6 +20,7 @@ public class MicrosoftSignInHandler
 	private readonly RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> _userRoleAdapter;
 	private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
+
 	#endregion
 
 	#region <Constructors>
@@ -39,6 +40,7 @@ public class MicrosoftSignInHandler
 		_userAdapter = userAdapter;
 		_userRoleAdapter = userRoleAdapter;
 	}
+
 
 	#endregion
 
@@ -133,6 +135,7 @@ public class MicrosoftSignInHandler
 
 		return roles;
 	}
+
 
 	#endregion
 }

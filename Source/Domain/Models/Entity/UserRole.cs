@@ -9,5 +9,6 @@ public class UserRole : DefaultModel
 
 	public long UserId { get; set; }
 
+
 	#endregion
 }
