@@ -1,8 +1,8 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using System.Security.Claims;
 
 /// <summary>View Model</summary>
 public class DashboardViewModel : ComponentBase
@@ -105,20 +105,17 @@ public class DashboardViewModel : ComponentBase
     private async Task LoadUserFromClaims()
     {
         var authState = await AuthenticationStateTask;
-        var user = authState.User;
+        var principal = authState.User;
 
-        if (user.Identity?.IsAuthenticated != true)
+        if (principal.Identity?.IsAuthenticated != true)
             return;
 
-        var firstName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? string.Empty;
-        var lastName = user.FindFirst(ClaimTypes.Surname)?.Value ?? string.Empty;
-        var displayName = user.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
-        var email = user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
+        var info = UserClaimsHelper.Resolve(principal);
 
-        UserFirstName = firstName;
-        UserFullName = displayName;
-        UserEmail = email;
-        UserInitials = $"{(firstName.Length > 0 ? firstName[0] : ' ')}{(lastName.Length > 0 ? lastName[0] : ' ')}".Trim();
+        UserEmail = info.Email;
+        UserFirstName = info.FirstName;
+        UserFullName = info.FullName;
+        UserInitials = info.Initials;
     }
 
     private void LoadMockData()

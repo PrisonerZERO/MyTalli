@@ -951,6 +951,15 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - **`IsSampleData` flag** — `DashboardViewModel.IsSampleData` controls whether the banner is visible. Set to `true` by default; set to `false` once the user has at least one connected platform.
 - **Once a platform is connected**, sample data disappears entirely and real data takes over. No mixing of sample and real data.
 
+### Missing Name Fallback
+
+- **Some OAuth providers (especially Apple) may not provide a user's name.** The UI must never show blank names, empty initials, or broken layouts when name data is missing.
+- **`UserClaimsHelper.Resolve()`** (`Helpers/UserClaimsHelper.cs`) is the single source of truth for resolving user display info from claims. Both `DashboardViewModel` and `NavMenuViewModel` use it. Any new ViewModel that needs user display info should use it too.
+- **Fallback chain for display name:** DisplayName → email prefix (before `@`) → `"User"`
+- **Fallback chain for greeting (first name):** FirstName → first word of DisplayName → email prefix → `"there"` (produces "Good morning, there")
+- **Fallback chain for initials:** First+Last initials → first+last word of DisplayName → first letter of email → `"?"`
+- **Profile editing** — users should be able to update their DisplayName, FirstName, and LastName from the Settings page (not yet built). This is the permanent fix for missing Apple names.
+
 ### Summary Tag Convention
 
 - Every C# class and interface **must** have a `/// <summary>` tag.

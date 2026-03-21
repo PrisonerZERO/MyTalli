@@ -1,8 +1,8 @@
 namespace My.Talli.Web.ViewModels.Layout;
 
+using Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using System.Security.Claims;
 
 /// <summary>View Model</summary>
 public class NavMenuViewModel : ComponentBase
@@ -30,17 +30,16 @@ public class NavMenuViewModel : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateTask;
-        var user = authState.User;
+        var principal = authState.User;
 
-        if (user.Identity?.IsAuthenticated != true)
+        if (principal.Identity?.IsAuthenticated != true)
             return;
 
-        var firstName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? string.Empty;
-        var lastName = user.FindFirst(ClaimTypes.Surname)?.Value ?? string.Empty;
+        var info = UserClaimsHelper.Resolve(principal);
 
-        UserFullName = user.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
-        UserEmail = user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
-        UserInitials = $"{(firstName.Length > 0 ? firstName[0] : ' ')}{(lastName.Length > 0 ? lastName[0] : ' ')}".Trim();
+        UserEmail = info.Email;
+        UserFullName = info.FullName;
+        UserInitials = info.Initials;
     }
 
 
