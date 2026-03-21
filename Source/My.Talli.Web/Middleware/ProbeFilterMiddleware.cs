@@ -41,6 +41,13 @@ public class ProbeFilterMiddleware
             return;
         }
 
+        // AZURE HEALTH PROBE — App Service liveness check requests /robots933456.txt. Short-circuit with 200.
+        if (path.Equals("/robots933456.txt", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Response.StatusCode = 200;
+            return;
+        }
+
         if (path.Contains(".env", StringComparison.OrdinalIgnoreCase)
             || path.Contains(".git", StringComparison.OrdinalIgnoreCase)
             || path.Contains("wp-login", StringComparison.OrdinalIgnoreCase)
