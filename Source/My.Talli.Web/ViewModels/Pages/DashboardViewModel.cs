@@ -40,6 +40,8 @@ public class DashboardViewModel : ComponentBase
 
     public decimal GoalTargetAmount { get; private set; } = 2700m;
 
+    public bool IsSampleData { get; private set; } = true;
+
     public bool IsUserMenuOpen { get; private set; }
 
     public int MonthlyGoalPercentage { get; private set; } = 68;

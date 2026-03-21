@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200, initial-scale=1">
+<title>MyTalli — Sample Data Banner Concepts</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #e8e6f0; font-family: 'DM Sans', sans-serif; padding: 40px; }
+h1 { color: #1a1a2e; font-size: 28px; font-weight: 700; margin-bottom: 32px; text-align: center; }
+.grid { display: grid; gap: 32px; grid-template-columns: 1fr 1fr; max-width: 1200px; margin: 0 auto; }
+.concept { background: #f8f7fc; border-radius: 16px; overflow: hidden; padding: 32px 28px; }
+.concept-label { color: #6c5ce7; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; margin-bottom: 8px; text-transform: uppercase; }
+.concept-title { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+
+/* ─── Concept A: Full-Width Gradient Bar ─── */
+.banner-a { align-items: center; background: linear-gradient(135deg, #f0edff 0%, #f8f7fc 100%); border-left: 4px solid #6c5ce7; border-radius: 0; display: flex; gap: 12px; justify-content: space-between; padding: 16px 24px; }
+.banner-a .ba-left { align-items: center; color: #1a1a2e; display: flex; font-size: 14px; gap: 10px; }
+.banner-a .ba-icon { align-items: center; background: rgba(108, 92, 231, 0.1); border-radius: 50%; color: #6c5ce7; display: flex; flex-shrink: 0; height: 32px; justify-content: center; width: 32px; }
+.banner-a .ba-link { color: #6c5ce7; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.banner-a .ba-link:hover { text-decoration: underline; }
+
+/* ─── Concept B: Floating Card with Glow ─── */
+.banner-b { align-items: center; background: #fff; border: 1px solid #e0dce8; border-radius: 14px; box-shadow: 0 4px 24px rgba(108, 92, 231, 0.12), 0 0 0 1px rgba(108, 92, 231, 0.06); display: flex; gap: 14px; margin: 0 auto; max-width: 520px; padding: 18px 24px; }
+.banner-b .bb-icon { align-items: center; background: linear-gradient(135deg, #6c5ce7, #8b5cf6); border-radius: 10px; color: #fff; display: flex; flex-shrink: 0; font-size: 18px; height: 38px; justify-content: center; width: 38px; }
+.banner-b .bb-text { color: #555; flex: 1; font-size: 14px; line-height: 1.5; }
+.banner-b .bb-text strong { color: #1a1a2e; }
+.banner-b .bb-btn { background: #6c5ce7; border: none; border-radius: 8px; color: #fff; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 20px; text-decoration: none; transition: background 0.15s; white-space: nowrap; }
+.banner-b .bb-btn:hover { background: #5a4bd1; }
+
+/* ─── Concept C: Minimal Pill Strip ─── */
+.banner-c { align-items: center; background: #fff; border: 1px solid #e0dce8; border-radius: 99px; display: flex; gap: 10px; margin: 0 auto; padding: 10px 12px 10px 16px; width: fit-content; }
+.banner-c .bc-dot { background: #6c5ce7; border-radius: 50%; flex-shrink: 0; height: 8px; width: 8px; }
+.banner-c .bc-text { color: #555; font-size: 13px; }
+.banner-c .bc-text strong { color: #1a1a2e; }
+.banner-c .bc-link { background: #f0edff; border-radius: 99px; color: #6c5ce7; font-size: 12px; font-weight: 600; padding: 6px 14px; text-decoration: none; transition: background 0.15s; white-space: nowrap; }
+.banner-c .bc-link:hover { background: #e0dce8; }
+
+/* ─── Concept D: Gradient Banner with Dismiss ─── */
+.banner-d { align-items: center; background: linear-gradient(90deg, rgba(108, 92, 231, 0.08) 0%, rgba(108, 92, 231, 0.02) 100%); border: 1px solid rgba(108, 92, 231, 0.12); border-left: 4px solid #6c5ce7; border-radius: 10px; display: flex; gap: 12px; padding: 14px 16px 14px 20px; }
+.banner-d .bd-icon { color: #6c5ce7; flex-shrink: 0; }
+.banner-d .bd-text { color: #555; flex: 1; font-size: 14px; }
+.banner-d .bd-text strong { color: #1a1a2e; }
+.banner-d .bd-btn { background: #6c5ce7; border: none; border-radius: 8px; color: #fff; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 18px; text-decoration: none; transition: background 0.15s; white-space: nowrap; }
+.banner-d .bd-btn:hover { background: #5a4bd1; }
+.banner-d .bd-dismiss { align-items: center; background: none; border: none; color: #999; cursor: pointer; display: flex; flex-shrink: 0; padding: 4px; transition: color 0.15s; }
+.banner-d .bd-dismiss:hover { color: #1a1a2e; }
+
+/* ─── Fake dashboard context ─── */
+.fake-cards { display: flex; gap: 12px; margin-top: 20px; }
+.fake-card { background: #fff; border: 1px solid #eee; border-radius: 10px; flex: 1; padding: 16px; }
+.fake-label { color: #999; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 6px; text-transform: uppercase; }
+.fake-value { color: #1a1a2e; font-size: 22px; font-weight: 700; }
+</style>
+</head>
+<body>
+<h1>Sample Data Banner Concepts</h1>
+<div class="grid">
+
+<!-- Concept A -->
+<div class="concept">
+    <div class="concept-label">Concept A</div>
+    <div class="concept-title">Full-Width Gradient Bar</div>
+    <div class="banner-a">
+        <div class="ba-left">
+            <div class="ba-icon">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <span>You're viewing <strong>sample data</strong>. Connect a platform to see your real revenue.</span>
+        </div>
+        <a class="ba-link" href="#">Connect a platform &rarr;</a>
+    </div>
+    <div class="fake-cards">
+        <div class="fake-card"><div class="fake-label">Total Revenue</div><div class="fake-value">$4,218</div></div>
+        <div class="fake-card"><div class="fake-label">This Month</div><div class="fake-value">$1,847</div></div>
+    </div>
+</div>
+
+<!-- Concept B -->
+<div class="concept">
+    <div class="concept-label">Concept B</div>
+    <div class="concept-title">Floating Card with Glow</div>
+    <div class="banner-b">
+        <div class="bb-icon">&#10024;</div>
+        <div class="bb-text">You're viewing <strong>sample data</strong>. Connect a platform to see your real revenue.</div>
+        <a class="bb-btn" href="#">Connect a platform</a>
+    </div>
+    <div class="fake-cards">
+        <div class="fake-card"><div class="fake-label">Total Revenue</div><div class="fake-value">$4,218</div></div>
+        <div class="fake-card"><div class="fake-label">This Month</div><div class="fake-value">$1,847</div></div>
+    </div>
+</div>
+
+<!-- Concept C -->
+<div class="concept">
+    <div class="concept-label">Concept C</div>
+    <div class="concept-title">Minimal Pill Strip</div>
+    <div class="banner-c">
+        <div class="bc-dot"></div>
+        <span class="bc-text">Viewing <strong>sample data</strong></span>
+        <a class="bc-link" href="#">Connect &rarr;</a>
+    </div>
+    <div class="fake-cards">
+        <div class="fake-card"><div class="fake-label">Total Revenue</div><div class="fake-value">$4,218</div></div>
+        <div class="fake-card"><div class="fake-label">This Month</div><div class="fake-value">$1,847</div></div>
+    </div>
+</div>
+
+<!-- Concept D -->
+<div class="concept">
+    <div class="concept-label">Concept D</div>
+    <div class="concept-title">Gradient Banner with Dismiss</div>
+    <div class="banner-d">
+        <div class="bd-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="bd-text">You're viewing <strong>sample data</strong>. Connect a platform to see your real revenue.</div>
+        <a class="bd-btn" href="#">Connect a platform</a>
+        <button class="bd-dismiss" aria-label="Dismiss">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+    </div>
+    <div class="fake-cards">
+        <div class="fake-card"><div class="fake-label">Total Revenue</div><div class="fake-value">$4,218</div></div>
+        <div class="fake-card"><div class="fake-label">This Month</div><div class="fake-value">$1,847</div></div>
+    </div>
+</div>
+
+</div>
+</body>
+</html>

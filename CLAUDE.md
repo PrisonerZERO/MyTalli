@@ -944,6 +944,13 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 | **Suggestions** | `/suggestions` | User feedback and feature requests (already built) | Yes |
 | **Settings** | `/settings` | Account preferences, email settings, linked providers | Hidden |
 
+### Sample Data for New Users
+
+- **New users with no connected platforms** see sample/mock data on the dashboard so they can immediately understand the product's value. An empty dashboard would be a dead end.
+- **Sample data banner** — when sample data is active, a branded banner is shown: "You're viewing **sample data**. Connect a platform to see your real revenue." with a CTA to `/platforms`.
+- **`IsSampleData` flag** — `DashboardViewModel.IsSampleData` controls whether the banner is visible. Set to `true` by default; set to `false` once the user has at least one connected platform.
+- **Once a platform is connected**, sample data disappears entirely and real data takes over. No mixing of sample and real data.
+
 ### Summary Tag Convention
 
 - Every C# class and interface **must** have a `/// <summary>` tag.
