@@ -15,7 +15,7 @@ public static class AuthEndpoints
     {
         app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext context) =>
         {
-            var properties = new AuthenticationProperties { RedirectUri = "/waitlist" };
+            var properties = new AuthenticationProperties { RedirectUri = "/dashboard" };
             var scheme = provider.ToLowerInvariant() switch
             {
                 "apple" => AppleAuthenticationDefaults.AuthenticationScheme,

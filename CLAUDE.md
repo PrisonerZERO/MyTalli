@@ -4,7 +4,7 @@
 
 MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and freelancers connect their payment platforms (Stripe, Etsy, Gumroad, PayPal, Shopify, etc.) and see all their income in one unified dashboard with real-time tracking, trends, goals, and CSV export.
 
-**Status:** Early development — **Dashboard Mode** active (see below). Landing page, sign-in, waitlist, dashboard, and other pages are built. OAuth authentication is working (Google, Apple, Microsoft). Sign-in redirects to the dashboard. All routes are active.
+**Status:** Early development — landing page, sign-in, dashboard, and other pages are built. OAuth authentication is working (Google, Apple, Microsoft). Sign-in redirects to the dashboard. All routes are active.
 
 ## Tech Stack
 
@@ -64,8 +64,8 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Soft delete** — every entity has `IsDeleted` (default `false`) for logical deletion and `IsVisible` (default `true`) for hiding active records from views. All entities have a global query filter `HasQueryFilter(e => !e.IsDeleted)` so soft-deleted records are automatically excluded from queries. To include soft-deleted records, use `IgnoreQueryFilters()`.
 - **Schema separation** — tables are organized into SQL schemas by functional domain (`auth`, `commerce`). `dbo` is reserved/empty.
 - **Orders as the backbone** — subscriptions, modules, and any future products all flow through the same Order → OrderItem pipeline. A subscription is just a product.
-- **No separate waitlist table** — the `auth.User` table doubled as the waitlist during Waitlist Mode. A signed-up user *was* a waitlist user until Dashboard Mode was enabled.
-- **Milestones in database** — waitlist milestones are stored in `app.Milestone` (not hardcoded). Update milestone statuses directly in the database — no deployment needed.
+- **No separate waitlist table** — (historical) during the earlier Waitlist Mode, the `auth.User` table doubled as the waitlist. Waitlist mode has since been removed.
+- **Milestones in database** — the `app.Milestone` table still exists in the database but is no longer used by the app (code references were removed when waitlist functionality was removed).
 - **No third-party table creation** — third-party packages (e.g., ElmahCore) must never create their own tables. All tables are created by our migrations so we own the schema, naming conventions, and migration history. If a package needs a table, create it in a migration SQL script with an `IF NOT EXISTS` guard.
 - **Audit field self-creation sentinel** — `CreateByUserId = 0` means "self-created" (the user created their own account). This avoids a second database round-trip to self-stamp the generated Id. Only applies to `auth.User` rows created during OAuth sign-up.
 - **Audit fields on insert** — on INSERT, only `CreateByUserId` and `CreatedOnDateTime` are populated. `UpdatedByUserId` and `UpdatedOnDate` remain `null` — nothing has been updated yet. They are only set on the first actual UPDATE.
@@ -76,17 +76,15 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application configuration | Milestone |
+| `app` | Application configuration | Milestone (legacy — table exists but no longer used by app code) |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
 ### Schema: `app`
 
-**`app.Milestone`** — waitlist progress tracker milestones
+**`app.Milestone`** — (legacy) waitlist progress tracker milestones. The table still exists in the database but all app code references (entity, model, mapper, configuration, framework constants) have been removed. The data remains for historical reference.
 - `Id` (PK), `Description`, `MilestoneGroup` (Beta, FullLaunch), `SortOrder` (display order within group), `Status` (Complete, InProgress, Upcoming), `Title`
-- Status constants: `MilestoneStatuses` in `Domain/Framework/MilestoneStatuses.cs`
-- Group constants: `MilestoneGroups` in `Domain/Framework/MilestoneGroups.cs`
-- To update milestone status without deploying: `UPDATE app.Milestone SET Status = 'InProgress' WHERE Id = 3`
+- `MilestoneStatuses.cs` and `MilestoneGroups.cs` (formerly in `Domain/Framework/`) have been removed.
 
 ### Schema: `auth`
 
@@ -271,7 +269,6 @@ My.Talli/
     │   │   └── emails/              # HTML email templates (EmbeddedResource)
     │   │       ├── ExceptionOccurredEmailNotificationTemplate.html
     │   │       ├── SubscriptionConfirmationEmailNotificationTemplate.html
-    │   │       ├── WaitlistWelcomeEmailNotificationTemplate.html
     │   │       ├── WelcomeEmailNotificationTemplate.html
     │   │       └── WeeklySummaryEmailNotificationTemplate.html
     │   ├── Exceptions/
@@ -286,8 +283,6 @@ My.Talli/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
     │   ├── Framework/
     │   │   ├── Assert.cs                      # Static validation utility (precondition checks)
-    │   │   ├── MilestoneGroups.cs             # Static milestone group constants (Beta, FullLaunch)
-    │   │   ├── MilestoneStatuses.cs           # Static milestone status constants (Complete, InProgress, Upcoming)
     │   │   └── Roles.cs                       # Static role name constants (Admin, User)
     │   ├── Components/
     │   │   ├── JsonSerializers/
@@ -301,7 +296,6 @@ My.Talli/
     │   │   └── Entity/                        # Concrete mappers (one per entity/model pair)
     │   │       ├── BillingMapper.cs
     │   │       ├── BillingStripeMapper.cs
-    │   │       ├── MilestoneMapper.cs
     │   │       ├── OrderItemMapper.cs
     │   │       ├── OrderMapper.cs
     │   │       ├── ProductMapper.cs
@@ -323,7 +317,6 @@ My.Talli/
     │   │   ├── Entity/                        # 1-to-1 entity representations (no audit fields, no nav properties)
     │   │   │   ├── Billing.cs
     │   │   │   ├── BillingStripe.cs
-    │   │   │   ├── Milestone.cs
     │   │   │   ├── Order.cs
     │   │   │   ├── OrderItem.cs
     │   │   │   ├── Product.cs
@@ -363,8 +356,6 @@ My.Talli/
     │           ├── Customer/
     │           │   ├── SubscriptionConfirmationEmailNotification.cs
     │           │   ├── SubscriptionConfirmationEmailNotificationPayload.cs
-    │           │   ├── WaitlistWelcomeEmailNotification.cs
-    │           │   ├── WaitlistWelcomeEmailNotificationPayload.cs
     │           │   ├── WelcomeEmailNotification.cs
     │           │   ├── WelcomeEmailNotificationPayload.cs
     │           │   ├── WeeklySummaryEmailNotification.cs
@@ -400,8 +391,6 @@ My.Talli/
     │   ├── Resolvers/
     │   │   └── AuditResolver.cs           # IAuditResolver<T> implementation
     │   └── Configurations/
-    │       ├── App/                       # Entity configs for app schema
-    │       │   └── MilestoneConfiguration.cs
     │       ├── Auth/                      # Entity configs for auth schema
     │       │   ├── UserConfiguration.cs
     │       │   ├── UserAuthenticationAppleConfiguration.cs
@@ -425,7 +414,6 @@ My.Talli/
     │   ├── Entities/
     │   │   ├── Billing.cs
     │   │   ├── BillingStripe.cs
-    │   │   ├── Milestone.cs
     │   │   ├── Order.cs
     │   │   ├── OrderItem.cs
     │   │   ├── Product.cs
@@ -486,8 +474,6 @@ My.Talli/
         │   │   ├── Upgrade.razor.css
         │   │   ├── Unsubscribe.razor      # Email preference management (route: /unsubscribe?token=xxx)
         │   │   ├── Unsubscribe.razor.css
-        │   │   ├── Waitlist.razor        # Waitlist progress tracker (route: /waitlist)
-        │   │   ├── Waitlist.razor.css
         │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
         │   │   └── Error.razor.css
         │   └── Shared/
@@ -521,8 +507,7 @@ My.Talli/
         │   │   ├── SubscriptionViewModel.cs
         │   │   ├── SuggestionBoxViewModel.cs
         │   │   ├── UnsubscribeViewModel.cs
-        │   │   ├── UpgradeViewModel.cs
-        │   │   └── WaitlistViewModel.cs
+        │   │   └── UpgradeViewModel.cs
         │   └── Shared/
         │       └── BrandHeaderViewModel.cs
         ├── Properties/
@@ -561,14 +546,13 @@ My.Talli.Web             ← Blazor Server app → Domain
 
 Every page except the Landing Page uses a **purple gradient swoosh** header for consistent branding:
 
-- **`BrandHeader` component** (`Components/Shared/BrandHeader.razor`) — reusable swoosh with logo + action slot (`ChildContent` RenderFragment). Used by Sign-In and Waitlist pages.
+- **`BrandHeader` component** (`Components/Shared/BrandHeader.razor`) — reusable swoosh with logo + action slot (`ChildContent` RenderFragment). Used by Sign-In, Unsubscribe, and Error pages.
 - **Dashboard** uses its own inline swoosh (no BrandHeader) because the sidebar already has the logo — the swoosh sits behind the greeting area instead.
 - **Landing Page** has its own distinct hero layout and is **not** branded with the swoosh.
 
 | Page | Swoosh | Logo | Action Slot |
 |------|--------|------|-------------|
 | `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
-| `/waitlist` | `<BrandHeader>` | Yes | "Sign Out" link |
 | `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | "Sign Out" link |
 | `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button |
 | `/subscription` | Inline SVG (`.sub-hero`) | No (sidebar has it) | N/A |
@@ -638,7 +622,7 @@ Swoosh visual: purple gradient SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7`) with 
 - **Body Text:** `#555` — secondary paragraph text
 - **Muted Text:** `#999` — footnotes, helper text, timestamps
 - **White:** `#ffffff` — cards, inputs, clean backgrounds
-- **Highlight Yellow:** `#fff176` — attention flash (waitlist input highlight)
+- **Highlight Yellow:** `#fff176` — attention flash, input highlights
 
 ## Development
 
@@ -662,7 +646,7 @@ dotnet run --project Source/My.Talli.Web
 - **`LayoutHelper.CurrentYear`** provides the current year for copyright footers
 - **Landing Page** — version shown inline in footer: `© 2026 MyTalli v0.1.0.0 — All rights reserved.`
 - **MainLayout pages** — version shown in a subtle `div.app-version` at the bottom of the content area
-- **LandingLayout pages** (Sign-In, Waitlist, Error) — no version displayed
+- **LandingLayout pages** (Sign-In, Error) — no version displayed
 
 ### Local Secrets
 
@@ -741,10 +725,9 @@ Deploy folder also contains:
 - **Microsoft OAuth:** Managed in Azure Portal → Microsoft Entra ID → App registrations → "My.Talli" (tenant: `MyTalli` / `mytalli.com`, account: `hello@mytalli.com`). Client ID: `bf93e9cf-78b4-4827-9ef5-71877e392f63`. Client secret description: `MyTalli-Microsoft-OAuth` (expires 2028-03-15, 24 months).
 - **Cookie auth** with 30-day sliding expiration
 - **Sign-in route:** `/signin` — provider selection page
-- **Login endpoint:** `/api/auth/login/{provider}` — triggers OAuth challenge, redirects to `/waitlist` on success
+- **Login endpoint:** `/api/auth/login/{provider}` — triggers OAuth challenge, redirects to `/dashboard` on success
 - **Logout endpoint:** `/api/auth/logout` — clears cookie, redirects to `/?signed-out&name={name}`
 - **Sign-out toast:** Landing page detects `?signed-out` query param and shows a personalized auto-dismissing toast ("You've been signed out, {name}. See you next time!"), then strips the query param from the URL via `history.replaceState`
-- **Waitlist route:** `/waitlist` — launch progress tracker with milestone timeline (not a dead-end confirmation)
 
 ## Authorization
 
@@ -754,33 +737,13 @@ Deploy folder also contains:
 - **Admin assignment** — no UI yet. Assign via direct database insert into `auth.UserRole`.
 - **Claims flow** — domain sign-in handlers query `UserRole`, populate `User.Roles` on the model → web auth handlers map each role to a `ClaimTypes.Role` claim on the identity
 
-## App Modes
+## App Mode
 
-The app operates in one of two modes. The **current mode is Dashboard Mode**.
-
-### Waitlist Mode
-
-Only the landing page, sign-in, waitlist, and error pages are active. All other routes redirect to `/waitlist`. Use this mode while building out platform connectors and dashboard features before public launch.
-
-- **Middleware:** `Program.cs` — inline `app.Use(...)` block after `UseAntiforgery()` redirects disabled routes
-- **Disabled routes:** `/dashboard`, `/suggestions`, `/subscription`, `/subscription/cancel`, `/upgrade` — all redirect to `/waitlist`
-- **Active routes:** `/` (landing), `/signin`, `/waitlist`, `/unsubscribe`, `/Error`, `/Error/{StatusCode}`
-- **OAuth redirect:** Set to `/waitlist` in the login endpoint (`Program.cs`)
-- **Snapshot branch:** `main_WAITLIST` — frozen copy of `main` at the end of Waitlist Mode. Use this branch if a hotfix is needed for the waitlist version of the app in production.
-
-### Dashboard Mode ← CURRENT
-
-Full app experience — sign-in takes users to the dashboard, all routes are active, sidebar navigation is functional.
+The app runs in **Dashboard Mode** — full app experience with all routes active. Sign-in takes users to the dashboard, sidebar navigation is functional.
 
 - **Active routes:** All routes (`/dashboard`, `/suggestions`, `/subscription`, `/upgrade`, etc.)
 - **OAuth redirect:** Set to `/dashboard` in the login endpoint (`Program.cs`)
-
-### Switching Modes
-
-| From → To | Steps |
-|-----------|-------|
-| Waitlist → Dashboard | 1. Remove the waitlist-mode middleware block in `Program.cs` 2. Change `RedirectUri` from `/waitlist` to `/dashboard` |
-| Dashboard → Waitlist | 1. Add the waitlist-mode middleware block back in `Program.cs` 2. Change `RedirectUri` from `/dashboard` to `/waitlist` |
+- **Historical note:** The app previously operated in Waitlist Mode (landing page, sign-in, and waitlist only, all other routes redirected to `/waitlist`). Waitlist Mode and its associated code (page, view model, milestone display) have been removed. The branch `main_WAITLIST` is a frozen snapshot of `main` at the end of Waitlist Mode, preserved for historical reference.
 
 ## Error Handling
 
@@ -839,7 +802,7 @@ There are two tiers of email branding:
 | **Customer** | End users | Full — polished design, logo image, professional copywriting, mobile-responsive, tested across email clients | Welcome emails, subscription confirmations, weekly summaries |
 
 - **Internal emails** use the current template style: purple header (`#6c5ce7`) with "MyTalli" text (no image dependency), functional layout, monospace stack traces. Acceptable as-is.
-- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Hero uses the **bulletproof background image pattern** (`<td background>` + CSS `background-image` + VML conditional comments for Outlook) with hosted PNGs at `https://www.mytalli.com/emails/`. Body icons use HTML entity emojis (render natively, not blocked). Four customer emails are built: Waitlist Welcome, Welcome, Subscription Confirmation, Weekly Summary.
+- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Hero uses the **bulletproof background image pattern** (`<td background>` + CSS `background-image` + VML conditional comments for Outlook) with hosted PNGs at `https://www.mytalli.com/emails/`. Body icons use HTML entity emojis (render natively, not blocked). Three customer emails are built: Welcome, Subscription Confirmation, Weekly Summary.
 
 ### Adding a New Email Notification
 
@@ -851,7 +814,7 @@ There are two tiers of email branding:
 
 ### Test Emails (Development Only)
 
-A dev-only endpoint at `GET /api/test/emails` sends all 4 customer emails to `hello@mytalli.com` with sample data via ACS. Only registered when `app.Environment.IsDevelopment()`.
+A dev-only endpoint at `GET /api/test/emails` sends all 3 customer emails to `hello@mytalli.com` with sample data via ACS. Only registered when `app.Environment.IsDevelopment()`.
 
 A dev-only endpoint at `GET /api/test/unsubscribe-token/{userId:long}` generates an unsubscribe token for testing the `/unsubscribe` page.
 
@@ -951,7 +914,7 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 
 - **Every page** in the app (except the Landing Page) must include a purple gradient swoosh hero section for consistent branding.
 - Pages using `MainLayout` (sidebar pages like Dashboard, Suggestions) use an **inline swoosh** hero within the page markup.
-- Pages using `LandingLayout` (Sign-In, Waitlist, Error) use the **`BrandHeader`** component.
+- Pages using `LandingLayout` (Sign-In, Error) use the **`BrandHeader`** component.
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
 
 ### Summary Tag Convention
@@ -1071,7 +1034,7 @@ using My.Talli.Domain.Framework;
 - **Program.cs** is a thin orchestrator — it calls extension methods, not inline logic.
 - **Service registration** goes in `Configuration/` — one static class per concern, each exposing an `IServiceCollection` extension method (e.g., `AddAuthenticationProviders`, `AddDatabase`, `AddRepositories`). Methods that need config values accept `IConfiguration` as a parameter.
 - **Endpoint mapping** goes in `Endpoints/` — one static class per route group, each exposing an `IEndpointRouteBuilder` extension method (e.g., `MapAuthEndpoints`, `MapBillingEndpoints`).
-- **Middleware** goes in `Middleware/` — proper middleware classes with `InvokeAsync` and a companion `Use{Name}` extension method on `IApplicationBuilder`. Lightweight inline middleware (e.g., waitlist mode redirect) may stay in Program.cs when it's only a few lines and tightly coupled to pipeline ordering.
+- **Middleware** goes in `Middleware/` — proper middleware classes with `InvokeAsync` and a companion `Use{Name}` extension method on `IApplicationBuilder`. Lightweight inline middleware may stay in Program.cs when it's only a few lines and tightly coupled to pipeline ordering.
 - When adding a new service concern, create a new `Configuration/{Name}Configuration.cs` file. When adding new API routes, create a new `Endpoints/{Name}Endpoints.cs` file. When adding new middleware, create a new `Middleware/{Name}Middleware.cs` file. Do not add inline registrations, endpoint lambdas, or substantial middleware to Program.cs.
 - Namespace: `My.Talli.Web.Configuration` for configuration classes, `My.Talli.Web.Endpoints` for endpoint classes, `My.Talli.Web.Middleware` for middleware classes.
 
@@ -1211,5 +1174,5 @@ Features already shipped in the static HTML landing page (`deploy/index.html`) t
 
 Upcoming features:
 
-- [ ] **Admin Page** — role-based admin section (`/admin`) for managing waitlist signups, viewing all suggestion box submissions, user management, platform connection health, and feature flag/tier management. Accessible only to accounts with an `Admin` role.
-- [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 4 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.
+- [ ] **Admin Page** — role-based admin section (`/admin`) for viewing all suggestion box submissions, user management, platform connection health, and feature flag/tier management. Accessible only to accounts with an `Admin` role.
+- [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.
