@@ -925,6 +925,25 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - Pages using `LandingLayout` (Sign-In, Error) use the **`BrandHeader`** component.
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
 
+### Mobile-First Responsive Strategy
+
+- **Principle: "Keyhole Data"** — phones are for glancing at numbers, not configuring things. Desktop gets the full experience; mobile gets a focused, read-only snapshot.
+- **Don't block routes** — never return a 404 or redirect based on viewport. If a user deep-links to a desktop-oriented page on mobile, show a friendly "better on desktop" message with a link back to the dashboard.
+- **Hide non-mobile nav items** — on small screens, hide sidebar links for pages that don't render well on mobile (e.g., Platforms, Export, Settings). Keep Dashboard, Goals, Suggestions visible.
+- **Simplify, don't remove** — pages that are visible on mobile should render a simplified "keyhole" view, not the full desktop layout. Example: Goals on mobile shows progress bars and numbers, not the full goal editor.
+- **Decide per page** — each page's mobile treatment is determined when building that page, not planned upfront. The content will make the right answer obvious.
+
+### Sidebar Navigation Pages
+
+| Page | Route | Purpose | Mobile |
+|------|-------|---------|--------|
+| **Dashboard** | `/dashboard` | Revenue overview — KPI cards, charts, trends, recent transactions | Yes (keyhole) |
+| **Platforms** | `/platforms` | Connect/manage platform integrations (Stripe, Etsy, etc.) | Hidden |
+| **Goals** | `/goals` | Set and track monthly/yearly revenue targets | Yes (simplified) |
+| **Export** | `/export` | CSV export for tax prep / bookkeeping | Hidden |
+| **Suggestions** | `/suggestions` | User feedback and feature requests (already built) | Yes |
+| **Settings** | `/settings` | Account preferences, email settings, linked providers | Hidden |
+
 ### Summary Tag Convention
 
 - Every C# class and interface **must** have a `/// <summary>` tag.
