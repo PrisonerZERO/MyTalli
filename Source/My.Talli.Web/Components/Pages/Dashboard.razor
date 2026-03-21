@@ -22,23 +22,70 @@
         <div class="deco-circle deco-circle-3"></div>
     </div>
 
-    <div class="dash-hero-bar">
-        <a class="sign-out-btn" data-enhance-nav="false" href="/api/auth/logout">Sign Out</a>
-    </div>
-
     <div class="top-bar animate-in delay-1">
         <div class="greeting">
             <h1>Good morning, @UserFirstName</h1>
             <p>Here's how your revenue is looking.</p>
         </div>
-        <div class="period-pills">
-            @foreach (var period in Periods)
-            {
-                <button aria-label="Filter by @period" class="pill @(period == ActivePeriod ? "active" : "")"
-                        @onclick="() => SelectPeriod(period)">
-                    @period
+        <div class="top-bar-right">
+            <div class="period-pills">
+                @foreach (var period in Periods)
+                {
+                    <button aria-label="Filter by @period" class="pill @(period == ActivePeriod ? "active" : "")"
+                            @onclick="() => SelectPeriod(period)">
+                        @period
+                    </button>
+                }
+            </div>
+            <div class="user-menu-wrapper">
+                <button aria-expanded="@IsUserMenuOpen" aria-haspopup="true" aria-label="User menu" class="user-trigger" @onclick="ToggleUserMenu" @onclick:stopPropagation="true">
+                    @UserInitials
                 </button>
-            }
+
+                @if (IsUserMenuOpen)
+                {
+                    <div class="user-menu-backdrop" @onclick="CloseUserMenu"></div>
+                    <div class="user-dropdown" role="menu" aria-label="User menu">
+                        <div class="dropdown-header">
+                            <div class="dropdown-avatar">@UserInitials</div>
+                            <div class="dropdown-user-info">
+                                <div class="dropdown-user-name">@UserFullName</div>
+                                <div class="dropdown-user-email">@UserEmail</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="subscription" role="menuitem">
+                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            Subscription
+                        </a>
+                        <a class="dropdown-item" href="suggestions" role="menuitem">
+                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                            </svg>
+                            Suggestions
+                        </a>
+                        <a class="dropdown-item" href="settings" role="menuitem">
+                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="3" />
+                                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                            </svg>
+                            Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item dropdown-sign-out" data-enhance-nav="false" href="/api/auth/logout" role="menuitem">
+                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                                <polyline points="16 17 21 12 16 7" />
+                                <line x1="21" x2="9" y1="12" y2="12" />
+                            </svg>
+                            Sign Out
+                        </a>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>

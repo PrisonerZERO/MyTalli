@@ -49,7 +49,15 @@ public class DashboardViewModel : ComponentBase
 
     public string TotalRevenueChange { get; private set; } = "23%";
 
+    public string UserEmail { get; private set; } = "sarah@email.com";
+
     public string UserFirstName { get; private set; } = "Sarah";
+
+    public string UserFullName { get; private set; } = "Sarah Johnson";
+
+    public string UserInitials { get; private set; } = "SJ";
+
+    public bool IsUserMenuOpen { get; private set; }
 
 
     #endregion
@@ -66,10 +74,20 @@ public class DashboardViewModel : ComponentBase
 
     #region <Methods>
 
+    public void CloseUserMenu()
+    {
+        IsUserMenuOpen = false;
+    }
+
     public void SelectPeriod(string period)
     {
         ActivePeriod = period;
         StateHasChanged();
+    }
+
+    public void ToggleUserMenu()
+    {
+        IsUserMenuOpen = !IsUserMenuOpen;
     }
 
     private void LoadMockData()
