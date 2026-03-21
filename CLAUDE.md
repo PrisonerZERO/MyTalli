@@ -250,6 +250,8 @@ My.Talli/
 │   ├── og-image-capture.html       # Viewport-locked page for PNG capture
 │   ├── og-image-mockup.html        # OG image design mockup (1200×630)
 │   └── preview.html                # Side-by-side favicon comparison page
+├── social-assets/                  # Social media images & source HTML
+│   └── linkedin-cover.html         # LinkedIn cover banner source (1584×792)
 ├── wireframes/                     # Standalone HTML mockups & design concepts
 │   ├── MyTalli_ColorPalette.html   # Brand color reference sheet (light mode)
 │   ├── MyTalli_DarkModePalette.html # Brand color reference sheet (dark mode)
@@ -665,6 +667,12 @@ dotnet run --project Source/My.Talli.Web
 - **Google Search Console:** Property `https://www.mytalli.com/` verified via GA4 (2026-03-07). Sitemap submitted. Dashboard at [search.google.com/search-console](https://search.google.com/search-console)
 - **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys (legacy)
 - **Static assets note:** The `deploy/` and `favicon-concepts/` folders are from the static HTML era. Static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) now live in `wwwroot/`. The `deploy/emails/` folder is still needed — it hosts PNG images referenced by customer-facing email templates.
+
+### Social Media
+
+- **X (Twitter):** [@MyTalliApp](https://x.com/MyTalliApp) — verified (blue check, yearly subscription). Profile icon: favicon PNG. Banner: Coming Soon image. Pinned post: launch teaser with branded image.
+- **LinkedIn:** [MyTalli company page](https://www.linkedin.com/company/mytalli) — company page under Robert Jordan's personal account. Profile icon: favicon PNG. Description and tagline set.
+- **Social assets folder:** `social-assets/` — contains `linkedin-cover.html` (source for LinkedIn cover banner). X Coming Soon image generated from `wireframes/` or `social-assets/`.
 
 ### Azure App Service (Blazor Server)
 
@@ -1162,6 +1170,21 @@ public AppleSignInHandler(
 
 - **WAVE contrast errors (28):** Mostly false positives from nav links (`rgba(255,255,255,0.85)`) over the purple hero gradient — WAVE sees them against the white `<body>` background. A few real failures exist on platform brand colors (Shopify `#96bf48`, Gumroad `#ff90e8`, Etsy `#f56400` on `#f8f7fc`), but these are intentional brand colors kept as-is.
 - **WAVE alert (1):** Skipped heading level — the `<h3>` inside the dashboard mockup jumps from `<h1>`. Harmless because the mockup is marked `role="img"` with a descriptive `aria-label`.
+
+## Stripe Setup TODO
+
+- [x] **Stripe Account** — created sandbox under `robertmerrilljordan@gmail.com`
+- [x] **Branding** — brand color `#6c5ce7`, accent `#8b5cf6`, icon uploaded (favicon PNG)
+- [x] **Business Model** — Platform (not Marketplace)
+- [x] **Payment Integration** — Prebuilt checkout form (Stripe Checkout Sessions)
+- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHvRC4AM5SkTgToKJXCny`. Free tier has no Stripe product (it's just the absence of a subscription).
+- [x] **Webhook Endpoint** — using Stripe CLI local listener (`stripe listen --forward-to https://localhost:7012/api/billing/webhook`). Stripe CLI installed via winget at `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`.
+- [x] **API Keys** — test keys added to `appsettings.Development.json` (`Stripe:SecretKey`, `Stripe:PublishableKey`)
+- [x] **Webhook Secret** — webhook signing secret added to `appsettings.Development.json` (from Stripe CLI listener)
+- [x] **Customer Portal** — configured: customer info (name, email, billing address, phone), payment methods, cancellations (end of billing period, collect reason). Portal Configuration ID: `bpc_1TDSZQRC4AM5SkTggFFtu6cQ`.
+- [ ] **Test Checkout Flow** — end-to-end test: Upgrade page → Stripe Checkout → webhook → subscription created
+- [ ] **Production Keys** — add live keys to Azure App Service Configuration (when ready to go live)
+- [ ] **Custom Domains** — `pay.mytalli.com` (Checkout), `billing.mytalli.com` (Customer Portal) — production only, CNAME records in GoDaddy
 
 ## Blazor TODO
 
