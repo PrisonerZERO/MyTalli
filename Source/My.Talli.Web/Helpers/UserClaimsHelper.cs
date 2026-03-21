@@ -33,6 +33,8 @@ public static class UserClaimsHelper
 
     #region <Methods>
 
+    public static string RandomFunGreeting() => FunGreetings[Random.Next(FunGreetings.Length)];
+
     public static UserDisplayInfo Resolve(ClaimsPrincipal user)
     {
         var firstName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? string.Empty;

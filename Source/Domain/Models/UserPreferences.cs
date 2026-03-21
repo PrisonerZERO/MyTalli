@@ -7,6 +7,8 @@ public class UserPreferences
 
 	public EmailPreferences EmailPreferences { get; set; } = new();
 
+	public bool FunGreetings { get; set; } = true;
+
 
 	#endregion
 }

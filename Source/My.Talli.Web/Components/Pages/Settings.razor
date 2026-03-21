@@ -1,0 +1,143 @@
+@page "/settings"
+@inherits My.Talli.Web.ViewModels.Pages.SettingsViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Settings — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<section class="settings-hero" aria-label="Settings">
+    <div class="settings-hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="settingsSwooshGrad" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#6c5ce7" />
+                    <stop offset="50%" stop-color="#8b5cf6" />
+                    <stop offset="100%" stop-color="#6c5ce7" />
+                </linearGradient>
+            </defs>
+            <path d="M0,0 L1000,0 L1000,140 C850,180 650,100 450,150 C250,200 100,160 0,130 Z" fill="url(#settingsSwooshGrad)" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="settings-hero-content">
+        <h1>Settings</h1>
+        <p>Manage your profile and preferences</p>
+    </div>
+</section>
+
+@if (IsLoading)
+{
+    <div class="settings-loading" aria-live="polite">
+        <p>Loading settings...</p>
+    </div>
+}
+else
+{
+    <div class="settings-body">
+        <!-- Profile Section -->
+        <section class="settings-section" aria-label="Profile information">
+            <h2 class="settings-section-title">Profile</h2>
+            <div class="settings-card">
+                <div class="settings-field">
+                    <label class="settings-label" for="displayName">Display Name</label>
+                    <input class="settings-input" id="displayName" type="text" @bind="DisplayName" @bind:after="OnFieldChanged" placeholder="How you appear in MyTalli" />
+                </div>
+                <div class="settings-field-row">
+                    <div class="settings-field">
+                        <label class="settings-label" for="firstName">First Name</label>
+                        <input class="settings-input" id="firstName" type="text" @bind="FirstName" @bind:after="OnFieldChanged" placeholder="First name" />
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="lastName">Last Name</label>
+                        <input class="settings-input" id="lastName" type="text" @bind="LastName" @bind:after="OnFieldChanged" placeholder="Last name" />
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Email Preferences Section -->
+        <section class="settings-section" aria-label="Email preferences">
+            <h2 class="settings-section-title">Email Preferences</h2>
+            <div class="settings-card">
+                <div class="settings-toggle-row">
+                    <div class="settings-toggle-info">
+                        <span class="settings-toggle-label">Unsubscribe from all</span>
+                        <span class="settings-toggle-hint">Stop all emails from MyTalli</span>
+                    </div>
+                    <label class="settings-switch" aria-label="Unsubscribe from all emails">
+                        <input type="checkbox" @bind="UnsubscribeAll" @bind:after="OnFieldChanged" />
+                        <span class="settings-slider settings-slider-danger"></span>
+                    </label>
+                </div>
+
+                <hr class="settings-divider" aria-hidden="true" />
+
+                <div class="settings-toggle-row @(UnsubscribeAll ? "settings-disabled" : "")">
+                    <div class="settings-toggle-info">
+                        <span class="settings-toggle-label">Weekly Summary</span>
+                        <span class="settings-toggle-hint">Revenue digest every week</span>
+                    </div>
+                    <label class="settings-switch" aria-label="Toggle weekly summary emails">
+                        <input type="checkbox" @bind="WeeklySummaryEmail" @bind:after="OnFieldChanged" disabled="@UnsubscribeAll" />
+                        <span class="settings-slider"></span>
+                    </label>
+                </div>
+
+                <div class="settings-toggle-row @(UnsubscribeAll ? "settings-disabled" : "")">
+                    <div class="settings-toggle-info">
+                        <span class="settings-toggle-label">Subscription Confirmations</span>
+                        <span class="settings-toggle-hint">Plan changes and billing updates</span>
+                    </div>
+                    <label class="settings-switch" aria-label="Toggle subscription confirmation emails">
+                        <input type="checkbox" @bind="SubscriptionConfirmationEmail" @bind:after="OnFieldChanged" disabled="@UnsubscribeAll" />
+                        <span class="settings-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Personalization Section -->
+        <section class="settings-section" aria-label="Personalization">
+            <h2 class="settings-section-title">Personalization</h2>
+            <div class="settings-card">
+                <div class="settings-toggle-row">
+                    <div class="settings-toggle-info">
+                        <span class="settings-toggle-label">Fun Greetings</span>
+                        <span class="settings-toggle-hint">Show greetings like "Good morning, legend" instead of your name</span>
+                    </div>
+                    <label class="settings-switch" aria-label="Toggle fun greetings">
+                        <input type="checkbox" @bind="FunGreetings" @bind:after="OnFieldChanged" />
+                        <span class="settings-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Save -->
+        <div class="settings-actions">
+            <button class="settings-save" @onclick="SaveSettingsAsync" disabled="@IsSaving" aria-label="Save settings">
+                @if (IsSaving)
+                {
+                    <span>Saving...</span>
+                }
+                else
+                {
+                    <span>Save Settings</span>
+                }
+            </button>
+
+            @if (IsSaved)
+            {
+                <div class="settings-success" role="status" aria-live="polite">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span>Settings saved</span>
+                </div>
+            }
+        </div>
+    </div>
+}
