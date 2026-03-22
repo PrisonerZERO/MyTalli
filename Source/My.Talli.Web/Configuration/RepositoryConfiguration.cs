@@ -32,6 +32,8 @@ public static class RepositoryConfiguration
         services.AddScoped<IEntityMapper<MODELS.ProductVendor, ENTITIES.ProductVendor>, ProductVendorMapper>();
         services.AddScoped<IEntityMapper<MODELS.Subscription, ENTITIES.Subscription>, SubscriptionMapper>();
         services.AddScoped<IEntityMapper<MODELS.SubscriptionStripe, ENTITIES.SubscriptionStripe>, SubscriptionStripeMapper>();
+        services.AddScoped<IEntityMapper<MODELS.Suggestion, ENTITIES.Suggestion>, SuggestionMapper>();
+        services.AddScoped<IEntityMapper<MODELS.SuggestionVote, ENTITIES.SuggestionVote>, SuggestionVoteMapper>();
         services.AddScoped<IEntityMapper<MODELS.User, ENTITIES.User>, UserMapper>();
         services.AddScoped<IEntityMapper<MODELS.UserAuthenticationApple, ENTITIES.UserAuthenticationApple>, UserAuthenticationAppleMapper>();
         services.AddScoped<IEntityMapper<MODELS.UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle>, UserAuthenticationGoogleMapper>();
