@@ -1272,7 +1272,7 @@ public AppleSignInHandler(
 - [x] **Branding** — brand color `#6c5ce7`, accent `#8b5cf6`, icon uploaded (favicon PNG)
 - [x] **Business Model** — Platform (not Marketplace)
 - [x] **Payment Integration** — Prebuilt checkout form (Stripe Checkout Sessions)
-- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHvRC4AM5SkTgToKJXCny`. Free tier has no Stripe product (it's just the absence of a subscription).
+- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHVRC4AM5SkTgToKjXCny`. Free tier has no Stripe product (it's just the absence of a subscription).
 - [x] **Webhook Endpoint** — using Stripe CLI local listener (`stripe listen --forward-to https://localhost:7012/api/billing/webhook`). Stripe CLI installed via winget at `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`.
 - [x] **API Keys** — test keys added to `appsettings.Development.json` (`Stripe:SecretKey`, `Stripe:PublishableKey`)
 - [x] **Webhook Secret** — webhook signing secret added to `appsettings.Development.json` (from Stripe CLI listener)

@@ -159,13 +159,15 @@ public static class BillingEndpoints
                 var subService = new Stripe.SubscriptionService();
                 var stripeSub = await subService.GetAsync(stripeSubscriptionId, new Stripe.SubscriptionGetOptions
                 {
-                    Expand = ["default_payment_method", "latest_invoice.payment_intent"]
+                    Expand = ["default_payment_method"]
                 });
 
-                currentPeriodEnd = stripeSub.CurrentPeriodEnd;
-
                 if (stripeSub.Items?.Data?.Count > 0)
-                    stripePriceId = stripeSub.Items.Data[0].Price?.Id ?? string.Empty;
+                {
+                    var firstItem = stripeSub.Items.Data[0];
+                    stripePriceId = firstItem.Price?.Id ?? string.Empty;
+                    currentPeriodEnd = firstItem.CurrentPeriodEnd;
+                }
 
                 if (stripeSub.DefaultPaymentMethod is Stripe.PaymentMethod pm)
                 {
@@ -174,9 +176,7 @@ public static class BillingEndpoints
                     cardLastFour = pm.Card?.Last4 ?? string.Empty;
                 }
 
-                if (stripeSub.LatestInvoice is Stripe.Invoice invoice
-                    && invoice.PaymentIntent is Stripe.PaymentIntent pi)
-                    paymentIntentId = pi.Id;
+                paymentIntentId = stripeSub.LatestInvoiceId ?? string.Empty;
             }
 
             var productName = stripePriceId == settings.YearlyPriceId
@@ -257,7 +257,9 @@ public static class BillingEndpoints
             var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
             await handler.HandleSubscriptionUpdatedAsync(new SubscriptionUpdatedPayload
             {
-                CurrentPeriodEnd = subscription.CurrentPeriodEnd,
+                CurrentPeriodEnd = subscription.Items?.Data?.Count > 0
+                    ? subscription.Items.Data[0].CurrentPeriodEnd
+                    : DateTime.UtcNow.AddMonths(1),
                 ProductName = productName,
                 Status = subscription.Status,
                 StripePriceId = stripePriceId,
