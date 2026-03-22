@@ -11,7 +11,7 @@ public class ContainerRegistry : ServiceRegistry
 
 	public ContainerRegistry()
 	{
-		IncludeRegistry<Domain.IoC.ContainerRegistry>();
+		IncludeRegistry<Domain.DI.Lamar.IoC.ContainerRegistry>();
 
 		ForSingletonOf<IdentityProvider>().Use<IdentityProvider>();
 		ForSingletonOf<ICurrentUserService>().Use<CurrentUserServiceStub>();

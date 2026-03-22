@@ -1,4 +1,4 @@
-namespace My.Talli.Domain.IoC;
+namespace My.Talli.Domain.DI.Lamar.IoC;
 
 using Domain.Components.JsonSerializers;
 using Domain.Data.EntityFramework.Repositories;
@@ -7,7 +7,7 @@ using Domain.Data.Interfaces;
 using Domain.Handlers.Authentication;
 using Domain.Mappers;
 using Domain.Repositories;
-using Lamar;
+using global::Lamar;
 
 using ENTITIES = Domain.Entities;
 using MODELS = Domain.Models;

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>My.Talli.Domain.DI.Lamar</AssemblyName>
+    <RootNamespace>My.Talli.Domain.DI.Lamar</RootNamespace>
+    <AssemblyTitle>My.Talli.Domain.DI.Lamar</AssemblyTitle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lamar" Version="14.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\Domain.Data\Domain.Data.csproj" />
+    <ProjectReference Include="..\Domain.Data.EntityFramework\Domain.Data.EntityFramework.csproj" />
+    <ProjectReference Include="..\Domain.Entities\Domain.Entities.csproj" />
+  </ItemGroup>
+
+</Project>
