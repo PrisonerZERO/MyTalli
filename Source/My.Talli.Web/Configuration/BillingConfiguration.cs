@@ -9,8 +9,12 @@ public static class BillingConfiguration
 
     public static void AddBillingServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<StripeSettings>(configuration.GetSection("Stripe"));
+        var stripeSection = configuration.GetSection("Stripe");
+
+        services.Configure<StripeSettings>(stripeSection);
         services.AddScoped<StripeBillingService>();
+
+        Stripe.StripeConfiguration.ApiKey = stripeSection["SecretKey"];
     }
 
     #endregion

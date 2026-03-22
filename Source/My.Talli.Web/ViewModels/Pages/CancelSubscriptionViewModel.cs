@@ -2,6 +2,7 @@ namespace My.Talli.Web.ViewModels.Pages;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 
 /// <summary>View Model</summary>
@@ -11,6 +12,9 @@ public class CancelSubscriptionViewModel : ComponentBase
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
+
+    [Inject]
+    private ILogger<CancelSubscriptionViewModel> Logger { get; set; } = default!;
 
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
@@ -60,6 +64,9 @@ public class CancelSubscriptionViewModel : ComponentBase
 
     protected void HandleCancel()
     {
+        Logger.LogInformation("User initiated cancellation. Reason: {Reason}",
+            string.IsNullOrEmpty(SelectedReason) ? "Not specified" : SelectedReason);
+
         Navigation.NavigateTo("/api/billing/create-portal-session", forceLoad: true);
     }
 

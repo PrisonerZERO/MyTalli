@@ -35,10 +35,17 @@ public class StripeBillingService
         string userEmail,
         string priceId,
         string successUrl,
-        string cancelUrl)
+        string cancelUrl,
+        long? userId = null)
     {
+        var metadata = new Dictionary<string, string>();
+        if (userId.HasValue)
+            metadata["userId"] = userId.Value.ToString();
+
         var options = new SessionCreateOptions
         {
+            CancelUrl = cancelUrl,
+            ClientReferenceId = userId?.ToString(),
             CustomerEmail = userEmail,
             LineItems =
             [
@@ -48,9 +55,10 @@ public class StripeBillingService
                     Quantity = 1
                 }
             ],
+            Metadata = metadata,
             Mode = "subscription",
-            SuccessUrl = successUrl,
-            CancelUrl = cancelUrl
+            SubscriptionData = new SessionSubscriptionDataOptions { Metadata = metadata },
+            SuccessUrl = successUrl
         };
 
         var service = new SessionService();
@@ -88,6 +96,28 @@ public class StripeBillingService
     public string GetPublishableKey() => _settings.PublishableKey;
 
     public string GetYearlyPriceId() => _settings.YearlyPriceId;
+
+    public async Task SwitchPlanAsync(string stripeSubscriptionId, string newPriceId)
+    {
+        var subService = new SubscriptionService();
+        var subscription = await subService.GetAsync(stripeSubscriptionId);
+
+        if (subscription.Items?.Data is null || subscription.Items.Data.Count == 0)
+            throw new InvalidOperationException("Subscription has no items to update.");
+
+        var itemId = subscription.Items.Data[0].Id;
+
+        var itemService = new SubscriptionItemService();
+        await itemService.UpdateAsync(itemId, new SubscriptionItemUpdateOptions
+        {
+            Price = newPriceId,
+            ProrationBehavior = "create_prorations"
+        });
+
+        _logger.LogInformation(
+            "Switched subscription {SubscriptionId} to price {PriceId}",
+            stripeSubscriptionId, newPriceId);
+    }
 
 
     #endregion

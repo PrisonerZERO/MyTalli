@@ -1,87 +1,39 @@
-# Authentication Handlers — Domain Service Layer
+# Change Plan Feature
 
 ## Current State
-
-The three auth handlers (`GoogleAuthenticationHandler`, `AppleAuthenticationHandler`, `MicrosoftAuthenticationHandler`) live in `My.Talli.Web/Services/Authentication/`. They're stubs that:
-1. Extract claims from the `OAuthCreatingTicketContext`
-2. Log the sign-in
-3. Have TODOs for database lookup/create/update
-
-## Problem
-
-The TODOs require database operations (find user, create user, update last login, add claims). This is domain logic — it shouldn't live in the Web project alongside ASP.NET middleware types.
+- "Change Plan" on `/subscription` goes to Stripe Portal (same as "Manage Billing")
+- Upgrade page detects Pro subscriber and current period but only shows "Manage Plan" button
+- No way to switch between monthly ↔ yearly from within the app
 
 ## Plan
 
-### 1. Domain needs a reference to Domain.Data
+### 1. Update SubscriptionViewModel — Route "Change Plan" to Upgrade page
+- Change `HandleChangePlan()` to navigate to `/upgrade` instead of the Stripe portal
+- The Upgrade page already has the subscription-aware logic
 
-`Domain.csproj` currently references only `Domain.Entities`. It needs `Domain.Data` too, so it can use `IAuditableRepositoryAsync<User>` etc.
+### 2. Update Upgrade page UI — Smart Pro state
+When user is Pro subscriber:
+- **Pro card**: Show "CURRENT PLAN" badge (not "RECOMMENDED")
+- **Toggle**: Highlight their current period, allow selecting the other
+- **CTA button logic**:
+  - Same period as current → "Current Plan ✓" (disabled)
+  - Different period selected → "Switch to Monthly" or "Switch to Yearly"
+- **Free card**: No badge (they're not on Free)
 
-**File:** `Source/Domain/Domain.csproj`
-- Add `<ProjectReference>` to `Domain.Data.csproj`
+### 3. Add plan switch endpoint
+- New endpoint: `GET /api/billing/switch-plan?plan={monthly|yearly}`
+- Looks up the user's active Stripe subscription
+- Calls Stripe API to update the subscription item's price (`SubscriptionService.UpdateAsync`)
+- Stripe prorates automatically
+- Redirects back to `/subscription` on success
 
-### 2. Create a Domain handler per provider
+### 4. Update UpgradeViewModel — Add HandleSwitchPlan method
+- New method that navigates to the switch endpoint with `forceLoad: true`
+- The CTA button calls this instead of `HandleUpgrade` when switching
 
-These handle the "find or create user" logic using repositories. They live in the `Handlers/` folder (already exists as an empty folder in Domain).
-
-**Files:**
-- `Source/Domain/Handlers/Authentication/GoogleAuthenticationDomainHandler.cs`
-- `Source/Domain/Handlers/Authentication/AppleAuthenticationDomainHandler.cs`
-- `Source/Domain/Handlers/Authentication/MicrosoftAuthenticationDomainHandler.cs`
-
-Each handler will:
-1. Accept provider-specific data (provider ID, email, name, etc.) as simple parameters — no ASP.NET types
-2. Look up the auth record by provider ID (e.g., `GoogleId`)
-3. If not found, look up by email across all auth tables (for account linking scenarios)
-4. If still not found, create a new `User` + provider auth record
-5. If found, update `LastLoginAt` (note: `User` entity doesn't have this yet — see step 5)
-6. Return the `User` entity (so the Web handler can add claims)
-
-### 3. Update the Web authentication handlers
-
-Slim them down to:
-1. Extract claims from `OAuthCreatingTicketContext` (stays here — ASP.NET dependency)
-2. Call the Domain handler with the extracted data
-3. Add claims to the identity from the returned User (stays here — ASP.NET dependency)
-
-**Files (modify existing):**
-- `Source/My.Talli.Web/Services/Authentication/GoogleAuthenticationHandler.cs`
-- `Source/My.Talli.Web/Services/Authentication/AppleAuthenticationHandler.cs`
-- `Source/My.Talli.Web/Services/Authentication/MicrosoftAuthenticationHandler.cs`
-
-### 4. Register Domain handlers in DI
-
-**File:** `Source/My.Talli.Web/Program.cs`
-- Register the three domain handlers as scoped services
-
-### 5. Add missing fields to User entity
-
-The `User` entity is missing `LastLoginAt` (mentioned in CLAUDE.md schema: `LastLoginAt`). Need to add it and create a migration.
-
-**File:** `Source/Domain.Entities/Entities/User.cs`
-- Add `public DateTime LastLoginAt { get; set; }`
-
-**File:** `Source/Domain.Data.EntityFramework/Configurations/Auth/UserConfiguration.cs`
-- Add column config for `LastLoginAt`
-
-**Migration:** `Add-Migration AddUserLastLoginAt` after entity changes
-
-### 6. Wire up the UserPreferencesJsonSerializer
-
-When creating a new user, set `UserPreferences` to the serialized default `UserPreferences` model (so it starts as `{"emailPreferences":{"unsubscribeAll":false,"subscriptionConfirmationEmail":true,"weeklySummaryEmail":true}}`).
-
-## Architecture After
-
-```
-Web Handler (ASP.NET)          Domain Handler (pure C#)
-──────────────────────         ────────────────────────
-Extract claims from OAuth  →   Find or create User
-                           →   Update last login
-Add claims to identity     ←   Return User entity
-```
-
-## Open Questions
-
-1. **Naming:** `GoogleAuthenticationDomainHandler` or something shorter? The `Domain` suffix distinguishes it from the Web handler but it's verbose.
-2. **Account linking:** Should the "find by email across providers" logic be in the initial implementation, or deferred? CLAUDE.md says consolidation UX is "not yet implemented."
-3. **LastLoginAt vs CreatedAt:** The `User` entity has audit fields (`CreatedOnDateTime`, `UpdatedOnDateTime`) from `AuditableIdentifiableEntity`. Should we use `UpdatedOnDateTime` as a proxy for last login, or add a dedicated `LastLoginAt`? Dedicated field is cleaner since updates could happen for reasons other than login.
+### Files Changed
+- `ViewModels/Pages/SubscriptionViewModel.cs` — change navigation target
+- `ViewModels/Pages/UpgradeViewModel.cs` — add `HandleSwitchPlan()`, refine button state
+- `Components/Pages/Upgrade.razor` — conditional CTA text/state
+- `Endpoints/BillingEndpoints.cs` — add switch-plan endpoint
+- `Services/Billing/StripeBillingService.cs` — add `SwitchPlanAsync()` method

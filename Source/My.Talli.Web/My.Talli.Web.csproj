@@ -17,7 +17,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.*" />
     <PackageReference Include="MailKit" Version="4.*" />
-    <PackageReference Include="Stripe.net" Version="47.*" />
+    <PackageReference Include="Stripe.net" Version="50.4.1" />
     <PackageReference Include="System.Data.SqlClient" Version="4.*" />
   </ItemGroup>
 

@@ -4,7 +4,7 @@
 
 MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and freelancers connect their payment platforms (Stripe, Etsy, Gumroad, PayPal, Shopify, etc.) and see all their income in one unified dashboard with real-time tracking, trends, goals, and CSV export.
 
-**Status:** Early development — landing page, sign-in, dashboard, and other pages are built. OAuth authentication is working (Google, Apple, Microsoft). Sign-in redirects to the dashboard. All routes are active.
+**Status:** Early development — landing page, sign-in, dashboard, and other pages are built. OAuth authentication is working (Google, Apple, Microsoft). Sign-in redirects to the dashboard. All routes are active. Stripe billing is integrated (checkout, plan switching, cancellation, reactivation).
 
 ## Tech Stack
 
@@ -18,6 +18,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Azure Communication Services (ACS) Email** — transactional email sending (NuGet: `Azure.Communication.Email`)
 - **Razor Components** — UI layer (`.razor` files)
 - **SQL Server** — database (localhost, Windows Auth)
+- **Stripe** — payment processing (NuGet: `Stripe.net` v50, Stripe Checkout + Customer Portal + Webhooks)
 
 ## Database
 
@@ -285,7 +286,8 @@ My.Talli/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
     │   ├── Framework/
     │   │   ├── Assert.cs                      # Static validation utility (precondition checks)
-    │   │   └── Roles.cs                       # Static role name constants (Admin, User)
+    │   │   ├── Roles.cs                       # Static role name constants (Admin, User)
+    │   │   └── SubscriptionStatuses.cs        # Static subscription status constants (Active, Cancelling, Cancelled, PastDue, Unpaid)
     │   ├── Components/
     │   │   ├── JsonSerializers/
     │   │   │   └── User/
@@ -333,8 +335,8 @@ My.Talli/
     │   │   │   └── UserRole.cs
     │   │   └── Presentation/                  # Aggregate/detail view models (future)
     │   ├── Handlers/
-    │   │   └── Authentication/                # Sign-in handlers (one per OAuth provider)
-    │   │       ├── EmailLookupService.cs       # Cross-provider email lookup for duplicate prevention
+    │   │   ├── Authentication/                # Sign-in handlers (one per OAuth provider)
+    │   │   │   ├── EmailLookupService.cs       # Cross-provider email lookup for duplicate prevention
     │   │       ├── SignInArgument.cs           # Base sign-in argument
     │   │       ├── SignInArgumentOf.cs         # Generic sign-in argument with provider payload
     │   │       ├── Apple/
@@ -346,6 +348,12 @@ My.Talli/
     │   │       └── Microsoft/
     │   │           ├── MicrosoftSignInHandler.cs
     │   │           └── MicrosoftSignInPayload.cs
+    │   │   └── Billing/                       # Stripe webhook handlers
+    │   │       ├── CheckoutCompletedPayload.cs
+    │   │       ├── CheckoutCompletedResult.cs
+    │   │       ├── StripeWebhookHandler.cs     # Handles checkout.session.completed, subscription.updated/deleted
+    │   │       ├── SubscriptionDeletedPayload.cs
+    │   │       └── SubscriptionUpdatedPayload.cs
     │   ├── Repositories/
     │   │   └── RepositoryAdapterAsync.cs      # Model↔Entity adapter (only gateway to data layer)
     │   └── Notifications/
@@ -409,6 +417,10 @@ My.Talli/
     │           ├── ProductVendorConfiguration.cs
     │           ├── SubscriptionConfiguration.cs
     │           └── SubscriptionStripeConfiguration.cs
+    ├── Domain.DI.Lamar/              # Lamar IoC container registration (isolated from web layer)
+    │   ├── Domain.DI.Lamar.csproj
+    │   └── IoC/
+    │       └── ContainerRegistry.cs       # Lamar ServiceRegistry — registers all mappers, repositories, handlers
     ├── Domain.Entities/             # Domain entity layer (database models)
     │   ├── Domain.Entities.csproj
     │   ├── AuditableIdentifiableEntity.cs  # Base class (Id + audit fields)
@@ -439,8 +451,30 @@ My.Talli/
     │   │   │   └── UserPreferencesJsonSerializerTests.cs
     │   │   └── Tokens/
     │   │       └── UnsubscribeTokenServiceTests.cs
-    │   └── Framework/
-    │       └── AssertTests.cs
+    │   ├── Framework/
+    │   │   └── AssertTests.cs
+    │   ├── Handlers/
+    │   │   └── Authentication/
+    │   │       ├── AppleSignInHandlerTests.cs
+    │   │       ├── EmailLookupServiceTests.cs
+    │   │       ├── GoogleSignInHandlerTests.cs
+    │   │       ├── MicrosoftSignInHandlerTests.cs
+    │   │       └── SignInScenarioTests.cs
+    │   ├── Infrastructure/
+    │   │   ├── Builders/
+    │   │   │   └── SignInHandlerBuilder.cs     # Test setup orchestrator (Lamar container, exposes handlers & adapters)
+    │   │   ├── IoC/
+    │   │   │   └── ContainerRegistry.cs        # Test IoC registry (extends Domain.DI.Lamar, swaps in stubs)
+    │   │   └── Stubs/
+    │   │       ├── AuditableRepositoryStub.cs  # In-memory IAuditableRepositoryAsync<T> for tests
+    │   │       ├── AuditResolverStub.cs
+    │   │       ├── CurrentUserServiceStub.cs
+    │   │       └── IdentityProvider.cs         # Auto-incrementing ID generator for test entities
+    │   └── Notifications/
+    │       └── Emails/
+    │           ├── SubscriptionConfirmationEmailNotificationTests.cs
+    │           ├── WeeklySummaryEmailNotificationTests.cs
+    │           └── WelcomeEmailNotificationTests.cs
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, pipeline setup (delegates to Configuration/ and Endpoints/)
@@ -450,13 +484,14 @@ My.Talli/
         │   ├── DatabaseConfiguration.cs        # DbContext registration
         │   ├── ElmahConfiguration.cs           # Elmah error logging
         │   ├── EmailConfiguration.cs           # Email services + unsubscribe token
-        │   └── RepositoryConfiguration.cs      # Repositories, mappers, sign-in handlers
+        │   └── RepositoryConfiguration.cs      # ICurrentUserService registration (mappers, handlers, and repositories are in Domain.DI.Lamar)
         ├── Endpoints/                 # Minimal API endpoint extension methods (one per route group)
         │   ├── AuthEndpoints.cs       # /api/auth/login, /api/auth/logout
-        │   ├── BillingEndpoints.cs    # /api/billing/create-checkout-session, portal, webhook
+        │   ├── BillingEndpoints.cs    # /api/billing/create-checkout-session, portal, switch-plan, webhook
         │   ├── EmailEndpoints.cs      # /api/email/preferences
         │   └── TestEndpoints.cs       # /api/test/* (dev-only)
         ├── Middleware/                 # Custom middleware classes
+        │   ├── CurrentUserMiddleware.cs   # Populates ICurrentUserService from HttpContext.User claims on every request
         │   └── ProbeFilterMiddleware.cs  # Bot/scanner probe filter (short-circuits .env, .php, wp-admin, etc.)
         ├── Components/
         │   ├── App.razor           # Root HTML document
@@ -498,8 +533,10 @@ My.Talli/
         │   │   ├── GoogleAuthenticationHandler.cs
         │   │   └── MicrosoftAuthenticationHandler.cs
         │   ├── Billing/
-        │   │   ├── StripeBillingService.cs  # Stripe Checkout & Portal API wrapper
+        │   │   ├── StripeBillingService.cs  # Stripe Checkout, Portal, & plan switch API wrapper
         │   │   └── StripeSettings.cs        # Stripe configuration POCO
+        │   ├── Identity/
+        │   │   └── CurrentUserService.cs    # ICurrentUserService implementation (scoped, set by CurrentUserMiddleware)
         │   ├── Email/
         │   │   ├── EmailSettings.cs             # SMTP config POCO (IOptions<EmailSettings>)
         │   │   ├── ExceptionEmailHandler.cs     # IExceptionHandler — sends email, returns false
@@ -534,7 +571,7 @@ My.Talli/
 
 ### Solution Folders (in .slnx)
 
-- `/Foundation/` — shared/core projects (`Domain`, `Domain.Data`, `Domain.Data.EntityFramework`, `Domain.Entities`)
+- `/Foundation/` — shared/core projects (`Domain`, `Domain.Data`, `Domain.Data.EntityFramework`, `Domain.DI.Lamar`, `Domain.Entities`)
 - `/Presentation/` — contains `My.Talli.Web`
 - `/Testing/` — contains `My.Talli.UnitTesting`
 
@@ -544,9 +581,10 @@ My.Talli/
 Domain.Entities          ← entity classes (no dependencies)
 Domain.Data              ← abstractions (IRepository, IUnitOfWork) → Domain.Entities
 Domain.Data.EntityFramework ← EF Core implementation (DbContext, configs) → Domain.Data, Domain.Entities
-Domain                   ← exceptions, notifications → Domain.Entities
-My.Talli.Web             ← Blazor Server app → Domain
-My.Talli.UnitTesting     ← xUnit tests → Domain, Domain.Entities
+Domain                   ← exceptions, notifications → Domain.Data, Domain.Entities
+Domain.DI.Lamar          ← IoC container registration → Domain, Domain.Data, Domain.Data.EntityFramework, Domain.Entities
+My.Talli.Web             ← Blazor Server app → Domain, Domain.Data.EntityFramework, Domain.DI.Lamar
+My.Talli.UnitTesting     ← xUnit tests → Domain, Domain.Data, Domain.DI.Lamar, Domain.Entities
 ```
 
 ## Brand & Design
@@ -662,9 +700,16 @@ dotnet run --project Source/My.Talli.Web
 - **Test file location:** Mirror the source project folder structure (e.g., `Components/Tokens/UnsubscribeTokenServiceTests.cs` tests `Domain/Components/Tokens/UnsubscribeTokenService.cs`)
 - **Test class naming:** `{ClassUnderTest}Tests.cs`
 - **Test method naming:** `MethodName_Scenario_ExpectedBehavior`
-- **What to test:** Logic that computes, transforms, validates, or can fail — cryptographic operations, serialization, precondition checks, business rules
+- **What to test:** Logic that computes, transforms, validates, or can fail — cryptographic operations, serialization, precondition checks, business rules, sign-in handlers
 - **What NOT to test:** Do not write tests for public property getters/setters or simple property-to-property mapping (e.g., mappers, POCO defaults). Only test properties that are set privately, through constructors, or via computed logic.
 - **Domain Assert collision:** The Domain layer has its own `Assert` class (`Domain.Framework.Assert`). In test files that reference it, use a `DOMAINASSERT` alias to avoid collision with xUnit's `Assert`.
+- **Test infrastructure** (`Infrastructure/`):
+  - **`SignInHandlerBuilder`** (`Infrastructure/Builders/`) — orchestrates test setup with a Lamar container. Exposes sign-in handlers, repository adapters, and stub services as properties. All handler tests use this builder.
+  - **`ContainerRegistry`** (`Infrastructure/IoC/`) — extends `Domain.DI.Lamar.IoC.ContainerRegistry` and overrides repository/audit registrations with in-memory stubs.
+  - **`AuditableRepositoryStub<T>`** (`Infrastructure/Stubs/`) — in-memory `List<T>`-backed `IAuditableRepositoryAsync<T>` for fast, database-free testing. Supports Insert/Update/Delete with automatic ID generation and audit resolution.
+  - **`IdentityProvider`** (`Infrastructure/Stubs/`) — maintains type-based counters for generating sequential IDs during tests.
+  - **`CurrentUserServiceStub`** (`Infrastructure/Stubs/`) — mock `ICurrentUserService` with `Set()`/`Clear()` methods for test scenarios.
+  - **`AuditResolverStub`** (`Infrastructure/Stubs/`) — no-op `IAuditResolver<T>` for tests.
 
 ### Version Number
 
@@ -770,6 +815,49 @@ Deploy folder also contains:
 - **Default role** — every new user gets the `User` role on sign-up. Existing users with no roles are self-healed on next sign-in.
 - **Admin assignment** — no UI yet. Assign via direct database insert into `auth.UserRole`.
 - **Claims flow** — domain sign-in handlers query `UserRole`, populate `User.Roles` on the model → web auth handlers map each role to a `ClaimTypes.Role` claim on the identity
+
+## Billing
+
+### Architecture
+
+- **Stripe Checkout** — hosted payment page for new subscriptions. Created via `StripeBillingService.CreateCheckoutSessionAsync()`, triggered from the Upgrade page.
+- **Stripe Customer Portal** — hosted billing management (update payment, view invoices, cancel). Created via `StripeBillingService.CreatePortalSessionAsync()`, triggered from the Subscription page's "Manage Billing" button.
+- **Webhooks** — Stripe sends events to `/api/billing/webhook`. The endpoint verifies the signature, then delegates to `StripeWebhookHandler` in the Domain layer. Handled events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`.
+- **Plan switching** — `/api/billing/switch-plan?plan=monthly|yearly` calls `StripeBillingService.SwitchPlanAsync()` and updates the local DB directly (doesn't wait for the webhook). Stripe prorates automatically.
+- **`StripeConfiguration.ApiKey`** — set globally at startup in `BillingConfiguration.AddBilling()`.
+
+### Subscription Statuses
+
+| Status | Meaning | Trigger |
+|--------|---------|---------|
+| `Active` | Subscription is current and billing normally | Checkout completed, reactivation |
+| `Cancelling` | User cancelled; active until end of billing period | `cancel_at_period_end = true` on webhook |
+| `Cancelled` | Subscription has ended | `customer.subscription.deleted` webhook |
+| `PastDue` | Payment failed, grace period | Stripe status `past_due` |
+| `Unpaid` | Payment failed, no grace | Stripe status `unpaid` |
+
+- **Cancelling vs Cancelled:** "Cancelling" means the user requested cancellation but still has access until the billing period ends. "Cancelled" means the subscription is fully terminated. The Subscription page shows a warning banner and "Reactivate" button during "Cancelling" state.
+- **Queries:** Any query for "active" subscriptions must include both `Active` and `Cancelling` statuses (the user still has Pro access in both states). This applies to: `SubscriptionViewModel`, `UpgradeViewModel`, portal endpoint, switch-plan endpoint.
+
+### Webhook Handler
+
+`StripeWebhookHandler` (`Domain/Handlers/Billing/`) creates all commerce records on checkout:
+1. `Order` + `OrderItem` — purchase event
+2. `Subscription` + `SubscriptionStripe` — ongoing subscription state
+3. `Billing` + `BillingStripe` — payment record
+
+On subscription updates, it syncs status, dates, and product changes. On deletion, it sets status to `Cancelled`.
+
+### CurrentUserMiddleware
+
+`CurrentUserMiddleware` (`Middleware/CurrentUserMiddleware.cs`) runs after `UseAuthorization()` on every request. It reads the `"UserId"` claim from `HttpContext.User` and calls `ICurrentUserService.Set()`. This ensures the `AuditResolver` can stamp audit fields on DB operations in both Blazor circuits and API endpoints. Webhook requests from Stripe have no auth cookie — the `StripeWebhookHandler` sets `ICurrentUserService` manually from the subscription's `UserId`.
+
+### Local Development
+
+- **Stripe CLI listener:** `stripe listen --forward-to https://localhost:7012/api/billing/webhook` — must be running to receive webhooks during local dev.
+- **Stripe CLI path:** `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`
+- **Test card:** `4242 4242 4242 4242`, any future expiry, any CVC.
+- **Resend events:** `stripe events resend <event_id>` — useful when the app wasn't running when a webhook fired.
 
 ## App Mode
 
@@ -1238,12 +1326,12 @@ public AppleSignInHandler(
 - [x] **Branding** — brand color `#6c5ce7`, accent `#8b5cf6`, icon uploaded (favicon PNG)
 - [x] **Business Model** — Platform (not Marketplace)
 - [x] **Payment Integration** — Prebuilt checkout form (Stripe Checkout Sessions)
-- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHvRC4AM5SkTgToKJXCny`. Free tier has no Stripe product (it's just the absence of a subscription).
+- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHVRC4AM5SkTgToKjXCny`. Free tier has no Stripe product (it's just the absence of a subscription).
 - [x] **Webhook Endpoint** — using Stripe CLI local listener (`stripe listen --forward-to https://localhost:7012/api/billing/webhook`). Stripe CLI installed via winget at `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`.
 - [x] **API Keys** — test keys added to `appsettings.Development.json` (`Stripe:SecretKey`, `Stripe:PublishableKey`)
 - [x] **Webhook Secret** — webhook signing secret added to `appsettings.Development.json` (from Stripe CLI listener)
 - [x] **Customer Portal** — configured: customer info (name, email, billing address, phone), payment methods, cancellations (end of billing period, collect reason). Portal Configuration ID: `bpc_1TDSZQRC4AM5SkTggFFtu6cQ`.
-- [ ] **Test Checkout Flow** — end-to-end test: Upgrade page → Stripe Checkout → webhook → subscription created
+- [x] **Test Checkout Flow** — end-to-end verified: Upgrade page → Stripe Checkout → webhook → DB records → Subscription page shows Pro. Also tested: plan switching (monthly ↔ yearly), cancel (end-of-period with "Cancelling" state), reactivate via Customer Portal.
 - [ ] **Production Keys** — add live keys to Azure App Service Configuration (when ready to go live)
 - [ ] **Custom Domains** — `pay.mytalli.com` (Checkout), `billing.mytalli.com` (Customer Portal) — production only, CNAME records in GoDaddy
 
