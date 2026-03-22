@@ -170,7 +170,17 @@ public class StripeWebhookHandler
 
 		subscription.EndDate = payload.CurrentPeriodEnd;
 		subscription.RenewalDate = payload.CurrentPeriodEnd;
-		subscription.Status = MapStripeStatus(payload.Status);
+
+		if (payload.CancelAtPeriodEnd)
+		{
+			subscription.CancelledDate = DateTime.UtcNow;
+			subscription.Status = SubscriptionStatuses.Cancelling;
+		}
+		else
+		{
+			subscription.CancelledDate = null;
+			subscription.Status = MapStripeStatus(payload.Status);
+		}
 
 		await _subscriptionAdapter.UpdateAsync(subscription);
 

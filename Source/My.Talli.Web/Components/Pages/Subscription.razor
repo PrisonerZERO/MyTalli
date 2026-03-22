@@ -73,10 +73,10 @@ else if (IsFreeUser)
 else
 {
     <!-- Current plan -->
-    <section class="sub-plan-card animate-in delay-1" aria-labelledby="plan-heading">
+    <section class="sub-plan-card sub-plan-card-pro animate-in delay-1" aria-labelledby="plan-heading">
         <div class="sub-plan-header">
             <h3 id="plan-heading">Current Plan</h3>
-            <div class="sub-plan-status" role="status">
+            <div class="sub-plan-status @(IsCancelling ? "sub-plan-status-cancelling" : "")" role="status">
                 <span class="sub-status-dot" aria-hidden="true"></span>
                 @PlanStatus
             </div>
@@ -88,32 +88,42 @@ else
                 <div class="sub-plan-price">@PlanPrice<span>@PlanPeriod</span></div>
             </div>
 
-            <div class="sub-plan-meta">
-                <div class="sub-meta-item">
-                    <span class="sub-meta-label">Next billing date</span>
-                    <span class="sub-meta-value">@NextBillingDate</span>
+            @if (IsCancelling)
+            {
+                <div class="sub-cancelling-banner" role="alert">
+                    <span class="sub-cancelling-icon" aria-hidden="true">⚠</span>
+                    Your plan will cancel on <strong>@CancelsOnDate</strong>. You'll be downgraded to the Free plan after this date.
                 </div>
+            }
+
+            <div class="sub-plan-meta">
+                @if (!IsCancelling)
+                {
+                    <div class="sub-meta-item">
+                        <span class="sub-meta-label">Next billing date</span>
+                        <span class="sub-meta-value">@NextBillingDate</span>
+                    </div>
+                }
                 <div class="sub-meta-item">
                     <span class="sub-meta-label">Member since</span>
                     <span class="sub-meta-value">@MemberSince</span>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Plan features -->
-    <section class="sub-features-card animate-in delay-2" aria-labelledby="features-heading">
-        <h3 id="features-heading">What's Included</h3>
-        <ul class="sub-features-list">
-            <li><span class="sr-only">Included: </span>Unlimited platforms</li>
-            <li><span class="sr-only">Included: </span>Full revenue history</li>
-            <li><span class="sr-only">Included: </span>Goals &amp; weekly emails</li>
-            <li><span class="sr-only">Included: </span>CSV export</li>
-        </ul>
+        <div class="sub-plan-features">
+            <h4 id="features-heading">What's Included</h4>
+            <ul class="sub-features-list">
+                <li><span class="sr-only">Included: </span>Unlimited platforms</li>
+                <li><span class="sr-only">Included: </span>Full revenue history</li>
+                <li><span class="sr-only">Included: </span>Goals &amp; weekly emails</li>
+                <li><span class="sr-only">Included: </span>CSV export</li>
+            </ul>
+        </div>
     </section>
 
     <!-- Billing actions -->
-    <section class="sub-actions-card animate-in delay-3" aria-labelledby="actions-heading">
+    <section class="sub-actions-card animate-in delay-2" aria-labelledby="actions-heading">
         <h3 id="actions-heading">Billing &amp; Plan</h3>
 
         <div class="sub-action-row">
@@ -126,24 +136,39 @@ else
             </button>
         </div>
 
-        <div class="sub-action-row">
-            <div class="sub-action-info">
-                <h4>Change Plan</h4>
-                <p>Switch between monthly and yearly, or compare plan features.</p>
+        @if (IsCancelling)
+        {
+            <div class="sub-action-row">
+                <div class="sub-action-info">
+                    <h4>Reactivate Subscription</h4>
+                    <p>Changed your mind? Reactivate to keep your Pro benefits.</p>
+                </div>
+                <button class="sub-action-btn outline" @onclick="HandleManageBilling">
+                    Reactivate
+                </button>
             </div>
-            <button class="sub-action-btn outline" @onclick="HandleChangePlan">
-                Change Plan
-            </button>
-        </div>
+        }
+        else
+        {
+            <div class="sub-action-row">
+                <div class="sub-action-info">
+                    <h4>Change Plan</h4>
+                    <p>Switch between monthly and yearly, or compare plan features.</p>
+                </div>
+                <button class="sub-action-btn outline" @onclick="HandleChangePlan">
+                    Change Plan
+                </button>
+            </div>
 
-        <div class="sub-action-row">
-            <div class="sub-action-info">
-                <h4>Cancel Subscription</h4>
-                <p>Downgrade to the Free plan at the end of your billing period.</p>
+            <div class="sub-action-row">
+                <div class="sub-action-info">
+                    <h4>Cancel Subscription</h4>
+                    <p>Downgrade to the Free plan at the end of your billing period.</p>
+                </div>
+                <button class="sub-action-btn danger" @onclick="HandleCancel">
+                    Cancel
+                </button>
             </div>
-            <button class="sub-action-btn danger" @onclick="HandleCancel">
-                Cancel
-            </button>
-        </div>
+        }
     </section>
 }

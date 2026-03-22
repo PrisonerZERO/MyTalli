@@ -7,41 +7,41 @@ using Microsoft.AspNetCore.Components.Authorization;
 /// <summary>View Model</summary>
 public class NavMenuViewModel : ComponentBase
 {
-    #region <Variables>
+	#region <Variables>
 
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+	[CascadingParameter]
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
-    #endregion
+	#endregion
 
-    #region <Properties>
+	#region <Properties>
 
-    public string UserEmail { get; private set; } = string.Empty;
+	public string UserEmail { get; private set; } = string.Empty;
 
-    public string UserFullName { get; private set; } = string.Empty;
+	public string UserFullName { get; private set; } = string.Empty;
 
-    public string UserInitials { get; private set; } = string.Empty;
-
-
-    #endregion
-
-    #region <Events>
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthenticationStateTask;
-        var principal = authState.User;
-
-        if (principal.Identity?.IsAuthenticated != true)
-            return;
-
-        var info = UserClaimsHelper.Resolve(principal);
-
-        UserEmail = info.Email;
-        UserFullName = info.FullName;
-        UserInitials = info.Initials;
-    }
+	public string UserInitials { get; private set; } = string.Empty;
 
 
-    #endregion
+	#endregion
+
+	#region <Events>
+
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateTask;
+		var principal = authState.User;
+
+		if (principal.Identity?.IsAuthenticated != true)
+			return;
+
+		var info = UserClaimsHelper.Resolve(principal);
+
+		UserEmail = info.Email;
+		UserFullName = info.FullName;
+		UserInitials = info.Initials;
+	}
+
+
+	#endregion
 }

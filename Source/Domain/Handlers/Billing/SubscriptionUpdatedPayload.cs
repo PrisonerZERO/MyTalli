@@ -5,6 +5,8 @@ public class SubscriptionUpdatedPayload
 {
 	#region <Properties>
 
+	public bool CancelAtPeriodEnd { get; set; }
+
 	public DateTime CurrentPeriodEnd { get; set; }
 
 	public string Status { get; set; } = string.Empty;

@@ -59,7 +59,8 @@ public static class BillingEndpoints
                 .GetRequiredService<RepositoryAdapterAsync<SubscriptionStripe, ENTITIES.SubscriptionStripe>>();
 
             var subscription = (await subscriptionAdapter.FindAsync(
-                x => x.UserId == userId && x.Status == "Active")).FirstOrDefault();
+                x => x.UserId == userId
+                    && (x.Status == "Active" || x.Status == "Cancelling"))).FirstOrDefault();
 
             if (subscription is null)
             {
@@ -80,6 +81,68 @@ public static class BillingEndpoints
                 $"{baseUrl}/subscription");
 
             context.Response.Redirect(session.Url);
+            return Results.Empty;
+        }).RequireAuthorization();
+
+        app.MapGet("/api/billing/switch-plan", async (HttpContext context, StripeBillingService billing) =>
+        {
+            var userIdClaim = context.User.FindFirst("UserId")?.Value;
+            if (!long.TryParse(userIdClaim, out var userId))
+                return Results.Unauthorized();
+
+            var plan = context.Request.Query["plan"].ToString();
+            if (plan != "monthly" && plan != "yearly")
+            {
+                context.Response.Redirect("/upgrade");
+                return Results.Empty;
+            }
+
+            var subscriptionAdapter = context.RequestServices
+                .GetRequiredService<RepositoryAdapterAsync<Subscription, ENTITIES.Subscription>>();
+            var subscriptionStripeAdapter = context.RequestServices
+                .GetRequiredService<RepositoryAdapterAsync<SubscriptionStripe, ENTITIES.SubscriptionStripe>>();
+            var productAdapter = context.RequestServices
+                .GetRequiredService<RepositoryAdapterAsync<Product, ENTITIES.Product>>();
+
+            var subscription = (await subscriptionAdapter.FindAsync(
+                x => x.UserId == userId
+                    && (x.Status == "Active" || x.Status == "Cancelling"))).FirstOrDefault();
+
+            if (subscription is null)
+            {
+                context.Response.Redirect("/upgrade");
+                return Results.Empty;
+            }
+
+            var stripeRecord = await subscriptionStripeAdapter.GetByIdAsync(subscription.Id);
+            if (stripeRecord is null)
+            {
+                context.Response.Redirect("/upgrade");
+                return Results.Empty;
+            }
+
+            var newPriceId = plan == "yearly"
+                ? billing.GetYearlyPriceId()
+                : billing.GetMonthlyPriceId();
+
+            // Switch the plan in Stripe
+            await billing.SwitchPlanAsync(stripeRecord.StripeSubscriptionId, newPriceId);
+
+            // Update local DB immediately (don't wait for webhook)
+            var newProductName = plan == "yearly" ? "Pro Yearly" : "Pro Monthly";
+            var newProduct = (await productAdapter.FindAsync(
+                x => x.ProductName == newProductName)).FirstOrDefault();
+
+            if (newProduct is not null)
+            {
+                subscription.ProductId = newProduct.Id;
+                await subscriptionAdapter.UpdateAsync(subscription);
+            }
+
+            stripeRecord.StripePriceId = newPriceId;
+            await subscriptionStripeAdapter.UpdateAsync(stripeRecord);
+
+            context.Response.Redirect("/upgrade?status=switched");
             return Results.Empty;
         }).RequireAuthorization();
 
@@ -257,6 +320,7 @@ public static class BillingEndpoints
             var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
             await handler.HandleSubscriptionUpdatedAsync(new SubscriptionUpdatedPayload
             {
+                CancelAtPeriodEnd = subscription.CancelAtPeriodEnd,
                 CurrentPeriodEnd = subscription.Items?.Data?.Count > 0
                     ? subscription.Items.Data[0].CurrentPeriodEnd
                     : DateTime.UtcNow.AddMonths(1),

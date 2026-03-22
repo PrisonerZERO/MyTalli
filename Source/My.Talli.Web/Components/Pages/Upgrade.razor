@@ -2,7 +2,7 @@
 @inherits My.Talli.Web.ViewModels.Pages.UpgradeViewModel
 @rendermode InteractiveServer
 
-<PageTitle>Upgrade to Pro — MyTalli</PageTitle>
+<PageTitle>@(IsProSubscriber ? "Your Plan" : "Upgrade to Pro") — MyTalli</PageTitle>
 
 <!-- Swoosh hero -->
 <section class="upgrade-hero" aria-label="Upgrade to Pro">
@@ -18,15 +18,15 @@
     <div class="upgrade-hero-content">
         <div class="upgrade-hero-top">
             <div>
-                <h1>Upgrade to Pro</h1>
-                <p>Unlock the full power of MyTalli</p>
+                <h1>@(IsProSubscriber ? "Your Plan" : "Upgrade to Pro")</h1>
+                <p>@(IsProSubscriber ? "Compare plans or switch billing period" : "Unlock the full power of MyTalli")</p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Status toasts -->
-@if (ShowSuccessToast)
+@if (ShowSuccessToast && !IsProSubscriber)
 {
     <div class="upgrade-toast upgrade-toast-success animate-in delay-1" role="status">
         <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
@@ -38,7 +38,19 @@
     </div>
 }
 
-@if (ShowCancelledToast)
+@if (ShowSwitchedToast)
+{
+    <div class="upgrade-toast upgrade-toast-success animate-in delay-1" role="status">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        <span>Plan switched! Your billing period has been updated.</span>
+        <button class="upgrade-toast-dismiss" aria-label="Dismiss notification" @onclick="DismissToast">&times;</button>
+    </div>
+}
+
+@if (ShowCancelledToast && !IsProSubscriber)
 {
     <div class="upgrade-toast upgrade-toast-info animate-in delay-1" role="status">
         <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
@@ -54,7 +66,10 @@
 <!-- Pricing cards -->
 <section class="upgrade-plans animate-in delay-2" aria-label="Pricing plans">
     <div class="upgrade-plan-card">
-        <div class="plan-current-badge">Current Plan</div>
+        @if (!IsProSubscriber)
+        {
+            <div class="plan-current-badge">Current Plan</div>
+        }
         <h3>Free</h3>
         <div class="plan-price">$0</div>
         <div class="plan-period">Forever free</div>
@@ -66,7 +81,14 @@
     </div>
 
     <div class="upgrade-plan-card pro">
-        <div class="plan-badge">Recommended</div>
+        @if (IsProSubscriber)
+        {
+            <div class="plan-current-badge">Current Plan</div>
+        }
+        else
+        {
+            <div class="plan-badge">Recommended</div>
+        }
         <h3>Pro</h3>
 
         <div class="plan-toggle" role="group" aria-label="Billing period">
@@ -77,6 +99,10 @@
                     aria-pressed="@(SelectedPlan == "yearly" ? "true" : "false")"
                     @onclick='() => SelectPlan("yearly")'>Yearly</button>
         </div>
+        @if (IsProSubscriber && IsCurrentPeriodSelected)
+        {
+            <p class="plan-switch-hint">Select a different billing period to switch your plan.</p>
+        }
 
         @if (SelectedPlan == "monthly")
         {
@@ -96,9 +122,27 @@
             <li><span class="sr-only">Included: </span>CSV export</li>
         </ul>
 
-        <button class="plan-cta" @onclick="HandleUpgrade">
-            Upgrade Now
-        </button>
+        @if (IsProSubscriber)
+        {
+            @if (IsCurrentPeriodSelected)
+            {
+                <button class="plan-cta plan-cta-current" disabled>
+                    Current Plan ✓
+                </button>
+            }
+            else
+            {
+                <button class="plan-cta" @onclick="HandleSwitchPlan">
+                    @SwitchButtonText
+                </button>
+            }
+        }
+        else
+        {
+            <button class="plan-cta" @onclick="HandleUpgrade">
+                Upgrade Now
+            </button>
+        }
     </div>
 </section>
 
@@ -115,6 +159,6 @@
     </div>
     <div class="faq-item">
         <h4>Can I switch between monthly and yearly?</h4>
-        <p>Yes. You can change your billing period anytime through the customer portal.</p>
+        <p>Yes. You can change your billing period anytime — any difference is prorated automatically.</p>
     </div>
 </section>

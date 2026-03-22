@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Framework;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -28,6 +29,10 @@ public class SubscriptionViewModel : ComponentBase
     #endregion
 
     #region <Properties>
+
+    public string CancelsOnDate { get; private set; } = string.Empty;
+
+    public bool IsCancelling { get; private set; }
 
     public bool IsFreeUser { get; private set; }
 
@@ -76,7 +81,9 @@ public class SubscriptionViewModel : ComponentBase
         }
 
         var subscription = (await SubscriptionAdapter.FindAsync(
-            x => x.UserId == userId && x.Status == "Active")).FirstOrDefault();
+            x => x.UserId == userId
+                && (x.Status == SubscriptionStatuses.Active || x.Status == SubscriptionStatuses.Cancelling)))
+            .FirstOrDefault();
 
         if (subscription is null)
         {
@@ -89,10 +96,12 @@ public class SubscriptionViewModel : ComponentBase
 
         var product = await ProductAdapter.GetByIdAsync(subscription.ProductId);
 
+        IsCancelling = subscription.Status == SubscriptionStatuses.Cancelling;
+        CancelsOnDate = subscription.EndDate.ToString("MMM d, yyyy");
         PlanName = "Pro";
         PlanPrice = product is not null ? $"${product.VendorPrice:F0}" : string.Empty;
         PlanPeriod = product?.ProductName.Contains("Monthly") == true ? "/mo" : "/yr";
-        PlanStatus = subscription.Status;
+        PlanStatus = IsCancelling ? "Cancelling" : subscription.Status;
         NextBillingDate = subscription.RenewalDate.ToString("MMM d, yyyy");
         MemberSince = subscription.StartDate.ToString("MMM d, yyyy");
         IsLoading = false;

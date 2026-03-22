@@ -97,6 +97,28 @@ public class StripeBillingService
 
     public string GetYearlyPriceId() => _settings.YearlyPriceId;
 
+    public async Task SwitchPlanAsync(string stripeSubscriptionId, string newPriceId)
+    {
+        var subService = new SubscriptionService();
+        var subscription = await subService.GetAsync(stripeSubscriptionId);
+
+        if (subscription.Items?.Data is null || subscription.Items.Data.Count == 0)
+            throw new InvalidOperationException("Subscription has no items to update.");
+
+        var itemId = subscription.Items.Data[0].Id;
+
+        var itemService = new SubscriptionItemService();
+        await itemService.UpdateAsync(itemId, new SubscriptionItemUpdateOptions
+        {
+            Price = newPriceId,
+            ProrationBehavior = "create_prorations"
+        });
+
+        _logger.LogInformation(
+            "Switched subscription {SubscriptionId} to price {PriceId}",
+            stripeSubscriptionId, newPriceId);
+    }
+
 
     #endregion
 }
