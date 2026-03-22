@@ -409,6 +409,10 @@ My.Talli/
     │           ├── ProductVendorConfiguration.cs
     │           ├── SubscriptionConfiguration.cs
     │           └── SubscriptionStripeConfiguration.cs
+    ├── Domain.DI.Lamar/              # Lamar IoC container registration (isolated from web layer)
+    │   ├── Domain.DI.Lamar.csproj
+    │   └── IoC/
+    │       └── ContainerRegistry.cs       # Lamar ServiceRegistry — registers all mappers, repositories, handlers
     ├── Domain.Entities/             # Domain entity layer (database models)
     │   ├── Domain.Entities.csproj
     │   ├── AuditableIdentifiableEntity.cs  # Base class (Id + audit fields)
@@ -439,8 +443,30 @@ My.Talli/
     │   │   │   └── UserPreferencesJsonSerializerTests.cs
     │   │   └── Tokens/
     │   │       └── UnsubscribeTokenServiceTests.cs
-    │   └── Framework/
-    │       └── AssertTests.cs
+    │   ├── Framework/
+    │   │   └── AssertTests.cs
+    │   ├── Handlers/
+    │   │   └── Authentication/
+    │   │       ├── AppleSignInHandlerTests.cs
+    │   │       ├── EmailLookupServiceTests.cs
+    │   │       ├── GoogleSignInHandlerTests.cs
+    │   │       ├── MicrosoftSignInHandlerTests.cs
+    │   │       └── SignInScenarioTests.cs
+    │   ├── Infrastructure/
+    │   │   ├── Builders/
+    │   │   │   └── SignInHandlerBuilder.cs     # Test setup orchestrator (Lamar container, exposes handlers & adapters)
+    │   │   ├── IoC/
+    │   │   │   └── ContainerRegistry.cs        # Test IoC registry (extends Domain.DI.Lamar, swaps in stubs)
+    │   │   └── Stubs/
+    │   │       ├── AuditableRepositoryStub.cs  # In-memory IAuditableRepositoryAsync<T> for tests
+    │   │       ├── AuditResolverStub.cs
+    │   │       ├── CurrentUserServiceStub.cs
+    │   │       └── IdentityProvider.cs         # Auto-incrementing ID generator for test entities
+    │   └── Notifications/
+    │       └── Emails/
+    │           ├── SubscriptionConfirmationEmailNotificationTests.cs
+    │           ├── WeeklySummaryEmailNotificationTests.cs
+    │           └── WelcomeEmailNotificationTests.cs
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, pipeline setup (delegates to Configuration/ and Endpoints/)
@@ -450,7 +476,7 @@ My.Talli/
         │   ├── DatabaseConfiguration.cs        # DbContext registration
         │   ├── ElmahConfiguration.cs           # Elmah error logging
         │   ├── EmailConfiguration.cs           # Email services + unsubscribe token
-        │   └── RepositoryConfiguration.cs      # Repositories, mappers, sign-in handlers
+        │   └── RepositoryConfiguration.cs      # ICurrentUserService registration (mappers, handlers, and repositories are in Domain.DI.Lamar)
         ├── Endpoints/                 # Minimal API endpoint extension methods (one per route group)
         │   ├── AuthEndpoints.cs       # /api/auth/login, /api/auth/logout
         │   ├── BillingEndpoints.cs    # /api/billing/create-checkout-session, portal, webhook
@@ -534,7 +560,7 @@ My.Talli/
 
 ### Solution Folders (in .slnx)
 
-- `/Foundation/` — shared/core projects (`Domain`, `Domain.Data`, `Domain.Data.EntityFramework`, `Domain.Entities`)
+- `/Foundation/` — shared/core projects (`Domain`, `Domain.Data`, `Domain.Data.EntityFramework`, `Domain.DI.Lamar`, `Domain.Entities`)
 - `/Presentation/` — contains `My.Talli.Web`
 - `/Testing/` — contains `My.Talli.UnitTesting`
 
@@ -544,9 +570,10 @@ My.Talli/
 Domain.Entities          ← entity classes (no dependencies)
 Domain.Data              ← abstractions (IRepository, IUnitOfWork) → Domain.Entities
 Domain.Data.EntityFramework ← EF Core implementation (DbContext, configs) → Domain.Data, Domain.Entities
-Domain                   ← exceptions, notifications → Domain.Entities
-My.Talli.Web             ← Blazor Server app → Domain
-My.Talli.UnitTesting     ← xUnit tests → Domain, Domain.Entities
+Domain                   ← exceptions, notifications → Domain.Data, Domain.Entities
+Domain.DI.Lamar          ← IoC container registration → Domain, Domain.Data, Domain.Data.EntityFramework, Domain.Entities
+My.Talli.Web             ← Blazor Server app → Domain, Domain.Data.EntityFramework, Domain.DI.Lamar
+My.Talli.UnitTesting     ← xUnit tests → Domain, Domain.Data, Domain.DI.Lamar, Domain.Entities
 ```
 
 ## Brand & Design
@@ -662,9 +689,16 @@ dotnet run --project Source/My.Talli.Web
 - **Test file location:** Mirror the source project folder structure (e.g., `Components/Tokens/UnsubscribeTokenServiceTests.cs` tests `Domain/Components/Tokens/UnsubscribeTokenService.cs`)
 - **Test class naming:** `{ClassUnderTest}Tests.cs`
 - **Test method naming:** `MethodName_Scenario_ExpectedBehavior`
-- **What to test:** Logic that computes, transforms, validates, or can fail — cryptographic operations, serialization, precondition checks, business rules
+- **What to test:** Logic that computes, transforms, validates, or can fail — cryptographic operations, serialization, precondition checks, business rules, sign-in handlers
 - **What NOT to test:** Do not write tests for public property getters/setters or simple property-to-property mapping (e.g., mappers, POCO defaults). Only test properties that are set privately, through constructors, or via computed logic.
 - **Domain Assert collision:** The Domain layer has its own `Assert` class (`Domain.Framework.Assert`). In test files that reference it, use a `DOMAINASSERT` alias to avoid collision with xUnit's `Assert`.
+- **Test infrastructure** (`Infrastructure/`):
+  - **`SignInHandlerBuilder`** (`Infrastructure/Builders/`) — orchestrates test setup with a Lamar container. Exposes sign-in handlers, repository adapters, and stub services as properties. All handler tests use this builder.
+  - **`ContainerRegistry`** (`Infrastructure/IoC/`) — extends `Domain.DI.Lamar.IoC.ContainerRegistry` and overrides repository/audit registrations with in-memory stubs.
+  - **`AuditableRepositoryStub<T>`** (`Infrastructure/Stubs/`) — in-memory `List<T>`-backed `IAuditableRepositoryAsync<T>` for fast, database-free testing. Supports Insert/Update/Delete with automatic ID generation and audit resolution.
+  - **`IdentityProvider`** (`Infrastructure/Stubs/`) — maintains type-based counters for generating sequential IDs during tests.
+  - **`CurrentUserServiceStub`** (`Infrastructure/Stubs/`) — mock `ICurrentUserService` with `Set()`/`Clear()` methods for test scenarios.
+  - **`AuditResolverStub`** (`Infrastructure/Stubs/`) — no-op `IAuditResolver<T>` for tests.
 
 ### Version Number
 
