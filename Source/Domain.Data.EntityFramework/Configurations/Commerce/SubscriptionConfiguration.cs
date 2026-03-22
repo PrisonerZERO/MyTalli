@@ -19,7 +19,7 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
         builder.Property(e => e.OrderItemId).HasColumnOrder(1);
         builder.Property(e => e.ProductId).HasColumnOrder(2);
         builder.Property(e => e.UserId).HasColumnOrder(3);
-        builder.Property(e => e.CancelledDate).IsRequired().HasColumnOrder(4);
+        builder.Property(e => e.CancelledDate).IsRequired(false).HasColumnOrder(4);
         builder.Property(e => e.EndDate).IsRequired().HasColumnOrder(5);
         builder.Property(e => e.RenewalDate).IsRequired().HasColumnOrder(6);
         builder.Property(e => e.StartDate).IsRequired().HasColumnOrder(7);

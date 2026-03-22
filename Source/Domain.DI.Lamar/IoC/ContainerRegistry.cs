@@ -5,6 +5,7 @@ using Domain.Data.EntityFramework.Repositories;
 using Domain.Data.EntityFramework.Resolvers;
 using Domain.Data.Interfaces;
 using Domain.Handlers.Authentication;
+using Domain.Handlers.Billing;
 using Domain.Mappers;
 using Domain.Repositories;
 using global::Lamar;
@@ -46,6 +47,7 @@ public class ContainerRegistry : ServiceRegistry
 		For<EmailLookupService>();
 		For<GoogleSignInHandler>();
 		For<MicrosoftSignInHandler>();
+		For<StripeWebhookHandler>();
 	}
 
 	#endregion

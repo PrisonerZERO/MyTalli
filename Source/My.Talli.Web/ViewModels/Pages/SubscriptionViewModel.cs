@@ -1,19 +1,37 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+
+using ENTITIES = Domain.Entities;
+using MODELS = Domain.Models;
 
 /// <summary>View Model</summary>
 public class SubscriptionViewModel : ComponentBase
 {
     #region <Variables>
 
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
+
+    [Inject]
+    private RepositoryAdapterAsync<MODELS.Product, ENTITIES.Product> ProductAdapter { get; set; } = default!;
+
+    [Inject]
+    private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
 
 
     #endregion
 
     #region <Properties>
+
+    public bool IsFreeUser { get; private set; }
+
+    public bool IsLoading { get; private set; } = true;
 
     public string MemberSince { get; private set; } = string.Empty;
 
@@ -32,15 +50,52 @@ public class SubscriptionViewModel : ComponentBase
 
     #region <Events>
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Mock data — replace with real subscription lookup when database exists
+        var authState = await AuthenticationStateTask;
+        var principal = authState.User;
+
+        if (principal.Identity?.IsAuthenticated != true)
+        {
+            IsFreeUser = true;
+            PlanName = "Free";
+            PlanStatus = "Active";
+            IsLoading = false;
+            return;
+        }
+
+        var userIdClaim = principal.FindFirst("UserId")?.Value;
+
+        if (userIdClaim is null || !long.TryParse(userIdClaim, out var userId))
+        {
+            IsFreeUser = true;
+            PlanName = "Free";
+            PlanStatus = "Active";
+            IsLoading = false;
+            return;
+        }
+
+        var subscription = (await SubscriptionAdapter.FindAsync(
+            x => x.UserId == userId && x.Status == "Active")).FirstOrDefault();
+
+        if (subscription is null)
+        {
+            IsFreeUser = true;
+            PlanName = "Free";
+            PlanStatus = "Active";
+            IsLoading = false;
+            return;
+        }
+
+        var product = await ProductAdapter.GetByIdAsync(subscription.ProductId);
+
         PlanName = "Pro";
-        PlanPrice = "$99";
-        PlanPeriod = "/yr";
-        PlanStatus = "Active";
-        NextBillingDate = "Apr 7, 2026";
-        MemberSince = "Jan 15, 2026";
+        PlanPrice = product is not null ? $"${product.VendorPrice:F0}" : string.Empty;
+        PlanPeriod = product?.ProductName.Contains("Monthly") == true ? "/mo" : "/yr";
+        PlanStatus = subscription.Status;
+        NextBillingDate = subscription.RenewalDate.ToString("MMM d, yyyy");
+        MemberSince = subscription.StartDate.ToString("MMM d, yyyy");
+        IsLoading = false;
     }
 
 
@@ -61,6 +116,11 @@ public class SubscriptionViewModel : ComponentBase
     protected void HandleManageBilling()
     {
         Navigation.NavigateTo("/api/billing/create-portal-session", forceLoad: true);
+    }
+
+    protected void HandleUpgrade()
+    {
+        Navigation.NavigateTo("/upgrade");
     }
 
 

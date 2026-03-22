@@ -5,7 +5,7 @@ public class Subscription : DefaultModel
 {
 	#region <Properties>
 
-	public DateTime CancelledDate { get; set; }
+	public DateTime? CancelledDate { get; set; }
 
 	public DateTime EndDate { get; set; }
 

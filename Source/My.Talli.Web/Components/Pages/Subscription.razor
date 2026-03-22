@@ -25,77 +25,125 @@
     </div>
 </section>
 
-<!-- Current plan -->
-<section class="sub-plan-card animate-in delay-1" aria-labelledby="plan-heading">
-    <div class="sub-plan-header">
-        <h3 id="plan-heading">Current Plan</h3>
-        <div class="sub-plan-status" role="status">
-            <span class="sub-status-dot" aria-hidden="true"></span>
-            @PlanStatus
+@if (IsLoading)
+{
+    <section class="sub-plan-card animate-in delay-1" aria-label="Loading subscription">
+        <div class="sub-loading" role="status">
+            <p>Loading your subscription...</p>
         </div>
-    </div>
-
-    <div class="sub-plan-details">
-        <div class="sub-plan-name-row">
-            <span class="sub-plan-badge">@PlanName</span>
-            <div class="sub-plan-price">@PlanPrice<span>@PlanPeriod</span></div>
-        </div>
-
-        <div class="sub-plan-meta">
-            <div class="sub-meta-item">
-                <span class="sub-meta-label">Next billing date</span>
-                <span class="sub-meta-value">@NextBillingDate</span>
-            </div>
-            <div class="sub-meta-item">
-                <span class="sub-meta-label">Member since</span>
-                <span class="sub-meta-value">@MemberSince</span>
+    </section>
+}
+else if (IsFreeUser)
+{
+    <!-- Free plan state -->
+    <section class="sub-plan-card animate-in delay-1" aria-labelledby="plan-heading">
+        <div class="sub-plan-header">
+            <h3 id="plan-heading">Current Plan</h3>
+            <div class="sub-plan-status" role="status">
+                <span class="sub-status-dot" aria-hidden="true"></span>
+                @PlanStatus
             </div>
         </div>
-    </div>
-</section>
 
-<!-- Plan features -->
-<section class="sub-features-card animate-in delay-2" aria-labelledby="features-heading">
-    <h3 id="features-heading">What's Included</h3>
-    <ul class="sub-features-list">
-        <li><span class="sr-only">Included: </span>Unlimited platforms</li>
-        <li><span class="sr-only">Included: </span>Full revenue history</li>
-        <li><span class="sr-only">Included: </span>Goals &amp; weekly emails</li>
-        <li><span class="sr-only">Included: </span>CSV export</li>
-    </ul>
-</section>
+        <div class="sub-plan-details">
+            <div class="sub-plan-name-row">
+                <span class="sub-plan-badge sub-plan-badge-free">@PlanName</span>
+            </div>
 
-<!-- Billing actions -->
-<section class="sub-actions-card animate-in delay-3" aria-labelledby="actions-heading">
-    <h3 id="actions-heading">Billing &amp; Plan</h3>
+            <p class="sub-free-message">
+                You're on the Free plan. Upgrade to Pro to unlock unlimited platforms, full history, goals, weekly emails, and CSV export.
+            </p>
 
-    <div class="sub-action-row">
-        <div class="sub-action-info">
-            <h4>Manage Billing</h4>
-            <p>Update payment method, view invoices, and download receipts.</p>
+            <button class="sub-action-btn primary sub-upgrade-cta" @onclick="HandleUpgrade">
+                Upgrade to Pro
+            </button>
         </div>
-        <button class="sub-action-btn primary" @onclick="HandleManageBilling">
-            Manage Billing
-        </button>
-    </div>
+    </section>
 
-    <div class="sub-action-row">
-        <div class="sub-action-info">
-            <h4>Change Plan</h4>
-            <p>Switch between monthly and yearly, or compare plan features.</p>
+    <!-- Free plan features -->
+    <section class="sub-features-card animate-in delay-2" aria-labelledby="features-heading">
+        <h3 id="features-heading">Free Plan Includes</h3>
+        <ul class="sub-features-list">
+            <li><span class="sr-only">Included: </span>1 connected platform</li>
+            <li><span class="sr-only">Included: </span>Basic dashboard</li>
+            <li><span class="sr-only">Included: </span>30-day revenue history</li>
+        </ul>
+    </section>
+}
+else
+{
+    <!-- Current plan -->
+    <section class="sub-plan-card animate-in delay-1" aria-labelledby="plan-heading">
+        <div class="sub-plan-header">
+            <h3 id="plan-heading">Current Plan</h3>
+            <div class="sub-plan-status" role="status">
+                <span class="sub-status-dot" aria-hidden="true"></span>
+                @PlanStatus
+            </div>
         </div>
-        <button class="sub-action-btn outline" @onclick="HandleChangePlan">
-            Change Plan
-        </button>
-    </div>
 
-    <div class="sub-action-row">
-        <div class="sub-action-info">
-            <h4>Cancel Subscription</h4>
-            <p>Downgrade to the Free plan at the end of your billing period.</p>
+        <div class="sub-plan-details">
+            <div class="sub-plan-name-row">
+                <span class="sub-plan-badge">@PlanName</span>
+                <div class="sub-plan-price">@PlanPrice<span>@PlanPeriod</span></div>
+            </div>
+
+            <div class="sub-plan-meta">
+                <div class="sub-meta-item">
+                    <span class="sub-meta-label">Next billing date</span>
+                    <span class="sub-meta-value">@NextBillingDate</span>
+                </div>
+                <div class="sub-meta-item">
+                    <span class="sub-meta-label">Member since</span>
+                    <span class="sub-meta-value">@MemberSince</span>
+                </div>
+            </div>
         </div>
-        <button class="sub-action-btn danger" @onclick="HandleCancel">
-            Cancel
-        </button>
-    </div>
-</section>
+    </section>
+
+    <!-- Plan features -->
+    <section class="sub-features-card animate-in delay-2" aria-labelledby="features-heading">
+        <h3 id="features-heading">What's Included</h3>
+        <ul class="sub-features-list">
+            <li><span class="sr-only">Included: </span>Unlimited platforms</li>
+            <li><span class="sr-only">Included: </span>Full revenue history</li>
+            <li><span class="sr-only">Included: </span>Goals &amp; weekly emails</li>
+            <li><span class="sr-only">Included: </span>CSV export</li>
+        </ul>
+    </section>
+
+    <!-- Billing actions -->
+    <section class="sub-actions-card animate-in delay-3" aria-labelledby="actions-heading">
+        <h3 id="actions-heading">Billing &amp; Plan</h3>
+
+        <div class="sub-action-row">
+            <div class="sub-action-info">
+                <h4>Manage Billing</h4>
+                <p>Update payment method, view invoices, and download receipts.</p>
+            </div>
+            <button class="sub-action-btn primary" @onclick="HandleManageBilling">
+                Manage Billing
+            </button>
+        </div>
+
+        <div class="sub-action-row">
+            <div class="sub-action-info">
+                <h4>Change Plan</h4>
+                <p>Switch between monthly and yearly, or compare plan features.</p>
+            </div>
+            <button class="sub-action-btn outline" @onclick="HandleChangePlan">
+                Change Plan
+            </button>
+        </div>
+
+        <div class="sub-action-row">
+            <div class="sub-action-info">
+                <h4>Cancel Subscription</h4>
+                <p>Downgrade to the Free plan at the end of your billing period.</p>
+            </div>
+            <button class="sub-action-btn danger" @onclick="HandleCancel">
+                Cancel
+            </button>
+        </div>
+    </section>
+}

@@ -27,6 +27,13 @@
 .sub-meta-label { color: #999; font-size: 12px; font-weight: 500; text-transform: uppercase; }
 .sub-meta-value { color: #1a1a2e; font-size: 14px; font-weight: 600; }
 
+/* ─── FREE PLAN STATE ─── */
+.sub-plan-badge-free { background: #e0dce8; color: #555; }
+.sub-free-message { color: #555; font-size: 14px; line-height: 1.6; }
+.sub-upgrade-cta { margin-top: 4px; width: 100%; }
+.sub-loading { padding: 20px 0; text-align: center; }
+.sub-loading p { color: #999; font-size: 14px; }
+
 /* ─── FEATURES CARD ─── */
 .sub-features-card { background: #fff; border: 1px solid #eee; border-radius: 14px; margin-bottom: 24px; max-width: 640px; padding: 28px; }
 .sub-features-card h3 { color: #1a1a2e; font-size: 16px; font-weight: 700; margin-bottom: 16px; }
