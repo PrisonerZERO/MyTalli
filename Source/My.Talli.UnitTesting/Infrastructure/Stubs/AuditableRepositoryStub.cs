@@ -18,8 +18,6 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 
 	public IAuditResolver<TEntity> AuditResolver { get; }
 
-	public IReadOnlyList<TEntity> Store => _store.AsReadOnly();
-
 	#endregion
 
 	#region <Constructors>
@@ -36,14 +34,20 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 
 	public Task AddAsync(TEntity entity)
 	{
+		if (entity.Id == 0)
+			entity.Id = _identityProvider.Next<TEntity>();
+
 		_store.Add(entity);
+		
 		return Task.CompletedTask;
 	}
 
 	public Task DeleteAsync(TEntity entity)
 	{
 		var existing = _store.FirstOrDefault(e => e.Id == entity.Id);
-		if (existing is not null) _store.Remove(existing);
+		if (existing is not null) 
+			_store.Remove(existing);
+
 		return Task.CompletedTask;
 	}
 
@@ -52,8 +56,10 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 		foreach (var entity in entities)
 		{
 			var existing = _store.FirstOrDefault(e => e.Id == entity.Id);
-			if (existing is not null) _store.Remove(existing);
+			if (existing is not null) 
+				_store.Remove(existing);
 		}
+
 		return Task.CompletedTask;
 	}
 
@@ -80,6 +86,7 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 
 		AuditResolver.Resolve(entity);
 		_store.Add(entity);
+		
 		return Task.CompletedTask;
 	}
 
@@ -93,13 +100,15 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 			AuditResolver.Resolve(entity);
 			_store.Add(entity);
 		}
+
 		return Task.CompletedTask;
 	}
 
 	public void Remove(TEntity entity)
 	{
 		var existing = _store.FirstOrDefault(e => e.Id == entity.Id);
-		if (existing is not null) _store.Remove(existing);
+		if (existing is not null) 
+			_store.Remove(existing);
 	}
 
 	public Task<int> SaveChangesAsync()
@@ -110,14 +119,17 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 	public void Update(TEntity entity)
 	{
 		var index = _store.FindIndex(e => e.Id == entity.Id);
-		if (index >= 0) _store[index] = entity;
+		if (index >= 0) 
+			_store[index] = entity;
 	}
 
 	public Task UpdateAsync(TEntity entity)
 	{
 		AuditResolver.Resolve(entity, updating: true);
 		var index = _store.FindIndex(e => e.Id == entity.Id);
-		if (index >= 0) _store[index] = entity;
+		if (index >= 0) 
+			_store[index] = entity;
+
 		return Task.CompletedTask;
 	}
 
@@ -127,8 +139,10 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 		{
 			AuditResolver.Resolve(entity, updating: true);
 			var index = _store.FindIndex(e => e.Id == entity.Id);
-			if (index >= 0) _store[index] = entity;
+			if (index >= 0) 
+				_store[index] = entity;
 		}
+
 		return Task.CompletedTask;
 	}
 

@@ -1,9 +1,11 @@
 namespace My.Talli.UnitTesting.Infrastructure.Builders;
 
-using Domain.Components.JsonSerializers;
+using Domain.Data.Interfaces;
 using Domain.Handlers.Authentication;
-using Domain.Mappers;
+using Domain.Models;
 using Domain.Repositories;
+using Lamar;
+using My.Talli.UnitTesting.Infrastructure.IoC;
 using My.Talli.UnitTesting.Infrastructure.Stubs;
 
 using ENTITIES = Domain.Entities;
@@ -11,27 +13,38 @@ using ENTITIES = Domain.Entities;
 /// <summary>Builder</summary>
 public class SignInHandlerBuilder
 {
+	#region <Variables>
+
+	private readonly Container _container;
+
+	#endregion
+
 	#region <Properties>
 
-	public AuditableRepositoryStub<ENTITIES.UserAuthenticationApple> AppleAuthRepository { get; }
+	public RepositoryAdapterAsync<UserAuthenticationApple, ENTITIES.UserAuthenticationApple> AppleAuthAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<UserAuthenticationApple, ENTITIES.UserAuthenticationApple>>();
 
-	public AppleSignInHandler AppleHandler { get; }
+	public AppleSignInHandler AppleHandler => _container.GetInstance<AppleSignInHandler>();
 
-	public CurrentUserServiceStub CurrentUserService { get; }
+	public CurrentUserServiceStub CurrentUserService => (CurrentUserServiceStub)_container.GetInstance<ICurrentUserService>();
 
-	public EmailLookupService EmailLookupService { get; }
+	public EmailLookupService EmailLookupService => _container.GetInstance<EmailLookupService>();
 
-	public AuditableRepositoryStub<ENTITIES.UserAuthenticationGoogle> GoogleAuthRepository { get; }
+	public RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> GoogleAuthAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle>>();
 
-	public GoogleSignInHandler GoogleHandler { get; }
+	public GoogleSignInHandler GoogleHandler => _container.GetInstance<GoogleSignInHandler>();
 
-	public AuditableRepositoryStub<ENTITIES.UserAuthenticationMicrosoft> MicrosoftAuthRepository { get; }
+	public RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft> MicrosoftAuthAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft>>();
 
-	public MicrosoftSignInHandler MicrosoftHandler { get; }
+	public MicrosoftSignInHandler MicrosoftHandler => _container.GetInstance<MicrosoftSignInHandler>();
 
-	public AuditableRepositoryStub<ENTITIES.UserRole> UserRoleRepository { get; }
+	public RepositoryAdapterAsync<User, ENTITIES.User> UserAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<User, ENTITIES.User>>();
 
-	public AuditableRepositoryStub<ENTITIES.User> UserRepository { get; }
+	public RepositoryAdapterAsync<UserRole, ENTITIES.UserRole> UserRoleAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<UserRole, ENTITIES.UserRole>>();
 
 	#endregion
 
@@ -39,41 +52,7 @@ public class SignInHandlerBuilder
 
 	public SignInHandlerBuilder()
 	{
-		CurrentUserService = new CurrentUserServiceStub();
-
-		var userAuditResolver = new AuditResolverStub<ENTITIES.User>(CurrentUserService);
-		var googleAuthAuditResolver = new AuditResolverStub<ENTITIES.UserAuthenticationGoogle>(CurrentUserService);
-		var appleAuthAuditResolver = new AuditResolverStub<ENTITIES.UserAuthenticationApple>(CurrentUserService);
-		var microsoftAuthAuditResolver = new AuditResolverStub<ENTITIES.UserAuthenticationMicrosoft>(CurrentUserService);
-		var userRoleAuditResolver = new AuditResolverStub<ENTITIES.UserRole>(CurrentUserService);
-
-		var identityProvider = new IdentityProvider();
-
-		AppleAuthRepository = new AuditableRepositoryStub<ENTITIES.UserAuthenticationApple>(appleAuthAuditResolver, identityProvider);
-		GoogleAuthRepository = new AuditableRepositoryStub<ENTITIES.UserAuthenticationGoogle>(googleAuthAuditResolver, identityProvider);
-		MicrosoftAuthRepository = new AuditableRepositoryStub<ENTITIES.UserAuthenticationMicrosoft>(microsoftAuthAuditResolver, identityProvider);
-		UserRepository = new AuditableRepositoryStub<ENTITIES.User>(userAuditResolver, identityProvider);
-		UserRoleRepository = new AuditableRepositoryStub<ENTITIES.UserRole>(userRoleAuditResolver, identityProvider);
-
-		var userMapper = new UserMapper();
-		var googleAuthMapper = new UserAuthenticationGoogleMapper();
-		var appleAuthMapper = new UserAuthenticationAppleMapper();
-		var microsoftAuthMapper = new UserAuthenticationMicrosoftMapper();
-		var userRoleMapper = new UserRoleMapper();
-
-		var userAdapter = new RepositoryAdapterAsync<Domain.Models.User, ENTITIES.User>(UserRepository, userMapper);
-		var googleAuthAdapter = new RepositoryAdapterAsync<Domain.Models.UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle>(GoogleAuthRepository, googleAuthMapper);
-		var appleAuthAdapter = new RepositoryAdapterAsync<Domain.Models.UserAuthenticationApple, ENTITIES.UserAuthenticationApple>(AppleAuthRepository, appleAuthMapper);
-		var microsoftAuthAdapter = new RepositoryAdapterAsync<Domain.Models.UserAuthenticationMicrosoft, ENTITIES.UserAuthenticationMicrosoft>(MicrosoftAuthRepository, microsoftAuthMapper);
-		var userRoleAdapter = new RepositoryAdapterAsync<Domain.Models.UserRole, ENTITIES.UserRole>(UserRoleRepository, userRoleMapper);
-
-		var serializer = new UserPreferencesJsonSerializer();
-
-		EmailLookupService = new EmailLookupService(appleAuthAdapter, googleAuthAdapter, microsoftAuthAdapter);
-
-		AppleHandler = new AppleSignInHandler(EmailLookupService, CurrentUserService, userAdapter, appleAuthAdapter, userRoleAdapter, serializer);
-		GoogleHandler = new GoogleSignInHandler(EmailLookupService, CurrentUserService, userAdapter, googleAuthAdapter, userRoleAdapter, serializer);
-		MicrosoftHandler = new MicrosoftSignInHandler(EmailLookupService, CurrentUserService, userAdapter, microsoftAuthAdapter, userRoleAdapter, serializer);
+		_container = new Container(new ContainerRegistry());
 	}
 
 	#endregion

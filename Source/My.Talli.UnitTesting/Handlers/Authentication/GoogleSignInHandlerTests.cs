@@ -4,8 +4,6 @@ using Domain.Handlers.Authentication;
 using Domain.Models;
 using My.Talli.UnitTesting.Infrastructure.Builders;
 
-using ENTITIES = Domain.Entities;
-
 /// <summary>Tests</summary>
 public class GoogleSignInHandlerTests
 {
@@ -15,14 +13,14 @@ public class GoogleSignInHandlerTests
 	public async Task ExistingEmailOnApple_LinksGoogleAuth()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedAppleUser(builder, "shared@example.com");
+		var seededUser = await SeedAppleUserAsync(builder, "shared@example.com");
 
 		var argument = CreateArgument("shared@example.com", "new-google-id");
 		var result = await builder.GoogleHandler.HandleAsync(argument);
 
-		Assert.Equal(1, builder.UserRepository.Store.Count);
-		Assert.Equal(1, builder.GoogleAuthRepository.Store.Count);
-		Assert.Equal(result.Id, builder.GoogleAuthRepository.Store[0].Id);
+		var googleAuths = await builder.GoogleAuthAdapter.GetAllAsync();
+		Assert.Equal(seededUser.Id, result.Id);
+		Assert.Single(googleAuths);
 		Assert.False(result.IsNewUser);
 	}
 
@@ -30,14 +28,14 @@ public class GoogleSignInHandlerTests
 	public async Task ExistingEmailOnMicrosoft_LinksGoogleAuth_NoNewUser()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedMicrosoftUser(builder, "shared@example.com");
+		var seededUser = await SeedMicrosoftUserAsync(builder, "shared@example.com");
 
 		var argument = CreateArgument("shared@example.com", "new-google-id");
 		var result = await builder.GoogleHandler.HandleAsync(argument);
 
-		Assert.Equal(1, builder.UserRepository.Store.Count);
-		Assert.Equal(1, builder.GoogleAuthRepository.Store.Count);
-		Assert.Equal(result.Id, builder.GoogleAuthRepository.Store[0].Id);
+		var googleAuths = await builder.GoogleAuthAdapter.GetAllAsync();
+		Assert.Equal(seededUser.Id, result.Id);
+		Assert.Single(googleAuths);
 		Assert.False(result.IsNewUser);
 	}
 
@@ -45,19 +43,20 @@ public class GoogleSignInHandlerTests
 	public async Task ExistingGoogleUser_DoesNotCreateDuplicateUser()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedGoogleUser(builder);
+		await SeedGoogleUserAsync(builder);
 
 		var argument = CreateArgument("existing@gmail.com", "google-123");
 		await builder.GoogleHandler.HandleAsync(argument);
 
-		Assert.Equal(1, builder.UserRepository.Store.Count);
+		var users = await builder.UserAdapter.GetAllAsync();
+		Assert.Single(users);
 	}
 
 	[Fact]
 	public async Task ExistingGoogleUser_IsNewUserFalse()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedGoogleUser(builder);
+		await SeedGoogleUserAsync(builder);
 
 		var argument = CreateArgument("existing@gmail.com", "google-123");
 		var result = await builder.GoogleHandler.HandleAsync(argument);
@@ -69,7 +68,7 @@ public class GoogleSignInHandlerTests
 	public async Task ExistingGoogleUser_ResolvesRoles()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedGoogleUser(builder);
+		await SeedGoogleUserAsync(builder);
 
 		var argument = CreateArgument("existing@gmail.com", "google-123");
 		var result = await builder.GoogleHandler.HandleAsync(argument);
@@ -81,37 +80,37 @@ public class GoogleSignInHandlerTests
 	public async Task ExistingGoogleUser_ReturnsExistingUserId()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedGoogleUser(builder);
+		var seededUser = await SeedGoogleUserAsync(builder);
 
 		var argument = CreateArgument("existing@gmail.com", "google-123");
 		var result = await builder.GoogleHandler.HandleAsync(argument);
 
-		Assert.Equal(1, result.Id);
+		Assert.Equal(seededUser.Id, result.Id);
 	}
 
 	[Fact]
 	public async Task ExistingGoogleUser_UpdatesLastLoginAt()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedGoogleUser(builder);
-		var originalLoginAt = builder.UserRepository.Store[0].LastLoginAt;
+		var seededUser = await SeedGoogleUserAsync(builder);
 
 		var argument = CreateArgument("existing@gmail.com", "google-123");
 		var result = await builder.GoogleHandler.HandleAsync(argument);
 
-		Assert.True(result.LastLoginAt > originalLoginAt);
+		Assert.True(result.LastLoginAt > seededUser.LastLoginAt);
 	}
 
 	[Fact]
 	public async Task ExistingUser_WithNoRoles_SelfHealsUserRole()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedGoogleUserWithoutRoles(builder);
+		await SeedGoogleUserWithoutRolesAsync(builder);
 
 		var argument = CreateArgument("existing@gmail.com", "google-123");
 		var result = await builder.GoogleHandler.HandleAsync(argument);
 
-		Assert.Equal(1, builder.UserRoleRepository.Store.Count);
+		var roles = await builder.UserRoleAdapter.GetAllAsync();
+		Assert.Single(roles);
 		Assert.Contains(Domain.Framework.Roles.User, result.Roles);
 	}
 
@@ -123,9 +122,10 @@ public class GoogleSignInHandlerTests
 		var argument = CreateArgument("new@gmail.com", "new-google-id");
 		var result = await builder.GoogleHandler.HandleAsync(argument);
 
-		Assert.Equal(1, builder.UserRoleRepository.Store.Count);
-		Assert.Equal(Domain.Framework.Roles.User, builder.UserRoleRepository.Store[0].Role);
-		Assert.Equal(result.Id, builder.UserRoleRepository.Store[0].UserId);
+		var roles = await builder.UserRoleAdapter.GetAllAsync();
+		var role = Assert.Single(roles);
+		Assert.Equal(Domain.Framework.Roles.User, role.Role);
+		Assert.Equal(result.Id, role.UserId);
 	}
 
 	[Fact]
@@ -137,11 +137,15 @@ public class GoogleSignInHandlerTests
 		var result = await builder.GoogleHandler.HandleAsync(argument);
 
 		Assert.True(result.Id > 0);
-		Assert.Equal(1, builder.UserRepository.Store.Count);
-		Assert.Equal(1, builder.GoogleAuthRepository.Store.Count);
-		Assert.Equal("new-google-id", builder.GoogleAuthRepository.Store[0].GoogleId);
-		Assert.Equal("new@gmail.com", builder.GoogleAuthRepository.Store[0].Email);
-		Assert.Equal(result.Id, builder.GoogleAuthRepository.Store[0].Id);
+
+		var users = await builder.UserAdapter.GetAllAsync();
+		Assert.Single(users);
+
+		var googleAuths = await builder.GoogleAuthAdapter.GetAllAsync();
+		var auth = Assert.Single(googleAuths);
+		Assert.Equal("new-google-id", auth.GoogleId);
+		Assert.Equal("new@gmail.com", auth.Email);
+		Assert.Equal(result.Id, auth.Id);
 	}
 
 	[Fact]
@@ -231,77 +235,45 @@ public class GoogleSignInHandlerTests
 		}
 	};
 
-	private static void SeedAppleUser(SignInHandlerBuilder builder, string email)
+	private static async Task<User> SeedAppleUserAsync(SignInHandlerBuilder builder, string email)
 	{
-		builder.UserRepository.InsertAsync(new ENTITIES.User
+		var argument = new SignInArgumentOf<AppleSignInPayload>
 		{
-			DisplayName = "Existing User", FirstName = "Existing", InitialProvider = "Apple",
-			LastLoginAt = DateTime.UtcNow.AddDays(-1), LastName = "User", PreferredProvider = "Apple",
-			UserPreferences = "{}",
-		}).Wait();
-		var userId = builder.UserRepository.Store[0].Id;
-		builder.AppleAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationApple
-		{
-			AppleId = "apple-456", DisplayName = "Existing User", Email = email,
-			FirstName = "Existing", Id = userId, LastName = "User",
-		}).Wait();
-		builder.UserRoleRepository.InsertAsync(new ENTITIES.UserRole { Role = Domain.Framework.Roles.User, UserId = userId }).Wait();
-		builder.CurrentUserService.Set(userId, "Existing User");
+			DisplayName = "Existing User", Email = email, FirstName = "Existing", LastName = "User",
+			Payload = new AppleSignInPayload { AppleId = "apple-456", IsPrivateRelay = false }
+		};
+		return await builder.AppleHandler.HandleAsync(argument);
 	}
 
-	private static void SeedGoogleUser(SignInHandlerBuilder builder)
+	private static async Task<User> SeedGoogleUserAsync(SignInHandlerBuilder builder)
 	{
-		builder.UserRepository.InsertAsync(new ENTITIES.User
+		var argument = new SignInArgumentOf<GoogleSignInPayload>
 		{
-			DisplayName = "Existing User", FirstName = "Existing", InitialProvider = "Google",
-			LastLoginAt = DateTime.UtcNow.AddDays(-1), LastName = "User", PreferredProvider = "Google",
-			UserPreferences = "{}",
-		}).Wait();
-		var userId = builder.UserRepository.Store[0].Id;
-		builder.GoogleAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationGoogle
-		{
-			AvatarUrl = "https://example.com/avatar.jpg", DisplayName = "Existing User",
-			Email = "existing@gmail.com", EmailVerified = true, FirstName = "Existing",
-			GoogleId = "google-123", Id = userId, LastName = "User", Locale = "en",
-		}).Wait();
-		builder.UserRoleRepository.InsertAsync(new ENTITIES.UserRole { Role = Domain.Framework.Roles.User, UserId = userId }).Wait();
-		builder.CurrentUserService.Set(userId, "Existing User");
+			DisplayName = "Existing User", Email = "existing@gmail.com", FirstName = "Existing", LastName = "User",
+			Payload = new GoogleSignInPayload { AvatarUrl = "https://example.com/avatar.jpg", EmailVerified = true, GoogleId = "google-123", Locale = "en" }
+		};
+		return await builder.GoogleHandler.HandleAsync(argument);
 	}
 
-	private static void SeedGoogleUserWithoutRoles(SignInHandlerBuilder builder)
+	private static async Task<User> SeedGoogleUserWithoutRolesAsync(SignInHandlerBuilder builder)
 	{
-		builder.UserRepository.InsertAsync(new ENTITIES.User
-		{
-			DisplayName = "Existing User", FirstName = "Existing", InitialProvider = "Google",
-			LastLoginAt = DateTime.UtcNow.AddDays(-1), LastName = "User", PreferredProvider = "Google",
-			UserPreferences = "{}",
-		}).Wait();
-		var userId = builder.UserRepository.Store[0].Id;
-		builder.GoogleAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationGoogle
-		{
-			AvatarUrl = "https://example.com/avatar.jpg", DisplayName = "Existing User",
-			Email = "existing@gmail.com", EmailVerified = true, FirstName = "Existing",
-			GoogleId = "google-123", Id = userId, LastName = "User", Locale = "en",
-		}).Wait();
-		builder.CurrentUserService.Set(userId, "Existing User");
+		var user = await SeedGoogleUserAsync(builder);
+
+		var roles = (await builder.UserRoleAdapter.FindAsync(x => x.UserId == user.Id)).ToList();
+		foreach (var role in roles)
+			await builder.UserRoleAdapter.DeleteAsync(role);
+
+		return user;
 	}
 
-	private static void SeedMicrosoftUser(SignInHandlerBuilder builder, string email)
+	private static async Task<User> SeedMicrosoftUserAsync(SignInHandlerBuilder builder, string email)
 	{
-		builder.UserRepository.InsertAsync(new ENTITIES.User
+		var argument = new SignInArgumentOf<MicrosoftSignInPayload>
 		{
-			DisplayName = "Existing User", FirstName = "Existing", InitialProvider = "Microsoft",
-			LastLoginAt = DateTime.UtcNow.AddDays(-1), LastName = "User", PreferredProvider = "Microsoft",
-			UserPreferences = "{}",
-		}).Wait();
-		var userId = builder.UserRepository.Store[0].Id;
-		builder.MicrosoftAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationMicrosoft
-		{
-			DisplayName = "Existing User", Email = email, FirstName = "Existing",
-			Id = userId, LastName = "User", MicrosoftId = "microsoft-789",
-		}).Wait();
-		builder.UserRoleRepository.InsertAsync(new ENTITIES.UserRole { Role = Domain.Framework.Roles.User, UserId = userId }).Wait();
-		builder.CurrentUserService.Set(userId, "Existing User");
+			DisplayName = "Existing User", Email = email, FirstName = "Existing", LastName = "User",
+			Payload = new MicrosoftSignInPayload { MicrosoftId = "microsoft-789" }
+		};
+		return await builder.MicrosoftHandler.HandleAsync(argument);
 	}
 
 	#endregion

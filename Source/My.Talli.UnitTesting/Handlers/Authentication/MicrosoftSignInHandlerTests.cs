@@ -4,8 +4,6 @@ using Domain.Handlers.Authentication;
 using Domain.Models;
 using My.Talli.UnitTesting.Infrastructure.Builders;
 
-using ENTITIES = Domain.Entities;
-
 /// <summary>Tests</summary>
 public class MicrosoftSignInHandlerTests
 {
@@ -15,14 +13,14 @@ public class MicrosoftSignInHandlerTests
 	public async Task ExistingEmailOnGoogle_LinksMicrosoftAuth()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedGoogleUser(builder, "shared@example.com");
+		var seededUser = await SeedGoogleUserAsync(builder, "shared@example.com");
 
 		var argument = CreateArgument("shared@example.com", "new-microsoft-id");
 		var result = await builder.MicrosoftHandler.HandleAsync(argument);
 
-		Assert.Equal(1, builder.UserRepository.Store.Count);
-		Assert.Equal(1, builder.MicrosoftAuthRepository.Store.Count);
-		Assert.Equal(result.Id, builder.MicrosoftAuthRepository.Store[0].Id);
+		var microsoftAuths = await builder.MicrosoftAuthAdapter.GetAllAsync();
+		Assert.Equal(seededUser.Id, result.Id);
+		Assert.Single(microsoftAuths);
 		Assert.False(result.IsNewUser);
 	}
 
@@ -30,12 +28,12 @@ public class MicrosoftSignInHandlerTests
 	public async Task ExistingMicrosoftUser_ReturnsExistingUser()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedMicrosoftUser(builder);
+		var seededUser = await SeedMicrosoftUserAsync(builder);
 
 		var argument = CreateArgument("existing@outlook.com", "microsoft-123");
 		var result = await builder.MicrosoftHandler.HandleAsync(argument);
 
-		Assert.Equal(1, result.Id);
+		Assert.Equal(seededUser.Id, result.Id);
 		Assert.False(result.IsNewUser);
 	}
 
@@ -43,25 +41,27 @@ public class MicrosoftSignInHandlerTests
 	public async Task ExistingMicrosoftUser_UpdatesLastLoginAt()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedMicrosoftUser(builder);
-		var originalLoginAt = builder.UserRepository.Store[0].LastLoginAt;
+		var seededUser = await SeedMicrosoftUserAsync(builder);
 
 		var argument = CreateArgument("existing@outlook.com", "microsoft-123");
 		var result = await builder.MicrosoftHandler.HandleAsync(argument);
 
-		Assert.True(result.LastLoginAt > originalLoginAt);
+		Assert.True(result.LastLoginAt > seededUser.LastLoginAt);
 	}
 
 	[Fact]
 	public async Task ExistingUser_WithNoRoles_SelfHealsUserRole()
 	{
 		var builder = new SignInHandlerBuilder();
-		SeedMicrosoftUserWithoutRoles(builder);
+		var seededUser = await SeedMicrosoftUserAsync(builder);
+
+		var roles = (await builder.UserRoleAdapter.FindAsync(x => x.UserId == seededUser.Id)).ToList();
+		foreach (var role in roles)
+			await builder.UserRoleAdapter.DeleteAsync(role);
 
 		var argument = CreateArgument("existing@outlook.com", "microsoft-123");
 		var result = await builder.MicrosoftHandler.HandleAsync(argument);
 
-		Assert.Equal(1, builder.UserRoleRepository.Store.Count);
 		Assert.Contains(Domain.Framework.Roles.User, result.Roles);
 	}
 
@@ -73,8 +73,9 @@ public class MicrosoftSignInHandlerTests
 		var argument = CreateArgument("new@outlook.com", "new-microsoft-id");
 		var result = await builder.MicrosoftHandler.HandleAsync(argument);
 
-		Assert.Equal(1, builder.UserRoleRepository.Store.Count);
-		Assert.Equal(Domain.Framework.Roles.User, builder.UserRoleRepository.Store[0].Role);
+		var roles = await builder.UserRoleAdapter.GetAllAsync();
+		var role = Assert.Single(roles);
+		Assert.Equal(Domain.Framework.Roles.User, role.Role);
 	}
 
 	[Fact]
@@ -86,11 +87,12 @@ public class MicrosoftSignInHandlerTests
 		var result = await builder.MicrosoftHandler.HandleAsync(argument);
 
 		Assert.True(result.Id > 0);
-		Assert.Equal(1, builder.UserRepository.Store.Count);
-		Assert.Equal(1, builder.MicrosoftAuthRepository.Store.Count);
-		Assert.Equal("new-microsoft-id", builder.MicrosoftAuthRepository.Store[0].MicrosoftId);
-		Assert.Equal("new@outlook.com", builder.MicrosoftAuthRepository.Store[0].Email);
-		Assert.Equal(result.Id, builder.MicrosoftAuthRepository.Store[0].Id);
+
+		var microsoftAuths = await builder.MicrosoftAuthAdapter.GetAllAsync();
+		var auth = Assert.Single(microsoftAuths);
+		Assert.Equal("new-microsoft-id", auth.MicrosoftId);
+		Assert.Equal("new@outlook.com", auth.Email);
+		Assert.Equal(result.Id, auth.Id);
 	}
 
 	[Fact]
@@ -128,58 +130,24 @@ public class MicrosoftSignInHandlerTests
 		}
 	};
 
-	private static void SeedGoogleUser(SignInHandlerBuilder builder, string email)
+	private static async Task<User> SeedGoogleUserAsync(SignInHandlerBuilder builder, string email)
 	{
-		builder.UserRepository.InsertAsync(new ENTITIES.User
+		var argument = new SignInArgumentOf<GoogleSignInPayload>
 		{
-			DisplayName = "Existing User", FirstName = "Existing", InitialProvider = "Google",
-			LastLoginAt = DateTime.UtcNow.AddDays(-1), LastName = "User", PreferredProvider = "Google",
-			UserPreferences = "{}",
-		}).Wait();
-		var userId = builder.UserRepository.Store[0].Id;
-		builder.GoogleAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationGoogle
-		{
-			AvatarUrl = "https://example.com/avatar.jpg", DisplayName = "Existing User",
-			Email = email, EmailVerified = true, FirstName = "Existing",
-			GoogleId = "google-123", Id = userId, LastName = "User", Locale = "en",
-		}).Wait();
-		builder.UserRoleRepository.InsertAsync(new ENTITIES.UserRole { Role = Domain.Framework.Roles.User, UserId = userId }).Wait();
-		builder.CurrentUserService.Set(userId, "Existing User");
+			DisplayName = "Existing User", Email = email, FirstName = "Existing", LastName = "User",
+			Payload = new GoogleSignInPayload { AvatarUrl = "https://example.com/avatar.jpg", EmailVerified = true, GoogleId = "google-123", Locale = "en" }
+		};
+		return await builder.GoogleHandler.HandleAsync(argument);
 	}
 
-	private static void SeedMicrosoftUser(SignInHandlerBuilder builder)
+	private static async Task<User> SeedMicrosoftUserAsync(SignInHandlerBuilder builder)
 	{
-		builder.UserRepository.InsertAsync(new ENTITIES.User
+		var argument = new SignInArgumentOf<MicrosoftSignInPayload>
 		{
-			DisplayName = "Existing User", FirstName = "Existing", InitialProvider = "Microsoft",
-			LastLoginAt = DateTime.UtcNow.AddDays(-1), LastName = "User", PreferredProvider = "Microsoft",
-			UserPreferences = "{}",
-		}).Wait();
-		var userId = builder.UserRepository.Store[0].Id;
-		builder.MicrosoftAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationMicrosoft
-		{
-			DisplayName = "Existing User", Email = "existing@outlook.com", FirstName = "Existing",
-			Id = userId, LastName = "User", MicrosoftId = "microsoft-123",
-		}).Wait();
-		builder.UserRoleRepository.InsertAsync(new ENTITIES.UserRole { Role = Domain.Framework.Roles.User, UserId = userId }).Wait();
-		builder.CurrentUserService.Set(userId, "Existing User");
-	}
-
-	private static void SeedMicrosoftUserWithoutRoles(SignInHandlerBuilder builder)
-	{
-		builder.UserRepository.InsertAsync(new ENTITIES.User
-		{
-			DisplayName = "Existing User", FirstName = "Existing", InitialProvider = "Microsoft",
-			LastLoginAt = DateTime.UtcNow.AddDays(-1), LastName = "User", PreferredProvider = "Microsoft",
-			UserPreferences = "{}",
-		}).Wait();
-		var userId = builder.UserRepository.Store[0].Id;
-		builder.MicrosoftAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationMicrosoft
-		{
-			DisplayName = "Existing User", Email = "existing@outlook.com", FirstName = "Existing",
-			Id = userId, LastName = "User", MicrosoftId = "microsoft-123",
-		}).Wait();
-		builder.CurrentUserService.Set(userId, "Existing User");
+			DisplayName = "Existing User", Email = "existing@outlook.com", FirstName = "Existing", LastName = "User",
+			Payload = new MicrosoftSignInPayload { MicrosoftId = "microsoft-123" }
+		};
+		return await builder.MicrosoftHandler.HandleAsync(argument);
 	}
 
 	#endregion

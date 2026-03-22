@@ -1,8 +1,8 @@
 namespace My.Talli.UnitTesting.Handlers.Authentication;
 
+using Domain.Handlers.Authentication;
+using Domain.Models;
 using My.Talli.UnitTesting.Infrastructure.Builders;
-
-using ENTITIES = Domain.Entities;
 
 /// <summary>Tests</summary>
 public class EmailLookupServiceTests
@@ -14,101 +14,45 @@ public class EmailLookupServiceTests
 	{
 		var builder = new SignInHandlerBuilder();
 
-		builder.UserRepository.InsertAsync(new ENTITIES.User
-		{
-			DisplayName = "Google User", FirstName = "Google", InitialProvider = "Google",
-			LastLoginAt = DateTime.UtcNow, LastName = "User", PreferredProvider = "Google", UserPreferences = "{}",
-		}).Wait();
-		var googleUserId = builder.UserRepository.Store[0].Id;
-		builder.GoogleAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationGoogle
-		{
-			AvatarUrl = "", DisplayName = "Google User", Email = "shared@example.com",
-			EmailVerified = true, FirstName = "Google", GoogleId = "google-1",
-			Id = googleUserId, LastName = "User", Locale = "en",
-		}).Wait();
-
-		builder.UserRepository.InsertAsync(new ENTITIES.User
-		{
-			DisplayName = "Microsoft User", FirstName = "Microsoft", InitialProvider = "Microsoft",
-			LastLoginAt = DateTime.UtcNow, LastName = "User", PreferredProvider = "Microsoft", UserPreferences = "{}",
-		}).Wait();
-		var microsoftUserId = builder.UserRepository.Store[1].Id;
-		builder.MicrosoftAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationMicrosoft
-		{
-			DisplayName = "Microsoft User", Email = "shared@example.com", FirstName = "Microsoft",
-			Id = microsoftUserId, LastName = "User", MicrosoftId = "microsoft-1",
-		}).Wait();
+		var googleUser = await SeedGoogleUserAsync(builder, "shared@example.com");
+		await SeedMicrosoftUserAsync(builder, "shared@example.com");
 
 		var result = await builder.EmailLookupService.FindUserIdByEmailAsync("shared@example.com");
 
-		Assert.Equal(googleUserId, result);
+		Assert.Equal(googleUser.Id, result);
 	}
 
 	[Fact]
 	public async Task FindUserIdByEmailAsync_EmailInApple_ReturnsUserId()
 	{
 		var builder = new SignInHandlerBuilder();
-
-		builder.UserRepository.InsertAsync(new ENTITIES.User
-		{
-			DisplayName = "Apple User", FirstName = "Apple", InitialProvider = "Apple",
-			LastLoginAt = DateTime.UtcNow, LastName = "User", PreferredProvider = "Apple", UserPreferences = "{}",
-		}).Wait();
-		var userId = builder.UserRepository.Store[0].Id;
-		builder.AppleAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationApple
-		{
-			AppleId = "apple-1", DisplayName = "Apple User", Email = "test@icloud.com",
-			FirstName = "Apple", Id = userId, LastName = "User",
-		}).Wait();
+		var appleUser = await SeedAppleUserAsync(builder, "test@icloud.com");
 
 		var result = await builder.EmailLookupService.FindUserIdByEmailAsync("test@icloud.com");
 
-		Assert.Equal(userId, result);
+		Assert.Equal(appleUser.Id, result);
 	}
 
 	[Fact]
 	public async Task FindUserIdByEmailAsync_EmailInGoogle_ReturnsUserId()
 	{
 		var builder = new SignInHandlerBuilder();
-
-		builder.UserRepository.InsertAsync(new ENTITIES.User
-		{
-			DisplayName = "Google User", FirstName = "Google", InitialProvider = "Google",
-			LastLoginAt = DateTime.UtcNow, LastName = "User", PreferredProvider = "Google", UserPreferences = "{}",
-		}).Wait();
-		var userId = builder.UserRepository.Store[0].Id;
-		builder.GoogleAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationGoogle
-		{
-			AvatarUrl = "", DisplayName = "Google User", Email = "test@gmail.com",
-			EmailVerified = true, FirstName = "Google", GoogleId = "google-1",
-			Id = userId, LastName = "User", Locale = "en",
-		}).Wait();
+		var googleUser = await SeedGoogleUserAsync(builder, "test@gmail.com");
 
 		var result = await builder.EmailLookupService.FindUserIdByEmailAsync("test@gmail.com");
 
-		Assert.Equal(userId, result);
+		Assert.Equal(googleUser.Id, result);
 	}
 
 	[Fact]
 	public async Task FindUserIdByEmailAsync_EmailInMicrosoft_ReturnsUserId()
 	{
 		var builder = new SignInHandlerBuilder();
-
-		builder.UserRepository.InsertAsync(new ENTITIES.User
-		{
-			DisplayName = "Microsoft User", FirstName = "Microsoft", InitialProvider = "Microsoft",
-			LastLoginAt = DateTime.UtcNow, LastName = "User", PreferredProvider = "Microsoft", UserPreferences = "{}",
-		}).Wait();
-		var userId = builder.UserRepository.Store[0].Id;
-		builder.MicrosoftAuthRepository.InsertAsync(new ENTITIES.UserAuthenticationMicrosoft
-		{
-			DisplayName = "Microsoft User", Email = "test@outlook.com", FirstName = "Microsoft",
-			Id = userId, LastName = "User", MicrosoftId = "microsoft-1",
-		}).Wait();
+		var microsoftUser = await SeedMicrosoftUserAsync(builder, "test@outlook.com");
 
 		var result = await builder.EmailLookupService.FindUserIdByEmailAsync("test@outlook.com");
 
-		Assert.Equal(userId, result);
+		Assert.Equal(microsoftUser.Id, result);
 	}
 
 	[Fact]
@@ -119,6 +63,33 @@ public class EmailLookupServiceTests
 		var result = await builder.EmailLookupService.FindUserIdByEmailAsync("nobody@example.com");
 
 		Assert.Null(result);
+	}
+
+	private static async Task<User> SeedAppleUserAsync(SignInHandlerBuilder builder, string email)
+	{
+		return await builder.AppleHandler.HandleAsync(new SignInArgumentOf<AppleSignInPayload>
+		{
+			DisplayName = "Apple User", Email = email, FirstName = "Apple", LastName = "User",
+			Payload = new AppleSignInPayload { AppleId = "apple-1", IsPrivateRelay = false }
+		});
+	}
+
+	private static async Task<User> SeedGoogleUserAsync(SignInHandlerBuilder builder, string email)
+	{
+		return await builder.GoogleHandler.HandleAsync(new SignInArgumentOf<GoogleSignInPayload>
+		{
+			DisplayName = "Google User", Email = email, FirstName = "Google", LastName = "User",
+			Payload = new GoogleSignInPayload { AvatarUrl = "", EmailVerified = true, GoogleId = $"google-{email}", Locale = "en" }
+		});
+	}
+
+	private static async Task<User> SeedMicrosoftUserAsync(SignInHandlerBuilder builder, string email)
+	{
+		return await builder.MicrosoftHandler.HandleAsync(new SignInArgumentOf<MicrosoftSignInPayload>
+		{
+			DisplayName = "Microsoft User", Email = email, FirstName = "Microsoft", LastName = "User",
+			Payload = new MicrosoftSignInPayload { MicrosoftId = $"microsoft-{email}" }
+		});
 	}
 
 	#endregion

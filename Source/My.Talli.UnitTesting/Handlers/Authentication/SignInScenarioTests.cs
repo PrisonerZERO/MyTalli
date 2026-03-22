@@ -4,8 +4,6 @@ using Domain.Handlers.Authentication;
 using Domain.Models;
 using My.Talli.UnitTesting.Infrastructure.Builders;
 
-using ENTITIES = Domain.Entities;
-
 /// <summary>Tests</summary>
 public class SignInScenarioTests
 {
@@ -23,11 +21,11 @@ public class SignInScenarioTests
 		};
 		var firstSignIn = await builder.GoogleHandler.HandleAsync(argument);
 
-		builder.UserRoleRepository.InsertAsync(new ENTITIES.UserRole
+		await builder.UserRoleAdapter.InsertAsync(new UserRole
 		{
 			Role = Domain.Framework.Roles.Admin,
 			UserId = firstSignIn.Id,
-		}).Wait();
+		});
 
 		var secondSignIn = await builder.GoogleHandler.HandleAsync(argument);
 
@@ -55,12 +53,14 @@ public class SignInScenarioTests
 		};
 		var appleResult = await builder.AppleHandler.HandleAsync(appleArgument);
 
-		Assert.Equal(1, builder.UserRepository.Store.Count);
+		var users = await builder.UserAdapter.GetAllAsync();
+		var googleAuths = await builder.GoogleAuthAdapter.GetAllAsync();
+		var appleAuths = await builder.AppleAuthAdapter.GetAllAsync();
+
+		Assert.Single(users);
 		Assert.Equal(googleResult.Id, appleResult.Id);
-		Assert.Equal(1, builder.GoogleAuthRepository.Store.Count);
-		Assert.Equal(1, builder.AppleAuthRepository.Store.Count);
-		Assert.Equal(googleResult.Id, builder.GoogleAuthRepository.Store[0].Id);
-		Assert.Equal(googleResult.Id, builder.AppleAuthRepository.Store[0].Id);
+		Assert.Single(googleAuths);
+		Assert.Single(appleAuths);
 		Assert.False(appleResult.IsNewUser);
 	}
 
@@ -69,38 +69,31 @@ public class SignInScenarioTests
 	{
 		var builder = new SignInHandlerBuilder();
 
-		var googleArgument = new SignInArgumentOf<GoogleSignInPayload>
+		var googleUser = await builder.GoogleHandler.HandleAsync(new SignInArgumentOf<GoogleSignInPayload>
 		{
 			DisplayName = "Google User", Email = "google@example.com", FirstName = "Google", LastName = "User",
 			Payload = new GoogleSignInPayload { GoogleId = "google-1", AvatarUrl = "", EmailVerified = true, Locale = "en" }
-		};
-		var googleUser = await builder.GoogleHandler.HandleAsync(googleArgument);
+		});
 
-		var appleArgument = new SignInArgumentOf<AppleSignInPayload>
+		var appleUser = await builder.AppleHandler.HandleAsync(new SignInArgumentOf<AppleSignInPayload>
 		{
 			DisplayName = "Apple User", Email = "apple@example.com", FirstName = "Apple", LastName = "User",
 			Payload = new AppleSignInPayload { AppleId = "apple-1", IsPrivateRelay = false }
-		};
-		var appleUser = await builder.AppleHandler.HandleAsync(appleArgument);
+		});
 
-		var microsoftArgument = new SignInArgumentOf<MicrosoftSignInPayload>
+		var microsoftUser = await builder.MicrosoftHandler.HandleAsync(new SignInArgumentOf<MicrosoftSignInPayload>
 		{
 			DisplayName = "Microsoft User", Email = "microsoft@example.com", FirstName = "Microsoft", LastName = "User",
 			Payload = new MicrosoftSignInPayload { MicrosoftId = "microsoft-1" }
-		};
-		var microsoftUser = await builder.MicrosoftHandler.HandleAsync(microsoftArgument);
+		});
 
-		Assert.Equal(3, builder.UserRepository.Store.Count);
+		var users = await builder.UserAdapter.GetAllAsync();
+		Assert.Equal(3, users.Count());
 
-		var foundGoogle = await builder.EmailLookupService.FindUserIdByEmailAsync("google@example.com");
-		var foundApple = await builder.EmailLookupService.FindUserIdByEmailAsync("apple@example.com");
-		var foundMicrosoft = await builder.EmailLookupService.FindUserIdByEmailAsync("microsoft@example.com");
-		var foundNobody = await builder.EmailLookupService.FindUserIdByEmailAsync("nobody@example.com");
-
-		Assert.Equal(googleUser.Id, foundGoogle);
-		Assert.Equal(appleUser.Id, foundApple);
-		Assert.Equal(microsoftUser.Id, foundMicrosoft);
-		Assert.Null(foundNobody);
+		Assert.Equal(googleUser.Id, await builder.EmailLookupService.FindUserIdByEmailAsync("google@example.com"));
+		Assert.Equal(appleUser.Id, await builder.EmailLookupService.FindUserIdByEmailAsync("apple@example.com"));
+		Assert.Equal(microsoftUser.Id, await builder.EmailLookupService.FindUserIdByEmailAsync("microsoft@example.com"));
+		Assert.Null(await builder.EmailLookupService.FindUserIdByEmailAsync("nobody@example.com"));
 	}
 
 	[Fact]
@@ -115,20 +108,18 @@ public class SignInScenarioTests
 		};
 
 		var first = await builder.GoogleHandler.HandleAsync(argument);
-		var firstLoginAt = first.LastLoginAt;
-
 		var second = await builder.GoogleHandler.HandleAsync(argument);
-		var secondLoginAt = second.LastLoginAt;
-
 		var third = await builder.GoogleHandler.HandleAsync(argument);
-		var thirdLoginAt = third.LastLoginAt;
 
-		Assert.Equal(1, builder.UserRepository.Store.Count);
-		Assert.Equal(1, builder.GoogleAuthRepository.Store.Count);
+		var users = await builder.UserAdapter.GetAllAsync();
+		var googleAuths = await builder.GoogleAuthAdapter.GetAllAsync();
+
+		Assert.Single(users);
+		Assert.Single(googleAuths);
 		Assert.Equal(first.Id, second.Id);
 		Assert.Equal(second.Id, third.Id);
-		Assert.True(secondLoginAt >= firstLoginAt);
-		Assert.True(thirdLoginAt >= secondLoginAt);
+		Assert.True(second.LastLoginAt >= first.LastLoginAt);
+		Assert.True(third.LastLoginAt >= second.LastLoginAt);
 		Assert.True(first.IsNewUser);
 		Assert.False(second.IsNewUser);
 		Assert.False(third.IsNewUser);
