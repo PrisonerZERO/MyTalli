@@ -5,21 +5,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 /// <summary>Configuration</summary>
-public class MilestoneConfiguration : IEntityTypeConfiguration<Milestone>
+public class SuggestionConfiguration : IEntityTypeConfiguration<Suggestion>
 {
     #region <Methods>
 
-    public void Configure(EntityTypeBuilder<Milestone> builder)
+    public void Configure(EntityTypeBuilder<Suggestion> builder)
     {
-        builder.ToTable("Milestone", "app");
+        builder.ToTable("Suggestion", "app");
 
-        builder.HasKey(e => e.Id).HasName("PK_Milestone");
+        builder.HasKey(e => e.Id).HasName("PK_Suggestion");
 
         builder.Property(e => e.Id).HasColumnOrder(0);
-        builder.Property(e => e.Description).HasMaxLength(500).IsRequired().HasColumnOrder(1);
-        builder.Property(e => e.MilestoneGroup).HasMaxLength(50).IsRequired().HasColumnOrder(2);
-        builder.Property(e => e.SortOrder).HasColumnOrder(3);
-        builder.Property(e => e.Status).HasMaxLength(50).IsRequired().HasColumnOrder(4);
+        builder.Property(e => e.UserId).HasColumnOrder(1);
+        builder.Property(e => e.Category).HasMaxLength(50).IsRequired().HasColumnOrder(2);
+        builder.Property(e => e.Description).HasMaxLength(2000).IsRequired().HasColumnOrder(3);
+        builder.Property(e => e.Status).HasMaxLength(20).IsRequired().HasColumnOrder(4);
         builder.Property(e => e.Title).HasMaxLength(200).IsRequired().HasColumnOrder(5);
         builder.Property(e => e.IsDeleted).HasColumnOrder(6);
         builder.Property(e => e.IsVisible).HasColumnOrder(7);
@@ -27,6 +27,13 @@ public class MilestoneConfiguration : IEntityTypeConfiguration<Milestone>
         builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(9);
         builder.Property(e => e.UpdatedByUserId).HasColumnOrder(10);
         builder.Property(e => e.UpdatedOnDate).HasColumnOrder(11);
+
+        builder.HasIndex(e => e.UserId).HasDatabaseName("IX_Suggestion_UserId");
+
+        builder.HasOne(e => e.User)
+            .WithMany()
+            .HasForeignKey(e => e.UserId)
+            .HasConstraintName("FK_Suggestion_User");
 
         builder.HasQueryFilter(e => !e.IsDeleted);
     }

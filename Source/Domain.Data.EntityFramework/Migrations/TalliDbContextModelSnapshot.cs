@@ -152,73 +152,6 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("BillingStripe", "commerce");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Milestone", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(0);
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(8);
-
-                    b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(9);
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnOrder(1);
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnOrder(6);
-
-                    b.Property<bool>("IsVisible")
-                        .HasColumnType("bit")
-                        .HasColumnOrder(7);
-
-                    b.Property<string>("MilestoneGroup")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnOrder(2);
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int")
-                        .HasColumnOrder(3);
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnOrder(4);
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)")
-                        .HasColumnOrder(5);
-
-                    b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(10);
-
-                    b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(11);
-
-                    b.HasKey("Id")
-                        .HasName("PK_Milestone");
-
-                    b.ToTable("Milestone", "app");
-                });
-
             modelBuilder.Entity("My.Talli.Domain.Entities.Order", b =>
                 {
                     b.Property<long>("Id")
@@ -622,6 +555,133 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasName("PK_SubscriptionStripe");
 
                     b.ToTable("SubscriptionStripe", "commerce");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.Suggestion", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(2);
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(8);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(9);
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(6);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(7);
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnOrder(4);
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnOrder(5);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(10);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(11);
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
+
+                    b.HasKey("Id")
+                        .HasName("PK_Suggestion");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_Suggestion_UserId");
+
+                    b.ToTable("Suggestion", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.SuggestionVote", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(5);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(6);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(4);
+
+                    b.Property<long>("SuggestionId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(7);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(2);
+
+                    b.HasKey("Id")
+                        .HasName("PK_SuggestionVote");
+
+                    b.HasIndex("SuggestionId")
+                        .HasDatabaseName("IX_SuggestionVote_SuggestionId");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_SuggestionVote_UserId");
+
+                    b.HasIndex("SuggestionId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_SuggestionVote_SuggestionId_UserId");
+
+                    b.ToTable("SuggestionVote", "app");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.User", b =>
@@ -1118,6 +1178,39 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasConstraintName("FK_SubscriptionStripe_Subscription");
 
                     b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.Suggestion", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Suggestion_User");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.SuggestionVote", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.Suggestion", "Suggestion")
+                        .WithMany()
+                        .HasForeignKey("SuggestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_SuggestionVote_Suggestion");
+
+                    b.HasOne("My.Talli.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SuggestionVote_User");
+
+                    b.Navigation("Suggestion");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.UserAuthenticationApple", b =>

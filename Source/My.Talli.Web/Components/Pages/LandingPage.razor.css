@@ -56,9 +56,9 @@ nav.on-dark ul a:hover { color: #fff; }
 .hero p { color: #555; font-size: 18px; line-height: 1.65; margin-bottom: 36px; max-width: 460px; }
 
 /* WAITLIST BUTTON */
-.waitlist-btn { background: #6c5ce7; border: none; border-radius: 10px; color: #fff; cursor: pointer; display: inline-block; font-family: inherit; font-size: 15px; font-weight: 600; padding: 14px 28px; text-decoration: none; transition: background 0.2s, transform 0.1s; white-space: nowrap; width: fit-content; }
-.waitlist-btn:hover { background: #5a4bd1; }
-.waitlist-btn:active { transform: scale(0.97); }
+.cta-btn { background: #6c5ce7; border: none; border-radius: 10px; color: #fff; cursor: pointer; display: inline-block; font-family: inherit; font-size: 15px; font-weight: 600; padding: 14px 28px; text-decoration: none; transition: background 0.2s, transform 0.1s; white-space: nowrap; width: fit-content; }
+.cta-btn:hover { background: #5a4bd1; }
+.cta-btn:active { transform: scale(0.97); }
 .hero .hero-note { color: #999; font-size: 13px; margin-bottom: 0; margin-top: 12px; }
 
 /* Platform colors */
@@ -134,7 +134,7 @@ nav.on-dark ul a:hover { color: #fff; }
 .bottom-cta { background: #fff; padding: 80px 80px; text-align: center; }
 .bottom-cta h2 { color: #1a1a2e; font-size: 36px; font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; }
 .bottom-cta p { color: #666; font-size: 17px; line-height: 1.6; margin: 0 auto 36px; max-width: 440px; }
-.bottom-cta .waitlist-btn { margin: 0 auto; }
+.bottom-cta .cta-btn { margin: 0 auto; }
 
 /* FOOTER */
 

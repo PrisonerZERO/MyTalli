@@ -19,8 +19,6 @@ public class TalliDbContext : DbContext
 
     public DbSet<BillingStripe> BillingStripes { get; set; } = null!;
 
-    public DbSet<Milestone> Milestones { get; set; } = null!;
-
     public DbSet<Order> Orders { get; set; } = null!;
 
     public DbSet<OrderItem> OrderItems { get; set; } = null!;
@@ -34,6 +32,10 @@ public class TalliDbContext : DbContext
     public DbSet<Subscription> Subscriptions { get; set; } = null!;
 
     public DbSet<SubscriptionStripe> SubscriptionStripes { get; set; } = null!;
+
+    public DbSet<Suggestion> Suggestions { get; set; } = null!;
+
+    public DbSet<SuggestionVote> SuggestionVotes { get; set; } = null!;
 
     public DbSet<User> Users { get; set; } = null!;
 

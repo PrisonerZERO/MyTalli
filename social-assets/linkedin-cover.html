@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1584">
+<title>MyTalli — LinkedIn Cover</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { width: 1584px; height: 792px; overflow: hidden; background: #0f0f1a; }
+
+  .cover { width: 1584px; height: 792px; position: relative; display: flex; align-items: center; justify-content: center; gap: 60px; font-family: 'DM Sans', sans-serif; overflow: hidden; }
+
+  /* ── background layers ── */
+  .cover::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 40%, #1e1535 60%, #0f0f1a 100%); z-index: 0; }
+
+  .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.35; z-index: 0; }
+  .orb--1 { width: 400px; height: 400px; background: #6c5ce7; top: -140px; left: 100px; }
+  .orb--2 { width: 300px; height: 300px; background: #8b5cf6; top: -60px; right: 280px; opacity: 0.2; }
+  .orb--3 { width: 240px; height: 240px; background: #a78bfa; bottom: -120px; right: 700px; opacity: 0.15; }
+
+  .grid-overlay { position: absolute; inset: 0; z-index: 0; background-image: linear-gradient(rgba(108, 92, 231, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(108, 92, 231, 0.04) 1px, transparent 1px); background-size: 40px 40px; }
+
+  .border-line { position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(108, 92, 231, 0.3), rgba(139, 92, 246, 0.2), transparent); z-index: 1; }
+  .border-line--top { top: 0; }
+  .border-line--bottom { bottom: 0; }
+
+  /* ── left: logo + name ── */
+  .brand { display: flex; align-items: center; gap: 20px; z-index: 2; flex-shrink: 0; }
+
+  .logo-icon { width: 80px; height: 80px; background: #6c5ce7; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 32px rgba(108, 92, 231, 0.4); }
+
+  .logo-t { color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 34px; line-height: 1; margin-bottom: 3px; }
+
+  .logo-bars { display: flex; align-items: flex-end; gap: 4px; }
+  .logo-bars span { display: block; width: 8px; background: #a78bfa; border-radius: 1.5px; }
+  .logo-bars span:nth-child(1) { height: 8px; opacity: 0.5; }
+  .logo-bars span:nth-child(2) { height: 12px; opacity: 0.7; }
+  .logo-bars span:nth-child(3) { height: 18px; opacity: 0.9; }
+
+  .brand-name { font-size: 56px; font-weight: 700; letter-spacing: -0.5px; }
+  .brand-name .my { color: #ffffff; }
+  .brand-name .talli { color: #a78bfa; }
+
+  /* ── center: tagline + pills stacked ── */
+  .center { z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+
+  .tagline { text-align: center; }
+  .tagline-line1 { color: #a09cae; font-size: 26px; font-weight: 500; letter-spacing: 0.2px; }
+  .tagline-line2 { color: #f5c842; font-size: 34px; font-weight: 700; margin-top: 6px; letter-spacing: 0.3px; }
+
+  .platforms { display: flex; gap: 10px; }
+
+  .pill { display: flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 20px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); }
+
+  .pill-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .pill-name { color: #e8e6f0; font-size: 14px; font-weight: 600; letter-spacing: 0.3px; }
+
+  .pill--stripe .pill-dot { background: #635bff; box-shadow: 0 0 6px rgba(99, 91, 255, 0.5); }
+  .pill--etsy .pill-dot { background: #f56400; box-shadow: 0 0 6px rgba(245, 100, 0, 0.5); }
+  .pill--gumroad .pill-dot { background: #ff90e8; box-shadow: 0 0 6px rgba(255, 144, 232, 0.5); }
+  .pill--paypal .pill-dot { background: #2a7fff; box-shadow: 0 0 6px rgba(42, 127, 255, 0.5); }
+  .pill--shopify .pill-dot { background: #96bf48; box-shadow: 0 0 6px rgba(150, 191, 72, 0.5); }
+
+  /* ── right: website ── */
+  .website { z-index: 2; color: #7a7790; font-size: 16px; font-weight: 500; letter-spacing: 1px; }
+
+  .accent-line { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #6c5ce7, #8b5cf6, #a78bfa, #f5c842, #a78bfa, #8b5cf6, #6c5ce7); z-index: 2; opacity: 0.7; }
+</style>
+</head>
+<body>
+<div class="cover">
+  <div class="orb orb--1"></div>
+  <div class="orb orb--2"></div>
+  <div class="orb orb--3"></div>
+  <div class="grid-overlay"></div>
+  <div class="border-line border-line--top"></div>
+  <div class="border-line border-line--bottom"></div>
+
+  <div class="brand">
+    <div class="logo-icon">
+      <span class="logo-t">T</span>
+      <div class="logo-bars">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+    <div class="brand-name"><span class="my">My</span><span class="talli">Talli</span></div>
+  </div>
+
+  <div class="center">
+    <div class="tagline">
+      <div class="tagline-line1">All your side hustle revenue.</div>
+      <div class="tagline-line2">One dashboard.</div>
+    </div>
+    <div class="platforms">
+      <div class="pill pill--stripe"><span class="pill-dot"></span><span class="pill-name">Stripe</span></div>
+      <div class="pill pill--etsy"><span class="pill-dot"></span><span class="pill-name">Etsy</span></div>
+      <div class="pill pill--gumroad"><span class="pill-dot"></span><span class="pill-name">Gumroad</span></div>
+      <div class="pill pill--paypal"><span class="pill-dot"></span><span class="pill-name">PayPal</span></div>
+      <div class="pill pill--shopify"><span class="pill-dot"></span><span class="pill-name">Shopify</span></div>
+    </div>
+  </div>
+
+  <div class="website">www.mytalli.com</div>
+
+  <div class="accent-line"></div>
+</div>
+</body>
+</html>

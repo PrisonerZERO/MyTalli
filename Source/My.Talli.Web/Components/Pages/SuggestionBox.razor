@@ -85,7 +85,7 @@
                     <button class="suggest-vote-btn @(item.HasVoted ? "voted" : "")"
                             aria-label="@(item.HasVoted ? "Remove vote from" : "Upvote") @item.Title, @item.Votes votes"
                             aria-pressed="@(item.HasVoted ? "true" : "false")"
-                            @onclick="() => ToggleVote(item)">
+                            @onclick="() => ToggleVoteAsync(item)">
                         <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 4l-8 8h5v8h6v-8h5z" />
                         </svg>
@@ -108,24 +108,24 @@
             <h2>New Suggestion</h2>
             <div class="suggest-form-group">
                 <label class="suggest-form-label" for="suggest-title">Title</label>
-                <input class="suggest-form-input" id="suggest-title" type="text" placeholder="e.g. Dark mode support">
+                <input class="suggest-form-input" id="suggest-title" type="text" placeholder="e.g. Dark mode support" @bind="NewTitle">
             </div>
             <div class="suggest-form-group">
                 <label class="suggest-form-label" for="suggest-desc">Description</label>
-                <textarea class="suggest-form-textarea" id="suggest-desc" placeholder="Describe your suggestion in detail..."></textarea>
+                <textarea class="suggest-form-textarea" id="suggest-desc" placeholder="Describe your suggestion in detail..." @bind="NewDescription"></textarea>
             </div>
             <div class="suggest-form-group">
                 <label class="suggest-form-label" for="suggest-cat">Category</label>
-                <select class="suggest-form-select" id="suggest-cat">
-                    <option>Feature</option>
-                    <option>Integration</option>
-                    <option>Export</option>
-                    <option>UI / UX</option>
+                <select class="suggest-form-select" id="suggest-cat" @bind="NewCategory">
+                    <option value="Feature">Feature</option>
+                    <option value="Integration">Integration</option>
+                    <option value="Export">Export</option>
+                    <option value="UI / UX">UI / UX</option>
                 </select>
             </div>
             <div class="suggest-modal-actions">
                 <button class="suggest-btn-outline" @onclick="CloseModal">Cancel</button>
-                <button class="suggest-btn-submit" @onclick="CloseModal">Submit</button>
+                <button class="suggest-btn-submit" @onclick="SubmitSuggestionAsync">Submit</button>
             </div>
         </div>
     </div>

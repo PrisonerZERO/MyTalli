@@ -7,6 +7,8 @@ public class StripeSettings
 
     public string MonthlyPriceId { get; set; } = string.Empty;
 
+    public string PortalConfigurationId { get; set; } = string.Empty;
+
     public string PublishableKey { get; set; } = string.Empty;
 
     public string SecretKey { get; set; } = string.Empty;

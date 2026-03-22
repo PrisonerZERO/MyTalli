@@ -46,21 +46,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 
-// WAITLIST MODE — redirect disabled routes to /waitlist
-// Remove this block when dashboard features are ready
-var disabledRoutes = new[] { "/dashboard", "/suggestions", "/subscription", "/upgrade" };
-app.Use(async (context, next) =>
-{
-    var path = context.Request.Path.Value?.TrimEnd('/') ?? "";
-    if (disabledRoutes.Any(r => path.Equals(r, StringComparison.OrdinalIgnoreCase)
-        || path.StartsWith(r + "/", StringComparison.OrdinalIgnoreCase)))
-    {
-        context.Response.Redirect("/waitlist");
-        return;
-    }
-    await next();
-});
-
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

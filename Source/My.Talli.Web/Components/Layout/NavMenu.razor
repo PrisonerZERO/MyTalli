@@ -1,3 +1,5 @@
+@inherits My.Talli.Web.ViewModels.Layout.NavMenuViewModel
+
 <aside class="sidebar-inner" aria-label="Sidebar">
     <a class="sidebar-logo" href="/dashboard">My<span>Talli</span></a>
 
@@ -63,10 +65,10 @@
     </div>
 
     <div class="sidebar-user">
-        <div class="user-avatar">SJ</div>
+        <div class="user-avatar">@UserInitials</div>
         <div class="user-info">
-            <div class="user-name">Sarah Johnson</div>
-            <div class="user-email">sarah@email.com</div>
+            <div class="user-name">@UserFullName</div>
+            <div class="user-email">@UserEmail</div>
         </div>
     </div>
 </aside>

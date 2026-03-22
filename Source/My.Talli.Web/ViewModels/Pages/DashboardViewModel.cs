@@ -1,10 +1,31 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Components.JsonSerializers;
+using Domain.Models;
+using Domain.Repositories;
+using Helpers;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
+
+using ENTITIES = Domain.Entities;
 
 /// <summary>View Model</summary>
 public class DashboardViewModel : ComponentBase
 {
+    #region <Variables>
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    [Inject]
+    private UserPreferencesJsonSerializer PreferencesSerializer { get; set; } = default!;
+
+    [Inject]
+    private RepositoryAdapterAsync<User, ENTITIES.User> UserAdapter { get; set; } = default!;
+
+    #endregion
+
     #region <Properties>
 
     public string ActivePeriod { get; private set; } = "30D";
@@ -31,6 +52,10 @@ public class DashboardViewModel : ComponentBase
 
     public decimal GoalTargetAmount { get; private set; } = 2700m;
 
+    public bool IsSampleData { get; private set; } = true;
+
+    public bool IsUserMenuOpen { get; private set; }
+
     public int MonthlyGoalPercentage { get; private set; } = 68;
 
     public List<string> Periods { get; } = ["7D", "30D", "90D", "12M"];
@@ -49,15 +74,22 @@ public class DashboardViewModel : ComponentBase
 
     public string TotalRevenueChange { get; private set; } = "23%";
 
-    public string UserFirstName { get; private set; } = "Sarah";
+    public string UserEmail { get; private set; } = string.Empty;
+
+    public string UserFirstName { get; private set; } = string.Empty;
+
+    public string UserFullName { get; private set; } = string.Empty;
+
+    public string UserInitials { get; private set; } = string.Empty;
 
 
     #endregion
 
     #region <Events>
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await LoadUserFromClaims();
         LoadMockData();
     }
 
@@ -66,10 +98,51 @@ public class DashboardViewModel : ComponentBase
 
     #region <Methods>
 
+    public void CloseUserMenu()
+    {
+        IsUserMenuOpen = false;
+    }
+
     public void SelectPeriod(string period)
     {
         ActivePeriod = period;
         StateHasChanged();
+    }
+
+    public void ToggleUserMenu()
+    {
+        IsUserMenuOpen = !IsUserMenuOpen;
+    }
+
+    private async Task LoadUserFromClaims()
+    {
+        var authState = await AuthenticationStateTask;
+        var principal = authState.User;
+
+        if (principal.Identity?.IsAuthenticated != true)
+            return;
+
+        var info = UserClaimsHelper.Resolve(principal);
+
+        UserEmail = info.Email;
+        UserFirstName = info.FirstName;
+        UserFullName = info.FullName;
+        UserInitials = info.Initials;
+
+        var userIdClaim = principal.FindFirst("UserId")?.Value;
+
+        if (userIdClaim is not null && long.TryParse(userIdClaim, out var userId))
+        {
+            var user = await UserAdapter.GetByIdAsync(userId);
+
+            if (user is not null)
+            {
+                var preferences = PreferencesSerializer.Deserialize(user.UserPreferences);
+
+                if (preferences.FunGreetings)
+                    UserFirstName = UserClaimsHelper.RandomFunGreeting();
+            }
+        }
     }
 
     private void LoadMockData()

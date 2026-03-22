@@ -22,16 +22,7 @@ public static class TestEndpoints
             var testRecipient = "hello@mytalli.com";
             var testToken = tokenService.GenerateToken(1);
 
-            // 1. Waitlist Welcome Email
-            var waitlistNotification = new WaitlistWelcomeEmailNotification();
-            var waitlistEmail = waitlistNotification.Build(new EmailNotificationArgumentOf<WaitlistWelcomeEmailNotificationPayload>
-            {
-                Payload = new WaitlistWelcomeEmailNotificationPayload { FirstName = "Robert", UnsubscribeToken = testToken }
-            });
-            waitlistEmail.To = [testRecipient];
-            await emailService.SendAsync(waitlistEmail);
-
-            // 2. Welcome Email
+            // 1. Welcome Email
             var welcomeNotification = new WelcomeEmailNotification();
             var welcomeEmail = welcomeNotification.Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
             {
@@ -40,7 +31,7 @@ public static class TestEndpoints
             welcomeEmail.To = [testRecipient];
             await emailService.SendAsync(welcomeEmail);
 
-            // 3. Subscription Confirmation Email
+            // 2. Subscription Confirmation Email
             var subNotification = new SubscriptionConfirmationEmailNotification();
             var subEmail = subNotification.Build(new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload>
             {
@@ -57,7 +48,7 @@ public static class TestEndpoints
             subEmail.To = [testRecipient];
             await emailService.SendAsync(subEmail);
 
-            // 4. Weekly Summary Email
+            // 3. Weekly Summary Email
             var summaryNotification = new WeeklySummaryEmailNotification();
             var summaryEmail = summaryNotification.Build(new EmailNotificationArgumentOf<WeeklySummaryEmailNotificationPayload>
             {
@@ -130,7 +121,7 @@ public static class TestEndpoints
             summaryEmail.To = [testRecipient];
             await emailService.SendAsync(summaryEmail);
 
-            return Results.Text("4 test emails sent to hello@mytalli.com");
+            return Results.Text("3 test emails sent to hello@mytalli.com");
         });
 
         app.MapGet("/api/test/error", () =>

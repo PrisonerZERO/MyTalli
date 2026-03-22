@@ -55,7 +55,7 @@ public class MicrosoftAuthenticationHandler
         var user = await _signInHandler.HandleAsync(argument);
 
         if (user.IsNewUser)
-            await SendWaitlistWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
+            await SendWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
 
         var identity = (ClaimsIdentity)principal.Identity!;
         identity.AddClaim(new Claim("UserId", user.Id.ToString()));
@@ -64,12 +64,12 @@ public class MicrosoftAuthenticationHandler
             identity.AddClaim(new Claim(ClaimTypes.Role, role));
     }
 
-    private async Task SendWaitlistWelcomeEmailAsync(string email, string firstName, long userId)
+    private async Task SendWelcomeEmailAsync(string email, string firstName, long userId)
     {
-        var notification = new WaitlistWelcomeEmailNotification();
-        var smtp = notification.Build(new EmailNotificationArgumentOf<WaitlistWelcomeEmailNotificationPayload>
+        var notification = new WelcomeEmailNotification();
+        var smtp = notification.Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
         {
-            Payload = new WaitlistWelcomeEmailNotificationPayload
+            Payload = new WelcomeEmailNotificationPayload
             {
                 FirstName = firstName,
                 UnsubscribeToken = _unsubscribeTokenService.GenerateToken(userId)

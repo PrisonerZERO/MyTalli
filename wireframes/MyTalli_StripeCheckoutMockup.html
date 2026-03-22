@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Stripe Checkout Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #e8e6f0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; }
+
+  /* Browser chrome mockup */
+  .browser-chrome { background: #2a2a2e; border-radius: 12px 12px 0 0; width: 960px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .browser-dots { display: flex; gap: 7px; }
+  .browser-dots span { width: 12px; height: 12px; border-radius: 50%; }
+  .browser-dots span:nth-child(1) { background: #ff5f57; }
+  .browser-dots span:nth-child(2) { background: #ffbd2e; }
+  .browser-dots span:nth-child(3) { background: #28c840; }
+  .url-bar { flex: 1; background: #1a1a1e; border-radius: 6px; padding: 7px 14px; display: flex; align-items: center; gap: 8px; }
+  .url-bar .lock { color: #28c840; font-size: 11px; }
+  .url-bar .url-text { color: #a0a0a8; font-size: 13px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+  .url-bar .url-text .domain { color: #e0e0e4; }
+
+  /* Main checkout container */
+  .checkout-container { width: 960px; display: flex; min-height: 620px; box-shadow: 0 25px 60px rgba(0,0,0,0.18); border-radius: 0 0 12px 12px; overflow: hidden; }
+
+  /* Left panel — order summary */
+  .left-panel { width: 420px; background: #1a1a2e; padding: 48px 40px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+  .left-panel::before { content: ''; position: absolute; top: -80px; right: -80px; width: 260px; height: 260px; background: radial-gradient(circle, rgba(108,92,231,0.12) 0%, transparent 70%); pointer-events: none; }
+
+  .merchant-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+  .merchant-logo { width: 40px; height: 40px; background: #6c5ce7; border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .merchant-logo .logo-t { color: #fff; font-weight: 700; font-size: 18px; letter-spacing: -0.5px; z-index: 1; }
+  .merchant-logo .bars { position: absolute; bottom: 4px; right: 4px; display: flex; gap: 1.5px; align-items: flex-end; }
+  .merchant-logo .bars span { width: 3px; background: rgba(167,139,250,0.7); border-radius: 1px; }
+  .merchant-logo .bars span:nth-child(1) { height: 4px; }
+  .merchant-logo .bars span:nth-child(2) { height: 7px; }
+  .merchant-logo .bars span:nth-child(3) { height: 10px; }
+  .merchant-name { color: #e8e6f0; font-size: 16px; font-weight: 600; letter-spacing: 0.3px; }
+
+  .subscribe-label { color: #a09cae; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .plan-price { color: #fff; font-size: 36px; font-weight: 700; letter-spacing: -1px; margin-bottom: 4px; }
+  .plan-price .per { font-size: 16px; font-weight: 400; color: #a09cae; margin-left: 2px; }
+  .plan-interval { color: #7a7790; font-size: 14px; margin-bottom: 36px; }
+
+  .order-summary-divider { height: 1px; background: rgba(255,255,255,0.08); margin-bottom: 24px; }
+
+  .line-item { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .line-item-left { display: flex; gap: 12px; align-items: center; }
+  .line-item-icon { width: 40px; height: 40px; background: rgba(108,92,231,0.15); border-radius: 8px; border: 1px solid rgba(108,92,231,0.25); display: flex; align-items: center; justify-content: center; }
+  .line-item-icon svg { width: 18px; height: 18px; color: #8b5cf6; }
+  .line-item-name { color: #e8e6f0; font-size: 14px; font-weight: 500; }
+  .line-item-desc { color: #7a7790; font-size: 12px; margin-top: 2px; }
+  .line-item-price { color: #e8e6f0; font-size: 14px; font-weight: 500; }
+
+  .subtotal-section { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; margin-top: 8px; }
+  .subtotal-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .subtotal-row .label { color: #7a7790; font-size: 14px; }
+  .subtotal-row .value { color: #a09cae; font-size: 14px; }
+  .total-row { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .total-row .label { color: #e8e6f0; font-size: 14px; font-weight: 600; }
+  .total-row .value { color: #e8e6f0; font-size: 14px; font-weight: 600; }
+
+  .left-spacer { flex: 1; }
+  .powered-by { color: #5c5977; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+  .powered-by a { color: #7a7790; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+  .powered-by svg { width: 12px; height: 12px; }
+
+  /* Right panel — payment form */
+  .right-panel { flex: 1; background: #fff; padding: 48px 40px; display: flex; flex-direction: column; }
+
+  .payment-header { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-bottom: 24px; }
+
+  .form-group { margin-bottom: 20px; }
+  .form-label { display: block; color: #3c3c43; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  .form-input { width: 100%; border: 1px solid #d8d8e0; border-radius: 8px; padding: 11px 14px; font-size: 14px; color: #1a1a2e; outline: none; transition: border-color 0.15s, box-shadow 0.15s; background: #fff; }
+  .form-input:focus { border-color: #6c5ce7; box-shadow: 0 0 0 3px rgba(108,92,231,0.12); }
+  .form-input::placeholder { color: #a0a0a8; }
+
+  .form-row { display: flex; gap: 12px; }
+  .form-row .form-group { flex: 1; }
+
+  .card-input-wrapper { position: relative; }
+  .card-input-wrapper .form-input { padding-right: 100px; }
+  .card-brands { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; }
+  .card-brand { width: 32px; height: 20px; border-radius: 3px; border: 1px solid #e8e8ec; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: #fff; }
+  .card-brand.visa { background: #1a1f71; }
+  .card-brand.mc { background: #eb001b; background: linear-gradient(135deg, #eb001b 50%, #f79e1b 50%); }
+  .card-brand.amex { background: #006fcf; }
+
+  .name-input-wrapper { position: relative; }
+
+  .divider-or { display: flex; align-items: center; gap: 16px; margin: 24px 0; }
+  .divider-or .line { flex: 1; height: 1px; background: #e8e8ec; }
+  .divider-or .text { color: #a0a0a8; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .express-buttons { display: flex; gap: 10px; margin-bottom: 4px; }
+  .express-btn { flex: 1; height: 44px; border-radius: 8px; border: 1px solid #d8d8e0; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; font-weight: 500; color: #1a1a2e; transition: background 0.15s, border-color 0.15s; }
+  .express-btn:hover { background: #f8f8fa; border-color: #c0c0c8; }
+  .express-btn.gpay { background: #000; border-color: #000; color: #fff; }
+  .express-btn.gpay:hover { background: #222; }
+  .express-btn svg { width: 18px; height: 18px; }
+
+  .subscribe-btn { width: 100%; height: 48px; background: #6c5ce7; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; letter-spacing: 0.2px; margin-top: 8px; }
+  .subscribe-btn:hover { background: #5a4bd1; }
+  .subscribe-btn:active { transform: scale(0.995); }
+
+  .terms-text { color: #a0a0a8; font-size: 11px; line-height: 1.5; margin-top: 16px; text-align: center; }
+  .terms-text a { color: #6c5ce7; text-decoration: none; }
+  .terms-text a:hover { text-decoration: underline; }
+
+  .right-spacer { flex: 1; }
+  .stripe-footer { display: flex; justify-content: center; align-items: center; gap: 6px; color: #a0a0a8; font-size: 12px; padding-top: 20px; }
+  .stripe-footer a { color: #a0a0a8; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+  .stripe-footer svg { width: 14px; height: 14px; opacity: 0.6; }
+  .stripe-footer span.sep { margin: 0 4px; }
+
+  /* Annotation callouts */
+  .annotation-bar { width: 960px; padding: 28px 0 0; display: flex; justify-content: center; gap: 32px; }
+  .annotation { display: flex; align-items: center; gap: 8px; }
+  .annotation .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .annotation .dot.purple { background: #6c5ce7; }
+  .annotation .dot.gray { background: #a0a0a8; }
+  .annotation .dot.green { background: #28c840; }
+  .annotation .text { color: #5c5977; font-size: 12px; font-weight: 500; }
+
+  .mockup-label { text-align: center; margin-top: 32px; padding: 12px 24px; background: rgba(108,92,231,0.08); border-radius: 8px; }
+  .mockup-label p { color: #6c5ce7; font-size: 13px; font-weight: 500; }
+  .mockup-label p span { color: #7a7790; font-weight: 400; }
+</style>
+</head>
+<body>
+
+<!-- Browser chrome -->
+<div class="browser-chrome">
+  <div class="browser-dots">
+    <span></span><span></span><span></span>
+  </div>
+  <div class="url-bar">
+    <span class="lock">🔒</span>
+    <span class="url-text"><span class="domain">checkout.stripe.com</span>/c/pay/cs_test_a1b2c3d4e5#fidkdWxOYH</span>
+  </div>
+</div>
+
+<!-- Checkout page -->
+<div class="checkout-container">
+
+  <!-- Left: Order Summary -->
+  <div class="left-panel">
+    <div class="merchant-brand">
+      <div class="merchant-logo">
+        <span class="logo-t">T</span>
+        <div class="bars"><span></span><span></span><span></span></div>
+      </div>
+      <span class="merchant-name">MyTalli</span>
+    </div>
+
+    <div class="subscribe-label">Subscribe to</div>
+    <div class="plan-price">$12.00 <span class="per">/ mo</span></div>
+    <div class="plan-interval">Billed monthly</div>
+
+    <div class="order-summary-divider"></div>
+
+    <div class="line-item">
+      <div class="line-item-left">
+        <div class="line-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div>
+          <div class="line-item-name">Pro Plan</div>
+          <div class="line-item-desc">Unlimited platforms, full history, goals</div>
+        </div>
+      </div>
+      <div class="line-item-price">$12.00</div>
+    </div>
+
+    <div class="subtotal-section">
+      <div class="subtotal-row">
+        <span class="label">Subtotal</span>
+        <span class="value">$12.00</span>
+      </div>
+      <div class="subtotal-row">
+        <span class="label">Tax</span>
+        <span class="value">$0.00</span>
+      </div>
+      <div class="total-row">
+        <span class="label">Total due today</span>
+        <span class="value">$12.00</span>
+      </div>
+    </div>
+
+    <div class="left-spacer"></div>
+
+    <div class="powered-by">
+      Powered by
+      <a href="#">
+        <svg viewBox="0 0 60 25" fill="currentColor"><path d="M5 11.2c0-2.5 1.2-3.5 2.6-3.5 1.2 0 2 .6 2 2.3v5.3h2.2V9.6c0-2.8-1.5-4.2-3.6-4.2-1.4 0-2.5.7-3.2 1.7V5.6H3v9.7h2V11.2zm13.5-5.6c-3.2 0-5.2 2.4-5.2 5.1s2 5.1 5.2 5.1 5.2-2.4 5.2-5.1-2-5.1-5.2-5.1zm0 8.2c-1.7 0-3-1.3-3-3.1s1.3-3.1 3-3.1 3 1.3 3 3.1-1.3 3.1-3 3.1z"/><text x="28" y="16" font-size="12" font-weight="700" fill="#7a7790">stripe</text></svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- Right: Payment Form -->
+  <div class="right-panel">
+
+    <div class="express-buttons">
+      <button class="express-btn gpay">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.345-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z"/></svg>
+        Google Pay
+      </button>
+      <button class="express-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.078 23.55c-.473-.316-.893-.703-1.244-1.15-.383-.463-.738-.95-1.064-1.454-.766-1.12-1.365-2.345-1.78-3.636-.5-1.502-.743-2.94-.743-4.347 0-1.57.34-2.94 1.002-4.09.49-.9 1.22-1.653 2.1-2.182.85-.53 1.84-.82 2.84-.84.35 0 .73.05 1.13.15.29.08.64.21 1.07.37.55.21.85.34.95.37.32.12.59.17.8.17.16 0 .39-.05.645-.13.145-.05.42-.17.816-.35.21-.09.47-.21.78-.34.31-.12.57-.21.78-.27.47-.12.9-.17 1.29-.15.95.03 1.78.22 2.47.57 1.16.6 2.01 1.49 2.53 2.63-.43.27-.82.58-1.17.93-.91.9-1.4 2.08-1.4 3.38 0 1.56.67 2.86 1.79 3.75.53.43 1.12.74 1.79.94-.14.43-.31.86-.5 1.28-.41.92-.88 1.78-1.41 2.58-.46.69-1.01 1.38-1.68 1.85-.73.52-1.49.78-2.29.8-.42 0-.85-.08-1.25-.23-.37-.14-.74-.29-1.12-.44-.4-.16-.81-.28-1.23-.32-.45-.03-.89.04-1.33.21-.35.13-.69.28-1.03.44-.38.17-.78.29-1.19.34-.41.04-.82-.03-1.22-.21zM13.46 3.52c.76-.94 1.27-2.08 1.38-3.52-.01 0-.03 0-.04.01-.55.08-1.13.28-1.7.59-.49.27-.96.63-1.38 1.09-.76.86-1.28 1.93-1.47 3.14.02 0 .04.01.05.01.47-.05 1.01-.22 1.56-.51.63-.34 1.16-.77 1.6-1.31z"/></svg>
+        Apple Pay
+      </button>
+    </div>
+
+    <div class="divider-or">
+      <div class="line"></div>
+      <span class="text">Or pay with card</span>
+      <div class="line"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-input" placeholder="you@example.com">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Card information</label>
+      <div class="card-input-wrapper">
+        <input type="text" class="form-input" placeholder="1234 1234 1234 1234" style="border-radius: 8px 8px 0 0; border-bottom: none;">
+        <div class="card-brands">
+          <div class="card-brand visa" style="font-size: 9px; font-style: italic; letter-spacing: -0.5px;">VISA</div>
+          <div class="card-brand mc"></div>
+          <div class="card-brand amex" style="font-size: 7px; letter-spacing: 0.5px;">AMEX</div>
+        </div>
+      </div>
+      <div class="form-row" style="gap: 0;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <input type="text" class="form-input" placeholder="MM / YY" style="border-radius: 0 0 0 8px; border-right: none;">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <input type="text" class="form-input" placeholder="CVC" style="border-radius: 0 0 8px 0;">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Cardholder name</label>
+      <input type="text" class="form-input" placeholder="Full name on card">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Country or region</label>
+      <input type="text" class="form-input" value="United States" style="border-radius: 8px 8px 0 0; border-bottom: none; color: #1a1a2e;">
+      <input type="text" class="form-input" placeholder="ZIP" style="border-radius: 0 0 8px 8px;">
+    </div>
+
+    <button class="subscribe-btn">Subscribe</button>
+
+    <div class="terms-text">
+      By confirming your subscription, you allow MyTalli to charge your card for this payment and future payments in accordance with their terms. You can always cancel your subscription.
+    </div>
+
+    <div class="right-spacer"></div>
+
+    <div class="stripe-footer">
+      <span>Powered by</span>
+      <strong style="color: #6772e5; font-weight: 700;">stripe</strong>
+      <span class="sep">|</span>
+      <a href="#">Terms</a>
+      <span class="sep">|</span>
+      <a href="#">Privacy</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- Legend -->
+<div class="annotation-bar">
+  <div class="annotation">
+    <div class="dot purple"></div>
+    <span class="text">Your brand color applied by Stripe</span>
+  </div>
+  <div class="annotation">
+    <div class="dot gray"></div>
+    <span class="text">Stripe's fixed layout — you can't change this</span>
+  </div>
+  <div class="annotation">
+    <div class="dot green"></div>
+    <span class="text">Stripe-hosted domain (checkout.stripe.com)</span>
+  </div>
+</div>
+
+<div class="mockup-label">
+  <p>This is a static mockup of Stripe Checkout. <span>Actual page is hosted by Stripe with your brand settings applied.</span></p>
+</div>
+
+</body>
+</html>
