@@ -504,4 +504,4 @@ $RECYCLE.BIN/
 *.swp
 
 # Production migration scripts (generated, may contain sensitive connection info)
-migrations/
+/migrations/

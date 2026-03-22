@@ -1,5 +1,6 @@
 using ElmahCore.Mvc;
 using Lamar.Microsoft.DependencyInjection;
+using My.Talli.Domain.DI.Lamar.IoC;
 using My.Talli.Web.Components;
 using My.Talli.Web.Configuration;
 using My.Talli.Web.Endpoints;
@@ -9,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // -----
 // LAMAR
-builder.Host.UseLamar();
+builder.Host.UseLamar(services => services.IncludeRegistry<ContainerRegistry>());
 
 // --------
 // SERVICES

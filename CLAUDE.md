@@ -432,6 +432,15 @@ My.Talli/
     │       ├── IAuditable.cs
     │       ├── IAuditableIdentifiable.cs
     │       └── IIdentifiable.cs
+    ├── My.Talli.UnitTesting/        # xUnit unit test project
+    │   ├── My.Talli.UnitTesting.csproj
+    │   ├── Components/
+    │   │   ├── JsonSerializers/
+    │   │   │   └── UserPreferencesJsonSerializerTests.cs
+    │   │   └── Tokens/
+    │   │       └── UnsubscribeTokenServiceTests.cs
+    │   └── Framework/
+    │       └── AssertTests.cs
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, pipeline setup (delegates to Configuration/ and Endpoints/)
@@ -527,6 +536,7 @@ My.Talli/
 
 - `/Foundation/` — shared/core projects (`Domain`, `Domain.Data`, `Domain.Data.EntityFramework`, `Domain.Entities`)
 - `/Presentation/` — contains `My.Talli.Web`
+- `/Testing/` — contains `My.Talli.UnitTesting`
 
 ### Project Reference Chain
 
@@ -536,6 +546,7 @@ Domain.Data              ← abstractions (IRepository, IUnitOfWork) → Domain.
 Domain.Data.EntityFramework ← EF Core implementation (DbContext, configs) → Domain.Data, Domain.Entities
 Domain                   ← exceptions, notifications → Domain.Entities
 My.Talli.Web             ← Blazor Server app → Domain
+My.Talli.UnitTesting     ← xUnit tests → Domain, Domain.Entities
 ```
 
 ## Brand & Design
@@ -639,6 +650,21 @@ dotnet run --project Source/My.Talli.Web
 
 - HTTPS: `https://localhost:7012`
 - HTTP: `http://localhost:5034`
+
+### Unit Testing
+
+- **Framework:** xUnit (with coverlet for coverage)
+- **Project:** `My.Talli.UnitTesting` (solution folder: `/Testing/`)
+- **Run tests:**
+  ```bash
+  dotnet test Source/My.Talli.UnitTesting/My.Talli.UnitTesting.csproj
+  ```
+- **Test file location:** Mirror the source project folder structure (e.g., `Components/Tokens/UnsubscribeTokenServiceTests.cs` tests `Domain/Components/Tokens/UnsubscribeTokenService.cs`)
+- **Test class naming:** `{ClassUnderTest}Tests.cs`
+- **Test method naming:** `MethodName_Scenario_ExpectedBehavior`
+- **What to test:** Logic that computes, transforms, validates, or can fail — cryptographic operations, serialization, precondition checks, business rules
+- **What NOT to test:** Do not write tests for public property getters/setters or simple property-to-property mapping (e.g., mappers, POCO defaults). Only test properties that are set privately, through constructors, or via computed logic.
+- **Domain Assert collision:** The Domain layer has its own `Assert` class (`Domain.Framework.Assert`). In test files that reference it, use a `DOMAINASSERT` alias to avoid collision with xUnit's `Assert`.
 
 ### Version Number
 

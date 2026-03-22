@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
     <ProjectReference Include="..\Domain.Data.EntityFramework\Domain.Data.EntityFramework.csproj" />
+    <ProjectReference Include="..\Domain.DI.Lamar\Domain.DI.Lamar.csproj" />
   </ItemGroup>
 
   <ItemGroup>
