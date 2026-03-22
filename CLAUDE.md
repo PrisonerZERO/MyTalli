@@ -4,7 +4,7 @@
 
 MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and freelancers connect their payment platforms (Stripe, Etsy, Gumroad, PayPal, Shopify, etc.) and see all their income in one unified dashboard with real-time tracking, trends, goals, and CSV export.
 
-**Status:** Early development — landing page, sign-in, dashboard, and other pages are built. OAuth authentication is working (Google, Apple, Microsoft). Sign-in redirects to the dashboard. All routes are active.
+**Status:** Early development — landing page, sign-in, dashboard, and other pages are built. OAuth authentication is working (Google, Apple, Microsoft). Sign-in redirects to the dashboard. All routes are active. Stripe billing is integrated (checkout, plan switching, cancellation, reactivation).
 
 ## Tech Stack
 
@@ -18,6 +18,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Azure Communication Services (ACS) Email** — transactional email sending (NuGet: `Azure.Communication.Email`)
 - **Razor Components** — UI layer (`.razor` files)
 - **SQL Server** — database (localhost, Windows Auth)
+- **Stripe** — payment processing (NuGet: `Stripe.net` v50, Stripe Checkout + Customer Portal + Webhooks)
 
 ## Database
 
@@ -285,7 +286,8 @@ My.Talli/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
     │   ├── Framework/
     │   │   ├── Assert.cs                      # Static validation utility (precondition checks)
-    │   │   └── Roles.cs                       # Static role name constants (Admin, User)
+    │   │   ├── Roles.cs                       # Static role name constants (Admin, User)
+    │   │   └── SubscriptionStatuses.cs        # Static subscription status constants (Active, Cancelling, Cancelled, PastDue, Unpaid)
     │   ├── Components/
     │   │   ├── JsonSerializers/
     │   │   │   └── User/
@@ -333,8 +335,8 @@ My.Talli/
     │   │   │   └── UserRole.cs
     │   │   └── Presentation/                  # Aggregate/detail view models (future)
     │   ├── Handlers/
-    │   │   └── Authentication/                # Sign-in handlers (one per OAuth provider)
-    │   │       ├── EmailLookupService.cs       # Cross-provider email lookup for duplicate prevention
+    │   │   ├── Authentication/                # Sign-in handlers (one per OAuth provider)
+    │   │   │   ├── EmailLookupService.cs       # Cross-provider email lookup for duplicate prevention
     │   │       ├── SignInArgument.cs           # Base sign-in argument
     │   │       ├── SignInArgumentOf.cs         # Generic sign-in argument with provider payload
     │   │       ├── Apple/
@@ -346,6 +348,12 @@ My.Talli/
     │   │       └── Microsoft/
     │   │           ├── MicrosoftSignInHandler.cs
     │   │           └── MicrosoftSignInPayload.cs
+    │   │   └── Billing/                       # Stripe webhook handlers
+    │   │       ├── CheckoutCompletedPayload.cs
+    │   │       ├── CheckoutCompletedResult.cs
+    │   │       ├── StripeWebhookHandler.cs     # Handles checkout.session.completed, subscription.updated/deleted
+    │   │       ├── SubscriptionDeletedPayload.cs
+    │   │       └── SubscriptionUpdatedPayload.cs
     │   ├── Repositories/
     │   │   └── RepositoryAdapterAsync.cs      # Model↔Entity adapter (only gateway to data layer)
     │   └── Notifications/
@@ -479,10 +487,11 @@ My.Talli/
         │   └── RepositoryConfiguration.cs      # ICurrentUserService registration (mappers, handlers, and repositories are in Domain.DI.Lamar)
         ├── Endpoints/                 # Minimal API endpoint extension methods (one per route group)
         │   ├── AuthEndpoints.cs       # /api/auth/login, /api/auth/logout
-        │   ├── BillingEndpoints.cs    # /api/billing/create-checkout-session, portal, webhook
+        │   ├── BillingEndpoints.cs    # /api/billing/create-checkout-session, portal, switch-plan, webhook
         │   ├── EmailEndpoints.cs      # /api/email/preferences
         │   └── TestEndpoints.cs       # /api/test/* (dev-only)
         ├── Middleware/                 # Custom middleware classes
+        │   ├── CurrentUserMiddleware.cs   # Populates ICurrentUserService from HttpContext.User claims on every request
         │   └── ProbeFilterMiddleware.cs  # Bot/scanner probe filter (short-circuits .env, .php, wp-admin, etc.)
         ├── Components/
         │   ├── App.razor           # Root HTML document
@@ -524,8 +533,10 @@ My.Talli/
         │   │   ├── GoogleAuthenticationHandler.cs
         │   │   └── MicrosoftAuthenticationHandler.cs
         │   ├── Billing/
-        │   │   ├── StripeBillingService.cs  # Stripe Checkout & Portal API wrapper
+        │   │   ├── StripeBillingService.cs  # Stripe Checkout, Portal, & plan switch API wrapper
         │   │   └── StripeSettings.cs        # Stripe configuration POCO
+        │   ├── Identity/
+        │   │   └── CurrentUserService.cs    # ICurrentUserService implementation (scoped, set by CurrentUserMiddleware)
         │   ├── Email/
         │   │   ├── EmailSettings.cs             # SMTP config POCO (IOptions<EmailSettings>)
         │   │   ├── ExceptionEmailHandler.cs     # IExceptionHandler — sends email, returns false
@@ -804,6 +815,49 @@ Deploy folder also contains:
 - **Default role** — every new user gets the `User` role on sign-up. Existing users with no roles are self-healed on next sign-in.
 - **Admin assignment** — no UI yet. Assign via direct database insert into `auth.UserRole`.
 - **Claims flow** — domain sign-in handlers query `UserRole`, populate `User.Roles` on the model → web auth handlers map each role to a `ClaimTypes.Role` claim on the identity
+
+## Billing
+
+### Architecture
+
+- **Stripe Checkout** — hosted payment page for new subscriptions. Created via `StripeBillingService.CreateCheckoutSessionAsync()`, triggered from the Upgrade page.
+- **Stripe Customer Portal** — hosted billing management (update payment, view invoices, cancel). Created via `StripeBillingService.CreatePortalSessionAsync()`, triggered from the Subscription page's "Manage Billing" button.
+- **Webhooks** — Stripe sends events to `/api/billing/webhook`. The endpoint verifies the signature, then delegates to `StripeWebhookHandler` in the Domain layer. Handled events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`.
+- **Plan switching** — `/api/billing/switch-plan?plan=monthly|yearly` calls `StripeBillingService.SwitchPlanAsync()` and updates the local DB directly (doesn't wait for the webhook). Stripe prorates automatically.
+- **`StripeConfiguration.ApiKey`** — set globally at startup in `BillingConfiguration.AddBilling()`.
+
+### Subscription Statuses
+
+| Status | Meaning | Trigger |
+|--------|---------|---------|
+| `Active` | Subscription is current and billing normally | Checkout completed, reactivation |
+| `Cancelling` | User cancelled; active until end of billing period | `cancel_at_period_end = true` on webhook |
+| `Cancelled` | Subscription has ended | `customer.subscription.deleted` webhook |
+| `PastDue` | Payment failed, grace period | Stripe status `past_due` |
+| `Unpaid` | Payment failed, no grace | Stripe status `unpaid` |
+
+- **Cancelling vs Cancelled:** "Cancelling" means the user requested cancellation but still has access until the billing period ends. "Cancelled" means the subscription is fully terminated. The Subscription page shows a warning banner and "Reactivate" button during "Cancelling" state.
+- **Queries:** Any query for "active" subscriptions must include both `Active` and `Cancelling` statuses (the user still has Pro access in both states). This applies to: `SubscriptionViewModel`, `UpgradeViewModel`, portal endpoint, switch-plan endpoint.
+
+### Webhook Handler
+
+`StripeWebhookHandler` (`Domain/Handlers/Billing/`) creates all commerce records on checkout:
+1. `Order` + `OrderItem` — purchase event
+2. `Subscription` + `SubscriptionStripe` — ongoing subscription state
+3. `Billing` + `BillingStripe` — payment record
+
+On subscription updates, it syncs status, dates, and product changes. On deletion, it sets status to `Cancelled`.
+
+### CurrentUserMiddleware
+
+`CurrentUserMiddleware` (`Middleware/CurrentUserMiddleware.cs`) runs after `UseAuthorization()` on every request. It reads the `"UserId"` claim from `HttpContext.User` and calls `ICurrentUserService.Set()`. This ensures the `AuditResolver` can stamp audit fields on DB operations in both Blazor circuits and API endpoints. Webhook requests from Stripe have no auth cookie — the `StripeWebhookHandler` sets `ICurrentUserService` manually from the subscription's `UserId`.
+
+### Local Development
+
+- **Stripe CLI listener:** `stripe listen --forward-to https://localhost:7012/api/billing/webhook` — must be running to receive webhooks during local dev.
+- **Stripe CLI path:** `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`
+- **Test card:** `4242 4242 4242 4242`, any future expiry, any CVC.
+- **Resend events:** `stripe events resend <event_id>` — useful when the app wasn't running when a webhook fired.
 
 ## App Mode
 
@@ -1277,7 +1331,7 @@ public AppleSignInHandler(
 - [x] **API Keys** — test keys added to `appsettings.Development.json` (`Stripe:SecretKey`, `Stripe:PublishableKey`)
 - [x] **Webhook Secret** — webhook signing secret added to `appsettings.Development.json` (from Stripe CLI listener)
 - [x] **Customer Portal** — configured: customer info (name, email, billing address, phone), payment methods, cancellations (end of billing period, collect reason). Portal Configuration ID: `bpc_1TDSZQRC4AM5SkTggFFtu6cQ`.
-- [ ] **Test Checkout Flow** — end-to-end test: Upgrade page → Stripe Checkout → webhook → subscription created
+- [x] **Test Checkout Flow** — end-to-end verified: Upgrade page → Stripe Checkout → webhook → DB records → Subscription page shows Pro. Also tested: plan switching (monthly ↔ yearly), cancel (end-of-period with "Cancelling" state), reactivate via Customer Portal.
 - [ ] **Production Keys** — add live keys to Azure App Service Configuration (when ready to go live)
 - [ ] **Custom Domains** — `pay.mytalli.com` (Checkout), `billing.mytalli.com` (Customer Portal) — production only, CNAME records in GoDaddy
 
