@@ -9,7 +9,7 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 {
 	#region <Variables>
 
-	private long _nextId = 1;
+	private readonly IdentityProvider _identityProvider;
 	private readonly List<TEntity> _store = [];
 
 	#endregion
@@ -24,9 +24,10 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 
 	#region <Constructors>
 
-	public AuditableRepositoryStub(IAuditResolver<TEntity> auditResolver)
+	public AuditableRepositoryStub(IAuditResolver<TEntity> auditResolver, IdentityProvider identityProvider)
 	{
 		AuditResolver = auditResolver;
+		_identityProvider = identityProvider;
 	}
 
 	#endregion
@@ -75,7 +76,7 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 	public Task InsertAsync(TEntity entity)
 	{
 		if (entity.Id == 0)
-			entity.Id = _nextId++;
+			entity.Id = _identityProvider.Next<TEntity>();
 
 		AuditResolver.Resolve(entity);
 		_store.Add(entity);
@@ -87,7 +88,7 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 		foreach (var entity in entities)
 		{
 			if (entity.Id == 0)
-				entity.Id = _nextId++;
+				entity.Id = _identityProvider.Next<TEntity>();
 
 			AuditResolver.Resolve(entity);
 			_store.Add(entity);

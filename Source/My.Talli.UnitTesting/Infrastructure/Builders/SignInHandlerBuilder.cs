@@ -47,11 +47,13 @@ public class SignInHandlerBuilder
 		var microsoftAuthAuditResolver = new AuditResolverStub<ENTITIES.UserAuthenticationMicrosoft>(CurrentUserService);
 		var userRoleAuditResolver = new AuditResolverStub<ENTITIES.UserRole>(CurrentUserService);
 
-		AppleAuthRepository = new AuditableRepositoryStub<ENTITIES.UserAuthenticationApple>(appleAuthAuditResolver);
-		GoogleAuthRepository = new AuditableRepositoryStub<ENTITIES.UserAuthenticationGoogle>(googleAuthAuditResolver);
-		MicrosoftAuthRepository = new AuditableRepositoryStub<ENTITIES.UserAuthenticationMicrosoft>(microsoftAuthAuditResolver);
-		UserRepository = new AuditableRepositoryStub<ENTITIES.User>(userAuditResolver);
-		UserRoleRepository = new AuditableRepositoryStub<ENTITIES.UserRole>(userRoleAuditResolver);
+		var identityProvider = new IdentityProvider();
+
+		AppleAuthRepository = new AuditableRepositoryStub<ENTITIES.UserAuthenticationApple>(appleAuthAuditResolver, identityProvider);
+		GoogleAuthRepository = new AuditableRepositoryStub<ENTITIES.UserAuthenticationGoogle>(googleAuthAuditResolver, identityProvider);
+		MicrosoftAuthRepository = new AuditableRepositoryStub<ENTITIES.UserAuthenticationMicrosoft>(microsoftAuthAuditResolver, identityProvider);
+		UserRepository = new AuditableRepositoryStub<ENTITIES.User>(userAuditResolver, identityProvider);
+		UserRoleRepository = new AuditableRepositoryStub<ENTITIES.UserRole>(userRoleAuditResolver, identityProvider);
 
 		var userMapper = new UserMapper();
 		var googleAuthMapper = new UserAuthenticationGoogleMapper();
