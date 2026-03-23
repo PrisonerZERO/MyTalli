@@ -143,13 +143,14 @@ public static class BillingEndpoints
             var session = (Stripe.Checkout.Session)stripeEvent.Data.Object;
             var settings = context.RequestServices.GetRequiredService<IOptions<StripeSettings>>().Value;
             var payload = await ToCheckoutCompletedPayloadAsync(session, settings);
+            var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
 
             // TRANSACTION
-            var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
             var result = await EnforcedTransactionScope.ExecuteAsync(async () => await handler.HandleCheckoutCompletedAsync(payload));
 
+            // Log & Email
             logger.LogInformation("Checkout completed for user {UserId}, plan {Plan}", result.UserId, result.Plan);
-            await SendSubscriptionConfirmationEmailAsync(context, result);
+            await SendConfirmationEmailAsync(context, result);
         }
         catch (Exception ex)
         {
@@ -162,10 +163,11 @@ public static class BillingEndpoints
         try
         {
             var subscription = (Stripe.Subscription)stripeEvent.Data.Object;
+            var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
+            var payload = new SubscriptionDeletedPayload { StripeSubscriptionId = subscription.Id };
 
             // TRANSACTION
-            var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
-            await EnforcedTransactionScope.ExecuteAsync(async () => await handler.HandleSubscriptionDeletedAsync(new SubscriptionDeletedPayload { StripeSubscriptionId = subscription.Id }));
+            await EnforcedTransactionScope.ExecuteAsync(async () => await handler.HandleSubscriptionDeletedAsync(payload));
 
             logger.LogInformation("Subscription deleted: {SubscriptionId}", subscription.Id);
         }
@@ -182,9 +184,9 @@ public static class BillingEndpoints
             var subscription = (Stripe.Subscription)stripeEvent.Data.Object;
             var settings = context.RequestServices.GetRequiredService<IOptions<StripeSettings>>().Value;
             var payload = ToSubscriptionUpdatedPayload(subscription, settings);
+            var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
 
             // TRANSACTION
-            var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
             await EnforcedTransactionScope.ExecuteAsync(async () => await handler.HandleSubscriptionUpdatedAsync(payload));
 
             logger.LogInformation("Subscription updated: {SubscriptionId}, status: {Status}", subscription.Id, subscription.Status);
@@ -208,7 +210,7 @@ public static class BillingEndpoints
         return (subscription, stripeRecord);
     }
 
-    private static async Task SendSubscriptionConfirmationEmailAsync(HttpContext context, CheckoutCompletedResult result)
+    private static async Task SendConfirmationEmailAsync(HttpContext context, CheckoutCompletedResult result)
     {
         try
         {
