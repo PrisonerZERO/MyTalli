@@ -32,8 +32,8 @@ public static class BillingEndpoints
 
             var plan = context.Request.Query["plan"].ToString();
             var priceId = plan == "yearly"
-                ? billing.GetYearlyPriceId()
-                : billing.GetMonthlyPriceId();
+                ? billing.YearlyPriceId
+                : billing.MonthlyPriceId;
 
             var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
             var session = await billing.CreateCheckoutSessionAsync(
@@ -122,8 +122,8 @@ public static class BillingEndpoints
             }
 
             var newPriceId = plan == "yearly"
-                ? billing.GetYearlyPriceId()
-                : billing.GetMonthlyPriceId();
+                ? billing.YearlyPriceId
+                : billing.MonthlyPriceId;
 
             // Switch the plan in Stripe
             await billing.SwitchPlanAsync(stripeRecord.StripeSubscriptionId, newPriceId);
