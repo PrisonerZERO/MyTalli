@@ -286,6 +286,7 @@ My.Talli/
     │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
     │   ├── Framework/
     │   │   ├── Assert.cs                      # Static validation utility (precondition checks)
+    │   │   ├── EnforcedTransactionScope.cs    # Atomic transaction wrapper (sync + async, rethrows after rollback)
     │   │   ├── Roles.cs                       # Static role name constants (Admin, User)
     │   │   └── SubscriptionStatuses.cs        # Static subscription status constants (Active, Cancelling, Cancelled, PastDue, Unpaid)
     │   ├── Components/
@@ -1229,6 +1230,45 @@ using My.Talli.Domain.Framework;
 - **IEntityMapper** (`Domain/Mappers/IEntityMapper.cs`) — generic interface for entity↔model mapping. Concrete mappers live in `Domain/Mappers/Entity/` (one per pair). When adding a new entity/model pair, create a mapper and register it in `Program.cs`.
 - **RepositoryAdapterAsync** (`Domain/Repositories/RepositoryAdapterAsync.cs`) — the only gateway to the data layer. Never use `IAuditableRepositoryAsync<TEntity>` or `GenericAuditableRepositoryAsync<TEntity>` directly in presentation-layer code.
 - **Handlers must not touch audit fields** — no handler, service, or any code in or above the Domain layer should set `CreateByUserId`, `CreatedOnDateTime`, `UpdatedByUserId`, or `UpdatedOnDate`. Audit field stamping is solely the job of `AuditResolver`. Handlers work with models (which don't have audit fields) via `RepositoryAdapterAsync`.
+
+### EnforcedTransactionScope
+
+- **`EnforcedTransactionScope`** (`Domain/Framework/EnforcedTransactionScope.cs`) — static utility that wraps a block of code in a `TransactionScope`. If the block succeeds, the transaction commits. If it throws, the transaction rolls back and the exception rethrows after rollback.
+- **Lives in Domain/Framework** — general-purpose utility like `Assert`, not tied to repositories.
+- **Used in the presentation/service layer, not in handlers.** Handlers are pure business logic with no transaction awareness. The **caller** (endpoint, auth handler) decides the transaction boundary because it knows the full scope of what needs to be atomic.
+- **Wrap all DB writes + critical follow-up operations** inside the scope. Keep side effects (email sends, logging) **outside** — a failed email should not roll back a successful DB commit.
+- **Elmah safety:** Elmah writes to SQL Server on its own connection. Because the exception rethrows *after* the scope disposes (rollback complete), Elmah's error insert is not affected by the rolled-back transaction.
+- **Mark with `// TRANSACTION` comment** — place the comment immediately above the `EnforcedTransactionScope.ExecuteAsync` call for scannability.
+
+**Auth handler pattern** — DB writes + claims inside, email outside:
+```csharp
+// TRANSACTION
+var user = await EnforcedTransactionScope.ExecuteAsync(async () =>
+{
+    var u = await _signInHandler.HandleAsync(argument);
+
+    var identity = (ClaimsIdentity)principal.Identity!;
+    identity.AddClaim(new Claim("UserId", u.Id.ToString()));
+
+    foreach (var role in u.Roles)
+        identity.AddClaim(new Claim(ClaimTypes.Role, role));
+
+    return u;
+});
+
+if (user.IsNewUser)
+    await SendWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
+```
+
+**Endpoint pattern** — handler call inside, logging + email outside:
+```csharp
+// TRANSACTION
+var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
+var result = await EnforcedTransactionScope.ExecuteAsync(async () => await handler.HandleCheckoutCompletedAsync(payload));
+
+logger.LogInformation("Checkout completed for user {UserId}", result.UserId);
+await SendSubscriptionConfirmationEmailAsync(context, result);
+```
 
 ### C# Region Convention
 

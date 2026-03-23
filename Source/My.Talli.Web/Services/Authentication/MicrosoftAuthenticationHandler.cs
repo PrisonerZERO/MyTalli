@@ -1,6 +1,7 @@
 namespace My.Talli.Web.Services.Authentication;
 
 using Domain.Components.Tokens;
+using Domain.Framework;
 using Domain.Handlers.Authentication;
 using Domain.Notifications.Emails;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -52,16 +53,22 @@ public class MicrosoftAuthenticationHandler
             }
         };
 
-        var user = await _signInHandler.HandleAsync(argument);
+        // TRANSACTION
+        var user = await EnforcedTransactionScope.ExecuteAsync(async () =>
+        {
+            var u = await _signInHandler.HandleAsync(argument);
+
+            var identity = (ClaimsIdentity)principal.Identity!;
+            identity.AddClaim(new Claim("UserId", u.Id.ToString()));
+
+            foreach (var role in u.Roles)
+                identity.AddClaim(new Claim(ClaimTypes.Role, role));
+
+            return u;
+        });
 
         if (user.IsNewUser)
             await SendWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
-
-        var identity = (ClaimsIdentity)principal.Identity!;
-        identity.AddClaim(new Claim("UserId", user.Id.ToString()));
-
-        foreach (var role in user.Roles)
-            identity.AddClaim(new Claim(ClaimTypes.Role, role));
     }
 
     private async Task SendWelcomeEmailAsync(string email, string firstName, long userId)
