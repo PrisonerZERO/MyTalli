@@ -11,12 +11,14 @@ public static class TestEndpoints
 
     public static void MapTestEndpoints(this IEndpointRouteBuilder app)
     {
+        // ENDPOINT - Generate Unsubscribe Token
         app.MapGet("/api/test/unsubscribe-token/{userId:long}", (long userId, UnsubscribeTokenService tokenService) =>
         {
             var token = tokenService.GenerateToken(userId);
             return Results.Text(token);
         });
 
+        // ENDPOINT - Send Test Emails
         app.MapGet("/api/test/emails", async (IEmailService emailService, UnsubscribeTokenService tokenService) =>
         {
             var testRecipient = "hello@mytalli.com";
@@ -124,6 +126,7 @@ public static class TestEndpoints
             return Results.Text("3 test emails sent to hello@mytalli.com");
         });
 
+        // ENDPOINT - Trigger Test Error
         app.MapGet("/api/test/error", () =>
         {
             throw new InvalidOperationException("Test exception — verifying error email pipeline is working.");

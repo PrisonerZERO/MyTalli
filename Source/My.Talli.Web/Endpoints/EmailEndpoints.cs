@@ -15,6 +15,7 @@ public static class EmailEndpoints
 
     public static void MapEmailEndpoints(this IEndpointRouteBuilder app)
     {
+        // ENDPOINT - Update Email Preferences
         app.MapPost("/api/email/preferences", async (
             HttpContext context,
             ICurrentUserService currentUserService,

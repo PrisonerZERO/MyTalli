@@ -288,8 +288,7 @@ public static class BillingEndpoints
 
     private static SmtpNotification ToConfirmationSmtp(CheckoutCompletedResult result, UnsubscribeTokenService tokenService)
     {
-        var notification = new SubscriptionConfirmationEmailNotification();
-        return notification.Build(new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload>
+        return new SubscriptionConfirmationEmailNotification().Build(new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload>
         {
             Payload = new SubscriptionConfirmationEmailNotificationPayload
             {
@@ -332,6 +331,7 @@ public static class BillingEndpoints
     private static async Task UpdateLocalSubscriptionAsync(HttpContext context, Subscription subscription, SubscriptionStripe stripeRecord, string plan, string newPriceId)
     {
         var subscriptionAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<Subscription, ENTITIES.Subscription>>();
+        var subscriptionStripeAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<SubscriptionStripe, ENTITIES.SubscriptionStripe>>();
         var productAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<Product, ENTITIES.Product>>();
 
         var newProductName = plan == "yearly" ? "Pro Yearly" : "Pro Monthly";
@@ -346,7 +346,6 @@ public static class BillingEndpoints
                 await subscriptionAdapter.UpdateAsync(subscription);
             }
 
-            var subscriptionStripeAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<SubscriptionStripe, ENTITIES.SubscriptionStripe>>();
             stripeRecord.StripePriceId = newPriceId;
             await subscriptionStripeAdapter.UpdateAsync(stripeRecord);
         });
