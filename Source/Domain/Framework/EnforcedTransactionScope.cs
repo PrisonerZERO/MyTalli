@@ -1,4 +1,4 @@
-﻿namespace My.Talli.Domain.Repositories;
+﻿namespace My.Talli.Domain.Framework;
 
 using System.Transactions;
 
@@ -79,6 +79,27 @@ public class EnforcedTransactionScope : IDisposable
         }
     }
 
+
+    /// <summary>Executes the provided async action within a transaction scope, automatically committing on success or rolling back on exception.</summary>
+    /// <param name="action">The async action to execute within the transaction.</param>
+    public static async Task ExecuteAsync(Func<Task> action)
+    {
+        using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+        await action();
+        scope.Complete();
+    }
+
+    /// <summary>Executes the provided async function within a transaction scope, returning its result and automatically committing on success or rolling back on exception.</summary>
+    /// <typeparam name="T">The return type of the function.</typeparam>
+    /// <param name="func">The async function to execute within the transaction.</param>
+    /// <returns>The result of the function.</returns>
+    public static async Task<T> ExecuteAsync<T>(Func<Task<T>> func)
+    {
+        using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+        var result = await func();
+        scope.Complete();
+        return result;
+    }
 
     public void Rollback()
     {

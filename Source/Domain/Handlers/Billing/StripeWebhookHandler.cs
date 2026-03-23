@@ -83,59 +83,62 @@ public class StripeWebhookHandler
 		var product = (await _productAdapter.FindAsync(x => x.ProductName == payload.ProductName)).FirstOrDefault()
 			?? throw new NotFoundException($"No product found for name {payload.ProductName}");
 
-		var order = await _orderAdapter.InsertAsync(new Order
+		// TRANSACTION
+		return await EnforcedTransactionScope.ExecuteAsync(async () =>
 		{
-			OrderDateTime = DateTime.UtcNow,
-			TaxCharged = 0,
-			UserId = user.Id
-		});
+			var order = await _orderAdapter.InsertAsync(new Order {
+				OrderDateTime = DateTime.UtcNow,
+				TaxCharged = 0,
+				UserId = user.Id
+			});
 
-		var orderItem = await _orderItemAdapter.InsertAsync(new OrderItem
-		{
-			OrderId = order.Id,
-			ProductId = product.Id,
-			ProductPriceCharged = product.VendorPrice,
-			ProductQuantity = 1
-		});
+			var orderItem = await _orderItemAdapter.InsertAsync(new OrderItem
+			{
+				OrderId = order.Id,
+				ProductId = product.Id,
+				ProductPriceCharged = product.VendorPrice,
+				ProductQuantity = 1
+			});
 
-		var subscription = await _subscriptionAdapter.InsertAsync(new Subscription
-		{
-			EndDate = payload.CurrentPeriodEnd,
-			OrderItemId = orderItem.Id,
-			ProductId = product.Id,
-			RenewalDate = payload.CurrentPeriodEnd,
-			StartDate = DateTime.UtcNow,
-			Status = SubscriptionStatuses.Active,
-			UserId = user.Id
-		});
+			var subscription = await _subscriptionAdapter.InsertAsync(new Subscription
+			{
+				EndDate = payload.CurrentPeriodEnd,
+				OrderItemId = orderItem.Id,
+				ProductId = product.Id,
+				RenewalDate = payload.CurrentPeriodEnd,
+				StartDate = DateTime.UtcNow,
+				Status = SubscriptionStatuses.Active,
+				UserId = user.Id
+			});
 
-		await _subscriptionStripeAdapter.InsertAsync(new SubscriptionStripe
-		{
-			Id = subscription.Id,
-			StripeCustomerId = payload.StripeCustomerId,
-			StripePriceId = payload.StripePriceId,
-			StripeSubscriptionId = payload.StripeSubscriptionId
-		});
+			await _subscriptionStripeAdapter.InsertAsync(new SubscriptionStripe
+			{
+				Id = subscription.Id,
+				StripeCustomerId = payload.StripeCustomerId,
+				StripePriceId = payload.StripePriceId,
+				StripeSubscriptionId = payload.StripeSubscriptionId
+			});
 
-		var billing = await _billingAdapter.InsertAsync(new Billing
-		{
-			Amount = product.VendorPrice,
-			Currency = "usd",
-			OrderId = order.Id,
-			Status = "Paid",
-			UserId = user.Id
-		});
+			var billing = await _billingAdapter.InsertAsync(new Billing
+			{
+				Amount = product.VendorPrice,
+				Currency = "usd",
+				OrderId = order.Id,
+				Status = "Paid",
+				UserId = user.Id
+			});
 
-		await _billingStripeAdapter.InsertAsync(new BillingStripe
-		{
-			CardBrand = payload.CardBrand,
-			CardLastFour = payload.CardLastFour,
-			Id = billing.Id,
-			PaymentMethod = payload.PaymentMethod,
-			StripePaymentIntentId = payload.StripePaymentIntentId
-		});
+			await _billingStripeAdapter.InsertAsync(new BillingStripe
+			{
+				CardBrand = payload.CardBrand,
+				CardLastFour = payload.CardLastFour,
+				Id = billing.Id,
+				PaymentMethod = payload.PaymentMethod,
+				StripePaymentIntentId = payload.StripePaymentIntentId
+			});
 
-		return BuildResult(user.Id, user.FirstName, payload.CustomerEmail, product, subscription, payload.CardLastFour);
+			return BuildResult(user.Id, user.FirstName, payload.CustomerEmail, product, subscription, payload.CardLastFour);
+		});
 	}
 
 	public async Task HandleSubscriptionDeletedAsync(SubscriptionDeletedPayload payload)
@@ -150,10 +153,14 @@ public class StripeWebhookHandler
 
 		_currentUserService.Set(subscription.UserId, string.Empty);
 
-		subscription.CancelledDate = DateTime.UtcNow;
-		subscription.Status = SubscriptionStatuses.Cancelled;
+		// TRANSACTION
+		await EnforcedTransactionScope.ExecuteAsync(async () =>
+		{
+			subscription.CancelledDate = DateTime.UtcNow;
+			subscription.Status = SubscriptionStatuses.Cancelled;
 
-		await _subscriptionAdapter.UpdateAsync(subscription);
+			await _subscriptionAdapter.UpdateAsync(subscription);
+		});
 	}
 
 	public async Task HandleSubscriptionUpdatedAsync(SubscriptionUpdatedPayload payload)
@@ -168,39 +175,43 @@ public class StripeWebhookHandler
 
 		_currentUserService.Set(subscription.UserId, string.Empty);
 
-		subscription.EndDate = payload.CurrentPeriodEnd;
-		subscription.RenewalDate = payload.CurrentPeriodEnd;
-
-		if (payload.CancelAtPeriodEnd)
+		// TRANSACTION
+		await EnforcedTransactionScope.ExecuteAsync(async () =>
 		{
-			subscription.CancelledDate = DateTime.UtcNow;
-			subscription.Status = SubscriptionStatuses.Cancelling;
-		}
-		else
-		{
-			subscription.CancelledDate = null;
-			subscription.Status = MapStripeStatus(payload.Status);
-		}
+			subscription.EndDate = payload.CurrentPeriodEnd;
+			subscription.RenewalDate = payload.CurrentPeriodEnd;
 
-		await _subscriptionAdapter.UpdateAsync(subscription);
-
-		if (!string.IsNullOrEmpty(payload.StripePriceId) && payload.StripePriceId != stripeRecord.StripePriceId)
-		{
-			stripeRecord.StripePriceId = payload.StripePriceId;
-			await _subscriptionStripeAdapter.UpdateAsync(stripeRecord);
-
-			if (!string.IsNullOrEmpty(payload.ProductName))
+			if (payload.CancelAtPeriodEnd)
 			{
-				var newProduct = (await _productAdapter.FindAsync(
-					x => x.ProductName == payload.ProductName)).FirstOrDefault();
+				subscription.CancelledDate = DateTime.UtcNow;
+				subscription.Status = SubscriptionStatuses.Cancelling;
+			}
+			else
+			{
+				subscription.CancelledDate = null;
+				subscription.Status = MapStripeStatus(payload.Status);
+			}
 
-				if (newProduct is not null)
+			await _subscriptionAdapter.UpdateAsync(subscription);
+
+			if (!string.IsNullOrEmpty(payload.StripePriceId) && payload.StripePriceId != stripeRecord.StripePriceId)
+			{
+				stripeRecord.StripePriceId = payload.StripePriceId;
+				await _subscriptionStripeAdapter.UpdateAsync(stripeRecord);
+
+				if (!string.IsNullOrEmpty(payload.ProductName))
 				{
-					subscription.ProductId = newProduct.Id;
-					await _subscriptionAdapter.UpdateAsync(subscription);
+					var newProduct = (await _productAdapter.FindAsync(
+						x => x.ProductName == payload.ProductName)).FirstOrDefault();
+
+					if (newProduct is not null)
+					{
+						subscription.ProductId = newProduct.Id;
+						await _subscriptionAdapter.UpdateAsync(subscription);
+					}
 				}
 			}
-		}
+		});
 	}
 
 	private static CheckoutCompletedResult BuildResult(

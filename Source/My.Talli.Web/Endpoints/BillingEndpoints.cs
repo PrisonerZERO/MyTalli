@@ -1,6 +1,7 @@
 namespace My.Talli.Web.Endpoints;
 
 using Domain.Components.Tokens;
+using Domain.Framework;
 using Domain.Handlers.Billing;
 using Domain.Models;
 using Domain.Notifications.Emails;
@@ -331,15 +332,19 @@ public static class BillingEndpoints
         var newProductName = plan == "yearly" ? "Pro Yearly" : "Pro Monthly";
         var newProduct = (await productAdapter.FindAsync(x => x.ProductName == newProductName)).FirstOrDefault();
 
-        if (newProduct is not null)
+        // TRANSACTION
+        await EnforcedTransactionScope.ExecuteAsync(async () =>
         {
-            subscription.ProductId = newProduct.Id;
-            await subscriptionAdapter.UpdateAsync(subscription);
-        }
+            if (newProduct is not null)
+            {
+                subscription.ProductId = newProduct.Id;
+                await subscriptionAdapter.UpdateAsync(subscription);
+            }
 
-        var subscriptionStripeAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<SubscriptionStripe, ENTITIES.SubscriptionStripe>>();
-        stripeRecord.StripePriceId = newPriceId;
-        await subscriptionStripeAdapter.UpdateAsync(stripeRecord);
+            var subscriptionStripeAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<SubscriptionStripe, ENTITIES.SubscriptionStripe>>();
+            stripeRecord.StripePriceId = newPriceId;
+            await subscriptionStripeAdapter.UpdateAsync(stripeRecord);
+        });
     }
 
     #endregion
