@@ -144,8 +144,9 @@ public static class BillingEndpoints
             var settings = context.RequestServices.GetRequiredService<IOptions<StripeSettings>>().Value;
             var payload = await ToCheckoutCompletedPayloadAsync(session, settings);
 
+            // TRANSACTION
             var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
-            var result = await handler.HandleCheckoutCompletedAsync(payload);
+            var result = await EnforcedTransactionScope.ExecuteAsync(async () => await handler.HandleCheckoutCompletedAsync(payload));
 
             logger.LogInformation("Checkout completed for user {UserId}, plan {Plan}", result.UserId, result.Plan);
             await SendSubscriptionConfirmationEmailAsync(context, result);
@@ -162,8 +163,9 @@ public static class BillingEndpoints
         {
             var subscription = (Stripe.Subscription)stripeEvent.Data.Object;
 
+            // TRANSACTION
             var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
-            await handler.HandleSubscriptionDeletedAsync(new SubscriptionDeletedPayload { StripeSubscriptionId = subscription.Id });
+            await EnforcedTransactionScope.ExecuteAsync(async () => await handler.HandleSubscriptionDeletedAsync(new SubscriptionDeletedPayload { StripeSubscriptionId = subscription.Id }));
 
             logger.LogInformation("Subscription deleted: {SubscriptionId}", subscription.Id);
         }
@@ -181,8 +183,9 @@ public static class BillingEndpoints
             var settings = context.RequestServices.GetRequiredService<IOptions<StripeSettings>>().Value;
             var payload = ToSubscriptionUpdatedPayload(subscription, settings);
 
+            // TRANSACTION
             var handler = context.RequestServices.GetRequiredService<StripeWebhookHandler>();
-            await handler.HandleSubscriptionUpdatedAsync(payload);
+            await EnforcedTransactionScope.ExecuteAsync(async () => await handler.HandleSubscriptionUpdatedAsync(payload));
 
             logger.LogInformation("Subscription updated: {SubscriptionId}, status: {Status}", subscription.Id, subscription.Status);
         }
