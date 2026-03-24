@@ -44,9 +44,10 @@ public class AppleAuthenticationHandler
         // TRANSACTION
         var user = await EnforcedTransactionScope.ExecuteAsync(async () =>
         {
+            // Sign-In
             var u = await _signInHandler.HandleAsync(argument);
 
-            // Claims
+            // Add Claim(s)
             var identity = (ClaimsIdentity)principal.Identity!;
             identity.AddClaim(new Claim("UserId", u.Id.ToString()));
 
