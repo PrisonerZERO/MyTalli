@@ -47,7 +47,7 @@ public class AppleAuthenticationHandler
             // Sign-In
             var user = await _signInHandler.HandleAsync(argument);
 
-            // Add Claim
+            // Add Claims
             var identity = (ClaimsIdentity)principal.Identity!;
             identity.AddClaim(new Claim("UserId", user.Id.ToString()));
 
@@ -57,7 +57,7 @@ public class AppleAuthenticationHandler
             return user;
         });
 
-        // Welcome Email
+        // Email
         if (user.IsNewUser)
             await SendWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
     }
@@ -66,10 +66,11 @@ public class AppleAuthenticationHandler
     {
         try
         {
-            var smtp = new WelcomeEmailNotification().Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
-            {
-                Payload = new WelcomeEmailNotificationPayload { FirstName = firstName, UnsubscribeToken = _unsubscribeTokenService.GenerateToken(userId) }
-            });
+            var notification = new WelcomeEmailNotification();
+            var unsubscribeToken = _unsubscribeTokenService.GenerateToken(userId);
+            var notificationPayload = new WelcomeEmailNotificationPayload { FirstName = firstName, UnsubscribeToken = unsubscribeToken };
+            var notificationArgument = new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload> { Payload = notificationPayload };
+            var smtp = notification.Build(notificationArgument);
 
             smtp.To = [email];
             await _emailService.SendAsync(smtp);

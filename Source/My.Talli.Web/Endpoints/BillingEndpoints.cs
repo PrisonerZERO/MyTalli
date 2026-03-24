@@ -288,18 +288,20 @@ public static class BillingEndpoints
 
     private static SmtpNotification ToConfirmationSmtp(CheckoutCompletedResult result, UnsubscribeTokenService tokenService)
     {
-        return new SubscriptionConfirmationEmailNotification().Build(new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload>
+        var notification = new SubscriptionConfirmationEmailNotification();
+        var unsubscribeToken = tokenService.GenerateToken(result.UserId);
+        var notificationPayload = new SubscriptionConfirmationEmailNotificationPayload
         {
-            Payload = new SubscriptionConfirmationEmailNotificationPayload
-            {
-                Amount = result.Amount,
-                CardLastFour = result.CardLastFour,
-                FirstName = result.UserFirstName,
-                Plan = result.Plan,
-                RenewalDate = result.RenewalDate,
-                UnsubscribeToken = tokenService.GenerateToken(result.UserId)
-            }
-        });
+            Amount = result.Amount,
+            CardLastFour = result.CardLastFour,
+            FirstName = result.UserFirstName,
+            Plan = result.Plan,
+            RenewalDate = result.RenewalDate,
+            UnsubscribeToken = unsubscribeToken
+        };
+        var notificationArgument = new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload> { Payload = notificationPayload };
+
+        return notification.Build(notificationArgument);
     }
 
     private static SubscriptionUpdatedPayload ToSubscriptionUpdatedPayload(Stripe.Subscription subscription, StripeSettings settings)

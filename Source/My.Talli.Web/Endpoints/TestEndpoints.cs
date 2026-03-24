@@ -26,36 +26,32 @@ public static class TestEndpoints
 
             // 1. Welcome Email
             var welcomeNotification = new WelcomeEmailNotification();
-            var welcomeEmail = welcomeNotification.Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
-            {
-                Payload = new WelcomeEmailNotificationPayload { FirstName = "Robert", UnsubscribeToken = testToken }
-            });
+            var welcomePayload = new WelcomeEmailNotificationPayload { FirstName = "Robert", UnsubscribeToken = testToken };
+            var welcomeArgument = new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload> { Payload = welcomePayload };
+            var welcomeEmail = welcomeNotification.Build(welcomeArgument);
             welcomeEmail.To = [testRecipient];
             await emailService.SendAsync(welcomeEmail);
 
             // 2. Subscription Confirmation Email
             var subNotification = new SubscriptionConfirmationEmailNotification();
-            var subEmail = subNotification.Build(new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload>
+            var subPayload = new SubscriptionConfirmationEmailNotificationPayload
             {
-                Payload = new SubscriptionConfirmationEmailNotificationPayload
-                {
-                    Amount = "$12.00/mo",
-                    CardLastFour = "4242",
-                    FirstName = "Robert",
-                    Plan = "Pro",
-                    RenewalDate = "April 14, 2026",
-                    UnsubscribeToken = testToken
-                }
-            });
+                Amount = "$12.00/mo",
+                CardLastFour = "4242",
+                FirstName = "Robert",
+                Plan = "Pro",
+                RenewalDate = "April 14, 2026",
+                UnsubscribeToken = testToken
+            };
+            var subArgument = new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload> { Payload = subPayload };
+            var subEmail = subNotification.Build(subArgument);
             subEmail.To = [testRecipient];
             await emailService.SendAsync(subEmail);
 
             // 3. Weekly Summary Email
             var summaryNotification = new WeeklySummaryEmailNotification();
-            var summaryEmail = summaryNotification.Build(new EmailNotificationArgumentOf<WeeklySummaryEmailNotificationPayload>
+            var summaryPayload = new WeeklySummaryEmailNotificationPayload
             {
-                Payload = new WeeklySummaryEmailNotificationPayload
-                {
                     FirstName = "Robert",
                     UnsubscribeToken = testToken,
                     GoalCurrent = "$2,847.00",
@@ -118,8 +114,9 @@ public static class TestEndpoints
                             </table>
                         </td>
                     </tr>"
-                }
-            });
+                };
+            var summaryArgument = new EmailNotificationArgumentOf<WeeklySummaryEmailNotificationPayload> { Payload = summaryPayload };
+            var summaryEmail = summaryNotification.Build(summaryArgument);
             summaryEmail.To = [testRecipient];
             await emailService.SendAsync(summaryEmail);
 

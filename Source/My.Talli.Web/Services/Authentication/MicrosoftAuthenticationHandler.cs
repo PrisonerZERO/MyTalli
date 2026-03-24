@@ -49,19 +49,20 @@ public class MicrosoftAuthenticationHandler
         // TRANSACTION
         var user = await EnforcedTransactionScope.ExecuteAsync(async () =>
         {
-            var u = await _signInHandler.HandleAsync(argument);
+            // Sign-In
+            var user = await _signInHandler.HandleAsync(argument);
 
-            // Claims
+            // Add Claims
             var identity = (ClaimsIdentity)principal.Identity!;
-            identity.AddClaim(new Claim("UserId", u.Id.ToString()));
+            identity.AddClaim(new Claim("UserId", user.Id.ToString()));
 
-            foreach (var role in u.Roles)
+            foreach (var role in user.Roles)
                 identity.AddClaim(new Claim(ClaimTypes.Role, role));
 
-            return u;
+            return user;
         });
 
-        // Welcome Email
+        // Email
         if (user.IsNewUser)
             await SendWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
     }
@@ -70,10 +71,11 @@ public class MicrosoftAuthenticationHandler
     {
         try
         {
-            var smtp = new WelcomeEmailNotification().Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
-            {
-                Payload = new WelcomeEmailNotificationPayload { FirstName = firstName, UnsubscribeToken = _unsubscribeTokenService.GenerateToken(userId) }
-            });
+            var notification = new WelcomeEmailNotification();
+            var unsubscribeToken = _unsubscribeTokenService.GenerateToken(userId);
+            var notificationPayload = new WelcomeEmailNotificationPayload { FirstName = firstName, UnsubscribeToken = unsubscribeToken };
+            var notificationArgument = new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload> { Payload = notificationPayload };
+            var smtp = notification.Build(notificationArgument);
 
             smtp.To = [email];
             await _emailService.SendAsync(smtp);
