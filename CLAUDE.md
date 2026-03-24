@@ -1387,4 +1387,5 @@ Features already shipped in the static HTML landing page (`deploy/index.html`) t
 Upcoming features:
 
 - [ ] **Admin Page** — role-based admin section (`/admin`) for viewing all suggestion box submissions, user management, platform connection health, and feature flag/tier management. Accessible only to accounts with an `Admin` role.
+- [ ] **Admin Email Resend** — admin ability to resend failed emails (welcome, subscription confirmation, weekly summary) for a specific user. Welcome and confirmation emails fail silently (logged but swallowed) so users aren't blocked — admins need a way to see failures and retry.
 - [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.

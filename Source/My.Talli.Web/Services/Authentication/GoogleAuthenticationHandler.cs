@@ -5,6 +5,7 @@ using Domain.Framework;
 using Domain.Handlers.Authentication;
 using Domain.Notifications.Emails;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.Extensions.Logging;
 using Services.Email;
 using System.Security.Claims;
 
@@ -14,6 +15,7 @@ public class GoogleAuthenticationHandler
     #region <Variables>
 
     private readonly IEmailService _emailService;
+    private readonly ILogger<GoogleAuthenticationHandler> _logger;
     private readonly GoogleSignInHandler _signInHandler;
     private readonly UnsubscribeTokenService _unsubscribeTokenService;
 
@@ -24,10 +26,12 @@ public class GoogleAuthenticationHandler
 
     public GoogleAuthenticationHandler(
         IEmailService emailService,
+        ILogger<GoogleAuthenticationHandler> logger,
         GoogleSignInHandler signInHandler,
         UnsubscribeTokenService unsubscribeTokenService)
     {
         _emailService = emailService;
+        _logger = logger;
         _signInHandler = signInHandler;
         _unsubscribeTokenService = unsubscribeTokenService;
     }
@@ -64,13 +68,20 @@ public class GoogleAuthenticationHandler
 
     private async Task SendWelcomeEmailAsync(string email, string firstName, long userId)
     {
-        var smtp = new WelcomeEmailNotification().Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
+        try
         {
-            Payload = new WelcomeEmailNotificationPayload { FirstName = firstName, UnsubscribeToken = _unsubscribeTokenService.GenerateToken(userId) }
-        });
+            var smtp = new WelcomeEmailNotification().Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
+            {
+                Payload = new WelcomeEmailNotificationPayload { FirstName = firstName, UnsubscribeToken = _unsubscribeTokenService.GenerateToken(userId) }
+            });
 
-        smtp.To = [email];
-        await _emailService.SendAsync(smtp);
+            smtp.To = [email];
+            await _emailService.SendAsync(smtp);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send welcome email for user {UserId}", userId);
+        }
     }
 
     private static SignInArgumentOf<GoogleSignInPayload> ToSignInArgument(ClaimsPrincipal principal)
