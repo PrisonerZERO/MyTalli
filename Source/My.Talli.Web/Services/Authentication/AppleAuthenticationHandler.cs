@@ -32,7 +32,6 @@ public class AppleAuthenticationHandler
         _unsubscribeTokenService = unsubscribeTokenService;
     }
 
-
     #endregion
 
     #region <Methods>
