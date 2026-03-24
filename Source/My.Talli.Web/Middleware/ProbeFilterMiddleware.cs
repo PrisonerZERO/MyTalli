@@ -7,7 +7,6 @@ public class ProbeFilterMiddleware
 
     private readonly RequestDelegate _next;
 
-    
     #endregion
 
     #region <Constructors>
@@ -27,8 +26,7 @@ public class ProbeFilterMiddleware
         var path = context.Request.Path.Value ?? "";
 
         // BLAZOR DISCONNECT — Expired Circuits return 400, polluting Elmah. Short-circuit with 200.
-        if (path.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase)
-            && context.Request.Method == HttpMethods.Post)
+        if (path.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase) && context.Request.Method == HttpMethods.Post)
         {
             context.Response.StatusCode = 200;
             return;
@@ -48,7 +46,19 @@ public class ProbeFilterMiddleware
             return;
         }
 
-        if (path.Contains(".env", StringComparison.OrdinalIgnoreCase)
+        // BOT/SCANNER PROBES — Known attack paths, should short-circuit with 404.
+        if (IsProbeRequest(path))
+        {
+            context.Response.StatusCode = 404;
+            return;
+        }
+
+        await _next(context);
+    }
+
+    private static bool IsProbeRequest(string path)
+    {
+        return path.Contains(".env", StringComparison.OrdinalIgnoreCase)
             || path.Contains(".git", StringComparison.OrdinalIgnoreCase)
             || path.Contains("wp-login", StringComparison.OrdinalIgnoreCase)
             || path.Contains("wp-admin", StringComparison.OrdinalIgnoreCase)
@@ -62,15 +72,8 @@ public class ProbeFilterMiddleware
             || path.EndsWith(".asp", StringComparison.OrdinalIgnoreCase)
             || path.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase)
             || path.EndsWith(".jsp", StringComparison.OrdinalIgnoreCase)
-            || path.EndsWith(".cgi", StringComparison.OrdinalIgnoreCase))
-        {
-            context.Response.StatusCode = 404;
-            return;
-        }
-
-        await _next(context);
+            || path.EndsWith(".cgi", StringComparison.OrdinalIgnoreCase);
     }
-
 
     #endregion
 }

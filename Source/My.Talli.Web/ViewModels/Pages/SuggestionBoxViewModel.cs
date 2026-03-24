@@ -72,7 +72,6 @@ public class SuggestionBoxViewModel : ComponentBase
 			return;
 
 		var userIdClaim = principal.FindFirst("UserId")?.Value;
-
 		if (userIdClaim is null || !long.TryParse(userIdClaim, out var userId))
 			return;
 
@@ -116,16 +115,7 @@ public class SuggestionBoxViewModel : ComponentBase
 		if (_userId is null || string.IsNullOrWhiteSpace(NewTitle))
 			return;
 
-		var suggestion = new MODELS.Suggestion
-		{
-			Category = NewCategory,
-			Description = NewDescription,
-			Status = SuggestionStatuses.Submitted,
-			Title = NewTitle,
-			UserId = _userId.Value,
-		};
-
-		await SuggestionAdapter.InsertAsync(suggestion);
+		await SuggestionAdapter.InsertAsync(ToNewSuggestion());
 
 		ShowSubmitModal = false;
 		await LoadSuggestionsAsync();
@@ -138,8 +128,7 @@ public class SuggestionBoxViewModel : ComponentBase
 
 		if (suggestion.HasVoted)
 		{
-			var votes = await VoteAdapter.FindAsync(v =>
-				v.SuggestionId == suggestion.Id && v.UserId == _userId.Value);
+			var votes = await VoteAdapter.FindAsync(v => v.SuggestionId == suggestion.Id && v.UserId == _userId.Value);
 			var vote = votes.FirstOrDefault();
 
 			if (vote is not null)
@@ -147,12 +136,7 @@ public class SuggestionBoxViewModel : ComponentBase
 		}
 		else
 		{
-			var vote = new MODELS.SuggestionVote
-			{
-				SuggestionId = suggestion.Id,
-				UserId = _userId.Value,
-			};
-
+			var vote = new MODELS.SuggestionVote { SuggestionId = suggestion.Id, UserId = _userId.Value, };
 			await VoteAdapter.InsertAsync(vote);
 		}
 
@@ -177,29 +161,41 @@ public class SuggestionBoxViewModel : ComponentBase
 		var allSuggestions = await SuggestionAdapter.GetAllAsync();
 		var allVotes = await VoteAdapter.GetAllAsync();
 
-		Suggestions = allSuggestions.Select(s =>
-		{
-			var votesForSuggestion = allVotes.Where(v => v.SuggestionId == s.Id).ToList();
-
-			return new SuggestionItem
-			{
-				Author = s.UserId == _userId ? "You" : $"User #{s.UserId}",
-				Category = s.Category,
-				CreatedOn = s.CreatedOn,
-				Description = s.Description,
-				HasVoted = votesForSuggestion.Any(v => v.UserId == _userId),
-				Id = s.Id,
-				IsOwn = s.UserId == _userId,
-				Title = s.Title,
-				Votes = votesForSuggestion.Count,
-			};
-		}).ToList();
+		Suggestions = allSuggestions.Select(s => ToSuggestionItem(s, allVotes)).ToList();
 
 		ApplyFilters();
 	}
 
-	private List<SuggestionItem> Suggestions { get; set; } = [];
+	private MODELS.Suggestion ToNewSuggestion()
+	{
+		return new MODELS.Suggestion
+		{
+			Category = NewCategory,
+			Description = NewDescription,
+			Status = SuggestionStatuses.Submitted,
+			Title = NewTitle,
+			UserId = _userId!.Value,
+		};
+	}
 
+	private SuggestionItem ToSuggestionItem(MODELS.Suggestion s, IEnumerable<MODELS.SuggestionVote> allVotes)
+	{
+		var votesForSuggestion = allVotes.Where(v => v.SuggestionId == s.Id).ToList();
+
+		return new SuggestionItem {
+			Author = s.UserId == _userId ? "You" : $"User #{s.UserId}",
+			Category = s.Category,
+			CreatedOn = s.CreatedOn,
+			Description = s.Description,
+			HasVoted = votesForSuggestion.Any(v => v.UserId == _userId),
+			Id = s.Id,
+			IsOwn = s.UserId == _userId,
+			Title = s.Title,
+			Votes = votesForSuggestion.Count,
+		};
+	}
+
+	private List<SuggestionItem> Suggestions { get; set; } = [];
 
 	#endregion
 }
