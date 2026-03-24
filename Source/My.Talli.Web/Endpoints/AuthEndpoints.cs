@@ -13,6 +13,7 @@ public static class AuthEndpoints
 
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
+        // ENDPOINT - Login
         app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext context) =>
         {
             var properties = new AuthenticationProperties { RedirectUri = "/dashboard" };
@@ -27,6 +28,7 @@ public static class AuthEndpoints
             await context.ChallengeAsync(scheme, properties);
         });
 
+        // ENDPOINT - Logout
         app.MapGet("/api/auth/logout", async (HttpContext context) =>
         {
             var name = context.User.Identity?.Name;

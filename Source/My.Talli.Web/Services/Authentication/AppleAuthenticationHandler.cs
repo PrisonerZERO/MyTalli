@@ -1,9 +1,11 @@
 namespace My.Talli.Web.Services.Authentication;
 
 using Domain.Components.Tokens;
+using Domain.Framework;
 using Domain.Handlers.Authentication;
 using Domain.Notifications.Emails;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.Extensions.Logging;
 using Services.Email;
 using System.Security.Claims;
 
@@ -13,6 +15,7 @@ public class AppleAuthenticationHandler
     #region <Variables>
 
     private readonly IEmailService _emailService;
+    private readonly ILogger<AppleAuthenticationHandler> _logger;
     private readonly AppleSignInHandler _signInHandler;
     private readonly UnsubscribeTokenService _unsubscribeTokenService;
 
@@ -21,12 +24,10 @@ public class AppleAuthenticationHandler
 
     #region <Constructors>
 
-    public AppleAuthenticationHandler(
-        IEmailService emailService,
-        AppleSignInHandler signInHandler,
-        UnsubscribeTokenService unsubscribeTokenService)
+    public AppleAuthenticationHandler(IEmailService emailService, ILogger<AppleAuthenticationHandler> logger, AppleSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
     {
         _emailService = emailService;
+        _logger = logger;
         _signInHandler = signInHandler;
         _unsubscribeTokenService = unsubscribeTokenService;
     }
@@ -39,8 +40,49 @@ public class AppleAuthenticationHandler
     public async Task HandleTicketAsync(OAuthCreatingTicketContext context)
     {
         var principal = context.Principal!;
+        var argument = ToSignInArgument(principal);
 
-        var argument = new SignInArgumentOf<AppleSignInPayload>
+        // TRANSACTION
+        var user = await EnforcedTransactionScope.ExecuteAsync(async () =>
+        {
+            var u = await _signInHandler.HandleAsync(argument);
+
+            // Claims
+            var identity = (ClaimsIdentity)principal.Identity!;
+            identity.AddClaim(new Claim("UserId", u.Id.ToString()));
+
+            foreach (var role in u.Roles)
+                identity.AddClaim(new Claim(ClaimTypes.Role, role));
+
+            return u;
+        });
+
+        // Welcome Email
+        if (user.IsNewUser)
+            await SendWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
+    }
+
+    private async Task SendWelcomeEmailAsync(string email, string firstName, long userId)
+    {
+        try
+        {
+            var smtp = new WelcomeEmailNotification().Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
+            {
+                Payload = new WelcomeEmailNotificationPayload { FirstName = firstName, UnsubscribeToken = _unsubscribeTokenService.GenerateToken(userId) }
+            });
+
+            smtp.To = [email];
+            await _emailService.SendAsync(smtp);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send welcome email for user {UserId}", userId);
+        }
+    }
+
+    private static SignInArgumentOf<AppleSignInPayload> ToSignInArgument(ClaimsPrincipal principal)
+    {
+        return new SignInArgumentOf<AppleSignInPayload>
         {
             DisplayName = principal.FindFirstValue(ClaimTypes.Name) ?? string.Empty,
             Email = principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
@@ -52,32 +94,6 @@ public class AppleAuthenticationHandler
                 IsPrivateRelay = principal.FindFirstValue("urn:apple:is_private_email") == "true"
             }
         };
-
-        var user = await _signInHandler.HandleAsync(argument);
-
-        if (user.IsNewUser)
-            await SendWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
-
-        var identity = (ClaimsIdentity)principal.Identity!;
-        identity.AddClaim(new Claim("UserId", user.Id.ToString()));
-
-        foreach (var role in user.Roles)
-            identity.AddClaim(new Claim(ClaimTypes.Role, role));
-    }
-
-    private async Task SendWelcomeEmailAsync(string email, string firstName, long userId)
-    {
-        var notification = new WelcomeEmailNotification();
-        var smtp = notification.Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
-        {
-            Payload = new WelcomeEmailNotificationPayload
-            {
-                FirstName = firstName,
-                UnsubscribeToken = _unsubscribeTokenService.GenerateToken(userId)
-            }
-        });
-        smtp.To = [email];
-        await _emailService.SendAsync(smtp);
     }
 
 

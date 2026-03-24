@@ -58,8 +58,7 @@ public class UpgradeViewModel : ComponentBase
 
 	protected override async Task OnInitializedAsync()
 	{
-		var uri = new Uri(Navigation.Uri);
-		var query = QueryHelpers.ParseQuery(uri.Query);
+		var query = QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query);
 
 		if (query.TryGetValue("status", out var status))
 		{
@@ -84,15 +83,10 @@ public class UpgradeViewModel : ComponentBase
 			return;
 
 		var userIdClaim = principal.FindFirst("UserId")?.Value;
-
 		if (userIdClaim is null || !long.TryParse(userIdClaim, out var userId))
 			return;
 
-		var subscription = (await SubscriptionAdapter.FindAsync(
-			x => x.UserId == userId
-				&& (x.Status == SubscriptionStatuses.Active || x.Status == SubscriptionStatuses.Cancelling)))
-			.FirstOrDefault();
-
+		var subscription = (await SubscriptionAdapter.FindAsync(x => x.UserId == userId && (x.Status == SubscriptionStatuses.Active || x.Status == SubscriptionStatuses.Cancelling))).FirstOrDefault();
 		if (subscription is null)
 			return;
 
