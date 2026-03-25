@@ -1,34 +1,27 @@
 namespace My.Talli.Web.Handlers.Authentication;
 
-using Domain.Components.Tokens;
 using Domain.Framework;
 using Domain.Handlers.Authentication;
-using Domain.Notifications.Emails;
 using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.Extensions.Logging;
-using Services.Email;
 using System.Security.Claims;
+using Web.Commands.Authentication;
 
 /// <summary>Handler</summary>
 public class GoogleAuthenticationHandler
 {
     #region <Variables>
 
-    private readonly IEmailService _emailService;
-    private readonly ILogger<GoogleAuthenticationHandler> _logger;
     private readonly GoogleSignInHandler _signInHandler;
-    private readonly UnsubscribeTokenService _unsubscribeTokenService;
+    private readonly SendWelcomeEmailCommand _sendWelcomeEmail;
 
     #endregion
 
     #region <Constructors>
 
-    public GoogleAuthenticationHandler(IEmailService emailService, ILogger<GoogleAuthenticationHandler> logger, GoogleSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
+    public GoogleAuthenticationHandler(GoogleSignInHandler signInHandler, SendWelcomeEmailCommand sendWelcomeEmail)
     {
-        _emailService = emailService;
-        _logger = logger;
+        _sendWelcomeEmail = sendWelcomeEmail;
         _signInHandler = signInHandler;
-        _unsubscribeTokenService = unsubscribeTokenService;
     }
 
     #endregion
@@ -58,26 +51,7 @@ public class GoogleAuthenticationHandler
 
         // Email
         if (user.IsNewUser)
-            await SendWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
-    }
-
-    private async Task SendWelcomeEmailAsync(string email, string firstName, long userId)
-    {
-        try
-        {
-            var notification = new WelcomeEmailNotification();
-            var unsubscribeToken = _unsubscribeTokenService.GenerateToken(userId);
-            var notificationPayload = new WelcomeEmailNotificationPayload { FirstName = firstName, UnsubscribeToken = unsubscribeToken };
-            var notificationArgument = new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload> { Payload = notificationPayload };
-            var smtp = notification.Build(notificationArgument);
-
-            smtp.To = [email];
-            await _emailService.SendAsync(smtp);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send welcome email for user {UserId}", userId);
-        }
+            await _sendWelcomeEmail.ExecuteAsync(argument.Email, user.FirstName, user.Id);
     }
 
     private static SignInArgumentOf<GoogleSignInPayload> ToSignInArgument(ClaimsPrincipal principal)
