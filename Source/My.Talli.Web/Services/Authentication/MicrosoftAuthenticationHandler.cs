@@ -24,11 +24,7 @@ public class MicrosoftAuthenticationHandler
 
     #region <Constructors>
 
-    public MicrosoftAuthenticationHandler(
-        IEmailService emailService,
-        ILogger<MicrosoftAuthenticationHandler> logger,
-        MicrosoftSignInHandler signInHandler,
-        UnsubscribeTokenService unsubscribeTokenService)
+    public MicrosoftAuthenticationHandler(IEmailService emailService, ILogger<MicrosoftAuthenticationHandler> logger, MicrosoftSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
     {
         _emailService = emailService;
         _logger = logger;

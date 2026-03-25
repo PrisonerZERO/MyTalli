@@ -24,11 +24,7 @@ public class GoogleAuthenticationHandler
 
     #region <Constructors>
 
-    public GoogleAuthenticationHandler(
-        IEmailService emailService,
-        ILogger<GoogleAuthenticationHandler> logger,
-        GoogleSignInHandler signInHandler,
-        UnsubscribeTokenService unsubscribeTokenService)
+    public GoogleAuthenticationHandler(IEmailService emailService, ILogger<GoogleAuthenticationHandler> logger, GoogleSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
     {
         _emailService = emailService;
         _logger = logger;
