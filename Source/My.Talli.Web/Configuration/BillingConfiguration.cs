@@ -1,5 +1,6 @@
 namespace My.Talli.Web.Configuration;
 
+using Web.Commands.Endpoints;
 using Web.Handlers.Endpoints;
 using Web.Services.Billing;
 
@@ -14,9 +15,11 @@ public static class BillingConfiguration
 
         services.Configure<StripeSettings>(stripeSection);
         services.AddScoped<CheckoutCompletedHandler>();
+        services.AddScoped<FindActiveSubscriptionWithStripeCommand>();
         services.AddScoped<StripeBillingService>();
         services.AddScoped<SubscriptionDeletedHandler>();
         services.AddScoped<SubscriptionUpdatedHandler>();
+        services.AddScoped<UpdateLocalSubscriptionCommand>();
 
         Stripe.StripeConfiguration.ApiKey = stripeSection["SecretKey"];
     }

@@ -1,13 +1,9 @@
 namespace My.Talli.Web.Endpoints;
 
-using Domain.Framework;
-using Domain.Models;
-using Domain.Repositories;
 using System.Security.Claims;
+using Web.Commands.Endpoints;
 using Web.Handlers.Endpoints;
 using Web.Services.Billing;
-
-using ENTITIES = Domain.Entities;
 
 /// <summary>Endpoint</summary>
 public static class BillingEndpoints
@@ -47,13 +43,13 @@ public static class BillingEndpoints
         return Results.Empty;
     }
 
-    private static async Task<IResult> CreatePortalSession(HttpContext context, StripeBillingService billing)
+    private static async Task<IResult> CreatePortalSession(HttpContext context, StripeBillingService billing, FindActiveSubscriptionWithStripeCommand findSubscription)
     {
         var userIdClaim = context.User.FindFirst("UserId")?.Value;
         if (!long.TryParse(userIdClaim, out var userId))
             return Results.Unauthorized();
 
-        var (subscription, stripeRecord) = await FindActiveSubscriptionWithStripeAsync(context, userId);
+        var (subscription, stripeRecord) = await findSubscription.ExecuteAsync(userId);
         if (subscription is null || stripeRecord is null)
         {
             context.Response.Redirect("/upgrade");
@@ -67,7 +63,7 @@ public static class BillingEndpoints
         return Results.Empty;
     }
 
-    private static async Task<IResult> SwitchPlan(HttpContext context, StripeBillingService billing)
+    private static async Task<IResult> SwitchPlan(HttpContext context, StripeBillingService billing, FindActiveSubscriptionWithStripeCommand findSubscription, UpdateLocalSubscriptionCommand updateSubscription)
     {
         var userIdClaim = context.User.FindFirst("UserId")?.Value;
         if (!long.TryParse(userIdClaim, out var userId))
@@ -80,7 +76,7 @@ public static class BillingEndpoints
             return Results.Empty;
         }
 
-        var (subscription, stripeRecord) = await FindActiveSubscriptionWithStripeAsync(context, userId);
+        var (subscription, stripeRecord) = await findSubscription.ExecuteAsync(userId);
         if (subscription is null || stripeRecord is null)
         {
             context.Response.Redirect("/upgrade");
@@ -91,7 +87,7 @@ public static class BillingEndpoints
         await billing.SwitchPlanAsync(stripeRecord.StripeSubscriptionId, newPriceId);
 
         // UPDATE - Don't wait for webhook
-        await UpdateLocalSubscriptionAsync(context, subscription, stripeRecord, plan, newPriceId);
+        await updateSubscription.ExecuteAsync(subscription, stripeRecord, plan, newPriceId);
 
         context.Response.Redirect("/upgrade?status=switched");
         return Results.Empty;
@@ -135,42 +131,6 @@ public static class BillingEndpoints
             logger.LogWarning(ex, "Stripe webhook signature verification failed");
             return Results.BadRequest();
         }
-    }
-
-    private static async Task<(Subscription?, SubscriptionStripe?)> FindActiveSubscriptionWithStripeAsync(HttpContext context, long userId)
-    {
-        var subscriptionAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<Subscription, ENTITIES.Subscription>>();
-        var subscriptionStripeAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<SubscriptionStripe, ENTITIES.SubscriptionStripe>>();
-
-        var subscription = (await subscriptionAdapter.FindAsync(x => x.UserId == userId && (x.Status == "Active" || x.Status == "Cancelling"))).FirstOrDefault();
-        if (subscription is null)
-            return (null, null);
-
-        var stripeRecord = await subscriptionStripeAdapter.GetByIdAsync(subscription.Id);
-        return (subscription, stripeRecord);
-    }
-
-    private static async Task UpdateLocalSubscriptionAsync(HttpContext context, Subscription subscription, SubscriptionStripe stripeRecord, string plan, string newPriceId)
-    {
-        var subscriptionAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<Subscription, ENTITIES.Subscription>>();
-        var subscriptionStripeAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<SubscriptionStripe, ENTITIES.SubscriptionStripe>>();
-        var productAdapter = context.RequestServices.GetRequiredService<RepositoryAdapterAsync<Product, ENTITIES.Product>>();
-
-        var newProductName = plan == "yearly" ? "Pro Yearly" : "Pro Monthly";
-        var newProduct = (await productAdapter.FindAsync(x => x.ProductName == newProductName)).FirstOrDefault();
-
-        // TRANSACTION
-        await EnforcedTransactionScope.ExecuteAsync(async () =>
-        {
-            if (newProduct is not null)
-            {
-                subscription.ProductId = newProduct.Id;
-                await subscriptionAdapter.UpdateAsync(subscription);
-            }
-
-            stripeRecord.StripePriceId = newPriceId;
-            await subscriptionStripeAdapter.UpdateAsync(stripeRecord);
-        });
     }
 
     #endregion
