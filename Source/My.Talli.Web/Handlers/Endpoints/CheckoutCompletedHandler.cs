@@ -9,12 +9,12 @@ using Web.Services.Billing;
 using Web.Services.Email;
 
 /// <summary>Handler</summary>
-public class BillingWebhookHandler
+public class CheckoutCompletedHandler
 {
     #region <Variables>
 
     private readonly IEmailService _emailService;
-    private readonly ILogger<BillingWebhookHandler> _logger;
+    private readonly ILogger<CheckoutCompletedHandler> _logger;
     private readonly StripeSettings _settings;
     private readonly StripeWebhookHandler _stripeWebhookHandler;
     private readonly UnsubscribeTokenService _tokenService;
@@ -23,7 +23,7 @@ public class BillingWebhookHandler
 
     #region <Constructors>
 
-    public BillingWebhookHandler(IEmailService emailService, ILogger<BillingWebhookHandler> logger, IOptions<StripeSettings> settings, StripeWebhookHandler stripeWebhookHandler, UnsubscribeTokenService tokenService)
+    public CheckoutCompletedHandler(IEmailService emailService, ILogger<CheckoutCompletedHandler> logger, IOptions<StripeSettings> settings, StripeWebhookHandler stripeWebhookHandler, UnsubscribeTokenService tokenService)
     {
         _emailService = emailService;
         _logger = logger;
@@ -36,12 +36,12 @@ public class BillingWebhookHandler
 
     #region <Methods>
 
-    public async Task HandleCheckoutCompletedAsync(Stripe.Event stripeEvent)
+    public async Task HandleAsync(Stripe.Event stripeEvent)
     {
         try
         {
             var session = (Stripe.Checkout.Session)stripeEvent.Data.Object;
-            var payload = await ToCheckoutCompletedPayloadAsync(session);
+            var payload = await ToPayloadAsync(session);
 
             // TRANSACTION
             var result = await EnforcedTransactionScope.ExecuteAsync(async () => await _stripeWebhookHandler.HandleCheckoutCompletedAsync(payload));
@@ -53,42 +53,6 @@ public class BillingWebhookHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing checkout.session.completed event {EventId}", stripeEvent.Id);
-        }
-    }
-
-    public async Task HandleSubscriptionDeletedAsync(Stripe.Event stripeEvent)
-    {
-        try
-        {
-            var subscription = (Stripe.Subscription)stripeEvent.Data.Object;
-            var payload = new SubscriptionDeletedPayload { StripeSubscriptionId = subscription.Id };
-
-            // TRANSACTION
-            await EnforcedTransactionScope.ExecuteAsync(async () => await _stripeWebhookHandler.HandleSubscriptionDeletedAsync(payload));
-
-            _logger.LogInformation("Subscription deleted: {SubscriptionId}", subscription.Id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing customer.subscription.deleted event {EventId}", stripeEvent.Id);
-        }
-    }
-
-    public async Task HandleSubscriptionUpdatedAsync(Stripe.Event stripeEvent)
-    {
-        try
-        {
-            var subscription = (Stripe.Subscription)stripeEvent.Data.Object;
-            var payload = ToSubscriptionUpdatedPayload(subscription);
-
-            // TRANSACTION
-            await EnforcedTransactionScope.ExecuteAsync(async () => await _stripeWebhookHandler.HandleSubscriptionUpdatedAsync(payload));
-
-            _logger.LogInformation("Subscription updated: {SubscriptionId}, status: {Status}", subscription.Id, subscription.Status);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing customer.subscription.updated event {EventId}", stripeEvent.Id);
         }
     }
 
@@ -109,7 +73,25 @@ public class BillingWebhookHandler
         }
     }
 
-    private async Task<CheckoutCompletedPayload> ToCheckoutCompletedPayloadAsync(Stripe.Checkout.Session session)
+    private SmtpNotification ToConfirmationSmtp(CheckoutCompletedResult result)
+    {
+        var notification = new SubscriptionConfirmationEmailNotification();
+        var unsubscribeToken = _tokenService.GenerateToken(result.UserId);
+        var notificationPayload = new SubscriptionConfirmationEmailNotificationPayload
+        {
+            Amount = result.Amount,
+            CardLastFour = result.CardLastFour,
+            FirstName = result.UserFirstName,
+            Plan = result.Plan,
+            RenewalDate = result.RenewalDate,
+            UnsubscribeToken = unsubscribeToken
+        };
+        var notificationArgument = new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload> { Payload = notificationPayload };
+
+        return notification.Build(notificationArgument);
+    }
+
+    private async Task<CheckoutCompletedPayload> ToPayloadAsync(Stripe.Checkout.Session session)
     {
         var stripeSubscriptionId = session.SubscriptionId ?? string.Empty;
         var stripeCustomerId = session.CustomerId ?? string.Empty;
@@ -161,50 +143,6 @@ public class BillingWebhookHandler
             StripePriceId = stripePriceId,
             StripeSubscriptionId = stripeSubscriptionId,
             UserId = userId
-        };
-    }
-
-    private SmtpNotification ToConfirmationSmtp(CheckoutCompletedResult result)
-    {
-        var notification = new SubscriptionConfirmationEmailNotification();
-        var unsubscribeToken = _tokenService.GenerateToken(result.UserId);
-        var notificationPayload = new SubscriptionConfirmationEmailNotificationPayload
-        {
-            Amount = result.Amount,
-            CardLastFour = result.CardLastFour,
-            FirstName = result.UserFirstName,
-            Plan = result.Plan,
-            RenewalDate = result.RenewalDate,
-            UnsubscribeToken = unsubscribeToken
-        };
-        var notificationArgument = new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload> { Payload = notificationPayload };
-
-        return notification.Build(notificationArgument);
-    }
-
-    private SubscriptionUpdatedPayload ToSubscriptionUpdatedPayload(Stripe.Subscription subscription)
-    {
-        var stripePriceId = string.Empty;
-        var currentPeriodEnd = DateTime.UtcNow.AddMonths(1);
-
-        if (subscription.Items?.Data?.Count > 0)
-        {
-            stripePriceId = subscription.Items.Data[0].Price?.Id ?? string.Empty;
-            currentPeriodEnd = subscription.Items.Data[0].CurrentPeriodEnd;
-        }
-
-        string? productName = null;
-        if (!string.IsNullOrEmpty(stripePriceId))
-            productName = stripePriceId == _settings.YearlyPriceId ? "Pro Yearly" : "Pro Monthly";
-
-        return new SubscriptionUpdatedPayload
-        {
-            CancelAtPeriodEnd = subscription.CancelAtPeriodEnd,
-            CurrentPeriodEnd = currentPeriodEnd,
-            ProductName = productName,
-            Status = subscription.Status,
-            StripePriceId = stripePriceId,
-            StripeSubscriptionId = subscription.Id
         };
     }
 

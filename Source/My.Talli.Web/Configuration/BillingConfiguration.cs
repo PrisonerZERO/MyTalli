@@ -13,8 +13,10 @@ public static class BillingConfiguration
         var stripeSection = configuration.GetSection("Stripe");
 
         services.Configure<StripeSettings>(stripeSection);
-        services.AddScoped<BillingWebhookHandler>();
+        services.AddScoped<CheckoutCompletedHandler>();
         services.AddScoped<StripeBillingService>();
+        services.AddScoped<SubscriptionDeletedHandler>();
+        services.AddScoped<SubscriptionUpdatedHandler>();
 
         Stripe.StripeConfiguration.ApiKey = stripeSection["SecretKey"];
     }

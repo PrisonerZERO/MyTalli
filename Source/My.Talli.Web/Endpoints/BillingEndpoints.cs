@@ -106,20 +106,19 @@ public static class BillingEndpoints
         try
         {
             var stripeEvent = Stripe.EventUtility.ConstructEvent(json, context.Request.Headers["Stripe-Signature"], webhookSecret);
-            var handler = context.RequestServices.GetRequiredService<BillingWebhookHandler>();
 
             switch (stripeEvent.Type)
             {
                 case Stripe.EventTypes.CheckoutSessionCompleted:
-                    await handler.HandleCheckoutCompletedAsync(stripeEvent);
+                    await context.RequestServices.GetRequiredService<CheckoutCompletedHandler>().HandleAsync(stripeEvent);
                     break;
 
                 case Stripe.EventTypes.CustomerSubscriptionUpdated:
-                    await handler.HandleSubscriptionUpdatedAsync(stripeEvent);
+                    await context.RequestServices.GetRequiredService<SubscriptionUpdatedHandler>().HandleAsync(stripeEvent);
                     break;
 
                 case Stripe.EventTypes.CustomerSubscriptionDeleted:
-                    await handler.HandleSubscriptionDeletedAsync(stripeEvent);
+                    await context.RequestServices.GetRequiredService<SubscriptionDeletedHandler>().HandleAsync(stripeEvent);
                     break;
 
                 default:
