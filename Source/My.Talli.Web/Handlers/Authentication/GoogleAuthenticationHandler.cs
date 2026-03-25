@@ -1,4 +1,4 @@
-namespace My.Talli.Web.Services.Authentication;
+namespace My.Talli.Web.Handlers.Authentication;
 
 using Domain.Components.Tokens;
 using Domain.Framework;
@@ -10,20 +10,20 @@ using Services.Email;
 using System.Security.Claims;
 
 /// <summary>Handler</summary>
-public class AppleAuthenticationHandler
+public class GoogleAuthenticationHandler
 {
     #region <Variables>
 
     private readonly IEmailService _emailService;
-    private readonly ILogger<AppleAuthenticationHandler> _logger;
-    private readonly AppleSignInHandler _signInHandler;
+    private readonly ILogger<GoogleAuthenticationHandler> _logger;
+    private readonly GoogleSignInHandler _signInHandler;
     private readonly UnsubscribeTokenService _unsubscribeTokenService;
 
     #endregion
 
     #region <Constructors>
 
-    public AppleAuthenticationHandler(IEmailService emailService, ILogger<AppleAuthenticationHandler> logger, AppleSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
+    public GoogleAuthenticationHandler(IEmailService emailService, ILogger<GoogleAuthenticationHandler> logger, GoogleSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
     {
         _emailService = emailService;
         _logger = logger;
@@ -80,22 +80,23 @@ public class AppleAuthenticationHandler
         }
     }
 
-    private static SignInArgumentOf<AppleSignInPayload> ToSignInArgument(ClaimsPrincipal principal)
+    private static SignInArgumentOf<GoogleSignInPayload> ToSignInArgument(ClaimsPrincipal principal)
     {
-        return new SignInArgumentOf<AppleSignInPayload>
+        return new SignInArgumentOf<GoogleSignInPayload>
         {
             DisplayName = principal.FindFirstValue(ClaimTypes.Name) ?? string.Empty,
             Email = principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
             FirstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty,
             LastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty,
-            Payload = new AppleSignInPayload
+            Payload = new GoogleSignInPayload
             {
-                AppleId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
-                IsPrivateRelay = principal.FindFirstValue("urn:apple:is_private_email") == "true"
+                AvatarUrl = principal.FindFirstValue("urn:google:picture") ?? string.Empty,
+                EmailVerified = principal.FindFirstValue("urn:google:email_verified") == "true",
+                GoogleId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
+                Locale = principal.FindFirstValue("urn:google:locale") ?? string.Empty
             }
         };
     }
-
 
     #endregion
 }

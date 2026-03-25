@@ -492,6 +492,10 @@ My.Talli/
         │   ├── EmailEndpoints.cs      # /api/email/preferences
         │   └── TestEndpoints.cs       # /api/test/* (dev-only)
         ├── Handlers/                  # Web-layer handlers (react to events, orchestrate domain calls)
+        │   ├── Authentication/        # OAuth ticket handlers (map claims → domain sign-in → add claims → welcome email)
+        │   │   ├── AppleAuthenticationHandler.cs
+        │   │   ├── GoogleAuthenticationHandler.cs
+        │   │   └── MicrosoftAuthenticationHandler.cs
         │   └── Endpoints/             # Handlers that serve endpoint routes
         │       ├── CheckoutCompletedHandler.cs    # Stripe checkout.session.completed → domain handler + email
         │       ├── SubscriptionDeletedHandler.cs  # Stripe customer.subscription.deleted → domain handler
@@ -538,10 +542,6 @@ My.Talli/
         ├── Helpers/
         │   └── LayoutHelper.cs            # Static helpers (CurrentYear, VersionNumber) for layouts
         ├── Services/
-        │   ├── Authentication/
-        │   │   ├── AppleAuthenticationHandler.cs
-        │   │   ├── GoogleAuthenticationHandler.cs
-        │   │   └── MicrosoftAuthenticationHandler.cs
         │   ├── Billing/
         │   │   ├── StripeBillingService.cs  # Stripe Checkout, Portal, & plan switch API wrapper
         │   │   └── StripeSettings.cs        # Stripe configuration POCO

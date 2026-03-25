@@ -1,4 +1,4 @@
-namespace My.Talli.Web.Services.Authentication;
+namespace My.Talli.Web.Handlers.Authentication;
 
 using Domain.Components.Tokens;
 using Domain.Framework;
@@ -10,20 +10,20 @@ using Services.Email;
 using System.Security.Claims;
 
 /// <summary>Handler</summary>
-public class MicrosoftAuthenticationHandler
+public class AppleAuthenticationHandler
 {
     #region <Variables>
 
     private readonly IEmailService _emailService;
-    private readonly ILogger<MicrosoftAuthenticationHandler> _logger;
-    private readonly MicrosoftSignInHandler _signInHandler;
+    private readonly ILogger<AppleAuthenticationHandler> _logger;
+    private readonly AppleSignInHandler _signInHandler;
     private readonly UnsubscribeTokenService _unsubscribeTokenService;
 
     #endregion
 
     #region <Constructors>
 
-    public MicrosoftAuthenticationHandler(IEmailService emailService, ILogger<MicrosoftAuthenticationHandler> logger, MicrosoftSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
+    public AppleAuthenticationHandler(IEmailService emailService, ILogger<AppleAuthenticationHandler> logger, AppleSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
     {
         _emailService = emailService;
         _logger = logger;
@@ -80,20 +80,22 @@ public class MicrosoftAuthenticationHandler
         }
     }
 
-    private static SignInArgumentOf<MicrosoftSignInPayload> ToSignInArgument(ClaimsPrincipal principal)
+    private static SignInArgumentOf<AppleSignInPayload> ToSignInArgument(ClaimsPrincipal principal)
     {
-        return new SignInArgumentOf<MicrosoftSignInPayload>
+        return new SignInArgumentOf<AppleSignInPayload>
         {
             DisplayName = principal.FindFirstValue(ClaimTypes.Name) ?? string.Empty,
             Email = principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
             FirstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty,
             LastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty,
-            Payload = new MicrosoftSignInPayload
+            Payload = new AppleSignInPayload
             {
-                MicrosoftId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty
+                AppleId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
+                IsPrivateRelay = principal.FindFirstValue("urn:apple:is_private_email") == "true"
             }
         };
     }
+
 
     #endregion
 }

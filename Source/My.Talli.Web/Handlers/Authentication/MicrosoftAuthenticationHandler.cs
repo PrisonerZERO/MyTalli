@@ -1,4 +1,4 @@
-namespace My.Talli.Web.Services.Authentication;
+namespace My.Talli.Web.Handlers.Authentication;
 
 using Domain.Components.Tokens;
 using Domain.Framework;
@@ -10,20 +10,20 @@ using Services.Email;
 using System.Security.Claims;
 
 /// <summary>Handler</summary>
-public class GoogleAuthenticationHandler
+public class MicrosoftAuthenticationHandler
 {
     #region <Variables>
 
     private readonly IEmailService _emailService;
-    private readonly ILogger<GoogleAuthenticationHandler> _logger;
-    private readonly GoogleSignInHandler _signInHandler;
+    private readonly ILogger<MicrosoftAuthenticationHandler> _logger;
+    private readonly MicrosoftSignInHandler _signInHandler;
     private readonly UnsubscribeTokenService _unsubscribeTokenService;
 
     #endregion
 
     #region <Constructors>
 
-    public GoogleAuthenticationHandler(IEmailService emailService, ILogger<GoogleAuthenticationHandler> logger, GoogleSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
+    public MicrosoftAuthenticationHandler(IEmailService emailService, ILogger<MicrosoftAuthenticationHandler> logger, MicrosoftSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
     {
         _emailService = emailService;
         _logger = logger;
@@ -80,20 +80,17 @@ public class GoogleAuthenticationHandler
         }
     }
 
-    private static SignInArgumentOf<GoogleSignInPayload> ToSignInArgument(ClaimsPrincipal principal)
+    private static SignInArgumentOf<MicrosoftSignInPayload> ToSignInArgument(ClaimsPrincipal principal)
     {
-        return new SignInArgumentOf<GoogleSignInPayload>
+        return new SignInArgumentOf<MicrosoftSignInPayload>
         {
             DisplayName = principal.FindFirstValue(ClaimTypes.Name) ?? string.Empty,
             Email = principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
             FirstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty,
             LastName = principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty,
-            Payload = new GoogleSignInPayload
+            Payload = new MicrosoftSignInPayload
             {
-                AvatarUrl = principal.FindFirstValue("urn:google:picture") ?? string.Empty,
-                EmailVerified = principal.FindFirstValue("urn:google:email_verified") == "true",
-                GoogleId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
-                Locale = principal.FindFirstValue("urn:google:locale") ?? string.Empty
+                MicrosoftId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty
             }
         };
     }
