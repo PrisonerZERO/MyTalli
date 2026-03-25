@@ -19,7 +19,6 @@ public class GoogleAuthenticationHandler
     private readonly GoogleSignInHandler _signInHandler;
     private readonly UnsubscribeTokenService _unsubscribeTokenService;
 
-
     #endregion
 
     #region <Constructors>
@@ -31,7 +30,6 @@ public class GoogleAuthenticationHandler
         _signInHandler = signInHandler;
         _unsubscribeTokenService = unsubscribeTokenService;
     }
-
 
     #endregion
 
@@ -99,7 +97,6 @@ public class GoogleAuthenticationHandler
             }
         };
     }
-
 
     #endregion
 }

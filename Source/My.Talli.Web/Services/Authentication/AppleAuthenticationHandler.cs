@@ -19,7 +19,6 @@ public class AppleAuthenticationHandler
     private readonly AppleSignInHandler _signInHandler;
     private readonly UnsubscribeTokenService _unsubscribeTokenService;
 
-
     #endregion
 
     #region <Constructors>
