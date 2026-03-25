@@ -501,8 +501,8 @@ My.Talli/
         │       ├── SubscriptionDeletedHandler.cs  # Stripe customer.subscription.deleted → domain handler
         │       └── SubscriptionUpdatedHandler.cs  # Stripe customer.subscription.updated → domain handler
         ├── Commands/                  # Web-layer commands (execute actions, data access, notifications)
-        │   ├── Authentication/        # Commands that serve authentication handlers
-        │   │   └── SendWelcomeEmailCommand.cs                  # Build + send welcome email (shared by all auth handlers)
+        │   ├── Notifications/         # Email and notification commands
+        │   │   └── SendWelcomeEmailCommand.cs                  # Build + send welcome email
         │   └── Endpoints/             # Commands that serve endpoint routes
         │       ├── FindActiveSubscriptionWithStripeCommand.cs  # Query active subscription + Stripe record
         │       └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
@@ -1241,7 +1241,7 @@ public static class AuthEndpoints
 Endpoint-supporting logic lives in dedicated classes under `Handlers/` and `Commands/` in the web project, organized by subfolder.
 
 - **Handlers** (`Handlers/Endpoints/`) — react to events. They orchestrate the pipeline: map external objects (e.g., Stripe SDK types) to Domain payloads, call Domain handlers inside transactions, handle side effects (logging, emails). Each handler owns everything it does — mapping methods, email building, etc. live inside the handler, not back in the endpoint.
-- **Commands** (`Commands/`) — execute actions. Data access operations (queries, updates), notification sending, or any reusable operation that a handler or endpoint shouldn't inline. Each command exposes a single `ExecuteAsync()` method. Organized by subfolder: `Commands/Endpoints/` for endpoint-serving commands, `Commands/Authentication/` for auth handler-serving commands, etc.
+- **Commands** (`Commands/`) — execute actions. Data access operations (queries, updates), notification sending, or any reusable operation that a handler or endpoint shouldn't inline. Each command exposes a single `ExecuteAsync()` method. Organized by subfolder based on **what the command does**, not who calls it: `Commands/Endpoints/` for data access commands, `Commands/Notifications/` for email/notification commands, etc.
 - Both are **non-static classes** with constructor-injected dependencies — no `HttpContext.RequestServices.GetRequiredService` calls.
 - Both are registered as **scoped** in `BillingConfiguration.cs` (or the relevant `Configuration/{Name}Configuration.cs`).
 - **One class per operation** — not one class per domain area. `CheckoutCompletedHandler` handles checkout completed events, not "all billing webhook events."

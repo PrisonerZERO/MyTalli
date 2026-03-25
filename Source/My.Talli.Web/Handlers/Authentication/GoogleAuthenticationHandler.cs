@@ -4,7 +4,7 @@ using Domain.Framework;
 using Domain.Handlers.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using System.Security.Claims;
-using Web.Commands.Authentication;
+using Web.Commands.Notifications;
 
 /// <summary>Handler</summary>
 public class GoogleAuthenticationHandler

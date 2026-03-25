@@ -1,4 +1,4 @@
-namespace My.Talli.Web.Commands.Authentication;
+namespace My.Talli.Web.Commands.Notifications;
 
 using Domain.Components.Tokens;
 using Domain.Notifications.Emails;
