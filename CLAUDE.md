@@ -1196,6 +1196,34 @@ using My.Talli.Domain.Framework;
 - When adding a new service concern, create a new `Configuration/{Name}Configuration.cs` file. When adding new API routes, create a new `Endpoints/{Name}Endpoints.cs` file. When adding new middleware, create a new `Middleware/{Name}Middleware.cs` file. Do not add inline registrations, endpoint lambdas, or substantial middleware to Program.cs.
 - Namespace: `My.Talli.Web.Configuration` for configuration classes, `My.Talli.Web.Endpoints` for endpoint classes, `My.Talli.Web.Middleware` for middleware classes.
 
+### Endpoint File Structure
+
+- Each endpoint class uses two regions: **`<Endpoints>`** for route declarations and **`<Methods>`** for handler implementations.
+- The `<Endpoints>` region contains only the `Map{Name}Endpoints` extension method with one-liner route-to-method mappings — no inline lambdas.
+- The `<Methods>` region contains `private static` handler methods that the routes point to, plus any private helper methods.
+
+```csharp
+public static class AuthEndpoints
+{
+    #region <Endpoints>
+
+    public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/auth/login/{provider}", Login);
+        app.MapGet("/api/auth/logout", Logout);
+    }
+
+    #endregion
+
+    #region <Methods>
+
+    private static async Task Login(string provider, HttpContext context) { ... }
+    private static async Task Logout(HttpContext context) { ... }
+
+    #endregion
+}
+```
+
 ### No Inline Code Blocks
 
 - **NEVER** use `@code {}` blocks in `.razor` files (pages, components, or layouts).
