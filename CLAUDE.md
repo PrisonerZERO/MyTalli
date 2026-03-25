@@ -491,6 +491,15 @@ My.Talli/
         │   ├── BillingEndpoints.cs    # /api/billing/create-checkout-session, portal, switch-plan, webhook
         │   ├── EmailEndpoints.cs      # /api/email/preferences
         │   └── TestEndpoints.cs       # /api/test/* (dev-only)
+        ├── Handlers/                  # Web-layer handlers (react to events, orchestrate domain calls)
+        │   └── Endpoints/             # Handlers that serve endpoint routes
+        │       ├── CheckoutCompletedHandler.cs    # Stripe checkout.session.completed → domain handler + email
+        │       ├── SubscriptionDeletedHandler.cs  # Stripe customer.subscription.deleted → domain handler
+        │       └── SubscriptionUpdatedHandler.cs  # Stripe customer.subscription.updated → domain handler
+        ├── Commands/                  # Web-layer commands (execute actions, data access)
+        │   └── Endpoints/             # Commands that serve endpoint routes
+        │       ├── FindActiveSubscriptionWithStripeCommand.cs  # Query active subscription + Stripe record
+        │       └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
         ├── Middleware/                 # Custom middleware classes
         │   ├── CurrentUserMiddleware.cs   # Populates ICurrentUserService from HttpContext.User claims on every request
         │   └── ProbeFilterMiddleware.cs  # Bot/scanner probe filter (short-circuits .env, .php, wp-admin, etc.)
@@ -1198,9 +1207,10 @@ using My.Talli.Domain.Framework;
 
 ### Endpoint File Structure
 
-- Each endpoint class uses two regions: **`<Endpoints>`** for route declarations and **`<Methods>`** for handler implementations.
+- Each endpoint class uses two regions: **`<Endpoints>`** for route declarations and **`<Methods>`** for endpoint implementations.
 - The `<Endpoints>` region contains only the `Map{Name}Endpoints` extension method with one-liner route-to-method mappings — no inline lambdas.
-- The `<Methods>` region contains `private static` handler methods that the routes point to, plus any private helper methods.
+- The `<Methods>` region contains `private static` endpoint methods that the routes point to. Endpoint methods should be thin — validate the request, delegate to handlers/commands, return a result.
+- **No data access, business logic, or side effects in endpoint methods.** Delegate to handlers and commands instead.
 
 ```csharp
 public static class AuthEndpoints
@@ -1223,6 +1233,17 @@ public static class AuthEndpoints
     #endregion
 }
 ```
+
+### Handlers and Commands
+
+Endpoint-supporting logic lives in dedicated classes under `Handlers/` and `Commands/` in the web project, organized by subfolder.
+
+- **Handlers** (`Handlers/Endpoints/`) — react to events. They orchestrate the pipeline: map external objects (e.g., Stripe SDK types) to Domain payloads, call Domain handlers inside transactions, handle side effects (logging, emails). Each handler owns everything it does — mapping methods, email building, etc. live inside the handler, not back in the endpoint.
+- **Commands** (`Commands/Endpoints/`) — execute actions. Data access operations (queries, updates) that endpoints need but shouldn't inline. Each command exposes a single `ExecuteAsync()` method.
+- Both are **non-static classes** with constructor-injected dependencies — no `HttpContext.RequestServices.GetRequiredService` calls.
+- Both are registered as **scoped** in `BillingConfiguration.cs` (or the relevant `Configuration/{Name}Configuration.cs`).
+- **One class per operation** — not one class per domain area. `CheckoutCompletedHandler` handles checkout completed events, not "all billing webhook events."
+- **Namespace:** `My.Talli.Web.Handlers.Endpoints` for handlers, `My.Talli.Web.Commands.Endpoints` for commands. The `Endpoints` subfolder is organizational only (following the Subfolder Namespace Convention).
 
 ### No Inline Code Blocks
 
