@@ -4,9 +4,10 @@ using AspNet.Security.OAuth.Apple;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
-using Web.Services.Authentication;
+using Web.Commands.Notifications;
+using Web.Handlers.Authentication;
 
-using APPLE_AUTH_HANDLER = Web.Services.Authentication.AppleAuthenticationHandler;
+using APPLE_AUTH_HANDLER = Web.Handlers.Authentication.AppleAuthenticationHandler;
 
 /// <summary>Configuration</summary>
 public static class AuthenticationConfiguration
@@ -103,6 +104,7 @@ public static class AuthenticationConfiguration
         services.AddScoped<APPLE_AUTH_HANDLER>();
         services.AddScoped<GoogleAuthenticationHandler>();
         services.AddScoped<MicrosoftAuthenticationHandler>();
+        services.AddScoped<SendWelcomeEmailCommand>();
 
         services.AddAuthorization();
         services.AddCascadingAuthenticationState();

@@ -1,37 +1,28 @@
-namespace My.Talli.Web.Services.Authentication;
+namespace My.Talli.Web.Handlers.Authentication;
 
-using Domain.Components.Tokens;
 using Domain.Framework;
 using Domain.Handlers.Authentication;
-using Domain.Notifications.Emails;
 using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.Extensions.Logging;
-using Services.Email;
 using System.Security.Claims;
+using Web.Commands.Notifications;
 
 /// <summary>Handler</summary>
 public class AppleAuthenticationHandler
 {
     #region <Variables>
 
-    private readonly IEmailService _emailService;
-    private readonly ILogger<AppleAuthenticationHandler> _logger;
     private readonly AppleSignInHandler _signInHandler;
-    private readonly UnsubscribeTokenService _unsubscribeTokenService;
-
+    private readonly SendWelcomeEmailCommand _sendWelcomeEmail;
 
     #endregion
 
     #region <Constructors>
 
-    public AppleAuthenticationHandler(IEmailService emailService, ILogger<AppleAuthenticationHandler> logger, AppleSignInHandler signInHandler, UnsubscribeTokenService unsubscribeTokenService)
+    public AppleAuthenticationHandler(AppleSignInHandler signInHandler, SendWelcomeEmailCommand sendWelcomeEmail)
     {
-        _emailService = emailService;
-        _logger = logger;
+        _sendWelcomeEmail = sendWelcomeEmail;
         _signInHandler = signInHandler;
-        _unsubscribeTokenService = unsubscribeTokenService;
     }
-
 
     #endregion
 
@@ -45,39 +36,22 @@ public class AppleAuthenticationHandler
         // TRANSACTION
         var user = await EnforcedTransactionScope.ExecuteAsync(async () =>
         {
-            var u = await _signInHandler.HandleAsync(argument);
+            // Sign-In
+            var user = await _signInHandler.HandleAsync(argument);
 
-            // Claims
+            // Add Claims
             var identity = (ClaimsIdentity)principal.Identity!;
-            identity.AddClaim(new Claim("UserId", u.Id.ToString()));
+            identity.AddClaim(new Claim("UserId", user.Id.ToString()));
 
-            foreach (var role in u.Roles)
+            foreach (var role in user.Roles)
                 identity.AddClaim(new Claim(ClaimTypes.Role, role));
 
-            return u;
+            return user;
         });
 
-        // Welcome Email
+        // Email
         if (user.IsNewUser)
-            await SendWelcomeEmailAsync(argument.Email, user.FirstName, user.Id);
-    }
-
-    private async Task SendWelcomeEmailAsync(string email, string firstName, long userId)
-    {
-        try
-        {
-            var smtp = new WelcomeEmailNotification().Build(new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload>
-            {
-                Payload = new WelcomeEmailNotificationPayload { FirstName = firstName, UnsubscribeToken = _unsubscribeTokenService.GenerateToken(userId) }
-            });
-
-            smtp.To = [email];
-            await _emailService.SendAsync(smtp);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send welcome email for user {UserId}", userId);
-        }
+            await _sendWelcomeEmail.ExecuteAsync(argument.Email, user.FirstName, user.Id);
     }
 
     private static SignInArgumentOf<AppleSignInPayload> ToSignInArgument(ClaimsPrincipal principal)
@@ -95,7 +69,6 @@ public class AppleAuthenticationHandler
             }
         };
     }
-
 
     #endregion
 }
