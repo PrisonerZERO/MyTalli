@@ -9,37 +9,42 @@ using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 /// <summary>Endpoint</summary>
 public static class AuthEndpoints
 {
-    #region <Methods>
+    #region <Endpoints>
 
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        // ENDPOINT - Login
-        app.MapGet("/api/auth/login/{provider}", async (string provider, HttpContext context) =>
+        app.MapGet("/api/auth/login/{provider}", Login);
+        app.MapGet("/api/auth/logout", Logout);
+    }
+
+    #endregion
+
+    #region <Methods>
+
+    private static async Task Login(string provider, HttpContext context)
+    {
+        var properties = new AuthenticationProperties { RedirectUri = "/dashboard" };
+        var scheme = provider.ToLowerInvariant() switch
         {
-            var properties = new AuthenticationProperties { RedirectUri = "/dashboard" };
-            var scheme = provider.ToLowerInvariant() switch
-            {
-                "apple" => AppleAuthenticationDefaults.AuthenticationScheme,
-                "google" => GoogleDefaults.AuthenticationScheme,
-                "microsoft" => MicrosoftAccountDefaults.AuthenticationScheme,
-                _ => throw new ArgumentException($"Unsupported provider: {provider}")
-            };
+            "apple" => AppleAuthenticationDefaults.AuthenticationScheme,
+            "google" => GoogleDefaults.AuthenticationScheme,
+            "microsoft" => MicrosoftAccountDefaults.AuthenticationScheme,
+            _ => throw new ArgumentException($"Unsupported provider: {provider}")
+        };
 
-            await context.ChallengeAsync(scheme, properties);
-        });
+        await context.ChallengeAsync(scheme, properties);
+    }
 
-        // ENDPOINT - Logout
-        app.MapGet("/api/auth/logout", async (HttpContext context) =>
-        {
-            var name = context.User.Identity?.Name;
-            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    private static async Task Logout(HttpContext context)
+    {
+        var name = context.User.Identity?.Name;
+        await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            var redirect = string.IsNullOrEmpty(name)
-                ? "/?signed-out"
-                : $"/?signed-out&name={Uri.EscapeDataString(name)}";
+        var redirect = string.IsNullOrEmpty(name)
+            ? "/?signed-out"
+            : $"/?signed-out&name={Uri.EscapeDataString(name)}";
 
-            context.Response.Redirect(redirect);
-        });
+        context.Response.Redirect(redirect);
     }
 
     #endregion
