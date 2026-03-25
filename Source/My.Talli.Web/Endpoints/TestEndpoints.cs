@@ -7,62 +7,69 @@ using Web.Services.Email;
 /// <summary>Endpoint</summary>
 public static class TestEndpoints
 {
-    #region <Methods>
+    #region <Endpoints>
 
     public static void MapTestEndpoints(this IEndpointRouteBuilder app)
     {
-        // ENDPOINT - Generate Unsubscribe Token
-        app.MapGet("/api/test/unsubscribe-token/{userId:long}", (long userId, UnsubscribeTokenService tokenService) =>
+        app.MapGet("/api/test/unsubscribe-token/{userId:long}", GenerateUnsubscribeToken);
+        app.MapGet("/api/test/emails", SendTestEmails);
+        app.MapGet("/api/test/error", TriggerTestError);
+    }
+
+    #endregion
+
+    #region <Methods>
+
+    private static IResult GenerateUnsubscribeToken(long userId, UnsubscribeTokenService tokenService)
+    {
+        var token = tokenService.GenerateToken(userId);
+        return Results.Text(token);
+    }
+
+    private static async Task<IResult> SendTestEmails(IEmailService emailService, UnsubscribeTokenService tokenService)
+    {
+        var testRecipient = "hello@mytalli.com";
+        var testToken = tokenService.GenerateToken(1);
+
+        // 1. Welcome Email
+        var welcomeNotification = new WelcomeEmailNotification();
+        var welcomePayload = new WelcomeEmailNotificationPayload { FirstName = "Robert", UnsubscribeToken = testToken };
+        var welcomeArgument = new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload> { Payload = welcomePayload };
+        var welcomeEmail = welcomeNotification.Build(welcomeArgument);
+        welcomeEmail.To = [testRecipient];
+        await emailService.SendAsync(welcomeEmail);
+
+        // 2. Subscription Confirmation Email
+        var subNotification = new SubscriptionConfirmationEmailNotification();
+        var subPayload = new SubscriptionConfirmationEmailNotificationPayload
         {
-            var token = tokenService.GenerateToken(userId);
-            return Results.Text(token);
-        });
+            Amount = "$12.00/mo",
+            CardLastFour = "4242",
+            FirstName = "Robert",
+            Plan = "Pro",
+            RenewalDate = "April 14, 2026",
+            UnsubscribeToken = testToken
+        };
+        var subArgument = new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload> { Payload = subPayload };
+        var subEmail = subNotification.Build(subArgument);
+        subEmail.To = [testRecipient];
+        await emailService.SendAsync(subEmail);
 
-        // ENDPOINT - Send Test Emails
-        app.MapGet("/api/test/emails", async (IEmailService emailService, UnsubscribeTokenService tokenService) =>
+        // 3. Weekly Summary Email
+        var summaryNotification = new WeeklySummaryEmailNotification();
+        var summaryPayload = new WeeklySummaryEmailNotificationPayload
         {
-            var testRecipient = "hello@mytalli.com";
-            var testToken = tokenService.GenerateToken(1);
-
-            // 1. Welcome Email
-            var welcomeNotification = new WelcomeEmailNotification();
-            var welcomePayload = new WelcomeEmailNotificationPayload { FirstName = "Robert", UnsubscribeToken = testToken };
-            var welcomeArgument = new EmailNotificationArgumentOf<WelcomeEmailNotificationPayload> { Payload = welcomePayload };
-            var welcomeEmail = welcomeNotification.Build(welcomeArgument);
-            welcomeEmail.To = [testRecipient];
-            await emailService.SendAsync(welcomeEmail);
-
-            // 2. Subscription Confirmation Email
-            var subNotification = new SubscriptionConfirmationEmailNotification();
-            var subPayload = new SubscriptionConfirmationEmailNotificationPayload
-            {
-                Amount = "$12.00/mo",
-                CardLastFour = "4242",
                 FirstName = "Robert",
-                Plan = "Pro",
-                RenewalDate = "April 14, 2026",
-                UnsubscribeToken = testToken
-            };
-            var subArgument = new EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload> { Payload = subPayload };
-            var subEmail = subNotification.Build(subArgument);
-            subEmail.To = [testRecipient];
-            await emailService.SendAsync(subEmail);
-
-            // 3. Weekly Summary Email
-            var summaryNotification = new WeeklySummaryEmailNotification();
-            var summaryPayload = new WeeklySummaryEmailNotificationPayload
-            {
-                    FirstName = "Robert",
-                    UnsubscribeToken = testToken,
-                    GoalCurrent = "$2,847.00",
-                    GoalPercent = "57%",
-                    GoalRemaining = "$2,153.00",
-                    GoalTarget = "$5,000.00",
-                    TotalRevenue = "$1,247.50",
-                    TrendDirection = "\u25b2",
-                    TrendPercent = "12.4%",
-                    WeekRange = "Mar 7 \u2013 Mar 13, 2026",
-                    PlatformRows = @"
+                UnsubscribeToken = testToken,
+                GoalCurrent = "$2,847.00",
+                GoalPercent = "57%",
+                GoalRemaining = "$2,153.00",
+                GoalTarget = "$5,000.00",
+                TotalRevenue = "$1,247.50",
+                TrendDirection = "\u25b2",
+                TrendPercent = "12.4%",
+                WeekRange = "Mar 7 \u2013 Mar 13, 2026",
+                PlatformRows = @"
                     <tr>
                         <td style=""padding: 12px 0; border-bottom: 1px solid #f0edff;"">
                             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"" width=""100%"">
@@ -114,20 +121,18 @@ public static class TestEndpoints
                             </table>
                         </td>
                     </tr>"
-                };
-            var summaryArgument = new EmailNotificationArgumentOf<WeeklySummaryEmailNotificationPayload> { Payload = summaryPayload };
-            var summaryEmail = summaryNotification.Build(summaryArgument);
-            summaryEmail.To = [testRecipient];
-            await emailService.SendAsync(summaryEmail);
+            };
+        var summaryArgument = new EmailNotificationArgumentOf<WeeklySummaryEmailNotificationPayload> { Payload = summaryPayload };
+        var summaryEmail = summaryNotification.Build(summaryArgument);
+        summaryEmail.To = [testRecipient];
+        await emailService.SendAsync(summaryEmail);
 
-            return Results.Text("3 test emails sent to hello@mytalli.com");
-        });
+        return Results.Text("3 test emails sent to hello@mytalli.com");
+    }
 
-        // ENDPOINT - Trigger Test Error
-        app.MapGet("/api/test/error", () =>
-        {
-            throw new InvalidOperationException("Test exception — verifying error email pipeline is working.");
-        });
+    private static IResult TriggerTestError()
+    {
+        throw new InvalidOperationException("Test exception — verifying error email pipeline is working.");
     }
 
     #endregion
