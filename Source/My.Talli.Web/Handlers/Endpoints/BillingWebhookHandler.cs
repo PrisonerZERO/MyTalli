@@ -23,12 +23,7 @@ public class BillingWebhookHandler
 
     #region <Constructors>
 
-    public BillingWebhookHandler(
-        IEmailService emailService,
-        ILogger<BillingWebhookHandler> logger,
-        IOptions<StripeSettings> settings,
-        StripeWebhookHandler stripeWebhookHandler,
-        UnsubscribeTokenService tokenService)
+    public BillingWebhookHandler(IEmailService emailService, ILogger<BillingWebhookHandler> logger, IOptions<StripeSettings> settings, StripeWebhookHandler stripeWebhookHandler, UnsubscribeTokenService tokenService)
     {
         _emailService = emailService;
         _logger = logger;
