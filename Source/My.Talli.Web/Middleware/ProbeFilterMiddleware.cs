@@ -46,6 +46,17 @@ public class ProbeFilterMiddleware
             return;
         }
 
+        // TRAILING DOT — Users copy URLs from sentences ("visit mytalli.com/signin.") and the trailing period becomes part of the path. Redirect to the clean URL.
+        if (path.Length > 1 && path.EndsWith('.'))
+        {
+            var cleanPath = path.TrimEnd('.');
+            var query = context.Request.QueryString.Value ?? "";
+
+            context.Response.StatusCode = 301;
+            context.Response.Headers.Location = cleanPath + query;
+            return;
+        }
+
         // BOT/SCANNER PROBES — Known attack paths, should short-circuit with 404.
         if (IsProbeRequest(path))
         {
@@ -60,19 +71,10 @@ public class ProbeFilterMiddleware
     {
         return path.Contains(".env", StringComparison.OrdinalIgnoreCase)
             || path.Contains(".git", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("wp-login", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("wp-admin", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("wp-includes", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("wp-content", StringComparison.OrdinalIgnoreCase)
+            || path.Contains("wp-", StringComparison.OrdinalIgnoreCase)
             || path.Contains("xmlrpc", StringComparison.OrdinalIgnoreCase)
             || path.Contains("phpmy", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("phpmyadmin", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("admin/config", StringComparison.OrdinalIgnoreCase)
-            || path.EndsWith(".php", StringComparison.OrdinalIgnoreCase)
-            || path.EndsWith(".asp", StringComparison.OrdinalIgnoreCase)
-            || path.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase)
-            || path.EndsWith(".jsp", StringComparison.OrdinalIgnoreCase)
-            || path.EndsWith(".cgi", StringComparison.OrdinalIgnoreCase);
+            || path.EndsWith(".php", StringComparison.OrdinalIgnoreCase);
     }
 
     #endregion
