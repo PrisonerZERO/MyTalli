@@ -1,0 +1,91 @@
+/* ─── SWOOSH HERO ─── */
+.goals-hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); margin: -32px -40px 32px; overflow: hidden; padding: 24px 40px 32px; position: relative; }
+.goals-hero-bg { bottom: 0; left: 0; pointer-events: none; position: absolute; right: 0; }
+.goals-hero-bg svg { display: block; height: 40px; width: 100%; }
+.deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
+.deco-circle-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
+.deco-circle-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
+.deco-circle-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
+.goals-hero-content { position: relative; z-index: 2; }
+.goals-hero-top { align-items: center; display: flex; justify-content: space-between; margin-bottom: 8px; }
+.goals-hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+.goals-hero p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
+
+/* ─── HERO BUTTON ─── */
+.goals-new-btn { align-items: center; background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px; color: #fff; cursor: pointer; display: flex; font-family: inherit; font-size: 14px; font-weight: 600; gap: 8px; padding: 10px 22px; transition: background 0.15s ease; }
+.goals-new-btn:hover { background: rgba(255, 255, 255, 0.28); }
+.goals-new-btn svg { height: 16px; width: 16px; }
+
+/* ─── HERO STATS ─── */
+.goals-hero-stats { display: flex; gap: 24px; margin-top: 20px; }
+.goals-stat { text-align: center; }
+.goals-stat-num { color: #fff; font-size: 28px; font-weight: 700; }
+.goals-stat-label { color: rgba(255, 255, 255, 0.6); font-size: 12px; margin-left: 6px; }
+
+/* ─── LOADING ─── */
+.goals-loading-card { background: #fff; border: 1px solid #eee; border-radius: 14px; padding: 28px; }
+.goals-loading { padding: 20px 0; text-align: center; }
+.goals-loading p { color: #999; font-size: 14px; }
+
+/* ─── GOAL GRID ─── */
+.goals-grid { display: grid; gap: 20px; grid-template-columns: repeat(2, 1fr); }
+
+/* ─── GOAL CARD ─── */
+.goals-card { background: #fff; border: 1px solid #eee; border-radius: 14px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.goals-card:hover { border-color: #e0dce8; box-shadow: 0 4px 16px rgba(108, 92, 231, 0.05); }
+
+.goals-card-top { border-bottom: 1px solid #f8f7fc; display: flex; gap: 16px; padding: 22px 24px; }
+.goals-card-info { flex: 1; min-width: 0; }
+.goals-card-label { color: #999; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.goals-card-name { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-top: 4px; }
+.goals-card-amounts { color: #1a1a2e; font-size: 14px; font-weight: 600; margin-top: 8px; }
+.goals-card-amounts span { color: #999; font-weight: 400; }
+.goals-card-badge-wrap { margin-top: 8px; }
+
+.goals-card-bottom { align-items: center; display: flex; justify-content: space-between; padding: 14px 24px; }
+.goals-card-days { color: #999; font-size: 13px; }
+.goals-card-days strong { color: #1a1a2e; font-weight: 600; }
+
+/* ─── CIRCLE PROGRESS ─── */
+.goals-circle-wrap { flex-shrink: 0; height: 120px; position: relative; width: 120px; }
+.goals-circle-wrap svg { height: 100%; transform: rotate(-90deg); width: 100%; }
+.goals-circle-bg { fill: none; stroke: #f0edff; stroke-width: 10; }
+.goals-circle-fill { fill: none; stroke: url(#goalGradient); stroke-linecap: round; stroke-width: 10; transition: stroke-dashoffset 1.2s ease; }
+.goals-circle-inner { align-items: center; display: flex; flex-direction: column; height: 100%; justify-content: center; left: 0; position: absolute; top: 0; width: 100%; }
+.goals-circle-pct { color: #1a1a2e; font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+
+/* ─── STATUS BADGES ─── */
+.goals-badge { align-items: center; border-radius: 6px; display: inline-flex; font-size: 12px; font-weight: 600; gap: 4px; padding: 4px 10px; }
+.goals-badge.on-track { background: rgba(39, 174, 96, 0.08); color: #27ae60; }
+.goals-badge.behind { background: rgba(231, 76, 60, 0.08); color: #e74c3c; }
+.goals-badge.ahead { background: rgba(108, 92, 231, 0.08); color: #6c5ce7; }
+
+/* ─── EDIT BUTTON ─── */
+.goals-edit-btn { background: none; border: none; color: #6c5ce7; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 4px 0; transition: color 0.15s ease; }
+.goals-edit-btn:hover { color: #5a4bd1; }
+
+/* ─── ADD GOAL CARD ─── */
+.goals-add-card { align-items: center; background: #fff; border: 2px dashed #e0dce8; border-radius: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 10px; justify-content: center; min-height: 200px; padding: 32px; transition: border-color 0.2s ease; }
+.goals-add-card:hover { border-color: #6c5ce7; }
+.goals-add-card:focus-visible { border-color: #6c5ce7; outline: 3px solid #6c5ce7; outline-offset: 2px; }
+.goals-add-icon { align-items: center; background: #f0edff; border-radius: 50%; color: #6c5ce7; display: flex; height: 48px; justify-content: center; width: 48px; }
+.goals-add-icon svg { height: 24px; width: 24px; }
+.goals-add-text { color: #999; font-size: 14px; font-weight: 500; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in { animation: fadeUp 0.5s ease forwards; opacity: 0; }
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.1s; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1024px) {
+    .goals-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 641px) {
+    .goals-hero { margin: -24px -20px 24px; padding: 20px 20px 32px; }
+    .goals-hero-top { flex-direction: column; gap: 12px; }
+    .goals-hero-stats { gap: 16px; }
+    .goals-card-top { flex-direction: column; align-items: center; text-align: center; }
+}

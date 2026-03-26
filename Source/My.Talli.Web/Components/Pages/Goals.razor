@@ -1,0 +1,115 @@
+@page "/goals"
+@inherits My.Talli.Web.ViewModels.Pages.GoalsViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Goals — MyTalli</PageTitle>
+
+<!-- SVG gradient for circle progress (must be in DOM) -->
+<svg aria-hidden="true" style="height:0;position:absolute;width:0;">
+    <defs>
+        <linearGradient id="goalGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#6c5ce7" />
+            <stop offset="100%" stop-color="#8b5cf6" />
+        </linearGradient>
+    </defs>
+</svg>
+
+<!-- Swoosh hero -->
+<section class="goals-hero" aria-label="Your goals overview">
+    <div class="goals-hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="goals-hero-content">
+        <div class="goals-hero-top">
+            <div>
+                <h1>Your Goals</h1>
+                <p>Set targets for what matters. Track them all in one place.</p>
+            </div>
+            <button class="goals-new-btn" aria-label="Create a new goal">
+                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                    <line x1="12" x2="12" y1="5" y2="19" />
+                    <line x1="5" x2="19" y1="12" y2="12" />
+                </svg>
+                New Goal
+            </button>
+        </div>
+
+        <div class="goals-hero-stats" role="group" aria-label="Goal statistics">
+            <div class="goals-stat">
+                <span class="goals-stat-num">@ActiveGoalCount</span>
+                <span class="goals-stat-label">Active Goals</span>
+            </div>
+            <div class="goals-stat">
+                <span class="goals-stat-num">@OnTrackCount</span>
+                <span class="goals-stat-label">On Track</span>
+            </div>
+            <div class="goals-stat">
+                <span class="goals-stat-num">@TotalEarned</span>
+                <span class="goals-stat-label">Total Earned</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (IsLoading)
+{
+    <section class="goals-loading-card animate-in delay-1" aria-label="Loading goals">
+        <div class="goals-loading" role="status">
+            <p>Loading your goals...</p>
+        </div>
+    </section>
+}
+else
+{
+    <div class="goals-grid animate-in delay-2">
+        @foreach (var goal in Goals)
+        {
+            <article class="goals-card" aria-label="@goal.Name goal, @goal.Percentage percent complete">
+                <div class="goals-card-top">
+                    <!-- Circle progress -->
+                    <div class="goals-circle-wrap" aria-hidden="true">
+                        <svg viewBox="0 0 140 140">
+                            <circle class="goals-circle-bg" cx="70" cy="70" r="54" />
+                            <circle class="goals-circle-fill" cx="70" cy="70" r="54"
+                                    style="stroke-dasharray: 339.3; stroke-dashoffset: @((339.3 * (100 - Math.Min(goal.Percentage, 100)) / 100).ToString("F1"));" />
+                        </svg>
+                        <div class="goals-circle-inner">
+                            <span class="goals-circle-pct">@goal.Percentage%</span>
+                        </div>
+                    </div>
+
+                    <!-- Goal info -->
+                    <div class="goals-card-info">
+                        <div class="goals-card-label">@goal.Label</div>
+                        <div class="goals-card-name">@goal.Name</div>
+                        <div class="goals-card-amounts">@goal.Earned.ToString("C0") <span>/ @goal.Target.ToString("C0")</span></div>
+                        <div class="goals-card-badge-wrap">
+                            <span class="goals-badge @goal.StatusCss">@goal.Status</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="goals-card-bottom">
+                    <div class="goals-card-days"><strong>@goal.DaysRemaining</strong> days remaining</div>
+                    <button class="goals-edit-btn" aria-label="Edit @goal.Name goal">Edit &rarr;</button>
+                </div>
+            </article>
+        }
+
+        <!-- Add new goal card -->
+        <div class="goals-add-card" role="button" tabindex="0" aria-label="Add a new goal">
+            <div class="goals-add-icon" aria-hidden="true">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <line x1="12" x2="12" y1="5" y2="19" />
+                    <line x1="5" x2="19" y1="12" y2="12" />
+                </svg>
+            </div>
+            <div class="goals-add-text">Add a new goal</div>
+        </div>
+    </div>
+}
