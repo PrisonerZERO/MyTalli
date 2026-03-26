@@ -1,0 +1,145 @@
+@page "/platforms"
+@inherits My.Talli.Web.ViewModels.Pages.PlatformsViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Platforms — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<section class="plat-hero" aria-label="Platform status overview">
+    <div class="plat-hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="plat-hero-content">
+        <div class="plat-hero-top">
+            <div>
+                <h1>Platform Status</h1>
+                <p>Monitor your connections and sync health at a glance.</p>
+            </div>
+        </div>
+
+        <div class="plat-hero-stats" role="group" aria-label="Platform statistics">
+            <div class="plat-stat">
+                <span class="plat-stat-num">@ConnectedCount</span>
+                <span class="plat-stat-label">Connected</span>
+            </div>
+            <div class="plat-stat">
+                <span class="plat-stat-num">@AvailableCount</span>
+                <span class="plat-stat-label">Available</span>
+            </div>
+            <div class="plat-stat">
+                <span class="plat-stat-num">@TotalTransactions</span>
+                <span class="plat-stat-label">Transactions Synced</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (IsLoading)
+{
+    <section class="plat-loading-card animate-in delay-1" aria-label="Loading platforms">
+        <div class="plat-loading" role="status">
+            <p>Loading your platforms...</p>
+        </div>
+    </section>
+}
+else
+{
+    <!-- Connected platforms -->
+    @if (ConnectedPlatforms.Any())
+    {
+        <div class="animate-in delay-2">
+            <div class="plat-section-header">
+                <h2>Connected</h2>
+                <span class="plat-section-count">@ConnectedCount</span>
+            </div>
+
+            @foreach (var platform in ConnectedPlatforms)
+            {
+                <article class="plat-row" aria-label="@platform.Name platform, connected">
+                    <div class="plat-row-identity">
+                        <div class="plat-icon" style="background: @platform.BrandColor;" aria-hidden="true">
+                            @RenderPlatformIcon(platform.Icon)
+                        </div>
+                        <div>
+                            <div class="plat-row-name">@platform.Name</div>
+                            <div class="plat-row-sub">@platform.Description</div>
+                        </div>
+                    </div>
+                    <div class="plat-row-center">
+                        <div class="plat-row-status">
+                            <span class="plat-status-dot connected" aria-hidden="true"></span>
+                            <span class="plat-status-text">Active</span>
+                        </div>
+                        <div class="plat-row-sync">
+                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <polyline points="23 4 23 10 17 10" />
+                                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+                            </svg>
+                            @platform.LastSyncLabel
+                        </div>
+                        <div class="plat-row-data">@platform.TransactionCount transactions</div>
+                    </div>
+                    <div class="plat-row-actions">
+                        <button class="plat-btn-outline" aria-label="Sync @platform.Name now">Sync Now</button>
+                        <button class="plat-btn-outline" aria-label="Manage @platform.Name connection">Manage</button>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+
+    <!-- Divider -->
+    @if (ConnectedPlatforms.Any() && AvailablePlatforms.Any())
+    {
+        <hr class="plat-divider" aria-hidden="true" />
+    }
+
+    <!-- Available platforms -->
+    @if (AvailablePlatforms.Any())
+    {
+        <div class="animate-in delay-3">
+            <div class="plat-section-header">
+                <h2>Available</h2>
+                <span class="plat-section-count">@AvailableCount</span>
+            </div>
+
+            @foreach (var platform in AvailablePlatforms)
+            {
+                <article class="plat-row plat-row-available" aria-label="@platform.Name platform, not connected">
+                    <div class="plat-row-identity">
+                        <div class="plat-icon" style="background: @platform.BrandColor;" aria-hidden="true">
+                            @RenderPlatformIcon(platform.Icon)
+                        </div>
+                        <div>
+                            <div class="plat-row-name">@platform.Name</div>
+                            <div class="plat-row-sub">@platform.Description</div>
+                        </div>
+                    </div>
+                    <div class="plat-row-actions">
+                        <span class="plat-row-type">@platform.Subtitle</span>
+                        <button class="plat-btn-connect" aria-label="Connect @platform.Name">Connect</button>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+}
+
+@* Platform icon fragments *@
+@{
+    RenderFragment RenderPlatformIcon(string icon) => icon switch
+    {
+        "stripe" => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 4H3a2 2 0 00-2 2v12a2 2 0 002 2h18a2 2 0 002-2V6a2 2 0 00-2-2z"/><line x1="1" x2="23" y1="10" y2="10"/></svg>,
+        "etsy" => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>,
+        "gumroad" => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>,
+        "paypal" => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>,
+        "shopify" => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+        _ => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>,
+    };
+}

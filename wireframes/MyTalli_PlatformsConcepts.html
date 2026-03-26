@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Platforms Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1a1a2e;
+    background: #f8f7fc;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── CONCEPT SELECTOR ─── */
+  .concept-nav { background: #fff; border-bottom: 1px solid #eee; display: flex; gap: 8px; justify-content: center; padding: 16px 24px; position: sticky; top: 0; z-index: 200; }
+  .concept-btn { background: #fff; border: 2px solid #e0dce8; border-radius: 10px; color: #555; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 24px; transition: all 0.15s ease; }
+  .concept-btn:hover { border-color: #6c5ce7; color: #6c5ce7; }
+  .concept-btn.active { background: #6c5ce7; border-color: #6c5ce7; color: #fff; }
+
+  /* ─── SHARED LAYOUT SHELL ─── */
+  .concept { display: none; min-height: 100vh; }
+  .concept.visible { display: block; }
+  .app-shell { display: flex; min-height: 100vh; }
+
+  /* Simulated sidebar */
+  .sim-sidebar { background: #fff; border-right: 1px solid #eee; display: flex; flex-direction: column; flex-shrink: 0; padding: 24px 16px; width: 240px; }
+  .sim-logo { color: #1a1a2e; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 32px; padding: 0 8px; text-decoration: none; }
+  .sim-logo span { color: #6c5ce7; }
+  .sim-nav { display: flex; flex-direction: column; gap: 2px; }
+  .sim-link { align-items: center; border-radius: 8px; color: #555; display: flex; font-size: 14px; font-weight: 500; gap: 10px; padding: 10px 12px; text-decoration: none; transition: all 0.15s ease; }
+  .sim-link:hover { background: #f8f7fc; color: #1a1a2e; }
+  .sim-link.active { background: #f0edff; color: #6c5ce7; font-weight: 600; }
+  .sim-link svg { flex-shrink: 0; height: 18px; width: 18px; }
+
+  /* Main content area */
+  .sim-main { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 40px 80px; }
+
+  /* ─── SHARED PLATFORM STYLES ─── */
+  .status-dot { border-radius: 50%; display: inline-block; height: 8px; width: 8px; }
+  .status-dot.connected { background: #27ae60; }
+  .status-dot.disconnected { background: #e0dce8; }
+
+  .status-badge { align-items: center; border-radius: 6px; display: inline-flex; font-size: 12px; font-weight: 600; gap: 6px; padding: 4px 12px; }
+  .status-badge.connected { background: rgba(39, 174, 96, 0.08); color: #27ae60; }
+  .status-badge.disconnected { background: #f8f7fc; color: #999; }
+
+  .btn-connect { background: #6c5ce7; border: none; border-radius: 10px; color: #fff; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 24px; transition: background 0.15s ease; }
+  .btn-connect:hover { background: #5a4bd1; }
+
+  .btn-manage { background: #fff; border: 2px solid #e0dce8; border-radius: 10px; color: #555; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 20px; transition: all 0.15s ease; }
+  .btn-manage:hover { border-color: #6c5ce7; color: #6c5ce7; }
+
+  .btn-disconnect { background: none; border: none; color: #e74c3c; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 500; padding: 4px 0; transition: color 0.15s ease; }
+  .btn-disconnect:hover { color: #c0392b; }
+
+  .sync-text { color: #999; font-size: 12px; }
+  .sync-text svg { display: inline-block; height: 12px; margin-right: 3px; vertical-align: -1px; width: 12px; }
+
+  .platform-icon { align-items: center; border-radius: 12px; color: #fff; display: flex; font-size: 18px; font-weight: 700; height: 44px; justify-content: center; width: 44px; }
+  .platform-icon-sm { align-items: center; border-radius: 8px; color: #fff; display: flex; font-size: 14px; font-weight: 700; height: 32px; justify-content: center; width: 32px; }
+
+  .platform-desc { color: #999; font-size: 13px; line-height: 1.5; }
+
+  /* ─── ANIMATION ─── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-in { animation: fadeUp 0.5s ease forwards; opacity: 0; }
+  .delay-1 { animation-delay: 0.05s; }
+  .delay-2 { animation-delay: 0.1s; }
+  .delay-3 { animation-delay: 0.15s; }
+  .delay-4 { animation-delay: 0.2s; }
+  .delay-5 { animation-delay: 0.25s; }
+  .delay-6 { animation-delay: 0.3s; }
+  .delay-7 { animation-delay: 0.35s; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT A: CARD GRID        */
+  /* ─────────────────────────── */
+  .a-hero { margin: -32px -40px 32px; overflow: hidden; padding: 24px 40px 40px; position: relative; }
+  .a-hero-bg { height: 100%; left: 0; pointer-events: none; position: absolute; right: 0; top: 0; }
+  .a-hero-bg svg { display: block; height: 100%; min-height: 220px; width: 100%; }
+  .a-deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
+  .a-deco-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
+  .a-deco-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
+  .a-deco-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
+
+  .a-hero-content { position: relative; z-index: 2; }
+  .a-hero-top { align-items: center; display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .a-hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .a-hero p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
+  .a-hero-badge { align-items: center; background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px; color: #fff; display: flex; font-size: 13px; font-weight: 600; gap: 6px; padding: 8px 18px; }
+  .a-hero-badge svg { height: 16px; width: 16px; }
+
+  .a-grid { display: grid; gap: 20px; grid-template-columns: repeat(3, 1fr); }
+
+  .a-card { background: #fff; border: 1px solid #eee; border-left: 4px solid #eee; border-radius: 14px; display: flex; flex-direction: column; padding: 24px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+  .a-card:hover { box-shadow: 0 4px 20px rgba(108, 92, 231, 0.06); }
+  .a-card-top { align-items: center; display: flex; gap: 14px; margin-bottom: 14px; }
+  .a-card-info { flex: 1; min-width: 0; }
+  .a-card-name { color: #1a1a2e; font-size: 16px; font-weight: 600; }
+  .a-card-sub { color: #999; font-size: 12px; margin-top: 2px; }
+  .a-card-desc { color: #555; flex: 1; font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
+  .a-card-footer { align-items: center; border-top: 1px solid #f8f7fc; display: flex; justify-content: space-between; padding-top: 14px; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT B: CONNECTION HUB   */
+  /* ─────────────────────────── */
+  .b-hero { margin: -32px -40px 32px; overflow: hidden; padding: 24px 40px 40px; position: relative; }
+  .b-hero-bg { height: 100%; left: 0; pointer-events: none; position: absolute; right: 0; top: 0; }
+  .b-hero-bg svg { display: block; height: 100%; min-height: 220px; width: 100%; }
+  .b-deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
+  .b-deco-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
+  .b-deco-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
+  .b-deco-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
+
+  .b-hero-content { position: relative; z-index: 2; }
+  .b-hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .b-hero p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
+
+  .b-section-label { color: #1a1a2e; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 16px; text-transform: uppercase; }
+
+  .b-connected-row { display: flex; gap: 16px; margin-bottom: 36px; }
+  .b-connected-chip { align-items: center; background: #fff; border: 1px solid #eee; border-radius: 14px; display: flex; flex: 1; gap: 14px; padding: 18px 20px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+  .b-connected-chip:hover { border-color: #e0dce8; box-shadow: 0 4px 16px rgba(108, 92, 231, 0.05); }
+  .b-chip-info { flex: 1; min-width: 0; }
+  .b-chip-name { color: #1a1a2e; font-size: 15px; font-weight: 600; }
+  .b-chip-status { align-items: center; color: #27ae60; display: flex; font-size: 12px; font-weight: 500; gap: 5px; margin-top: 3px; }
+  .b-chip-actions { align-items: flex-end; display: flex; flex-direction: column; gap: 6px; }
+
+  .b-available-grid { display: grid; gap: 20px; grid-template-columns: repeat(3, 1fr); }
+  .b-available-card { background: #fff; border: 1px solid #eee; border-radius: 14px; display: flex; flex-direction: column; padding: 24px; text-align: center; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+  .b-available-card:hover { border-color: #e0dce8; box-shadow: 0 4px 20px rgba(108, 92, 231, 0.06); }
+  .b-available-icon { margin: 0 auto 14px; }
+  .b-available-name { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .b-available-desc { color: #555; flex: 1; font-size: 13px; line-height: 1.5; margin-bottom: 18px; }
+  .b-available-data { color: #999; font-size: 12px; margin-bottom: 18px; }
+  .b-available-data span { background: #f8f7fc; border-radius: 6px; display: inline-block; margin: 2px; padding: 3px 8px; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT C: STATUS DASHBOARD */
+  /* ─────────────────────────── */
+  .c-hero { margin: -32px -40px 32px; overflow: hidden; padding: 24px 40px 40px; position: relative; }
+  .c-hero-bg { height: 100%; left: 0; pointer-events: none; position: absolute; right: 0; top: 0; }
+  .c-hero-bg svg { display: block; height: 100%; min-height: 220px; width: 100%; }
+  .c-deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
+  .c-deco-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
+  .c-deco-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
+  .c-deco-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
+
+  .c-hero-content { position: relative; z-index: 2; }
+  .c-hero-top { align-items: center; display: flex; justify-content: space-between; }
+  .c-hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .c-hero p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
+  .c-hero-stats { display: flex; gap: 24px; margin-top: 20px; }
+  .c-stat { text-align: center; }
+  .c-stat-num { color: #fff; font-size: 28px; font-weight: 700; }
+  .c-stat-label { color: rgba(255, 255, 255, 0.6); font-size: 12px; margin-top: 2px; }
+
+  .c-section-divider { border: none; border-top: 1px solid #eee; margin: 32px 0; }
+
+  .c-section-header { align-items: center; display: flex; gap: 8px; margin-bottom: 16px; }
+  .c-section-header h2 { color: #1a1a2e; font-size: 16px; font-weight: 600; }
+  .c-section-count { background: #f0edff; border-radius: 6px; color: #6c5ce7; font-size: 12px; font-weight: 600; padding: 2px 8px; }
+
+  .c-row { align-items: center; background: #fff; border: 1px solid #eee; border-radius: 14px; display: flex; gap: 16px; margin-bottom: 12px; padding: 20px 24px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+  .c-row:hover { border-color: #e0dce8; box-shadow: 0 4px 16px rgba(108, 92, 231, 0.05); }
+  .c-row-identity { align-items: center; display: flex; gap: 14px; min-width: 240px; }
+  .c-row-name { color: #1a1a2e; font-size: 15px; font-weight: 600; }
+  .c-row-sub { color: #999; font-size: 12px; margin-top: 2px; }
+  .c-row-center { align-items: center; display: flex; flex: 1; gap: 24px; }
+  .c-row-status { align-items: center; display: flex; gap: 6px; min-width: 120px; }
+  .c-row-sync { color: #999; font-size: 13px; min-width: 160px; }
+  .c-row-data { color: #555; font-size: 13px; font-weight: 500; }
+  .c-row-actions { align-items: center; display: flex; gap: 12px; margin-left: auto; }
+
+  .c-available-row { opacity: 0.85; }
+  .c-available-row .c-row-center { color: #999; font-size: 13px; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1024px) {
+    .a-grid { grid-template-columns: repeat(2, 1fr); }
+    .b-available-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .sim-sidebar { display: none; }
+    .sim-main { padding: 24px 20px 60px; }
+    .a-hero, .b-hero, .c-hero { margin: -24px -20px 24px; padding: 20px 20px 32px; }
+    .a-grid { grid-template-columns: 1fr; }
+    .a-hero-top { flex-direction: column; gap: 12px; }
+    .b-connected-row { flex-direction: column; }
+    .b-available-grid { grid-template-columns: 1fr; }
+    .c-row { flex-wrap: wrap; gap: 12px; }
+    .c-row-center { flex-wrap: wrap; gap: 8px; }
+    .c-hero-stats { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CONCEPT SELECTOR -->
+<div class="concept-nav">
+  <button class="concept-btn active" onclick="showConcept('a')">A — Card Grid</button>
+  <button class="concept-btn" onclick="showConcept('b')">B — Connection Hub</button>
+  <button class="concept-btn" onclick="showConcept('c')">C — Status Dashboard</button>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT A: CARD GRID                    -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept visible" id="concept-a">
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sim-sidebar">
+      <a class="sim-logo" href="#">My<span>Talli</span></a>
+      <nav class="sim-nav">
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a class="sim-link active" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Platforms
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Goals
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Export
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Suggestions
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="sim-main">
+      <!-- Hero -->
+      <section class="a-hero animate-in delay-1" aria-label="Your platforms">
+        <div class="a-hero-bg" aria-hidden="true">
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="aHeroGrad" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#6c5ce7"/>
+                <stop offset="50%" stop-color="#8b5cf6"/>
+                <stop offset="100%" stop-color="#6c5ce7"/>
+              </linearGradient>
+            </defs>
+            <rect width="1000" height="300" fill="url(#aHeroGrad)"/>
+            <path d="M0,260 C200,300 400,220 600,260 C800,300 900,240 1000,260 L1000,300 L0,300 Z" fill="#f8f7fc"/>
+          </svg>
+          <div class="a-deco-circle a-deco-1"></div>
+          <div class="a-deco-circle a-deco-2"></div>
+          <div class="a-deco-circle a-deco-3"></div>
+        </div>
+        <div class="a-hero-content">
+          <div class="a-hero-top">
+            <div>
+              <h1>Your Platforms</h1>
+              <p>Connect your revenue sources to see everything in one place.</p>
+            </div>
+            <div class="a-hero-badge">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              2 of 5 connected
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Platform Cards Grid -->
+      <div class="a-grid">
+        <!-- Stripe (Connected) -->
+        <div class="a-card animate-in delay-2" style="border-left-color: #635bff;">
+          <div class="a-card-top">
+            <div class="platform-icon" style="background: #635bff;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><path d="M21 4H3a2 2 0 00-2 2v12a2 2 0 002 2h18a2 2 0 002-2V6a2 2 0 00-2-2z"/><line x1="1" x2="23" y1="10" y2="10"/></svg>
+            </div>
+            <div class="a-card-info">
+              <div class="a-card-name">Stripe</div>
+              <div class="a-card-sub">Payment processing</div>
+            </div>
+            <span class="status-badge connected"><span class="status-dot connected"></span> Connected</span>
+          </div>
+          <div class="a-card-desc">Charges, refunds, subscriptions, and payout data from your Stripe account.</div>
+          <div class="a-card-footer">
+            <span class="sync-text">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Synced 12 min ago
+            </span>
+            <button class="btn-manage">Manage</button>
+          </div>
+        </div>
+
+        <!-- Etsy (Connected) -->
+        <div class="a-card animate-in delay-3" style="border-left-color: #f56400;">
+          <div class="a-card-top">
+            <div class="platform-icon" style="background: #f56400;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            </div>
+            <div class="a-card-info">
+              <div class="a-card-name">Etsy</div>
+              <div class="a-card-sub">Handmade marketplace</div>
+            </div>
+            <span class="status-badge connected"><span class="status-dot connected"></span> Connected</span>
+          </div>
+          <div class="a-card-desc">Shop receipts, transaction details, and payment data from your Etsy storefront.</div>
+          <div class="a-card-footer">
+            <span class="sync-text">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Synced 3 hours ago
+            </span>
+            <button class="btn-manage">Manage</button>
+          </div>
+        </div>
+
+        <!-- Gumroad (Not Connected) -->
+        <div class="a-card animate-in delay-4" style="border-left-color: #e0dce8;">
+          <div class="a-card-top">
+            <div class="platform-icon" style="background: #ff90e8;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+            </div>
+            <div class="a-card-info">
+              <div class="a-card-name">Gumroad</div>
+              <div class="a-card-sub">Digital products</div>
+            </div>
+            <span class="status-badge disconnected"><span class="status-dot disconnected"></span> Not Connected</span>
+          </div>
+          <div class="a-card-desc">Sales, product listings, and subscriber data from your Gumroad store.</div>
+          <div class="a-card-footer">
+            <span class="sync-text" style="color: #e0dce8;">No data yet</span>
+            <button class="btn-connect">Connect</button>
+          </div>
+        </div>
+
+        <!-- PayPal (Not Connected) -->
+        <div class="a-card animate-in delay-5" style="border-left-color: #e0dce8;">
+          <div class="a-card-top">
+            <div class="platform-icon" style="background: #003087;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            </div>
+            <div class="a-card-info">
+              <div class="a-card-name">PayPal</div>
+              <div class="a-card-sub">Payment service</div>
+            </div>
+            <span class="status-badge disconnected"><span class="status-dot disconnected"></span> Not Connected</span>
+          </div>
+          <div class="a-card-desc">Transaction history, invoices, and balance data from your PayPal account.</div>
+          <div class="a-card-footer">
+            <span class="sync-text" style="color: #e0dce8;">No data yet</span>
+            <button class="btn-connect">Connect</button>
+          </div>
+        </div>
+
+        <!-- Shopify (Not Connected) -->
+        <div class="a-card animate-in delay-6" style="border-left-color: #e0dce8;">
+          <div class="a-card-top">
+            <div class="platform-icon" style="background: #96bf48;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="a-card-info">
+              <div class="a-card-name">Shopify</div>
+              <div class="a-card-sub">E-commerce platform</div>
+            </div>
+            <span class="status-badge disconnected"><span class="status-dot disconnected"></span> Not Connected</span>
+          </div>
+          <div class="a-card-desc">Orders, products, and revenue data from your Shopify store.</div>
+          <div class="a-card-footer">
+            <span class="sync-text" style="color: #e0dce8;">No data yet</span>
+            <button class="btn-connect">Connect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT B: CONNECTION HUB               -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept" id="concept-b">
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sim-sidebar">
+      <a class="sim-logo" href="#">My<span>Talli</span></a>
+      <nav class="sim-nav">
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a class="sim-link active" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Platforms
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Goals
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Export
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Suggestions
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="sim-main">
+      <!-- Hero -->
+      <section class="b-hero animate-in delay-1" aria-label="Platform connections">
+        <div class="b-hero-bg" aria-hidden="true">
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bHeroGrad" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#6c5ce7"/>
+                <stop offset="50%" stop-color="#8b5cf6"/>
+                <stop offset="100%" stop-color="#6c5ce7"/>
+              </linearGradient>
+            </defs>
+            <rect width="1000" height="300" fill="url(#bHeroGrad)"/>
+            <path d="M0,260 C200,300 400,220 600,260 C800,300 900,240 1000,260 L1000,300 L0,300 Z" fill="#f8f7fc"/>
+          </svg>
+          <div class="b-deco-circle b-deco-1"></div>
+          <div class="b-deco-circle b-deco-2"></div>
+          <div class="b-deco-circle b-deco-3"></div>
+        </div>
+        <div class="b-hero-content">
+          <h1>Platform Connections</h1>
+          <p>Your revenue sources, all in one place. Connect platforms to start tracking.</p>
+        </div>
+      </section>
+
+      <!-- Connected Platforms -->
+      <div class="animate-in delay-2">
+        <div class="b-section-label">Connected Platforms</div>
+        <div class="b-connected-row">
+          <!-- Stripe -->
+          <div class="b-connected-chip">
+            <div class="platform-icon" style="background: #635bff;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><path d="M21 4H3a2 2 0 00-2 2v12a2 2 0 002 2h18a2 2 0 002-2V6a2 2 0 00-2-2z"/><line x1="1" x2="23" y1="10" y2="10"/></svg>
+            </div>
+            <div class="b-chip-info">
+              <div class="b-chip-name">Stripe</div>
+              <div class="b-chip-status">
+                <span class="status-dot connected"></span>
+                Synced 12 min ago
+              </div>
+            </div>
+            <div class="b-chip-actions">
+              <button class="btn-manage">Manage</button>
+              <button class="btn-disconnect">Disconnect</button>
+            </div>
+          </div>
+
+          <!-- Etsy -->
+          <div class="b-connected-chip">
+            <div class="platform-icon" style="background: #f56400;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            </div>
+            <div class="b-chip-info">
+              <div class="b-chip-name">Etsy</div>
+              <div class="b-chip-status">
+                <span class="status-dot connected"></span>
+                Synced 3 hours ago
+              </div>
+            </div>
+            <div class="b-chip-actions">
+              <button class="btn-manage">Manage</button>
+              <button class="btn-disconnect">Disconnect</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Available Platforms -->
+      <div class="animate-in delay-3">
+        <div class="b-section-label">Available Platforms</div>
+        <div class="b-available-grid">
+          <!-- Gumroad -->
+          <div class="b-available-card">
+            <div class="platform-icon b-available-icon" style="background: #ff90e8;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+            </div>
+            <div class="b-available-name">Gumroad</div>
+            <div class="b-available-desc">Track sales, products, and subscriber revenue from your digital storefront.</div>
+            <div class="b-available-data">
+              <span>Sales</span>
+              <span>Products</span>
+              <span>Subscribers</span>
+            </div>
+            <button class="btn-connect" style="width: 100%;">Connect Gumroad</button>
+          </div>
+
+          <!-- PayPal -->
+          <div class="b-available-card">
+            <div class="platform-icon b-available-icon" style="background: #003087;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            </div>
+            <div class="b-available-name">PayPal</div>
+            <div class="b-available-desc">Pull in transaction history, invoices, and balance data from your PayPal account.</div>
+            <div class="b-available-data">
+              <span>Transactions</span>
+              <span>Invoices</span>
+              <span>Balance</span>
+            </div>
+            <button class="btn-connect" style="width: 100%;">Connect PayPal</button>
+          </div>
+
+          <!-- Shopify -->
+          <div class="b-available-card">
+            <div class="platform-icon b-available-icon" style="background: #96bf48;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="b-available-name">Shopify</div>
+            <div class="b-available-desc">Import orders, products, and revenue data from your Shopify e-commerce store.</div>
+            <div class="b-available-data">
+              <span>Orders</span>
+              <span>Products</span>
+              <span>Revenue</span>
+            </div>
+            <button class="btn-connect" style="width: 100%;">Connect Shopify</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT C: STATUS DASHBOARD             -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept" id="concept-c">
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sim-sidebar">
+      <a class="sim-logo" href="#">My<span>Talli</span></a>
+      <nav class="sim-nav">
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a class="sim-link active" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Platforms
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Goals
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Export
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Suggestions
+        </a>
+        <a class="sim-link" href="#">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="sim-main">
+      <!-- Hero -->
+      <section class="c-hero animate-in delay-1" aria-label="Platform status overview">
+        <div class="c-hero-bg" aria-hidden="true">
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="cHeroGrad" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#6c5ce7"/>
+                <stop offset="50%" stop-color="#8b5cf6"/>
+                <stop offset="100%" stop-color="#6c5ce7"/>
+              </linearGradient>
+            </defs>
+            <rect width="1000" height="300" fill="url(#cHeroGrad)"/>
+            <path d="M0,260 C200,300 400,220 600,260 C800,300 900,240 1000,260 L1000,300 L0,300 Z" fill="#f8f7fc"/>
+          </svg>
+          <div class="c-deco-circle c-deco-1"></div>
+          <div class="c-deco-circle c-deco-2"></div>
+          <div class="c-deco-circle c-deco-3"></div>
+        </div>
+        <div class="c-hero-content">
+          <div class="c-hero-top">
+            <div>
+              <h1>Platform Status</h1>
+              <p>Monitor your connections and sync health at a glance.</p>
+            </div>
+          </div>
+          <div class="c-hero-stats">
+            <div class="c-stat">
+              <div class="c-stat-num">2</div>
+              <div class="c-stat-label">Connected</div>
+            </div>
+            <div class="c-stat">
+              <div class="c-stat-num">3</div>
+              <div class="c-stat-label">Available</div>
+            </div>
+            <div class="c-stat">
+              <div class="c-stat-num">284</div>
+              <div class="c-stat-label">Transactions Synced</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Connected Section -->
+      <div class="animate-in delay-2">
+        <div class="c-section-header">
+          <h2>Connected</h2>
+          <span class="c-section-count">2</span>
+        </div>
+
+        <!-- Stripe -->
+        <div class="c-row">
+          <div class="c-row-identity">
+            <div class="platform-icon" style="background: #635bff;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><path d="M21 4H3a2 2 0 00-2 2v12a2 2 0 002 2h18a2 2 0 002-2V6a2 2 0 00-2-2z"/><line x1="1" x2="23" y1="10" y2="10"/></svg>
+            </div>
+            <div>
+              <div class="c-row-name">Stripe</div>
+              <div class="c-row-sub">Charges, refunds, subscriptions &amp; payouts</div>
+            </div>
+          </div>
+          <div class="c-row-center">
+            <div class="c-row-status">
+              <span class="status-dot connected"></span>
+              <span style="color: #27ae60; font-size: 13px; font-weight: 500;">Active</span>
+            </div>
+            <div class="c-row-sync">
+              <svg fill="none" stroke="#999" stroke-width="2" viewBox="0 0 24 24" style="height:13px;width:13px;vertical-align:-2px;margin-right:3px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Synced 12 min ago
+            </div>
+            <div class="c-row-data">142 transactions</div>
+          </div>
+          <div class="c-row-actions">
+            <button class="btn-manage">Sync Now</button>
+            <button class="btn-manage">Manage</button>
+          </div>
+        </div>
+
+        <!-- Etsy -->
+        <div class="c-row">
+          <div class="c-row-identity">
+            <div class="platform-icon" style="background: #f56400;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            </div>
+            <div>
+              <div class="c-row-name">Etsy</div>
+              <div class="c-row-sub">Shop receipts, transactions &amp; payments</div>
+            </div>
+          </div>
+          <div class="c-row-center">
+            <div class="c-row-status">
+              <span class="status-dot connected"></span>
+              <span style="color: #27ae60; font-size: 13px; font-weight: 500;">Active</span>
+            </div>
+            <div class="c-row-sync">
+              <svg fill="none" stroke="#999" stroke-width="2" viewBox="0 0 24 24" style="height:13px;width:13px;vertical-align:-2px;margin-right:3px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Synced 3 hours ago
+            </div>
+            <div class="c-row-data">89 transactions</div>
+          </div>
+          <div class="c-row-actions">
+            <button class="btn-manage">Sync Now</button>
+            <button class="btn-manage">Manage</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="c-section-divider">
+
+      <!-- Available Section -->
+      <div class="animate-in delay-3">
+        <div class="c-section-header">
+          <h2>Available</h2>
+          <span class="c-section-count">3</span>
+        </div>
+
+        <!-- Gumroad -->
+        <div class="c-row c-available-row">
+          <div class="c-row-identity">
+            <div class="platform-icon" style="background: #ff90e8;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+            </div>
+            <div class="c-row-name">Gumroad</div>
+          </div>
+          <div class="c-row-center">Digital products &middot; Sales, products, subscribers</div>
+          <div class="c-row-actions">
+            <button class="btn-connect">Connect</button>
+          </div>
+        </div>
+
+        <!-- PayPal -->
+        <div class="c-row c-available-row">
+          <div class="c-row-identity">
+            <div class="platform-icon" style="background: #003087;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            </div>
+            <div class="c-row-name">PayPal</div>
+          </div>
+          <div class="c-row-center">Payment service &middot; Transactions, invoices, balance</div>
+          <div class="c-row-actions">
+            <button class="btn-connect">Connect</button>
+          </div>
+        </div>
+
+        <!-- Shopify -->
+        <div class="c-row c-available-row">
+          <div class="c-row-identity">
+            <div class="platform-icon" style="background: #96bf48;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="height:22px;width:22px"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="c-row-name">Shopify</div>
+          </div>
+          <div class="c-row-center">E-commerce platform &middot; Orders, products, revenue</div>
+          <div class="c-row-actions">
+            <button class="btn-connect">Connect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showConcept(id) {
+  document.querySelectorAll('.concept').forEach(c => c.classList.remove('visible'));
+  document.getElementById('concept-' + id).classList.add('visible');
+  document.querySelectorAll('.concept-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>
