@@ -32,6 +32,10 @@ public class ProbeFilterMiddleware
             return;
         }
 
+        // HEAD — Blazor doesn't handle HEAD requests natively (returns 405). Rewrite to GET so the pipeline processes it normally; Kestrel automatically strips the response body for HEAD.
+        if (context.Request.Method == HttpMethods.Head)
+            context.Request.Method = HttpMethods.Get;
+
         // OPTIONS — Is used by "Office link probes (Word, Outlook)" and CORS preflights.  Short-circuit with 200.
         if (context.Request.Method == HttpMethods.Options)
         {
