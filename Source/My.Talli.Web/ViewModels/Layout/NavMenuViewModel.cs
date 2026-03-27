@@ -20,6 +20,8 @@ public class NavMenuViewModel : ComponentBase
 
 	#region <Properties>
 
+	public bool IsAdmin { get; private set; }
+
 	public string UserEmail { get; private set; } = string.Empty;
 
 	public string UserFullName { get; private set; } = string.Empty;
@@ -44,6 +46,8 @@ public class NavMenuViewModel : ComponentBase
 
 		if (userIdClaim is null || !long.TryParse(userIdClaim, out var userId))
 			return;
+
+		IsAdmin = principal.IsInRole("Admin");
 
 		var (info, _) = await UserDisplayCache.GetOrLoadAsync(userId, email);
 

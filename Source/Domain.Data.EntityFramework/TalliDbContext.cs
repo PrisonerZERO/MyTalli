@@ -15,6 +15,8 @@ public class TalliDbContext : DbContext
 
     #region <Properties>
 
+    public DbSet<AuthenticatedUser> AuthenticatedUsers { get; set; } = null!;
+
     public DbSet<Billing> Billings { get; set; } = null!;
 
     public DbSet<BillingStripe> BillingStripes { get; set; } = null!;

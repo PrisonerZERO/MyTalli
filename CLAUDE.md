@@ -334,7 +334,8 @@ My.Talli/
     │   │   │   ├── UserAuthenticationGoogle.cs
     │   │   │   ├── UserAuthenticationMicrosoft.cs
     │   │   │   └── UserRole.cs
-    │   │   └── Presentation/                  # Aggregate/detail view models (future)
+    │   │   └── Presentation/                  # Aggregate/detail view models
+    │   │       └── AdminUserListItem.cs       # Admin user list with email, provider, subscription status
     │   ├── Handlers/
     │   │   ├── Authentication/                # Sign-in handlers (one per OAuth provider)
     │   │   │   ├── EmailLookupService.cs       # Cross-provider email lookup for duplicate prevention
@@ -403,6 +404,7 @@ My.Talli/
     │   │   └── AuditResolver.cs           # IAuditResolver<T> implementation
     │   └── Configurations/
     │       ├── Auth/                      # Entity configs for auth schema
+    │       │   ├── AuthenticatedUserConfiguration.cs  # Keyless entity config for vAuthenticatedUser view
     │       │   ├── UserConfiguration.cs
     │       │   ├── UserAuthenticationAppleConfiguration.cs
     │       │   ├── UserAuthenticationGoogleConfiguration.cs
@@ -427,6 +429,7 @@ My.Talli/
     │   ├── AuditableIdentifiableEntity.cs  # Base class (Id + audit fields)
     │   ├── DefaultEntity.cs                # Standard entity base (adds IsDeleted, IsVisible)
     │   ├── Entities/
+    │   │   ├── AuthenticatedUser.cs         # Keyless entity mapped to auth.vAuthenticatedUser view
     │   │   ├── Billing.cs
     │   │   ├── BillingStripe.cs
     │   │   ├── Order.cs
@@ -480,6 +483,7 @@ My.Talli/
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, pipeline setup (delegates to Configuration/ and Endpoints/)
         ├── Configuration/             # Service registration extension methods (one per concern)
+        │   ├── AdminConfiguration.cs          # Admin commands registration
         │   ├── AuthenticationConfiguration.cs  # OAuth providers (Google, Microsoft, Apple) + auth handlers
         │   ├── BillingConfiguration.cs         # Stripe settings + service
         │   ├── DatabaseConfiguration.cs        # DbContext registration
@@ -487,6 +491,7 @@ My.Talli/
         │   ├── EmailConfiguration.cs           # Email services + unsubscribe token
         │   └── RepositoryConfiguration.cs      # ICurrentUserService registration (mappers, handlers, and repositories are in Domain.DI.Lamar)
         ├── Endpoints/                 # Minimal API endpoint extension methods (one per route group)
+        │   ├── AdminEndpoints.cs      # /api/admin/email/* (resend, bulk-welcome, bulk-welcome-all)
         │   ├── AuthEndpoints.cs       # /api/auth/login, /api/auth/logout
         │   ├── BillingEndpoints.cs    # /api/billing/create-checkout-session, portal, switch-plan, webhook
         │   ├── EmailEndpoints.cs      # /api/email/preferences
@@ -502,9 +507,12 @@ My.Talli/
         │       └── SubscriptionUpdatedHandler.cs  # Stripe customer.subscription.updated → domain handler
         ├── Commands/                  # Web-layer commands (execute actions, data access, notifications)
         │   ├── Notifications/         # Email and notification commands
-        │   │   └── SendWelcomeEmailCommand.cs                  # Build + send welcome email
+        │   │   ├── SendSubscriptionConfirmationEmailCommand.cs # Build + send subscription confirmation email
+        │   │   ├── SendWelcomeEmailCommand.cs                  # Build + send welcome email
+        │   │   └── SendWeeklySummaryEmailCommand.cs            # Build + send weekly summary email (sample data)
         │   └── Endpoints/             # Commands that serve endpoint routes
         │       ├── FindActiveSubscriptionWithStripeCommand.cs  # Query active subscription + Stripe record
+        │       ├── GetAdminUserListCommand.cs                  # Query users with emails from vAuthenticatedUser view
         │       └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
         ├── Middleware/                 # Custom middleware classes
         │   ├── CurrentUserMiddleware.cs   # Populates ICurrentUserService from HttpContext.User claims on every request
@@ -520,6 +528,8 @@ My.Talli/
         │   │   ├── NavMenu.razor         # Sidebar navigation (brand styled)
         │   │   └── NavMenu.razor.css
         │   ├── Pages/
+        │   │   ├── Admin.razor           # Admin page (route: /admin, Admin role only)
+        │   │   ├── Admin.razor.css
         │   │   ├── CancelSubscription.razor  # Cancel subscription retention page (route: /subscription/cancel)
         │   │   ├── CancelSubscription.razor.css
         │   │   ├── Dashboard.razor       # Dashboard (route: /dashboard)
@@ -560,6 +570,7 @@ My.Talli/
         │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
         ├── ViewModels/
         │   ├── Pages/
+        │   │   ├── AdminViewModel.cs
         │   │   ├── CancelSubscriptionViewModel.cs
         │   │   ├── DashboardViewModel.cs
         │   │   ├── ErrorViewModel.cs
@@ -622,6 +633,7 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 | `/subscription` | Inline SVG (`.sub-hero`) | No (sidebar has it) | N/A |
 | `/subscription/cancel` | Inline SVG (`.cancel-hero`) | No (sidebar has it) | N/A |
 | `/upgrade` | Inline SVG (`.upgrade-hero`) | No (sidebar has it) | N/A |
+| `/admin` | Inline SVG (`.admin-hero`) | No (sidebar has it) | N/A |
 | `/unsubscribe` | `<BrandHeader>` | Yes | "Go to Homepage" link |
 | `/Error` | `<BrandHeader>` | Yes | "Go Back" button |
 | `/` | None | Own nav logo | N/A |
@@ -1070,6 +1082,7 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 | **Export** | `/export` | CSV export for tax prep / bookkeeping | Hidden |
 | **Suggestions** | `/suggestions` | User feedback and feature requests (already built) | Yes |
 | **Settings** | `/settings` | Account preferences, email settings, linked providers | Hidden |
+| **Admin** | `/admin` | Email resend, bulk welcome send, user list (Admin role only) | Hidden |
 
 ### Sample Data for New Users
 
@@ -1441,6 +1454,6 @@ Features already shipped in the static HTML landing page (`deploy/index.html`) t
 
 Upcoming features:
 
-- [ ] **Admin Page** — role-based admin section (`/admin`) for viewing all suggestion box submissions, user management, platform connection health, and feature flag/tier management. Accessible only to accounts with an `Admin` role.
+- [x] **Admin Page** — role-based admin section (`/admin`) with email management: resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, bulk-send Welcome emails to selected or all users. Visible only to `Admin` role via conditional NavMenu link. Uses `vAuthenticatedUser` view (keyless entity) for user list with emails. ViewModel redirects non-admins to `/dashboard`; API endpoints enforce Admin role via `.RequireAuthorization()`.
 - [ ] **Admin Email Resend** — admin ability to resend failed emails (welcome, subscription confirmation, weekly summary) for a specific user. Welcome and confirmation emails fail silently (logged but swallowed) so users aren't blocked — admins need a way to see failures and retry.
 - [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.

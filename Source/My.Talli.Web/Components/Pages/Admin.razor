@@ -1,0 +1,193 @@
+@page "/admin"
+@inherits My.Talli.Web.ViewModels.Pages.AdminViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Admin — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<div class="admin-hero">
+    <div class="admin-hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="adminSwooshGrad" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#6c5ce7" />
+                    <stop offset="50%" stop-color="#8b5cf6" />
+                    <stop offset="100%" stop-color="#6c5ce7" />
+                </linearGradient>
+            </defs>
+            <path d="M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z" fill="url(#adminSwooshGrad)" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="admin-header">
+        <h1>Admin</h1>
+        <p>User management & email tools</p>
+    </div>
+</div>
+
+@if (IsLoading)
+{
+    <div class="admin-loading">
+        <p>Loading...</p>
+    </div>
+}
+else
+{
+    <!-- Status toast -->
+    @if (StatusMessage is not null)
+    {
+        <div class="admin-toast @(IsStatusSuccess ? "toast-success" : "toast-error")" role="status">
+            <span>@StatusMessage</span>
+            <button aria-label="Dismiss notification" class="toast-dismiss" @onclick="DismissStatus">&times;</button>
+        </div>
+    }
+
+    <!-- SECTION 1: Single User Resend -->
+    <section aria-label="Resend email to a specific user" class="admin-section">
+        <h2>Resend Email</h2>
+        <p class="section-desc">Select a user, then choose which email to resend.</p>
+
+        <!-- User selector -->
+        <div class="user-selector">
+            <label class="field-label" for="userSelect">Select User</label>
+            <select class="user-select" id="userSelect" @onchange="(e) => OnUserSelected(e)">
+                <option value="">— Choose a user —</option>
+                @foreach (var user in Users)
+                {
+                    <option value="@user.UserId">@ResolveDisplayName(user) — @user.Email</option>
+                }
+            </select>
+        </div>
+
+        @if (SelectedUser is not null)
+        {
+            <div class="selected-user-card">
+                <div class="selected-user-info">
+                    <span class="selected-user-name">@ResolveDisplayName(SelectedUser)</span>
+                    <span class="selected-user-email">@SelectedUser.Email</span>
+                    <span class="selected-user-provider">@SelectedUser.PreferredProvider</span>
+                    @if (SelectedUser.HasActiveSubscription)
+                    {
+                        <span class="badge badge-pro">Pro</span>
+                    }
+                </div>
+
+                <div class="resend-buttons" role="group" aria-label="Email resend actions">
+                    <button class="btn btn-resend" disabled="@IsSending" @onclick='() => ResendEmailAsync("welcome")'>
+                        @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
+                        Send Welcome
+                    </button>
+                    <button class="btn btn-resend" disabled="@(IsSending || !SelectedUser.HasActiveSubscription)"
+                            title="@(!SelectedUser.HasActiveSubscription ? "User has no active subscription" : "")"
+                            @onclick='() => ResendEmailAsync("subscription-confirmation")'>
+                        @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
+                        Send Subscription Confirmation
+                    </button>
+                    <button class="btn btn-resend" disabled="@IsSending" @onclick='() => ResendEmailAsync("weekly-summary")'>
+                        @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
+                        Send Weekly Summary
+                    </button>
+                </div>
+            </div>
+        }
+    </section>
+
+    <!-- SECTION 2: Bulk Welcome Email -->
+    <section aria-label="Bulk send welcome email" class="admin-section">
+        <h2>Bulk Welcome Email</h2>
+        <p class="section-desc">Send the Welcome email to multiple users at once.</p>
+
+        <!-- Search filter -->
+        <div class="search-bar">
+            <input aria-label="Filter users by name or email" class="search-input" placeholder="Filter by name or email..."
+                   type="text" @bind="SearchText" @bind:event="oninput" @bind:after="FilterUsers" />
+        </div>
+
+        <!-- User table -->
+        <div class="user-table-wrapper">
+            <table class="user-table" aria-label="User list for bulk email">
+                <thead>
+                    <tr>
+                        <th class="col-check">
+                            <input aria-label="Select all users" type="checkbox" checked="@SelectAll" @onchange="ToggleSelectAll" />
+                        </th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Provider</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in FilteredUsers)
+                    {
+                        <tr>
+                            <td class="col-check">
+                                <input aria-label="Select @ResolveDisplayName(user)" type="checkbox"
+                                       checked="@SelectedUserIds.Contains(user.UserId)"
+                                       @onchange="() => ToggleUserSelection(user.UserId)" />
+                            </td>
+                            <td>@ResolveDisplayName(user)</td>
+                            <td class="col-email">@user.Email</td>
+                            <td>@user.PreferredProvider</td>
+                            <td>
+                                @if (user.HasActiveSubscription)
+                                {
+                                    <span class="badge badge-pro">Pro</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-free">Free</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bulk action buttons -->
+        <div class="bulk-actions">
+            <button class="btn btn-bulk" disabled="@(IsSending || SelectedUserIds.Count == 0)" @onclick="ShowBulkSelectedConfirmation">
+                Send to Selected (@SelectedUserIds.Count)
+            </button>
+            <button class="btn btn-bulk-all" disabled="@IsSending" @onclick="ShowBulkAllConfirmation">
+                Send to All Users (@Users.Count)
+            </button>
+        </div>
+
+        <!-- Confirmation dialogs -->
+        @if (IsConfirmingBulkSelected)
+        {
+            <div class="confirm-dialog" role="alertdialog" aria-label="Confirm bulk send">
+                <p>Send Welcome email to <strong>@SelectedUserIds.Count</strong> selected user(s)?</p>
+                <div class="confirm-buttons">
+                    <button class="btn btn-confirm" @onclick="ConfirmBulkSendSelectedAsync">Yes, Send</button>
+                    <button class="btn btn-cancel" @onclick="CancelBulk">Cancel</button>
+                </div>
+            </div>
+        }
+
+        @if (IsConfirmingBulkAll)
+        {
+            <div class="confirm-dialog" role="alertdialog" aria-label="Confirm send to all">
+                <p>Send Welcome email to <strong>all @Users.Count</strong> users?</p>
+                <div class="confirm-buttons">
+                    <button class="btn btn-confirm" @onclick="ConfirmBulkSendAllAsync">Yes, Send to All</button>
+                    <button class="btn btn-cancel" @onclick="CancelBulk">Cancel</button>
+                </div>
+            </div>
+        }
+
+        @if (IsSending)
+        {
+            <div class="sending-indicator" role="status">
+                <span class="spinner" aria-hidden="true"></span>
+                <span>Sending emails...</span>
+            </div>
+        }
+    </section>
+}
+
