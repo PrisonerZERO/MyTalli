@@ -4,7 +4,9 @@ using Domain.Components.JsonSerializers;
 using Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Options;
 using Services.Identity;
+using Services.UI;
 using System.Security.Claims;
 
 /// <summary>View Model</summary>
@@ -14,6 +16,9 @@ public class DashboardViewModel : ComponentBase
 
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    [Inject]
+    private IOptions<KnownIssueSettings> KnownIssueOptions { get; set; } = default!;
 
     [Inject]
     private UserPreferencesJsonSerializer PreferencesSerializer { get; set; } = default!;
@@ -51,6 +56,12 @@ public class DashboardViewModel : ComponentBase
 
     public bool IsSampleData { get; private set; } = true;
 
+    public string KnownIssueMessage { get; private set; } = string.Empty;
+
+    public string KnownIssueSeverity { get; private set; } = "Warning";
+
+    public bool ShowKnownIssue { get; private set; }
+
     public int MonthlyGoalPercentage { get; private set; } = 68;
 
     public List<string> Periods { get; } = ["7D", "30D", "90D", "12M"];
@@ -78,6 +89,7 @@ public class DashboardViewModel : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        LoadKnownIssue();
         await LoadUserFromClaims();
         LoadMockData();
     }
@@ -91,6 +103,14 @@ public class DashboardViewModel : ComponentBase
     {
         ActivePeriod = period;
         StateHasChanged();
+    }
+
+    private void LoadKnownIssue()
+    {
+        var settings = KnownIssueOptions.Value;
+        ShowKnownIssue = settings.IsActive && !string.IsNullOrWhiteSpace(settings.Message);
+        KnownIssueMessage = settings.Message;
+        KnownIssueSeverity = settings.Severity;
     }
 
     private async Task LoadUserFromClaims()

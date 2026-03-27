@@ -41,6 +41,21 @@
     </div>
 </div>
 
+<!-- Known issue banner -->
+@if (ShowKnownIssue)
+{
+    <div class="known-issue-banner known-issue-@KnownIssueSeverity.ToLowerInvariant() animate-in delay-2" role="alert">
+        <div class="known-issue-content">
+            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                <line x1="12" x2="12" y1="9" y2="13" />
+                <line x1="12" x2="12.01" y1="17" y2="17" />
+            </svg>
+            <span><strong>Known Issue:</strong> @KnownIssueMessage</span>
+        </div>
+    </div>
+}
+
 <!-- Sample data banner -->
 @if (IsSampleData)
 {

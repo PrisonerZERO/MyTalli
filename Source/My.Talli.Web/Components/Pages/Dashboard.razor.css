@@ -14,6 +14,17 @@
 .sample-banner-cta { background: #6c5ce7; border-radius: 8px; color: #fff; flex-shrink: 0; font-size: 13px; font-weight: 600; padding: 8px 18px; text-decoration: none; transition: background 0.15s ease; white-space: nowrap; }
 .sample-banner-cta:hover { background: #5a4bd1; }
 
+/* ─── KNOWN ISSUE BANNER ─── */
+.known-issue-banner { align-items: center; border: 1px solid transparent; border-left: 4px solid; border-radius: 10px; display: flex; gap: 16px; margin-bottom: 24px; padding: 14px 20px; }
+.known-issue-content { align-items: center; color: #555; display: flex; font-size: 14px; gap: 10px; }
+.known-issue-content svg { flex-shrink: 0; height: 20px; width: 20px; }
+.known-issue-warning { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-color: #f5c842; border-left-color: #f5c842; }
+.known-issue-warning svg { color: #d97706; }
+.known-issue-error { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-color: #fca5a5; border-left-color: #e74c3c; }
+.known-issue-error svg { color: #e74c3c; }
+.known-issue-info { background: linear-gradient(135deg, #f0edff 0%, #e8e4ff 100%); border-color: #e0dce8; border-left-color: #6c5ce7; }
+.known-issue-info svg { color: #6c5ce7; }
+
 /* ─── TOP BAR ─── */
 .top-bar { align-items: flex-start; display: flex; justify-content: space-between; position: relative; z-index: 2; }
 .top-bar-right { align-items: center; display: flex; gap: 16px; margin-top: 4px; padding-right: 56px; }
@@ -121,6 +132,8 @@
 
 @media (max-width: 641px) {
     .dash-hero { margin: -24px -20px 24px; padding: 20px 20px 100px; }
+    .known-issue-banner { flex-direction: column; gap: 12px; text-align: center; }
+    .known-issue-content { flex-direction: column; gap: 8px; }
     .sample-banner { flex-direction: column; gap: 12px; text-align: center; }
     .sample-banner-content { flex-direction: column; gap: 8px; }
     .summary-row { grid-template-columns: 1fr; }

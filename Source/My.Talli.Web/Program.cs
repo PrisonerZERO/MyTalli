@@ -22,6 +22,7 @@ builder.Services.AddAuthenticationProviders(builder.Configuration);
 builder.Services.AddBillingServices(builder.Configuration);
 builder.Services.AddEmailServices(builder.Configuration);
 builder.Services.AddAdminServices();
+builder.Services.AddKnownIssue(builder.Configuration);
 builder.Services.AddElmahLogging(builder.Configuration);
 
 // Build
