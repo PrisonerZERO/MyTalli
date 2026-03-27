@@ -11,7 +11,7 @@ public class UserDisplayCache
 {
     #region <Variables>
 
-    private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly SemaphoreSlim _lock = new(1, 1); //<-- Acts as an async-friendly mutex — only one caller can be inside at a time.
     private readonly RepositoryAdapterAsync<User, ENTITIES.User> _userAdapter;
 
     private string? _cachedPreferences;
