@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Platform Approval Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.6; padding: 0; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; padding: 48px; position: relative; overflow: hidden; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 200px; position: absolute; right: -40px; top: -60px; width: 200px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 120px; left: 30%; position: absolute; top: 80px; width: 120px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.8); font-size: 15px; margin-top: 6px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 12px; position: relative; z-index: 1; }
+
+  /* Content */
+  .content { margin: 0 auto; max-width: 1100px; padding: 48px 32px 80px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-tag { background: #f0edff; border-radius: 20px; color: #6c5ce7; display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 16px; padding: 6px 16px; text-transform: uppercase; }
+  .section h2 { color: #1a1a2e; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .section p { color: #555; font-size: 15px; margin-bottom: 16px; }
+
+  /* Cards */
+  .card { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; padding: 24px; }
+  .card h3 { color: #1a1a2e; font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .card p, .card ul { color: #555; font-size: 14px; }
+  .card ul { margin: 8px 0 0 20px; }
+  .card li { margin-bottom: 6px; }
+
+  /* Tables */
+  .table-wrap { border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th { background: #f0edff; color: #6c5ce7; font-size: 11px; font-weight: 600; letter-spacing: 1px; padding: 12px 16px; text-align: left; text-transform: uppercase; }
+  td { border-top: 1px solid #f0edff; color: #555; font-size: 13px; padding: 12px 16px; vertical-align: top; }
+  tr:hover td { background: #faf9ff; }
+
+  /* Platform colors */
+  .etsy { color: #f56400; font-weight: 600; }
+  .paypal { color: #003087; font-weight: 600; }
+
+  /* Badges */
+  .badge { border-radius: 4px; display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; }
+  .badge-yes { background: #d1fae5; color: #065f46; }
+  .badge-no { background: #fee2e2; color: #b91c1c; }
+  .badge-partial { background: #fef3c7; color: #92400e; }
+  .badge-easy { background: #d1fae5; color: #065f46; }
+  .badge-moderate { background: #dbeafe; color: #1e40af; }
+  .badge-hard { background: #fef3c7; color: #92400e; }
+  .badge-blocker { background: #fee2e2; color: #b91c1c; }
+
+  /* Callout */
+  .callout { background: #fff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin-bottom: 16px; padding: 16px 20px; }
+  .callout.warning { border-left-color: #f5c842; }
+  .callout.success { border-left-color: #27ae60; }
+  .callout.danger { border-left-color: #e74c3c; }
+  .callout strong { color: #1a1a2e; }
+  .callout p { color: #555; font-size: 14px; margin: 0; }
+
+  /* Ordered steps */
+  .steps { counter-reset: step; list-style: none; padding: 0; }
+  .steps li { align-items: flex-start; counter-increment: step; display: flex; margin-bottom: 20px; }
+  .steps li::before { align-items: center; background: #6c5ce7; border-radius: 50%; color: #fff; content: counter(step); display: flex; flex-shrink: 0; font-size: 14px; font-weight: 700; height: 32px; justify-content: center; margin-right: 16px; margin-top: 2px; width: 32px; }
+  .step-content { flex: 1; }
+  .step-content strong { color: #1a1a2e; display: block; font-size: 15px; margin-bottom: 4px; }
+  .step-content p { color: #555; font-size: 14px; margin: 0; }
+  .step-content .step-meta { color: #999; font-size: 12px; margin-top: 4px; }
+
+  /* Verdict */
+  .verdict { align-items: center; background: #fff; border: 2px solid #e0dce8; border-radius: 12px; display: flex; gap: 16px; margin-bottom: 16px; padding: 20px 24px; }
+  .verdict-icon { flex-shrink: 0; font-size: 28px; }
+  .verdict-text strong { color: #1a1a2e; display: block; font-size: 15px; margin-bottom: 2px; }
+  .verdict-text p { color: #555; font-size: 13px; margin: 0; }
+
+  /* Footer */
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 48px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Platform Approval Guide</h1>
+  <p class="subtitle">Decline risks, pre-application requirements, and next steps for Etsy &amp; PayPal</p>
+  <p class="doc-date">Last updated: March 2026</p>
+</div>
+
+<div class="content">
+
+  <!-- Overview -->
+  <div class="section">
+    <span class="section-tag">Overview</span>
+    <h2>Two Platforms, Two Gates</h2>
+    <p>Of the five revenue platforms MyTalli plans to integrate, two require third-party approval before we can access other merchants' data: Etsy and PayPal. Both are "approval-before-code" situations &mdash; there's no point building integrations if the gates stay closed. This document maps the risks, what could cause a decline, and what to do before applying.</p>
+
+    <div class="callout danger">
+      <p><strong>These approvals are blocking.</strong> Stripe, Gumroad, and Shopify can be built without waiting for anyone. Etsy and PayPal cannot. Start these applications as early as possible &mdash; they run in parallel with development work on other platforms.</p>
+    </div>
+  </div>
+
+  <!-- Etsy -->
+  <div class="section">
+    <span class="section-tag">Etsy</span>
+    <h2>Commercial Access &mdash; Hard Gate</h2>
+    <p>Etsy requires "commercial access" approval for any app serving 4 or more shops. Without it, MyTalli is capped at 3 Etsy users. The review takes 20+ days per cycle and is approved at Etsy's sole discretion.</p>
+
+    <div class="card">
+      <h3>What Could Get Us Declined</h3>
+      <ul>
+        <li><strong>Sole discretion, no published criteria.</strong> Etsy doesn't publish specific approval standards. The biggest risk is simply that they can say no &mdash; and there's no workaround or appeal path.</li>
+        <li><strong>Vague or unconvincing application.</strong> The review asks for app purpose, description, and usage estimates. A generic description like "revenue dashboard" without clear value proposition or scope details invites rejection.</li>
+        <li><strong>Requesting too many scopes.</strong> Asking for <code>buyer_email</code> or write scopes when only read access is needed signals overreach. <code>buyer_email</code> in particular requires a separate case-by-case approval on top of commercial access.</li>
+        <li><strong>No working prototype.</strong> Applying before having a functional OAuth flow (even with 1&ndash;3 test shops) makes the app look speculative rather than real.</li>
+        <li><strong>Abandoned app perception.</strong> Etsy doesn't want to approve integrations that get built and forgotten. A solo developer with no track record may raise this concern.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>What to Do Before Applying</h3>
+      <ul>
+        <li><strong>Register a developer account</strong> at <a href="https://developers.etsy.com/">developers.etsy.com</a> and create a MyTalli app.</li>
+        <li><strong>Build a working OAuth flow first</strong> with 1&ndash;3 test shops. Having a functional prototype strengthens the application significantly.</li>
+        <li><strong>Keep scopes minimal:</strong> <code>transactions_r</code> and <code>shops_r</code> only. Do not request <code>buyer_email</code> initially.</li>
+        <li><strong>Write a strong application description</strong> &mdash; clearly explain read-only revenue aggregation, expected shop volume, and the value to Etsy sellers.</li>
+        <li><strong>Budget 20+ days per review cycle.</strong> If they come back with questions or deny, each subsequent round takes another 20+ days.</li>
+      </ul>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Gate</strong></td><td>Commercial access (mandatory for 4+ shops)</td></tr>
+          <tr><td><strong>Where to Apply</strong></td><td>Etsy Developer Portal &mdash; request from existing app</td></tr>
+          <tr><td><strong>Review Timeline</strong></td><td>~20+ days per cycle</td></tr>
+          <tr><td><strong>Risk Level</strong></td><td><span class="badge badge-blocker">High &mdash; sole discretion, no workaround</span></td></tr>
+          <tr><td><strong>If Declined</strong></td><td>MyTalli is permanently capped at 3 Etsy shops. No alternative API path exists.</td></tr>
+          <tr><td><strong>Scopes Needed</strong></td><td><code>transactions_r shops_r</code></td></tr>
+          <tr><td><strong>Extra Scope Risk</strong></td><td><code>buyer_email</code> requires separate case-by-case approval &mdash; avoid initially</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PayPal -->
+  <div class="section">
+    <span class="section-tag">PayPal</span>
+    <h2>Reporting Scopes + Partner Program &mdash; Unclear Path</h2>
+    <p>PayPal has two approval layers. The first (reporting scopes) is straightforward. The second (Partner program enrollment for third-party access) is the document's biggest unknown &mdash; it's unclear whether a read-only aggregator even qualifies.</p>
+
+    <div class="card">
+      <h3>What Could Get Us Declined</h3>
+      <ul>
+        <li><strong>Partner program ambiguity.</strong> It's unclear if MyTalli's use case (read-only revenue aggregation on behalf of other merchants) requires Partner enrollment. If it does, the enrollment criteria are opaque.</li>
+        <li><strong>Business entity requirements.</strong> PayPal's Partner program may require a registered business entity, revenue minimums, or compliance certifications that a side project doesn't have.</li>
+        <li><strong>Individual developer account.</strong> Applying as a person rather than a business entity signals "hobby project" to PayPal's review team. Third-party reporting access is an enterprise-oriented feature.</li>
+        <li><strong>Scope justification.</strong> <code>reporting/search/read</code> on behalf of other merchants is a sensitive scope. PayPal may want to understand why an external app needs access to their users' financial transaction data.</li>
+        <li><strong>No clear onboarding flow.</strong> PayPal will want to see how merchants authorize MyTalli. Having no OAuth prototype makes the application abstract.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>What to Do Before Applying</h3>
+      <ul>
+        <li><strong>Contact PayPal's partner team first.</strong> This is the #1 action. Ask specifically: "Does a read-only revenue aggregation app need Partner program enrollment to use <code>reporting/search/read</code> scope on behalf of other merchants?" Get the answer before writing any code.</li>
+        <li><strong>Create a PayPal Developer account</strong> and register a MyTalli app in the Developer Dashboard.</li>
+        <li><strong>Request reporting scopes</strong> (<code>reporting/search/read</code>, <code>reporting/balances/read</code>) &mdash; this is the simpler gate (24&ndash;72hr review) and unblocks sandbox testing.</li>
+        <li><strong>Prepare a clear "Log In with PayPal" story</strong> &mdash; you need <code>openid</code> scope alongside the reporting scopes.</li>
+        <li><strong>Have your LLC formed before outreach</strong> (see LLC section below).</li>
+      </ul>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Gate 1</strong></td><td>Reporting scopes (<code>reporting/search/read</code>, <code>reporting/balances/read</code>)</td></tr>
+          <tr><td><strong>Gate 1 Timeline</strong></td><td>24&ndash;72 hours</td></tr>
+          <tr><td><strong>Gate 2</strong></td><td>Partner program enrollment (may be required for third-party access)</td></tr>
+          <tr><td><strong>Gate 2 Timeline</strong></td><td>Unknown &mdash; process is not publicly documented</td></tr>
+          <tr><td><strong>Risk Level</strong></td><td><span class="badge badge-hard">Medium-High &mdash; unclear path, possible dead end</span></td></tr>
+          <tr><td><strong>If Declined</strong></td><td>No API access to other merchants' reporting data. PayPal integration is dead.</td></tr>
+          <tr><td><strong>Biggest Unknown</strong></td><td>Whether Partner enrollment is required at all, and what it entails</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LLC -->
+  <div class="section">
+    <span class="section-tag">Business Entity</span>
+    <h2>Does Having an LLC Help?</h2>
+    <p>Forming an LLC before applying changes how these platforms perceive MyTalli. The impact differs by platform.</p>
+
+    <div class="verdict" style="border-color: #003087;">
+      <div class="verdict-icon">&#x1F3E2;</div>
+      <div class="verdict-text">
+        <strong><span class="paypal">PayPal</span> &mdash; Yes, form the LLC first</strong>
+        <p>PayPal's Partner program and third-party API access are geared toward businesses, not individual developers. An LLC provides a legal entity name, an EIN (tax ID) for the business PayPal account, and credibility that this is a real product. Showing up as "MyTalli LLC" instead of an individual removes one reason for them to say no on the hardest approval path.</p>
+      </div>
+    </div>
+
+    <div class="verdict" style="border-color: #f56400;">
+      <div class="verdict-icon">&#x1F527;</div>
+      <div class="verdict-text">
+        <strong><span class="etsy">Etsy</span> &mdash; Helpful but not required</strong>
+        <p>Etsy's developer program works fine with individual developers, and plenty of solo devs get commercial access. An LLC doesn't hurt &mdash; it signals long-term commitment and reduces the "abandoned app" concern &mdash; but don't let LLC formation delay the Etsy application. The app quality and description matter more than entity type.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><strong>Practical take:</strong> If you're planning to form an LLC for MyTalli anyway (billing, liability, tax benefits), do it before the PayPal outreach. It removes friction on the hardest approval. For Etsy, apply now regardless &mdash; don't wait for the LLC.</p>
+    </div>
+  </div>
+
+  <!-- Side-by-Side -->
+  <div class="section">
+    <span class="section-tag">Comparison</span>
+    <h2>Etsy vs PayPal &mdash; At a Glance</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th><span class="etsy">Etsy</span></th>
+            <th><span class="paypal">PayPal</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Approval Type</strong></td><td>Commercial access review</td><td>Reporting scopes + possible Partner program</td></tr>
+          <tr><td><strong>Timeline</strong></td><td>20+ days per cycle</td><td>24&ndash;72hr (scopes) + unknown (Partner)</td></tr>
+          <tr><td><strong>Criteria Published?</strong></td><td><span class="badge badge-no">No</span></td><td><span class="badge badge-no">No (Partner path is opaque)</span></td></tr>
+          <tr><td><strong>Can Build Without Approval?</strong></td><td>Yes, up to 3 shops</td><td>Sandbox only (no third-party reporting)</td></tr>
+          <tr><td><strong>LLC Needed?</strong></td><td><span class="badge badge-partial">Helpful, not required</span></td><td><span class="badge badge-hard">Strongly recommended</span></td></tr>
+          <tr><td><strong>Prototype Before Applying?</strong></td><td><span class="badge badge-yes">Yes &mdash; strengthens application</span></td><td><span class="badge badge-partial">Clarify path first, then prototype</span></td></tr>
+          <tr><td><strong>If Declined</strong></td><td>Capped at 3 shops, no workaround</td><td>No third-party reporting access, integration dead</td></tr>
+          <tr><td><strong>Biggest Risk</strong></td><td>Sole discretion, no appeal</td><td>May require Partner enrollment we can't get</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Next Steps -->
+  <div class="section">
+    <span class="section-tag">Action Plan</span>
+    <h2>Next Steps &mdash; In Order</h2>
+    <p>These steps are sequenced by dependency and urgency. Approvals that take the longest start first. Steps that can run in parallel are noted.</p>
+
+    <ol class="steps">
+      <li>
+        <div class="step-content">
+          <strong>Contact PayPal's Partner Team</strong>
+          <p>Email or call PayPal's partner team to ask: "Does a read-only revenue aggregation app need Partner program enrollment to use <code>reporting/search/read</code> scope on behalf of other merchants?" This determines whether PayPal integration is even viable. Do this before any other PayPal work.</p>
+          <div class="step-meta">Platform: PayPal &nbsp;|&nbsp; Blocker: Yes &nbsp;|&nbsp; Expected response: 1&ndash;2 weeks</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <strong>Form the MyTalli LLC</strong>
+          <p>Register the LLC, obtain an EIN, and set up a business bank account. This strengthens the PayPal application and provides the legal entity for the business PayPal Developer account. Also useful for Stripe billing, liability protection, and tax separation.</p>
+          <div class="step-meta">Platform: PayPal (primary), all platforms (secondary) &nbsp;|&nbsp; Expected timeline: 1&ndash;3 weeks depending on state</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <strong>Register an Etsy Developer Account &amp; Create App</strong>
+          <p>Sign up at <a href="https://developers.etsy.com/">developers.etsy.com</a> and register the MyTalli app. This is a prerequisite for requesting commercial access. No approval needed for this step.</p>
+          <div class="step-meta">Platform: Etsy &nbsp;|&nbsp; Blocker: No &nbsp;|&nbsp; Expected timeline: Same day</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <strong>Build Etsy OAuth Prototype (1&ndash;3 Test Shops)</strong>
+          <p>Implement a working OAuth flow with <code>transactions_r</code> and <code>shops_r</code> scopes. Test with 1&ndash;3 shops to prove the integration works. This prototype strengthens the commercial access application. Can run in parallel with steps 1&ndash;2.</p>
+          <div class="step-meta">Platform: Etsy &nbsp;|&nbsp; Parallel with: Steps 1&ndash;2 &nbsp;|&nbsp; Expected timeline: 1&ndash;2 weeks</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <strong>Apply for Etsy Commercial Access</strong>
+          <p>Submit the commercial access request through the Etsy Developer Portal. Include a clear description of the read-only revenue aggregation use case, expected shop volume, and link to the working prototype. Keep scopes minimal &mdash; do not request <code>buyer_email</code>.</p>
+          <div class="step-meta">Platform: Etsy &nbsp;|&nbsp; Depends on: Steps 3&ndash;4 &nbsp;|&nbsp; Review timeline: 20+ days</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <strong>Register a PayPal Developer App (Business Account)</strong>
+          <p>Create a PayPal Developer account under the LLC's business PayPal account. Register the MyTalli app in the Developer Dashboard. This is needed regardless of the Partner program outcome.</p>
+          <div class="step-meta">Platform: PayPal &nbsp;|&nbsp; Depends on: Step 2 (LLC) &nbsp;|&nbsp; Expected timeline: Same day</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <strong>Request PayPal Reporting Scopes</strong>
+          <p>Request <code>reporting/search/read</code> and <code>reporting/balances/read</code> scopes through the PayPal Developer Dashboard. This is the simpler of the two gates and unblocks sandbox testing while the Partner program question is resolved.</p>
+          <div class="step-meta">Platform: PayPal &nbsp;|&nbsp; Depends on: Step 6 &nbsp;|&nbsp; Review timeline: 24&ndash;72 hours</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <strong>Pursue PayPal Partner Enrollment (If Required)</strong>
+          <p>Based on the response from step 1, either proceed with Partner enrollment or skip this step. If enrollment is required, submit the application with the LLC entity, app description, and OAuth flow documentation.</p>
+          <div class="step-meta">Platform: PayPal &nbsp;|&nbsp; Depends on: Steps 1, 2, 6 &nbsp;|&nbsp; Timeline: Unknown</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <strong>Build Stripe &amp; Gumroad Integrations (No Approvals Needed)</strong>
+          <p>While Etsy and PayPal approvals are in progress, build the integrations that have no gates. Stripe is the richest data source and is already integrated for billing. Gumroad is the simplest API with immediate access. These ship first regardless of approval outcomes.</p>
+          <div class="step-meta">Platform: Stripe, Gumroad &nbsp;|&nbsp; Parallel with: Steps 5&ndash;8 &nbsp;|&nbsp; No blockers</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <strong>Evaluate Outcomes &amp; Adjust Roadmap</strong>
+          <p>Once Etsy commercial access and PayPal Partner program decisions are in, adjust the platform roadmap. If either is declined, remove that platform from the launch plan and focus on the remaining four (or three). Communicate supported platforms clearly on the landing page and pricing.</p>
+          <div class="step-meta">Depends on: Steps 5, 8 &nbsp;|&nbsp; Timeline: After all decisions are in</div>
+        </div>
+      </li>
+    </ol>
+
+    <div class="callout success">
+      <p><strong>Parallel tracks:</strong> Steps 1&ndash;2 (PayPal outreach + LLC) and steps 3&ndash;4 (Etsy prototype) can all start immediately and run in parallel. Step 9 (Stripe + Gumroad development) runs alongside everything. The goal is to have zero idle time &mdash; always building something while approvals are in flight.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli &mdash; Internal Documentation
+  </div>
+</div>
+
+</body>
+</html>
