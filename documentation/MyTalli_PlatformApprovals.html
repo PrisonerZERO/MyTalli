@@ -356,6 +356,20 @@
           <div class="step-meta">Platform: Etsy &nbsp;|&nbsp; Parallel with: Steps 1&ndash;2 &nbsp;|&nbsp; Expected timeline: 1&ndash;2 weeks</div>
         </div>
       </li>
+    </ol>
+
+    <div class="card">
+      <h3>Where to Build the Etsy Prototype</h3>
+      <p>Etsy allows <code>http://localhost</code> redirect URIs, so the entire OAuth flow can be built and debugged locally &mdash; unlike Apple, which requires TLS-verified domains.</p>
+      <ul>
+        <li><strong>Phase 1 &mdash; Local development.</strong> Build and test the OAuth flow against <code>https://localhost:7012</code>. Register <code>http://localhost:7012/signin-etsy</code> as a redirect URI in the Etsy Developer Portal. Connect 1&ndash;3 test Etsy shops to verify the full flow end-to-end.</li>
+        <li><strong>Phase 2 &mdash; Deploy to staging.</strong> Before applying for commercial access, deploy to the <code>mytalli-web-staging</code> Azure slot and register its URL as an additional redirect URI. This gives Etsy a live URL to evaluate during review &mdash; far more convincing than localhost screenshots.</li>
+        <li><strong>Phase 3 &mdash; Production.</strong> After approval, register <code>https://www.mytalli.com</code> redirect URIs. The Etsy integration can ship behind a feature gate or visible only to connected users until the full Platforms page is ready.</li>
+      </ul>
+      <p>Register all three redirect URIs (localhost, staging, production) upfront so environment switching doesn't require portal changes later.</p>
+    </div>
+
+    <ol class="steps" style="counter-reset: step 4;">
       <li>
         <div class="step-content">
           <strong>Apply for Etsy Commercial Access</strong>
