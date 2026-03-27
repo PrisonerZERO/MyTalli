@@ -783,6 +783,22 @@ dotnet run --project Source/My.Talli.Web
 - **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys (legacy)
 - **Static assets note:** The `deploy/` and `favicon-concepts/` folders are from the static HTML era. Static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) now live in `wwwroot/`. The `deploy/emails/` folder is still needed — it hosts PNG images referenced by customer-facing email templates.
 
+### Business Entity
+
+- **Entity:** MyTalli LLC — single-member LLC, Texas
+- **Formation:** Filed 2026-03-27 via LegalZoom (Basic plan, $301 state filing fee only)
+- **Owner/Organizer/Registered Agent:** Robert Merrill Jordan
+- **Management:** Member-managed
+- **Business address:** 5423 Oakhaven Ln, Houston, TX 77091 (home address, on public record)
+- **Industry:** Software
+- **Fiscal year end:** December 31
+- **Status:** Pending Texas Secretary of State approval (5-14 business days from filing)
+- **EIN:** Not yet obtained — apply at [irs.gov/ein](https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online) after Texas approves (free, instant)
+- **Operating agreement:** Not yet created — use a free single-member template after approval
+- **Business bank account:** Not yet opened — requires EIN letter + Articles of Organization
+- **Texas franchise tax report:** Due annually by May 15 (first due May 15, 2027)
+- **Documentation:** `documentation/MyTalli_PlatformApprovals.html` — LLC formation details, Etsy/PayPal approval strategy
+
 ### Scaling & Cost Planning
 
 - **Documentation:** `documentation/MyTalli_ScalingPlan.html` (scaling strategy) and `documentation/MyTalli_CostingPlan.html` (cost projections & optimization)
