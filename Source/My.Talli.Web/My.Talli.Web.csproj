@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <Folder Include="Handlers\Endpoints\" />
+    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>

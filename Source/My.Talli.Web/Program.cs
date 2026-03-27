@@ -21,6 +21,8 @@ builder.Services.AddRazorComponents()
 builder.Services.AddAuthenticationProviders(builder.Configuration);
 builder.Services.AddBillingServices(builder.Configuration);
 builder.Services.AddEmailServices(builder.Configuration);
+builder.Services.AddAdminServices();
+builder.Services.AddKnownIssue(builder.Configuration);
 builder.Services.AddElmahLogging(builder.Configuration);
 
 // Build
@@ -54,6 +56,7 @@ app.MapRazorComponents<App>()
 
 // ---------
 // ENDPOINTS
+app.MapAdminEndpoints();
 app.MapAuthEndpoints();
 app.MapBillingEndpoints();
 app.MapEmailEndpoints();

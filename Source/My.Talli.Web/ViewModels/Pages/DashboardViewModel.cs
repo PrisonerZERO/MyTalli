@@ -1,14 +1,13 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
 using Domain.Components.JsonSerializers;
-using Domain.Models;
-using Domain.Repositories;
 using Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Options;
+using Services.Identity;
+using Services.UI;
 using System.Security.Claims;
-
-using ENTITIES = Domain.Entities;
 
 /// <summary>View Model</summary>
 public class DashboardViewModel : ComponentBase
@@ -19,10 +18,13 @@ public class DashboardViewModel : ComponentBase
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
     [Inject]
+    private IOptions<KnownIssueSettings> KnownIssueOptions { get; set; } = default!;
+
+    [Inject]
     private UserPreferencesJsonSerializer PreferencesSerializer { get; set; } = default!;
 
     [Inject]
-    private RepositoryAdapterAsync<User, ENTITIES.User> UserAdapter { get; set; } = default!;
+    private UserDisplayCache UserDisplayCache { get; set; } = default!;
 
     #endregion
 
@@ -54,7 +56,11 @@ public class DashboardViewModel : ComponentBase
 
     public bool IsSampleData { get; private set; } = true;
 
-    public bool IsUserMenuOpen { get; private set; }
+    public string KnownIssueMessage { get; private set; } = string.Empty;
+
+    public string KnownIssueSeverity { get; private set; } = "Warning";
+
+    public bool ShowKnownIssue { get; private set; }
 
     public int MonthlyGoalPercentage { get; private set; } = 68;
 
@@ -74,13 +80,7 @@ public class DashboardViewModel : ComponentBase
 
     public string TotalRevenueChange { get; private set; } = "23%";
 
-    public string UserEmail { get; private set; } = string.Empty;
-
     public string UserFirstName { get; private set; } = string.Empty;
-
-    public string UserFullName { get; private set; } = string.Empty;
-
-    public string UserInitials { get; private set; } = string.Empty;
 
 
     #endregion
@@ -89,6 +89,7 @@ public class DashboardViewModel : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        LoadKnownIssue();
         await LoadUserFromClaims();
         LoadMockData();
     }
@@ -98,20 +99,18 @@ public class DashboardViewModel : ComponentBase
 
     #region <Methods>
 
-    public void CloseUserMenu()
-    {
-        IsUserMenuOpen = false;
-    }
-
     public void SelectPeriod(string period)
     {
         ActivePeriod = period;
         StateHasChanged();
     }
 
-    public void ToggleUserMenu()
+    private void LoadKnownIssue()
     {
-        IsUserMenuOpen = !IsUserMenuOpen;
+        var settings = KnownIssueOptions.Value;
+        ShowKnownIssue = settings.IsActive && !string.IsNullOrWhiteSpace(settings.Message);
+        KnownIssueMessage = settings.Message;
+        KnownIssueSeverity = settings.Severity;
     }
 
     private async Task LoadUserFromClaims()
@@ -122,27 +121,20 @@ public class DashboardViewModel : ComponentBase
         if (principal.Identity?.IsAuthenticated != true)
             return;
 
-        var info = UserClaimsHelper.Resolve(principal);
-
-        UserEmail = info.Email;
-        UserFirstName = info.FirstName;
-        UserFullName = info.FullName;
-        UserInitials = info.Initials;
-
+        var email = principal.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
         var userIdClaim = principal.FindFirst("UserId")?.Value;
 
-        if (userIdClaim is not null && long.TryParse(userIdClaim, out var userId))
-        {
-            var user = await UserAdapter.GetByIdAsync(userId);
+        if (userIdClaim is null || !long.TryParse(userIdClaim, out var userId))
+            return;
 
-            if (user is not null)
-            {
-                var preferences = PreferencesSerializer.Deserialize(user.UserPreferences);
+        var (info, userPreferences) = await UserDisplayCache.GetOrLoadAsync(userId, email);
 
-                if (preferences.FunGreetings)
-                    UserFirstName = UserClaimsHelper.RandomFunGreeting();
-            }
-        }
+        UserFirstName = info.FirstName;
+
+        var preferences = PreferencesSerializer.Deserialize(userPreferences);
+
+        if (preferences.FunGreetings)
+            UserFirstName = UserClaimsHelper.RandomFunGreeting();
     }
 
     private void LoadMockData()

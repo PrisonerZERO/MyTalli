@@ -28,63 +28,126 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
 
     public virtual async Task DeleteAsync(TEntity entity)
     {
-        Remove(entity);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.ConcurrencyLock.WaitAsync();
+
+        try
+        {
+            _dbSet.Remove(entity);
+            await _dbContext.SaveChangesAsync();
+        }
+        finally
+        {
+            _dbContext.ConcurrencyLock.Release();
+        }
     }
 
     public virtual async Task DeleteRangeAsync(IEnumerable<TEntity> entities)
     {
-        foreach (var entity in entities)
-        {
-            Remove(entity);
-        }
+        await _dbContext.ConcurrencyLock.WaitAsync();
 
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            foreach (var entity in entities)
+            {
+                _dbSet.Remove(entity);
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
+        finally
+        {
+            _dbContext.ConcurrencyLock.Release();
+        }
     }
 
     public virtual async Task InsertAsync(TEntity entity)
     {
-        AuditResolver.Resolve(entity);
-        await _dbSet.AddAsync(entity);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.ConcurrencyLock.WaitAsync();
+
+        try
+        {
+            AuditResolver.Resolve(entity);
+            await _dbSet.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
+        }
+        finally
+        {
+            _dbContext.ConcurrencyLock.Release();
+        }
     }
 
     public virtual async Task InsertRangeAsync(IEnumerable<TEntity> entities)
     {
-        foreach (var entity in entities)
-        {
-            AuditResolver.Resolve(entity);
-        }
+        await _dbContext.ConcurrencyLock.WaitAsync();
 
-        await _dbSet.AddRangeAsync(entities);
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            foreach (var entity in entities)
+            {
+                AuditResolver.Resolve(entity);
+            }
+
+            await _dbSet.AddRangeAsync(entities);
+            await _dbContext.SaveChangesAsync();
+        }
+        finally
+        {
+            _dbContext.ConcurrencyLock.Release();
+        }
     }
 
     public virtual async Task<int> SaveChangesAsync()
     {
-        return await _dbContext.SaveChangesAsync();
+        await _dbContext.ConcurrencyLock.WaitAsync();
+
+        try
+        {
+            return await _dbContext.SaveChangesAsync();
+        }
+        finally
+        {
+            _dbContext.ConcurrencyLock.Release();
+        }
     }
 
     public virtual async Task UpdateAsync(TEntity entity)
     {
-        AuditResolver.Resolve(entity, updating: true);
-        DetachTrackedInstance(entity);
-        _dbSet.Attach(entity);
-        _dbContext.Entry(entity).State = EntityState.Modified;
-        await _dbContext.SaveChangesAsync();
-    }
+        await _dbContext.ConcurrencyLock.WaitAsync();
 
-    public virtual async Task UpdateRangeAsync(IEnumerable<TEntity> entities)
-    {
-        foreach (var entity in entities)
+        try
         {
             AuditResolver.Resolve(entity, updating: true);
             DetachTrackedInstance(entity);
             _dbSet.Attach(entity);
             _dbContext.Entry(entity).State = EntityState.Modified;
+            await _dbContext.SaveChangesAsync();
         }
+        finally
+        {
+            _dbContext.ConcurrencyLock.Release();
+        }
+    }
 
-        await _dbContext.SaveChangesAsync();
+    public virtual async Task UpdateRangeAsync(IEnumerable<TEntity> entities)
+    {
+        await _dbContext.ConcurrencyLock.WaitAsync();
+
+        try
+        {
+            foreach (var entity in entities)
+            {
+                AuditResolver.Resolve(entity, updating: true);
+                DetachTrackedInstance(entity);
+                _dbSet.Attach(entity);
+                _dbContext.Entry(entity).State = EntityState.Modified;
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
+        finally
+        {
+            _dbContext.ConcurrencyLock.Release();
+        }
     }
 
     private void DetachTrackedInstance(TEntity entity)

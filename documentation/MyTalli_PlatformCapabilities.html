@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Platform Capabilities</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.6; padding: 0; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; padding: 48px; position: relative; overflow: hidden; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 200px; position: absolute; right: -40px; top: -60px; width: 200px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 120px; left: 30%; position: absolute; top: 80px; width: 120px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.8); font-size: 15px; margin-top: 6px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 12px; position: relative; z-index: 1; }
+
+  /* Content */
+  .content { margin: 0 auto; max-width: 1100px; padding: 48px 32px 80px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-tag { background: #f0edff; border-radius: 20px; color: #6c5ce7; display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 16px; padding: 6px 16px; text-transform: uppercase; }
+  .section h2 { color: #1a1a2e; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .section p { color: #555; font-size: 15px; margin-bottom: 16px; }
+
+  /* Cards */
+  .card { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; padding: 24px; }
+  .card h3 { color: #1a1a2e; font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .card p { color: #555; font-size: 14px; margin-bottom: 0; }
+
+  /* Tables */
+  .table-wrap { border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th { background: #f0edff; color: #6c5ce7; font-size: 11px; font-weight: 600; letter-spacing: 1px; padding: 12px 16px; text-align: left; text-transform: uppercase; }
+  td { border-top: 1px solid #f0edff; color: #555; font-size: 13px; padding: 12px 16px; vertical-align: top; }
+  tr:hover td { background: #faf9ff; }
+  th.platform { min-width: 130px; }
+
+  /* Platform header colors */
+  .stripe { color: #635bff; font-weight: 600; }
+  .etsy { color: #f56400; font-weight: 600; }
+  .gumroad { color: #ff90e8; font-weight: 600; }
+  .paypal { color: #003087; font-weight: 600; }
+  .shopify { color: #96bf48; font-weight: 600; }
+
+  /* Badges */
+  .badge { border-radius: 4px; display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; }
+  .badge-yes { background: #d1fae5; color: #065f46; }
+  .badge-no { background: #fee2e2; color: #b91c1c; }
+  .badge-partial { background: #fef3c7; color: #92400e; }
+  .badge-unknown { background: #f3f4f6; color: #6b7280; }
+  .badge-easy { background: #d1fae5; color: #065f46; }
+  .badge-moderate { background: #dbeafe; color: #1e40af; }
+  .badge-hard { background: #fef3c7; color: #92400e; }
+  .badge-blocker { background: #fee2e2; color: #b91c1c; }
+
+  /* Callout */
+  .callout { background: #fff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin-bottom: 16px; padding: 16px 20px; }
+  .callout.warning { border-left-color: #f5c842; }
+  .callout.success { border-left-color: #27ae60; }
+  .callout.danger { border-left-color: #e74c3c; }
+  .callout strong { color: #1a1a2e; }
+  .callout p { color: #555; font-size: 14px; margin: 0; }
+
+  /* Platform detail cards */
+  .platform-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .platform-grid { grid-template-columns: 1fr 1fr; } }
+  .platform-card { background: #fff; border: 2px solid #e0dce8; border-radius: 12px; padding: 24px; }
+  .platform-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .platform-card .platform-sub { color: #999; font-size: 12px; margin-bottom: 16px; }
+  .platform-card ul { list-style: none; padding: 0; }
+  .platform-card li { color: #555; font-size: 13px; margin-bottom: 8px; padding-left: 20px; position: relative; }
+  .platform-card li::before { color: #6c5ce7; content: '\2713'; font-weight: 700; left: 0; position: absolute; }
+  .platform-card li.warn::before { color: #f5c842; content: '\26A0'; }
+  .platform-card li.block::before { color: #e74c3c; content: '\2717'; }
+
+  /* Metric badges */
+  .metric { align-items: center; display: inline-flex; gap: 8px; margin-bottom: 8px; margin-right: 24px; }
+  .metric-value { color: #6c5ce7; font-size: 28px; font-weight: 700; }
+  .metric-label { color: #999; font-size: 12px; font-weight: 500; line-height: 1.3; }
+
+  /* Footer */
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 48px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Platform Capabilities</h1>
+  <p class="subtitle">API capabilities, data richness, and integration complexity for each revenue platform</p>
+  <p class="doc-date">Last updated: March 2026</p>
+</div>
+
+<div class="content">
+
+  <!-- Overview -->
+  <div class="section">
+    <span class="section-tag">Overview</span>
+    <h2>Five Platforms, One Dashboard</h2>
+    <p>MyTalli connects to payment platforms via OAuth so users grant read-only access to their revenue data. Each platform varies in data richness, API style, rate limits, and approval requirements. This document maps what each platform can give us and where the gaps are.</p>
+
+    <div style="margin: 24px 0;">
+      <span class="metric"><span class="metric-value">5</span><span class="metric-label">Platforms<br>planned</span></span>
+      <span class="metric"><span class="metric-value">3</span><span class="metric-label">Support<br>webhooks</span></span>
+      <span class="metric"><span class="metric-value">2</span><span class="metric-label">Require<br>approval</span></span>
+    </div>
+
+    <div class="callout">
+      <p><strong>Integration priority:</strong> Stripe first (richest data, already integrated for billing), then Etsy and Gumroad (core creator platforms), then PayPal and Shopify (broader merchant audience). Etsy and PayPal have approval gates — start those applications early.</p>
+    </div>
+  </div>
+
+  <!-- Master Comparison -->
+  <div class="section">
+    <span class="section-tag">Comparison</span>
+    <h2>Side-by-Side Capabilities</h2>
+    <p>How each platform compares across the dimensions that matter for revenue aggregation.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th class="platform"><span class="stripe">Stripe</span></th>
+            <th class="platform"><span class="etsy">Etsy</span></th>
+            <th class="platform"><span class="gumroad">Gumroad</span></th>
+            <th class="platform"><span class="paypal">PayPal</span></th>
+            <th class="platform"><span class="shopify">Shopify</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>OAuth Type</strong></td>
+            <td>OAuth 2.0 (Connect)</td>
+            <td>OAuth 2.0 + PKCE</td>
+            <td>OAuth 2.0</td>
+            <td>OAuth 2.0 (Auth Code)</td>
+            <td>OAuth 2.0 (Auth Code)</td>
+          </tr>
+          <tr>
+            <td><strong>Read Scope</strong></td>
+            <td><code>read_only</code></td>
+            <td><code>transactions_r</code></td>
+            <td><code>view_sales</code></td>
+            <td><code>reporting/search/read</code></td>
+            <td><code>read_orders</code></td>
+          </tr>
+          <tr>
+            <td><strong>Access Token TTL</strong></td>
+            <td>1 hour</td>
+            <td>1 hour</td>
+            <td><span class="badge badge-yes">Never expires</span></td>
+            <td>~8 hours</td>
+            <td>60 minutes</td>
+          </tr>
+          <tr>
+            <td><strong>Refresh Token TTL</strong></td>
+            <td>1 year (rolling)</td>
+            <td>90 days</td>
+            <td>N/A</td>
+            <td>180 days</td>
+            <td>90 days (rolling)</td>
+          </tr>
+          <tr>
+            <td><strong>API Style</strong></td>
+            <td>REST</td>
+            <td>REST (v3)</td>
+            <td>REST (v2)</td>
+            <td>REST (v1)</td>
+            <td>GraphQL (required)</td>
+          </tr>
+          <tr>
+            <td><strong>Transaction Detail</strong></td>
+            <td><span class="badge badge-yes">Excellent</span></td>
+            <td><span class="badge badge-yes">Good</span></td>
+            <td><span class="badge badge-partial">Basic</span></td>
+            <td><span class="badge badge-yes">Good</span></td>
+            <td><span class="badge badge-yes">Good</span></td>
+          </tr>
+          <tr>
+            <td><strong>Fee Breakdown</strong></td>
+            <td><span class="badge badge-yes">Per-component</span></td>
+            <td><span class="badge badge-yes">Fees + taxes</span></td>
+            <td><span class="badge badge-partial">Flat fee only</span></td>
+            <td><span class="badge badge-yes">Per-transaction</span></td>
+            <td><span class="badge badge-partial">Shopify Payments only</span></td>
+          </tr>
+          <tr>
+            <td><strong>Net Amount</strong></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+            <td><span class="badge badge-no">Calculate manually</span></td>
+            <td><span class="badge badge-no">Calculate manually</span></td>
+            <td><span class="badge badge-partial">Shopify Payments only</span></td>
+          </tr>
+          <tr>
+            <td><strong>Payout Data</strong></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+            <td><span class="badge badge-yes">Ledger entries</span></td>
+            <td><span class="badge badge-no">No API</span></td>
+            <td><span class="badge badge-partial">Via transaction codes</span></td>
+            <td><span class="badge badge-partial">Shopify Payments only</span></td>
+          </tr>
+          <tr>
+            <td><strong>Refund Tracking</strong></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+          </tr>
+          <tr>
+            <td><strong>Multi-Currency</strong></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+            <td><span class="badge badge-partial">Limited</span></td>
+            <td><span class="badge badge-yes">Yes</span></td>
+            <td><span class="badge badge-yes">Yes (shop + buyer)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Historical Access</strong></td>
+            <td><span class="badge badge-yes">Full</span></td>
+            <td><span class="badge badge-yes">Full</span></td>
+            <td><span class="badge badge-yes">Full</span></td>
+            <td><span class="badge badge-partial">31-day windows</span></td>
+            <td><span class="badge badge-partial">60 days default</span></td>
+          </tr>
+          <tr>
+            <td><strong>Webhooks</strong></td>
+            <td><span class="badge badge-yes">Full catalog</span></td>
+            <td><span class="badge badge-partial">4 order events</span></td>
+            <td><span class="badge badge-partial">Sale + refund</span></td>
+            <td><span class="badge badge-yes">Full catalog</span></td>
+            <td><span class="badge badge-yes">Full catalog</span></td>
+          </tr>
+          <tr>
+            <td><strong>Rate Limits</strong></td>
+            <td>25 req/s per endpoint</td>
+            <td>~10 QPS, ~10K/day</td>
+            <td><span class="badge badge-unknown">Undocumented</span></td>
+            <td>~50 req/min</td>
+            <td>1,000pt bucket, 50pt/s</td>
+          </tr>
+          <tr>
+            <td><strong>Approval Required</strong></td>
+            <td><span class="badge badge-easy">None (Connect)</span></td>
+            <td><span class="badge badge-blocker">Commercial access</span></td>
+            <td><span class="badge badge-easy">None</span></td>
+            <td><span class="badge badge-hard">Partner program</span></td>
+            <td><span class="badge badge-moderate">read_all_orders scope</span></td>
+          </tr>
+          <tr>
+            <td><strong>Integration Complexity</strong></td>
+            <td><span class="badge badge-easy">Easy</span></td>
+            <td><span class="badge badge-moderate">Moderate</span></td>
+            <td><span class="badge badge-easy">Easy</span></td>
+            <td><span class="badge badge-hard">Hard</span></td>
+            <td><span class="badge badge-moderate">Moderate</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Auth Details -->
+  <div class="section">
+    <span class="section-tag">Authentication</span>
+    <h2>OAuth Flow Details</h2>
+    <p>Every platform uses OAuth 2.0 but with different flavors, scopes, and token lifecycles.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Detail</th>
+            <th class="platform"><span class="stripe">Stripe</span></th>
+            <th class="platform"><span class="etsy">Etsy</span></th>
+            <th class="platform"><span class="gumroad">Gumroad</span></th>
+            <th class="platform"><span class="paypal">PayPal</span></th>
+            <th class="platform"><span class="shopify">Shopify</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Authorize URL</strong></td>
+            <td><code>connect.stripe.com/oauth/authorize</code></td>
+            <td><code>etsy.com/oauth/connect</code></td>
+            <td><code>gumroad.com/oauth/authorize</code></td>
+            <td><code>paypal.com/signin/authorize</code></td>
+            <td><code>{shop}.myshopify.com/admin/oauth/authorize</code></td>
+          </tr>
+          <tr>
+            <td><strong>Token Endpoint</strong></td>
+            <td><code>connect.stripe.com/oauth/token</code></td>
+            <td><code>api.etsy.com/v3/public/oauth/token</code></td>
+            <td><code>gumroad.com/oauth/token</code></td>
+            <td><code>api-m.paypal.com/v1/oauth2/token</code></td>
+            <td><code>{shop}.myshopify.com/admin/oauth/access_token</code></td>
+          </tr>
+          <tr>
+            <td><strong>PKCE Required</strong></td>
+            <td><span class="badge badge-no">No</span></td>
+            <td><span class="badge badge-yes">Yes (S256)</span></td>
+            <td><span class="badge badge-no">No</span></td>
+            <td><span class="badge badge-no">No</span></td>
+            <td><span class="badge badge-no">No</span></td>
+          </tr>
+          <tr>
+            <td><strong>Read Scopes</strong></td>
+            <td><code>read_only</code></td>
+            <td><code>transactions_r shops_r</code></td>
+            <td><code>view_sales</code></td>
+            <td><code>openid</code> + reporting URIs</td>
+            <td><code>read_orders read_all_orders</code></td>
+          </tr>
+          <tr>
+            <td><strong>Connected Account Header</strong></td>
+            <td><code>Stripe-Account: acct_XXX</code></td>
+            <td><code>x-api-key: {keystring}</code></td>
+            <td>Bearer token</td>
+            <td>Bearer token</td>
+            <td>Per-shop URL path</td>
+          </tr>
+          <tr>
+            <td><strong>Token Refresh Strategy</strong></td>
+            <td>Refresh before 1hr expiry; rolling 1yr refresh</td>
+            <td>Refresh before 1hr expiry; 90-day refresh TTL</td>
+            <td>No refresh needed — tokens never expire</td>
+            <td>Refresh before 8hr expiry; 180-day refresh TTL</td>
+            <td>Refresh before 60min expiry; rolling 90-day refresh</td>
+          </tr>
+          <tr>
+            <td><strong>Reconnect Risk</strong></td>
+            <td><span class="badge badge-easy">Low</span> — 1yr window</td>
+            <td><span class="badge badge-hard">High</span> — 90 days inactive = broken</td>
+            <td><span class="badge badge-easy">None</span> — never expires</td>
+            <td><span class="badge badge-hard">High</span> — 180 days inactive = broken</td>
+            <td><span class="badge badge-moderate">Medium</span> — 90 days, but rolling</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warning">
+      <p><strong>Token expiry is a UX problem, not just a technical one.</strong> Etsy (90 days) and PayPal (180 days) refresh tokens expire if the user doesn't visit MyTalli. When a connection breaks, the user must re-authorize — and they may not understand why. Build proactive email reminders before expiry and clear "reconnect" flows in the UI.</p>
+    </div>
+  </div>
+
+  <!-- Data Richness -->
+  <div class="section">
+    <span class="section-tag">Revenue Data</span>
+    <h2>What Each Platform Gives Us</h2>
+    <p>The core question: can we show accurate revenue, fees, and net income for each platform?</p>
+
+    <div class="platform-grid">
+      <div class="platform-card" style="border-color: #635bff;">
+        <h3 class="stripe">Stripe</h3>
+        <div class="platform-sub">Balance Transactions API — the gold standard</div>
+        <ul>
+          <li>Gross amount, net amount, fee amount per transaction</li>
+          <li>Fee breakdown by component (Stripe fee, app fee, tax)</li>
+          <li>Payout schedule and bank transfer tracking</li>
+          <li>Full refund and dispute history</li>
+          <li>Multi-currency with exchange rates</li>
+          <li>Date filtering via Unix timestamps</li>
+          <li>Cursor-based pagination (efficient for large datasets)</li>
+        </ul>
+      </div>
+
+      <div class="platform-card" style="border-color: #f56400;">
+        <h3 class="etsy">Etsy</h3>
+        <div class="platform-sub">Receipts + Transactions + Ledger Entries</div>
+        <ul>
+          <li>Order totals, item prices, shipping, taxes</li>
+          <li>Etsy fees and billing charges (separate scope)</li>
+          <li>Ledger entries for running account balance</li>
+          <li>Payment details per receipt</li>
+          <li>Refund data via payment records</li>
+          <li>Multi-currency (buyer vs fee currencies)</li>
+          <li class="warn">Webhook payloads are lightweight — require follow-up API call</li>
+          <li class="warn">Receipts endpoint may enforce 1 req/s/shop in practice</li>
+        </ul>
+      </div>
+
+      <div class="platform-card" style="border-color: #ff90e8;">
+        <h3 class="gumroad">Gumroad</h3>
+        <div class="platform-sub">Sales API — simple but limited</div>
+        <ul>
+          <li>Sale amount, product, timestamp, buyer email</li>
+          <li>Flat Gumroad fee (10%) — no component breakdown</li>
+          <li>Date filtering (YYYY-MM-DD)</li>
+          <li>Subscription and refund tracking</li>
+          <li class="block">No payout/disbursement API</li>
+          <li class="block">No net amount — must calculate manually</li>
+          <li class="warn">Rate limits undocumented — implement adaptive backoff</li>
+          <li class="warn">API docs are sparse — rely on community libraries</li>
+        </ul>
+      </div>
+
+      <div class="platform-card" style="border-color: #003087;">
+        <h3 class="paypal">PayPal</h3>
+        <div class="platform-sub">Transaction Search + Balance APIs</div>
+        <ul>
+          <li>Transaction amount, fees, status, timestamp</li>
+          <li>Payer info (name, email, country — not anonymized)</li>
+          <li>Balance inquiry (available, withheld, per currency)</li>
+          <li>Refund and chargeback tracking via T-codes</li>
+          <li>Multi-currency with per-currency balances</li>
+          <li class="block">No net amount field — must calculate (gross - fees)</li>
+          <li class="warn">31-day max date range per API call</li>
+          <li class="warn">Transaction data delayed 3-72 hours</li>
+          <li class="warn">Partner program may be required for third-party access</li>
+        </ul>
+      </div>
+
+      <div class="platform-card" style="border-color: #96bf48;">
+        <h3 class="shopify">Shopify</h3>
+        <div class="platform-sub">GraphQL Admin API — Orders + Shopify Payments</div>
+        <ul>
+          <li>Order totals, subtotals, taxes, shipping, discounts</li>
+          <li>Transaction detail (gateway, kind, status)</li>
+          <li>Multi-currency (shop money + presentment money)</li>
+          <li>Refund tracking with amounts</li>
+          <li>Nested queries — orders + transactions in one call</li>
+          <li class="warn">Fee/net data only for Shopify Payments merchants</li>
+          <li class="warn">60-day order limit without <code>read_all_orders</code> approval</li>
+          <li class="warn">GraphQL required for new apps (no REST)</li>
+          <li class="warn">Expiring offline tokens mandatory April 2026</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sync Strategy -->
+  <div class="section">
+    <span class="section-tag">Data Sync</span>
+    <h2>Real-Time vs Polling</h2>
+    <p>How fresh can we keep the data? Webhooks give real-time updates; polling fills gaps and handles historical backfill.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Webhooks</th>
+            <th>Key Events</th>
+            <th>Polling Needed?</th>
+            <th>Recommended Strategy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="stripe">Stripe</span></td>
+            <td><span class="badge badge-yes">Full catalog</span></td>
+            <td><code>charge.succeeded</code>, <code>charge.refunded</code>, <code>payout.paid</code></td>
+            <td>Initial backfill only</td>
+            <td><span class="badge badge-easy">Webhooks primary</span> + daily reconciliation poll</td>
+          </tr>
+          <tr>
+            <td><span class="etsy">Etsy</span></td>
+            <td><span class="badge badge-partial">4 order events</span></td>
+            <td><code>order.paid</code>, <code>order.canceled</code></td>
+            <td>Yes — webhooks are lightweight (URL only, no payload data)</td>
+            <td><span class="badge badge-moderate">Webhooks trigger</span> + API fetch for details + hourly poll</td>
+          </tr>
+          <tr>
+            <td><span class="gumroad">Gumroad</span></td>
+            <td><span class="badge badge-partial">Sale + refund</span></td>
+            <td><code>sale</code>, <code>refund</code>, <code>subscription_ended</code></td>
+            <td>Yes — for reconciliation and missed events</td>
+            <td><span class="badge badge-moderate">Webhooks primary</span> + daily reconciliation poll</td>
+          </tr>
+          <tr>
+            <td><span class="paypal">PayPal</span></td>
+            <td><span class="badge badge-yes">Full catalog</span></td>
+            <td><code>PAYMENT.CAPTURE.COMPLETED</code>, <code>PAYMENT.CAPTURE.REFUNDED</code></td>
+            <td>Yes — transaction data delayed 3-72 hours in search API</td>
+            <td><span class="badge badge-hard">Webhooks for real-time</span> + daily search API backfill</td>
+          </tr>
+          <tr>
+            <td><span class="shopify">Shopify</span></td>
+            <td><span class="badge badge-yes">Full catalog</span></td>
+            <td><code>orders/paid</code>, <code>refunds/create</code>, <code>order_transactions/create</code></td>
+            <td>Periodic reconciliation (webhook delivery not guaranteed)</td>
+            <td><span class="badge badge-easy">Webhooks primary</span> + daily reconciliation poll</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p><strong>Universal pattern:</strong> Every platform should use webhooks for real-time updates plus periodic polling for reconciliation. No webhook delivery is 100% guaranteed — polling catches anything that was missed. Run reconciliation daily during off-peak hours.</p>
+    </div>
+  </div>
+
+  <!-- Approval Gates -->
+  <div class="section">
+    <span class="section-tag">Approvals</span>
+    <h2>Third-Party Access Requirements</h2>
+    <p>Some platforms require explicit approval before you can read other merchants' data. Start these applications early — they can take weeks.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Approval Required</th>
+            <th>What's Needed</th>
+            <th>Timeline</th>
+            <th>Risk Level</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="stripe">Stripe</span></td>
+            <td>Stripe App review (if using Marketplace)</td>
+            <td>Submit listing form with app description</td>
+            <td>~4 business days</td>
+            <td><span class="badge badge-easy">Low</span></td>
+          </tr>
+          <tr>
+            <td><span class="etsy">Etsy</span></td>
+            <td>Commercial access (mandatory for 4+ shops)</td>
+            <td>Request in Developer Portal — app purpose, description, usage estimate</td>
+            <td>~20+ days per cycle</td>
+            <td><span class="badge badge-blocker">High — hard gate</span></td>
+          </tr>
+          <tr>
+            <td><span class="gumroad">Gumroad</span></td>
+            <td>None</td>
+            <td>Create app at gumroad.com/settings/developer</td>
+            <td>Immediate</td>
+            <td><span class="badge badge-easy">None</span></td>
+          </tr>
+          <tr>
+            <td><span class="paypal">PayPal</span></td>
+            <td>Reporting scopes + possible Partner program</td>
+            <td>Request reporting scopes in Developer Dashboard; may need Partner enrollment</td>
+            <td>24-72 hours for scopes; Partner program unknown</td>
+            <td><span class="badge badge-hard">Medium-High — unclear path</span></td>
+          </tr>
+          <tr>
+            <td><span class="shopify">Shopify</span></td>
+            <td><code>read_all_orders</code> scope (for full history)</td>
+            <td>Request in Partner Dashboard — explain revenue aggregation use case</td>
+            <td>Varies</td>
+            <td><span class="badge badge-moderate">Medium — commonly approved</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout danger">
+      <p><strong>Start Etsy and PayPal applications now.</strong> Etsy's commercial access takes 20+ days per review cycle and is approved at Etsy's sole discretion. PayPal's Partner program requirements for third-party reporting access are ambiguous — contact their partner team early to understand the path. Don't let approval timelines block your launch.</p>
+    </div>
+  </div>
+
+  <!-- Rate Limits -->
+  <div class="section">
+    <span class="section-tag">Rate Limits</span>
+    <h2>API Throttling by Platform</h2>
+    <p>Rate limits determine how fast we can sync data, especially during initial backfill of historical transactions.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Limit Type</th>
+            <th>Limit</th>
+            <th>Pagination</th>
+            <th>Backfill Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="stripe">Stripe</span></td>
+            <td>Per-endpoint</td>
+            <td>25 read req/s (live), 100 req/s global</td>
+            <td>Cursor-based (efficient)</td>
+            <td><span class="badge badge-easy">Fast</span> — full year in seconds</td>
+          </tr>
+          <tr>
+            <td><span class="etsy">Etsy</span></td>
+            <td>Per-token + per-key</td>
+            <td>~10 QPS, ~10,000 QPD</td>
+            <td>Offset-based</td>
+            <td><span class="badge badge-moderate">Moderate</span> — daily cap limits bulk sync</td>
+          </tr>
+          <tr>
+            <td><span class="gumroad">Gumroad</span></td>
+            <td>Undocumented</td>
+            <td>Estimated few req/s</td>
+            <td>Page-based</td>
+            <td><span class="badge badge-hard">Slow</span> — must discover limits empirically</td>
+          </tr>
+          <tr>
+            <td><span class="paypal">PayPal</span></td>
+            <td>Per-IP</td>
+            <td>~50 req/min, 10K records per query</td>
+            <td>Page-based (max 500/page)</td>
+            <td><span class="badge badge-moderate">Moderate</span> — 31-day windows mean 12+ calls/year</td>
+          </tr>
+          <tr>
+            <td><span class="shopify">Shopify</span></td>
+            <td>Calculated query cost</td>
+            <td>1,000pt bucket, 50pt/s restore</td>
+            <td>Cursor-based (GraphQL)</td>
+            <td><span class="badge badge-easy">Fast</span> — nested queries reduce call count</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Gotchas -->
+  <div class="section">
+    <span class="section-tag">Watch Out</span>
+    <h2>Platform-Specific Gotchas</h2>
+    <p>Landmines that could derail integration work if not planned for upfront.</p>
+
+    <div class="card">
+      <h3><span class="stripe">Stripe</span> — OAuth Direction Unclear</h3>
+      <p>Stripe is steering new platforms away from traditional Connect OAuth toward Stripe Apps (Marketplace). For a read-only aggregation tool, the recommended path may be building a Stripe App rather than using Connect OAuth directly. Clarify with Stripe support before committing to an approach.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="etsy">Etsy</span> — Commercial Access is a Hard Gate</h3>
+      <p>Without commercial access approval, the app can only serve 4 shops. The review takes 20+ days and Etsy approves at their sole discretion. If denied, there's no workaround. Additionally, <code>buyer_email</code> access requires a separate case-by-case approval.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="gumroad">Gumroad</span> — Platform Stability Risk</h3>
+      <p>Gumroad was open-sourced and the company has undergone significant changes. API documentation is minimal, rate limits are undocumented, and there's no payout API. Long-term API stability is not guaranteed. Build defensively with good error handling and fallbacks.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="paypal">PayPal</span> — Data Delay + Partner Ambiguity</h3>
+      <p>Transaction data takes 3-72 hours to appear in the Search API — real-time dashboards must use webhooks, not polling. The Partner program requirement for third-party reporting access is the biggest unknown. Contact PayPal's partner team early. Also: 31-day max date range per query means historical backfill requires multiple sequential calls.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="shopify">Shopify</span> — Fee Data is Payment-Processor Dependent</h3>
+      <p>Transaction fees and net amounts are only available for merchants using Shopify Payments. Merchants using PayPal, Stripe, or other gateways through Shopify will only have gross order totals — no fee breakdowns. MyTalli can only show gross revenue for these merchants. Also: expiring offline tokens become mandatory April 1, 2026.</p>
+    </div>
+  </div>
+
+  <!-- Integration Priority -->
+  <div class="section">
+    <span class="section-tag">Roadmap</span>
+    <h2>Recommended Integration Order</h2>
+    <p>Based on data richness, integration complexity, and approval timelines.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Priority</th>
+            <th>Platform</th>
+            <th>Why This Order</th>
+            <th>Complexity</th>
+            <th>Pre-Work</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1</strong></td>
+            <td><span class="stripe">Stripe</span></td>
+            <td>Richest data, already integrated for billing, no approval gate</td>
+            <td><span class="badge badge-easy">Easy</span></td>
+            <td>Confirm Connect vs Stripe App path</td>
+          </tr>
+          <tr>
+            <td><strong>2</strong></td>
+            <td><span class="gumroad">Gumroad</span></td>
+            <td>No approval, simplest API, immediate access — good for quick win</td>
+            <td><span class="badge badge-easy">Easy</span></td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td><strong>3</strong></td>
+            <td><span class="etsy">Etsy</span></td>
+            <td>Core creator platform, good data — but approval takes weeks</td>
+            <td><span class="badge badge-moderate">Moderate</span></td>
+            <td><span class="badge badge-blocker">Apply for commercial access NOW</span></td>
+          </tr>
+          <tr>
+            <td><strong>4</strong></td>
+            <td><span class="shopify">Shopify</span></td>
+            <td>Large merchant audience, GraphQL is modern but different</td>
+            <td><span class="badge badge-moderate">Moderate</span></td>
+            <td>Apply for <code>read_all_orders</code> scope</td>
+          </tr>
+          <tr>
+            <td><strong>5</strong></td>
+            <td><span class="paypal">PayPal</span></td>
+            <td>Good data but unclear approval path and data delays</td>
+            <td><span class="badge badge-hard">Hard</span></td>
+            <td><span class="badge badge-blocker">Contact Partner team NOW</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout success">
+      <p><strong>Parallel track:</strong> Build Stripe and Gumroad integrations (no approvals needed) while Etsy commercial access and PayPal partner enrollment are in progress. By the time you finish the first two, the approvals may be ready for the next two.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli — Internal Documentation
+  </div>
+</div>
+
+</body>
+</html>

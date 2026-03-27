@@ -76,7 +76,7 @@ public class UnsubscribeViewModel : ComponentBase
         }
 
         IsValid = true;
-        UserFirstName = user.FirstName;
+        UserFirstName = string.IsNullOrWhiteSpace(user.FirstName) ? "there" : user.FirstName;
 
         var preferences = PreferencesSerializer.Deserialize(user.UserPreferences);
         SubscriptionConfirmationEmail = preferences.EmailPreferences.SubscriptionConfirmationEmail;

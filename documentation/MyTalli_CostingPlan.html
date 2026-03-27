@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Costing Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.6; padding: 0; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; padding: 48px; position: relative; overflow: hidden; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 200px; position: absolute; right: -40px; top: -60px; width: 200px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 120px; left: 30%; position: absolute; top: 80px; width: 120px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.8); font-size: 15px; margin-top: 6px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 12px; position: relative; z-index: 1; }
+
+  /* Content */
+  .content { margin: 0 auto; max-width: 960px; padding: 48px 32px 80px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-tag { background: #f0edff; border-radius: 20px; color: #6c5ce7; display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 16px; padding: 6px 16px; text-transform: uppercase; }
+  .section h2 { color: #1a1a2e; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .section p { color: #555; font-size: 15px; margin-bottom: 16px; }
+
+  /* Cards */
+  .card { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; padding: 24px; }
+  .card h3 { color: #1a1a2e; font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .card p { color: #555; font-size: 14px; margin-bottom: 0; }
+
+  /* Cost summary cards */
+  .cost-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .cost-grid { grid-template-columns: repeat(3, 1fr); } }
+  .cost-card { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; padding: 20px; text-align: center; }
+  .cost-card.highlight { border-color: #6c5ce7; }
+  .cost-label { color: #999; font-size: 12px; font-weight: 600; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; }
+  .cost-amount { color: #1a1a2e; font-size: 32px; font-weight: 700; }
+  .cost-amount .currency { color: #6c5ce7; font-size: 18px; font-weight: 600; }
+  .cost-detail { color: #999; font-size: 12px; margin-top: 4px; }
+  .cost-card.savings .cost-amount { color: #27ae60; }
+
+  /* Tables */
+  .table-wrap { border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th { background: #f0edff; color: #6c5ce7; font-size: 11px; font-weight: 600; letter-spacing: 1px; padding: 12px 16px; text-align: left; text-transform: uppercase; }
+  td { border-top: 1px solid #f0edff; color: #555; font-size: 14px; padding: 12px 16px; }
+  tr:hover td { background: #faf9ff; }
+  .highlight-row td { background: #f0edff; color: #1a1a2e; font-weight: 600; }
+  .total-row td { background: #1a1a2e; color: #fff; font-weight: 700; }
+  .total-row td:last-child { color: #a78bfa; }
+  td.cost { font-family: 'DM Sans', monospace; font-weight: 600; text-align: right; }
+  th.cost { text-align: right; }
+
+  /* Callout */
+  .callout { background: #fff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin-bottom: 16px; padding: 16px 20px; }
+  .callout.warning { border-left-color: #f5c842; }
+  .callout.success { border-left-color: #27ae60; }
+  .callout.danger { border-left-color: #e74c3c; }
+  .callout strong { color: #1a1a2e; }
+  .callout p { color: #555; font-size: 14px; margin: 0; }
+
+  /* Tip cards */
+  .tip-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .tip-grid { grid-template-columns: 1fr 1fr; } }
+  .tip-card { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; padding: 20px; }
+  .tip-card .tip-icon { background: #f0edff; border-radius: 8px; color: #6c5ce7; display: inline-block; font-size: 18px; font-weight: 700; height: 36px; line-height: 36px; margin-bottom: 12px; text-align: center; width: 36px; }
+  .tip-card h4 { color: #1a1a2e; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .tip-card p { color: #555; font-size: 13px; margin: 0; }
+  .tip-card .tip-savings { color: #27ae60; font-size: 12px; font-weight: 600; margin-top: 8px; }
+
+  /* Revenue comparison bar */
+  .revenue-bar { margin-bottom: 24px; }
+  .revenue-bar-label { color: #555; display: flex; font-size: 13px; justify-content: space-between; margin-bottom: 6px; }
+  .revenue-bar-track { background: #f0edff; border-radius: 8px; height: 32px; overflow: hidden; position: relative; }
+  .revenue-bar-fill { border-radius: 8px; height: 100%; position: absolute; transition: width 0.3s; }
+  .revenue-bar-fill.cost { background: #e74c3c; opacity: 0.8; }
+  .revenue-bar-fill.revenue { background: #27ae60; opacity: 0.8; }
+
+  /* Footer */
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 48px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Costing Plan</h1>
+  <p class="subtitle">Current infrastructure costs, growth projections, and optimization strategies</p>
+  <p class="doc-date">Last updated: March 2026</p>
+</div>
+
+<div class="content">
+
+  <!-- Current Costs -->
+  <div class="section">
+    <span class="section-tag">Current State</span>
+    <h2>What We Pay Today</h2>
+    <p>MyTalli's current monthly infrastructure cost with ~10 registered users.</p>
+
+    <div class="cost-grid">
+      <div class="cost-card highlight">
+        <div class="cost-label">Monthly Total</div>
+        <div class="cost-amount"><span class="currency">$</span>75</div>
+        <div class="cost-detail">All Azure services</div>
+      </div>
+      <div class="cost-card">
+        <div class="cost-label">Annual Total</div>
+        <div class="cost-amount"><span class="currency">$</span>900</div>
+        <div class="cost-detail">At current run rate</div>
+      </div>
+      <div class="cost-card">
+        <div class="cost-label">Cost Per User</div>
+        <div class="cost-amount"><span class="currency">$</span>7.50</div>
+        <div class="cost-detail">At 10 registered users</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Resource</th>
+            <th>Tier</th>
+            <th>Specs</th>
+            <th class="cost">Monthly Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight-row">
+            <td>App Service Plan</td>
+            <td><span style="background: #fee2e2; border-radius: 4px; color: #b91c1c; font-size: 12px; font-weight: 600; padding: 2px 8px;">Standard S1 (Linux)</span></td>
+            <td>1 core, 1.75 GB RAM, Central US</td>
+            <td class="cost">$69.00</td>
+          </tr>
+          <tr>
+            <td>SQL Database</td>
+            <td><span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">Basic</span></td>
+            <td>5 DTU, 2 GB storage</td>
+            <td class="cost">$4.90</td>
+          </tr>
+          <tr>
+            <td>ACS Email</td>
+            <td>Pay-per-send</td>
+            <td>$0.0085/email</td>
+            <td class="cost">~$1.00</td>
+          </tr>
+          <tr>
+            <td>Custom Domain SSL</td>
+            <td>App Service Managed Certificate</td>
+            <td>Auto-renewing, SNI SSL</td>
+            <td class="cost">$0.00</td>
+          </tr>
+          <tr>
+            <td>Deployment Slots</td>
+            <td>Included with Standard</td>
+            <td>Staging + Production</td>
+            <td class="cost">$0.00</td>
+          </tr>
+          <tr class="total-row">
+            <td colspan="3">Total Monthly Infrastructure</td>
+            <td class="cost">~$75.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p><strong>Where the money goes:</strong> 92% of the bill is the App Service Plan. The database and email are negligible. Any cost optimization effort should focus on the App Service tier.</p>
+    </div>
+  </div>
+
+  <!-- Cost by Growth Stage -->
+  <div class="section">
+    <span class="section-tag">Growth Projections</span>
+    <h2>Cost at Each Scale</h2>
+    <p>How monthly costs change as the user base grows. "Concurrent users" is the key metric — typically 5-15% of registered users for a dashboard app.</p>
+
+    <div class="callout">
+      <p style="margin-bottom: 10px;"><strong>How to read Azure tier names:</strong></p>
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        <li style="color: #555; font-size: 14px; margin-bottom: 6px; padding-left: 16px; position: relative;"><span style="color: #6c5ce7; font-weight: 700; left: 0; position: absolute;">&bull;</span><strong>Letter</strong> = tier family — <strong>S</strong> (Standard), <strong>P</strong> (Premium)</li>
+        <li style="color: #555; font-size: 14px; margin-bottom: 6px; padding-left: 16px; position: relative;"><span style="color: #6c5ce7; font-weight: 700; left: 0; position: absolute;">&bull;</span><strong>Number</strong> = size within the family — 0 (smallest) through 3 (largest)</li>
+        <li style="color: #555; font-size: 14px; margin-bottom: 6px; padding-left: 16px; position: relative;"><span style="color: #6c5ce7; font-weight: 700; left: 0; position: absolute;">&bull;</span><strong>v3</strong> = hardware generation — version 3 is the latest</li>
+        <li style="color: #555; font-size: 14px; margin-bottom: 6px; padding-left: 16px; position: relative;"><span style="color: #6c5ce7; font-weight: 700; left: 0; position: absolute;">&bull;</span><strong>S1</strong> = Standard tier, size 1 &nbsp;|&nbsp; <strong>P0v3</strong> = Premium tier, size 0, version 3</li>
+      </ul>
+      <p style="color: #999; font-size: 13px; margin-top: 10px; margin-bottom: 0;">Microsoft considers Standard (S-series) legacy — Premium v3 is the current recommended family.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Stage</th>
+            <th>Registered Users</th>
+            <th>Concurrent</th>
+            <th>App Service</th>
+            <th>SQL DB</th>
+            <th>SignalR</th>
+            <th>Email</th>
+            <th class="cost">Total/Mo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight-row">
+            <td>Now</td>
+            <td>10</td>
+            <td>&lt;5</td>
+            <td><span style="background: #fee2e2; border-radius: 4px; color: #b91c1c; font-size: 12px; font-weight: 600; padding: 2px 8px;">S1 ($69)</span></td>
+            <td><span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">Basic ($5)</span></td>
+            <td>Built-in</td>
+            <td>~$1</td>
+            <td class="cost">$75</td>
+          </tr>
+          <tr>
+            <td>Launch</td>
+            <td>50 - 500</td>
+            <td>5 - 50</td>
+            <td><span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">P0v3 ($73)</span></td>
+            <td><span style="background: #fef3c7; border-radius: 4px; color: #92400e; font-size: 12px; font-weight: 600; padding: 2px 8px;">S0 ($15)</span></td>
+            <td>Built-in</td>
+            <td>~$2</td>
+            <td class="cost">$90</td>
+          </tr>
+          <tr>
+            <td>Traction</td>
+            <td>500 - 5,000</td>
+            <td>50 - 500</td>
+            <td><span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">P0v3 ($73)</span></td>
+            <td><span style="background: #fef3c7; border-radius: 4px; color: #92400e; font-size: 12px; font-weight: 600; padding: 2px 8px;">S0 ($15)</span></td>
+            <td>Built-in</td>
+            <td>~$10</td>
+            <td class="cost">$98</td>
+          </tr>
+          <tr>
+            <td>Growing</td>
+            <td>5,000 - 20,000</td>
+            <td>500 - 2,000</td>
+            <td><span style="background: #dbeafe; border-radius: 4px; color: #1e40af; font-size: 12px; font-weight: 600; padding: 2px 8px;">P1v3 ($124)</span></td>
+            <td><span style="background: #fed7aa; border-radius: 4px; color: #9a3412; font-size: 12px; font-weight: 600; padding: 2px 8px;">S1 ($30)</span></td>
+            <td>Built-in</td>
+            <td>~$40</td>
+            <td class="cost">$194</td>
+          </tr>
+          <tr>
+            <td>Scaling</td>
+            <td>20,000 - 50,000</td>
+            <td>2,000 - 5,000</td>
+            <td><span style="background: #e9d5ff; border-radius: 4px; color: #6b21a8; font-size: 12px; font-weight: 600; padding: 2px 8px;">P2v3 ($241)</span></td>
+            <td><span style="background: #fecaca; border-radius: 4px; color: #991b1b; font-size: 12px; font-weight: 600; padding: 2px 8px;">S2 ($75)</span></td>
+            <td>Optional ($48)</td>
+            <td>~$100</td>
+            <td class="cost">$464</td>
+          </tr>
+          <tr>
+            <td>Enterprise</td>
+            <td>50,000+</td>
+            <td>5,000+</td>
+            <td><span style="background: #fef3c7; border-radius: 4px; color: #92400e; font-size: 12px; font-weight: 600; padding: 2px 8px;">P3v3 ($482)</span></td>
+            <td><span style="background: #e9d5ff; border-radius: 4px; color: #6b21a8; font-size: 12px; font-weight: 600; padding: 2px 8px;">S3 ($150)</span></td>
+            <td>Standard ($48+)</td>
+            <td>~$200+</td>
+            <td class="cost">$880+</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout success">
+      <p><strong>The good news:</strong> Costs scale gradually, not exponentially. Going from 10 users to 5,000 registered users only increases the bill from $75 to ~$98/month — because P0v3 has enough headroom. The first real cost jump ($194/mo) doesn't happen until ~5,000 registered users.</p>
+    </div>
+  </div>
+
+  <!-- Revenue vs Cost -->
+  <div class="section">
+    <span class="section-tag">Unit Economics</span>
+    <h2>Revenue vs. Infrastructure Cost</h2>
+    <p>MyTalli's Pro tier is $12/month or $99/year. Even modest conversion rates cover infrastructure quickly.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Registered Users</th>
+            <th>Pro Conversion</th>
+            <th>Paying Users</th>
+            <th>Monthly Revenue</th>
+            <th>Monthly Cost</th>
+            <th class="cost">Net Margin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>100</td>
+            <td>5%</td>
+            <td>5</td>
+            <td>$60</td>
+            <td>$90</td>
+            <td class="cost"><span style="background: #fee2e2; border-radius: 4px; color: #b91c1c; font-size: 12px; font-weight: 600; padding: 2px 8px;">-$30</span></td>
+          </tr>
+          <tr>
+            <td>500</td>
+            <td>5%</td>
+            <td>25</td>
+            <td>$300</td>
+            <td>$90</td>
+            <td class="cost"><span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">+$210</span></td>
+          </tr>
+          <tr>
+            <td>1,000</td>
+            <td>5%</td>
+            <td>50</td>
+            <td>$600</td>
+            <td>$98</td>
+            <td class="cost"><span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">+$502</span></td>
+          </tr>
+          <tr>
+            <td>5,000</td>
+            <td>5%</td>
+            <td>250</td>
+            <td>$3,000</td>
+            <td>$194</td>
+            <td class="cost"><span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">+$2,806</span></td>
+          </tr>
+          <tr>
+            <td>20,000</td>
+            <td>5%</td>
+            <td>1,000</td>
+            <td>$12,000</td>
+            <td>$464</td>
+            <td class="cost"><span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">+$11,536</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p><strong>Break-even point:</strong> At 5% Pro conversion and $12/month pricing, MyTalli covers its infrastructure costs at approximately <strong>8 paying users</strong> ($96/mo revenue vs. $90/mo cost). Everything beyond that is margin.</p>
+    </div>
+
+    <div class="callout warning">
+      <p><strong>Note on conversion rate:</strong> 5% is conservative for a freemium SaaS tool. B2B SaaS tools typically see 2-5% free-to-paid conversion, while tools that solve an immediate pain point (like revenue tracking) can see 8-15%. The numbers above use the floor estimate.</p>
+    </div>
+  </div>
+
+  <!-- Detailed Resource Pricing -->
+  <div class="section">
+    <span class="section-tag">Resource Details</span>
+    <h2>Azure Pricing Breakdown</h2>
+
+    <h3 style="font-size: 16px; margin: 24px 0 12px; color: #1a1a2e;">App Service Plans (Linux, Central US)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>vCPUs</th>
+            <th>RAM</th>
+            <th>Slots</th>
+            <th class="cost">Monthly Cost</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight-row">
+            <td>Standard S1</td>
+            <td>1</td>
+            <td>1.75 GB</td>
+            <td>5</td>
+            <td class="cost">$69</td>
+            <td>Current — legacy tier</td>
+          </tr>
+          <tr>
+            <td>Standard S2</td>
+            <td>2</td>
+            <td>3.5 GB</td>
+            <td>5</td>
+            <td class="cost">$138</td>
+            <td>Legacy — skip this</td>
+          </tr>
+          <tr style="background: #f0fff4;">
+            <td><strong>Premium P0v3</strong></td>
+            <td>1</td>
+            <td>4 GB</td>
+            <td>20</td>
+            <td class="cost"><strong>$73</strong></td>
+            <td>Best value — 2.3x RAM for +$4</td>
+          </tr>
+          <tr>
+            <td>Premium P1v3</td>
+            <td>2</td>
+            <td>8 GB</td>
+            <td>20</td>
+            <td class="cost">$124</td>
+            <td>For 500-2,000 concurrent</td>
+          </tr>
+          <tr>
+            <td>Premium P2v3</td>
+            <td>4</td>
+            <td>16 GB</td>
+            <td>20</td>
+            <td class="cost">$241</td>
+            <td>For 2,000-5,000 concurrent</td>
+          </tr>
+          <tr>
+            <td>Premium P3v3</td>
+            <td>8</td>
+            <td>32 GB</td>
+            <td>20</td>
+            <td class="cost">$482</td>
+            <td>Enterprise scale</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size: 16px; margin: 24px 0 12px; color: #1a1a2e;">Azure SQL Database (DTU Model, Central US)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>DTUs</th>
+            <th>Storage</th>
+            <th class="cost">Monthly Cost</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight-row">
+            <td>Basic</td>
+            <td>5</td>
+            <td>2 GB</td>
+            <td class="cost">$4.90</td>
+            <td>Current — minimal capacity</td>
+          </tr>
+          <tr>
+            <td>Standard S0</td>
+            <td>10</td>
+            <td>250 GB</td>
+            <td class="cost">$15.00</td>
+            <td>Launch-ready, geo-restore backup</td>
+          </tr>
+          <tr>
+            <td>Standard S1</td>
+            <td>20</td>
+            <td>250 GB</td>
+            <td class="cost">$30.00</td>
+            <td>Comfortable headroom</td>
+          </tr>
+          <tr>
+            <td>Standard S2</td>
+            <td>50</td>
+            <td>250 GB</td>
+            <td class="cost">$75.00</td>
+            <td>Heavy read/write workloads</td>
+          </tr>
+          <tr>
+            <td>Standard S3</td>
+            <td>100</td>
+            <td>1 TB</td>
+            <td class="cost">$150.00</td>
+            <td>Enterprise scale</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size: 16px; margin: 24px 0 12px; color: #1a1a2e;">Other Services</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Pricing Model</th>
+            <th class="cost">Cost</th>
+            <th>When Needed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ACS Email</td>
+            <td>$0.0085 per email</td>
+            <td class="cost">~$1-200/mo</td>
+            <td>Already in use — scales with user count</td>
+          </tr>
+          <tr>
+            <td>Azure SignalR Service</td>
+            <td>$1.61/unit/day (1,000 connections/unit)</td>
+            <td class="cost">~$48/unit/mo</td>
+            <td>Only if scaling to multiple App Service instances</td>
+          </tr>
+          <tr>
+            <td>Application Insights</td>
+            <td>First 5 GB/mo free, $2.30/GB after</td>
+            <td class="cost">$0-20/mo</td>
+            <td>Recommended at 500+ concurrent users</td>
+          </tr>
+          <tr>
+            <td>Azure Blob Storage</td>
+            <td>$0.018/GB/mo + egress</td>
+            <td class="cost">~$1/mo</td>
+            <td>Phase 2 — email image hosting</td>
+          </tr>
+          <tr>
+            <td>Custom Domain SSL</td>
+            <td>App Service Managed Certificate</td>
+            <td class="cost">$0</td>
+            <td>Already in use — included with App Service</td>
+          </tr>
+          <tr>
+            <td>GoDaddy Domain</td>
+            <td>Annual renewal</td>
+            <td class="cost">~$2/mo</td>
+            <td>Already in use — mytalli.com</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Immediate Optimization -->
+  <div class="section">
+    <span class="section-tag">Immediate Action</span>
+    <h2>Optimize Before Launch</h2>
+    <p>Two changes to make right now that improve capacity without significantly increasing cost.</p>
+
+    <div class="cost-grid">
+      <div class="cost-card">
+        <div class="cost-label">Current Monthly</div>
+        <div class="cost-amount"><span class="currency">$</span>75</div>
+        <div class="cost-detail">S1 + Basic SQL</div>
+      </div>
+      <div class="cost-card highlight">
+        <div class="cost-label">Optimized Monthly</div>
+        <div class="cost-amount"><span class="currency">$</span>90</div>
+        <div class="cost-detail">P0v3 + S0 SQL</div>
+      </div>
+      <div class="cost-card savings">
+        <div class="cost-label">Capacity Gain</div>
+        <div class="cost-amount">+130%</div>
+        <div class="cost-detail">For only $15/mo more</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>1. Switch App Service S1 to P0v3 (+$4/mo)</h3>
+      <p>Microsoft considers Standard tiers legacy. Premium P0v3 gives 4 GB RAM (vs 1.75 GB) for essentially the same price. This more than doubles your concurrent user capacity from ~500 to ~1,200. No code changes, no downtime — swap in Azure Portal.</p>
+    </div>
+
+    <div class="card">
+      <h3>2. Upgrade SQL Basic to Standard S0 (+$10/mo)</h3>
+      <p>Basic (5 DTU) is barely adequate for production. S0 (10 DTU) doubles throughput, includes 250 GB storage (vs 2 GB), and adds geo-restore backup capability. This removes the database as a launch-day bottleneck.</p>
+    </div>
+  </div>
+
+  <!-- Cost Optimization Tips -->
+  <div class="section">
+    <span class="section-tag">Cost Management</span>
+    <h2>Optimization Strategies by Stage</h2>
+
+    <h3 style="font-size: 16px; margin: 24px 0 12px; color: #1a1a2e;">At Every Stage</h3>
+    <div class="tip-grid">
+      <div class="tip-card">
+        <div class="tip-icon">$</div>
+        <h4>Azure Reserved Instances (1-Year)</h4>
+        <p>Commit to a 1-year reservation on App Service for ~35% savings. Only do this once you've validated the tier is right — don't reserve before launch.</p>
+        <div class="tip-savings">Saves ~$25-85/mo depending on tier</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">$</div>
+        <h4>Azure Reserved Instances (3-Year)</h4>
+        <p>3-year reservations save ~55%. Only commit this far out when you're confident in the platform choice and growth trajectory.</p>
+        <div class="tip-savings">Saves ~$40-135/mo depending on tier</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">M</div>
+        <h4>Monitor Before Scaling</h4>
+        <p>Always check Azure Metrics before scaling up. If memory and CPU are under 50%, you don't need a bigger tier yet — even if user count suggests otherwise. Real usage patterns matter more than projections.</p>
+        <div class="tip-savings">Avoids premature spending</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">A</div>
+        <h4>Azure Cost Alerts</h4>
+        <p>Set budget alerts in Azure Cost Management at 80% and 100% of your expected monthly spend. Catches unexpected spikes (runaway email sends, DDoS-driven compute) before they become a surprise bill.</p>
+        <div class="tip-savings">Prevents bill shock</div>
+      </div>
+    </div>
+
+    <h3 style="font-size: 16px; margin: 24px 0 12px; color: #1a1a2e;">At 500+ Concurrent Users</h3>
+    <div class="tip-grid">
+      <div class="tip-card">
+        <div class="tip-icon">D</div>
+        <h4>Review SQL DTU vs vCore</h4>
+        <p>At Standard S2 ($75/mo) and above, the vCore pricing model may be cheaper for your workload. Run the Azure DTU Calculator to compare. Dashboard apps with read-heavy, simple queries often benefit from vCore's flexibility.</p>
+        <div class="tip-savings">Potential 10-30% savings on database</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">C</div>
+        <h4>Cache Expensive Queries</h4>
+        <p>If dashboard data is fetched frequently but changes slowly (daily/weekly revenue totals), add an in-memory cache layer. Reduces database load and may let you stay on a smaller SQL tier longer.</p>
+        <div class="tip-savings">Delays SQL tier upgrades</div>
+      </div>
+    </div>
+
+    <h3 style="font-size: 16px; margin: 24px 0 12px; color: #1a1a2e;">At 2,000+ Concurrent Users</h3>
+    <div class="tip-grid">
+      <div class="tip-card">
+        <div class="tip-icon">H</div>
+        <h4>Horizontal vs Vertical Scaling</h4>
+        <p>Two P1v3 instances ($248/mo + $48 SignalR = $296) vs one P2v3 ($241/mo). Vertical is cheaper and simpler. Only go horizontal when you need fault tolerance — if one instance goes down, the other keeps serving.</p>
+        <div class="tip-savings">Choose vertical first for cost savings</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">S</div>
+        <h4>Sticky Sessions Over Azure SignalR</h4>
+        <p>If you do scale horizontally, try ARR affinity (sticky sessions) before paying for Azure SignalR Service. Sticky sessions are free and built into App Service. Azure SignalR ($48/mo per unit) is only needed if you want cross-instance resilience.</p>
+        <div class="tip-savings">Saves $48+/mo on SignalR</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Costs -->
+  <div class="section">
+    <span class="section-tag">Watch Out</span>
+    <h2>Hidden and Often-Forgotten Costs</h2>
+
+    <div class="card">
+      <h3>Email Volume at Scale</h3>
+      <p>At 20,000 users with weekly summary emails enabled, that's ~80,000 emails/month ($680/mo in ACS costs alone). Monitor email opt-out rates and ensure the unsubscribe flow works well. Users who unsubscribe save you money — don't fight it.</p>
+    </div>
+
+    <div class="card">
+      <h3>Staging Slot Costs</h3>
+      <p>Deployment slots on Standard/Premium tiers share the plan's resources (no extra charge) when idle. But if you add auto-scaling, each scaled instance duplicates all slots. At 3 instances with staging, you're paying for 6 instances.</p>
+    </div>
+
+    <div class="card">
+      <h3>Bandwidth / Egress</h3>
+      <p>Azure charges for outbound data transfer above 5 GB/month (~$0.087/GB). Blazor Server is efficient (only sends UI diffs over SignalR), but dashboard charts and data payloads add up at scale. Unlikely to matter before 5,000+ concurrent users.</p>
+    </div>
+
+    <div class="card">
+      <h3>Stripe Fees</h3>
+      <p>Not an Azure cost, but relevant to margin: Stripe charges 2.9% + $0.30 per transaction. On a $12/month subscription, that's $0.65/transaction (5.4% effective rate). On $99/year, it's $3.17/transaction (3.2%). Annual plans are more margin-efficient.</p>
+    </div>
+  </div>
+
+  <!-- Annual Summary -->
+  <div class="section">
+    <span class="section-tag">Annual View</span>
+    <h2>Yearly Cost Projections</h2>
+    <p>Annualized infrastructure costs at each stage, with and without reserved instance savings.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Stage</th>
+            <th>Registered Users</th>
+            <th class="cost">Monthly</th>
+            <th class="cost">Annual (Pay-as-you-go)</th>
+            <th class="cost">Annual (1-yr Reserved)</th>
+            <th class="cost">Savings</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight-row">
+            <td>Now</td>
+            <td>10</td>
+            <td class="cost">$75</td>
+            <td class="cost">$900</td>
+            <td class="cost">—</td>
+            <td class="cost">—</td>
+          </tr>
+          <tr>
+            <td>Launch</td>
+            <td>50 - 500</td>
+            <td class="cost">$90</td>
+            <td class="cost">$1,080</td>
+            <td class="cost">~$780</td>
+            <td class="cost" style="color: #27ae60;">~$300</td>
+          </tr>
+          <tr>
+            <td>Traction</td>
+            <td>500 - 5,000</td>
+            <td class="cost">$98</td>
+            <td class="cost">$1,176</td>
+            <td class="cost">~$850</td>
+            <td class="cost" style="color: #27ae60;">~$326</td>
+          </tr>
+          <tr>
+            <td>Growing</td>
+            <td>5,000 - 20,000</td>
+            <td class="cost">$194</td>
+            <td class="cost">$2,328</td>
+            <td class="cost">~$1,650</td>
+            <td class="cost" style="color: #27ae60;">~$678</td>
+          </tr>
+          <tr>
+            <td>Scaling</td>
+            <td>20,000 - 50,000</td>
+            <td class="cost">$464</td>
+            <td class="cost">$5,568</td>
+            <td class="cost">~$3,900</td>
+            <td class="cost" style="color: #27ae60;">~$1,668</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout success">
+      <p><strong>Key takeaway:</strong> At every growth stage, infrastructure costs remain a small fraction of potential revenue. At 5% Pro conversion, the "Growing" stage (5,000-20,000 users) generates $3,000+/month in revenue against $194/month in infrastructure — a 15:1 revenue-to-cost ratio. The business model scales favorably.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli — Internal Documentation
+  </div>
+</div>
+
+</body>
+</html>

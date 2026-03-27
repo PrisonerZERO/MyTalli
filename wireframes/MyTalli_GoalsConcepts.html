@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Goals Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1a1a2e;
+    background: #f8f7fc;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── CONCEPT SELECTOR ─── */
+  .concept-nav { background: #fff; border-bottom: 1px solid #eee; display: flex; gap: 8px; justify-content: center; padding: 16px 24px; position: sticky; top: 0; z-index: 200; }
+  .concept-btn { background: #fff; border: 2px solid #e0dce8; border-radius: 10px; color: #555; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 24px; transition: all 0.15s ease; }
+  .concept-btn:hover { border-color: #6c5ce7; color: #6c5ce7; }
+  .concept-btn.active { background: #6c5ce7; border-color: #6c5ce7; color: #fff; }
+
+  /* ─── SHARED LAYOUT SHELL ─── */
+  .concept { display: none; min-height: 100vh; }
+  .concept.visible { display: block; }
+  .app-shell { display: flex; min-height: 100vh; }
+
+  /* Simulated sidebar */
+  .sim-sidebar { background: #fff; border-right: 1px solid #eee; display: flex; flex-direction: column; flex-shrink: 0; padding: 24px 16px; width: 240px; }
+  .sim-logo { color: #1a1a2e; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 32px; padding: 0 8px; text-decoration: none; }
+  .sim-logo span { color: #6c5ce7; }
+  .sim-nav { display: flex; flex-direction: column; gap: 2px; }
+  .sim-link { align-items: center; border-radius: 8px; color: #555; display: flex; font-size: 14px; font-weight: 500; gap: 10px; padding: 10px 12px; text-decoration: none; transition: all 0.15s ease; }
+  .sim-link:hover { background: #f8f7fc; color: #1a1a2e; }
+  .sim-link.active { background: #f0edff; color: #6c5ce7; font-weight: 600; }
+  .sim-link svg { flex-shrink: 0; height: 18px; width: 18px; }
+
+  /* Main content area */
+  .sim-main { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 40px 80px; }
+
+  /* ─── SHARED GOAL STYLES ─── */
+
+  /* Circular progress */
+  .circle-wrap { height: 140px; position: relative; width: 140px; }
+  .circle-wrap svg { height: 100%; transform: rotate(-90deg); width: 100%; }
+  .circle-bg { fill: none; stroke: #f0edff; stroke-width: 10; }
+  .circle-fill { fill: none; stroke: url(#goalGrad); stroke-dasharray: 339.3; stroke-linecap: round; stroke-width: 10; transition: stroke-dashoffset 1.2s ease; }
+  .circle-inner { align-items: center; display: flex; flex-direction: column; height: 100%; justify-content: center; left: 0; position: absolute; top: 0; width: 100%; }
+  .circle-pct { color: #1a1a2e; font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+  .circle-sub { color: #999; font-size: 11px; margin-top: 2px; }
+
+  /* Linear progress bar */
+  .progress-track { background: #f0edff; border-radius: 99px; height: 10px; overflow: hidden; width: 100%; }
+  .progress-fill { background: linear-gradient(90deg, #6c5ce7, #8b5cf6); border-radius: 99px; height: 100%; transition: width 1s ease; }
+
+  /* Status badge */
+  .goal-badge { align-items: center; border-radius: 6px; display: inline-flex; font-size: 12px; font-weight: 600; gap: 4px; padding: 4px 10px; }
+  .goal-badge.on-track { background: rgba(39, 174, 96, 0.08); color: #27ae60; }
+  .goal-badge.behind { background: rgba(231, 76, 60, 0.08); color: #e74c3c; }
+  .goal-badge.ahead { background: rgba(108, 92, 231, 0.08); color: #6c5ce7; }
+
+  /* Edit / add buttons */
+  .btn-primary { background: #6c5ce7; border: none; border-radius: 10px; color: #fff; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 24px; transition: background 0.15s ease; }
+  .btn-primary:hover { background: #5a4bd1; }
+  .btn-outline { background: #fff; border: 2px solid #e0dce8; border-radius: 10px; color: #555; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 20px; transition: all 0.15s ease; }
+  .btn-outline:hover { border-color: #6c5ce7; color: #6c5ce7; }
+  .btn-ghost { background: none; border: none; color: #6c5ce7; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 4px 0; transition: color 0.15s ease; }
+  .btn-ghost:hover { color: #5a4bd1; }
+
+  /* Card base */
+  .card { background: #fff; border: 1px solid #eee; border-radius: 14px; padding: 24px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+  .card:hover { border-color: #e0dce8; box-shadow: 0 4px 16px rgba(108, 92, 231, 0.05); }
+
+  /* ─── ANIMATION ─── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-in { animation: fadeUp 0.5s ease forwards; opacity: 0; }
+  .delay-1 { animation-delay: 0.05s; }
+  .delay-2 { animation-delay: 0.1s; }
+  .delay-3 { animation-delay: 0.15s; }
+  .delay-4 { animation-delay: 0.2s; }
+  .delay-5 { animation-delay: 0.25s; }
+
+  /* ─── SHARED HERO ─── */
+  .goal-hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); margin: -32px -40px 32px; overflow: hidden; padding: 24px 40px 32px; position: relative; }
+  .goal-hero-bg { bottom: 0; left: 0; pointer-events: none; position: absolute; right: 0; }
+  .goal-hero-bg svg { display: block; height: 40px; width: 100%; }
+  .goal-deco { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
+  .goal-deco-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
+  .goal-deco-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
+  .goal-deco-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
+  .goal-hero-content { position: relative; z-index: 2; }
+  .goal-hero-top { align-items: center; display: flex; justify-content: space-between; }
+  .goal-hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .goal-hero p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT A: FOCUS CARD       */
+  /* ─────────────────────────── */
+
+  /* Hero with big circle */
+  .a-hero-circle { align-items: center; display: flex; gap: 40px; margin-top: 24px; }
+  .a-hero-info { flex: 1; }
+  .a-hero-amount { color: #fff; font-size: 36px; font-weight: 700; letter-spacing: -1px; }
+  .a-hero-amount span { color: rgba(255, 255, 255, 0.5); font-size: 20px; font-weight: 400; }
+  .a-hero-target { color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-top: 4px; }
+  .a-hero-status { align-items: center; background: rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; display: inline-flex; font-size: 13px; font-weight: 500; gap: 6px; margin-top: 12px; padding: 6px 14px; }
+  .a-hero-status svg { height: 14px; width: 14px; }
+
+  .a-circle-wrap { flex-shrink: 0; height: 160px; position: relative; width: 160px; }
+  .a-circle-wrap svg { height: 100%; transform: rotate(-90deg); width: 100%; }
+  .a-circle-bg { fill: none; stroke: rgba(255, 255, 255, 0.15); stroke-width: 10; }
+  .a-circle-fill { fill: none; stroke: #fff; stroke-dasharray: 408.4; stroke-dashoffset: 130.7; stroke-linecap: round; stroke-width: 10; }
+  .a-circle-inner { align-items: center; display: flex; flex-direction: column; height: 100%; justify-content: center; left: 0; position: absolute; top: 0; width: 100%; }
+  .a-circle-pct { color: #fff; font-size: 38px; font-weight: 700; letter-spacing: -1px; }
+  .a-circle-sub { color: rgba(255, 255, 255, 0.6); font-size: 12px; }
+
+  /* Period toggle */
+  .a-period-pills { display: flex; gap: 4px; margin-bottom: 24px; }
+  .a-pill { background: #fff; border: 1px solid #eee; border-radius: 8px; color: #999; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 8px 18px; transition: all 0.15s ease; }
+  .a-pill:hover { border-color: #6c5ce7; color: #6c5ce7; }
+  .a-pill.active { background: #6c5ce7; border-color: #6c5ce7; color: #fff; font-weight: 600; }
+
+  /* Goal breakdown cards */
+  .a-breakdown { display: grid; gap: 20px; grid-template-columns: repeat(2, 1fr); margin-bottom: 28px; }
+  .a-break-card { padding: 20px; }
+  .a-break-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 16px; }
+  .a-break-title { color: #1a1a2e; font-size: 14px; font-weight: 600; }
+  .a-break-amount { color: #1a1a2e; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .a-break-amount span { color: #999; font-size: 14px; font-weight: 400; }
+  .a-break-bar { margin-bottom: 8px; }
+  .a-break-meta { color: #999; font-size: 12px; }
+
+  /* History timeline */
+  .a-history { padding: 28px; }
+  .a-history h3 { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .a-history-row { align-items: center; border-top: 1px solid #f8f7fc; display: flex; gap: 16px; padding: 14px 0; }
+  .a-history-row:first-of-type { border-top: none; }
+  .a-history-month { color: #1a1a2e; font-size: 14px; font-weight: 500; min-width: 80px; }
+  .a-history-bar { flex: 1; }
+  .a-history-nums { align-items: center; display: flex; gap: 12px; min-width: 180px; }
+  .a-history-earned { color: #1a1a2e; font-size: 14px; font-weight: 600; }
+  .a-history-target { color: #999; font-size: 12px; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT B: MULTI-GOAL       */
+  /* ─────────────────────────── */
+  .b-hero-stats { display: flex; gap: 24px; margin-top: 20px; }
+  .b-stat { text-align: center; }
+  .b-stat-num { color: #fff; font-size: 28px; font-weight: 700; }
+  .b-stat-label { color: rgba(255, 255, 255, 0.6); font-size: 12px; margin-left: 6px; }
+
+  .b-goals-grid { display: grid; gap: 20px; grid-template-columns: repeat(2, 1fr); }
+
+  .b-goal-card { padding: 0; }
+  .b-goal-top { border-bottom: 1px solid #f8f7fc; display: flex; gap: 16px; padding: 22px 24px; }
+  .b-goal-circle { flex-shrink: 0; }
+  .b-goal-info { flex: 1; min-width: 0; }
+  .b-goal-label { color: #999; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+  .b-goal-name { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-top: 4px; }
+  .b-goal-amounts { color: #1a1a2e; font-size: 14px; font-weight: 600; margin-top: 8px; }
+  .b-goal-amounts span { color: #999; font-weight: 400; }
+
+  .b-goal-bottom { align-items: center; display: flex; justify-content: space-between; padding: 14px 24px; }
+  .b-goal-days { color: #999; font-size: 13px; }
+  .b-goal-days strong { color: #1a1a2e; font-weight: 600; }
+
+  .b-add-card { align-items: center; border: 2px dashed #e0dce8; display: flex; flex-direction: column; gap: 10px; justify-content: center; min-height: 200px; padding: 32px; }
+  .b-add-card:hover { border-color: #6c5ce7; }
+  .b-add-icon { align-items: center; background: #f0edff; border-radius: 50%; color: #6c5ce7; display: flex; height: 48px; justify-content: center; width: 48px; }
+  .b-add-icon svg { height: 24px; width: 24px; }
+  .b-add-text { color: #999; font-size: 14px; font-weight: 500; }
+
+  /* ─────────────────────────── */
+  /* CONCEPT C: TIMELINE TRACKER */
+  /* ─────────────────────────── */
+  .c-hero-amount { color: #fff; font-size: 42px; font-weight: 700; letter-spacing: -1px; margin-top: 16px; }
+  .c-hero-amount span { color: rgba(255, 255, 255, 0.5); font-size: 22px; font-weight: 400; }
+  .c-hero-bar-wrap { margin-top: 16px; max-width: 400px; }
+  .c-hero-bar-track { background: rgba(255, 255, 255, 0.15); border-radius: 99px; height: 12px; overflow: hidden; width: 100%; }
+  .c-hero-bar-fill { background: #fff; border-radius: 99px; height: 100%; width: 68%; }
+  .c-hero-bar-labels { color: rgba(255, 255, 255, 0.6); display: flex; font-size: 12px; justify-content: space-between; margin-top: 6px; }
+
+  .c-overview { display: grid; gap: 20px; grid-template-columns: repeat(4, 1fr); margin-bottom: 28px; }
+  .c-stat-card { padding: 20px; }
+  .c-stat-label { color: #999; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
+  .c-stat-value { color: #1a1a2e; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+  .c-stat-sub { color: #999; font-size: 12px; margin-top: 4px; }
+
+  .c-two-col { display: grid; gap: 24px; grid-template-columns: 1fr 1fr; }
+
+  /* Monthly tracker */
+  .c-tracker { padding: 28px; }
+  .c-tracker h3 { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .c-month-row { align-items: center; display: flex; gap: 14px; margin-bottom: 14px; }
+  .c-month-label { color: #1a1a2e; font-size: 13px; font-weight: 500; min-width: 36px; }
+  .c-month-bar { flex: 1; }
+  .c-month-bar-track { background: #f0edff; border-radius: 99px; height: 8px; overflow: hidden; position: relative; width: 100%; }
+  .c-month-bar-fill { border-radius: 99px; height: 100%; }
+  .c-month-bar-target { border-left: 2px dashed #e0dce8; height: 18px; position: absolute; top: -5px; }
+  .c-month-nums { color: #1a1a2e; font-size: 13px; font-weight: 600; min-width: 60px; text-align: right; }
+  .c-month-current { background: #f0edff; border: 1px solid #6c5ce7; border-radius: 10px; }
+
+  /* Milestones */
+  .c-milestones { padding: 28px; }
+  .c-milestones h3 { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .c-milestone { align-items: flex-start; display: flex; gap: 14px; margin-bottom: 20px; }
+  .c-milestone:last-child { margin-bottom: 0; }
+  .c-milestone-dot { align-items: center; background: #f0edff; border-radius: 50%; display: flex; flex-shrink: 0; height: 32px; justify-content: center; width: 32px; }
+  .c-milestone-dot.reached { background: #27ae60; }
+  .c-milestone-dot.reached svg { stroke: #fff; }
+  .c-milestone-dot.upcoming { background: #f8f7fc; border: 2px dashed #e0dce8; }
+  .c-milestone-dot svg { height: 14px; stroke: #6c5ce7; width: 14px; }
+  .c-milestone-info { flex: 1; }
+  .c-milestone-title { color: #1a1a2e; font-size: 14px; font-weight: 600; }
+  .c-milestone-desc { color: #999; font-size: 12px; margin-top: 2px; }
+  .c-milestone-amount { color: #6c5ce7; font-size: 13px; font-weight: 600; margin-left: auto; }
+  .c-milestone.reached .c-milestone-title { color: #27ae60; }
+  .c-milestone.reached .c-milestone-amount { color: #27ae60; }
+  .c-milestone.upcoming .c-milestone-title { color: #999; }
+  .c-milestone.upcoming .c-milestone-amount { color: #999; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1024px) {
+    .a-breakdown { grid-template-columns: 1fr; }
+    .b-goals-grid { grid-template-columns: 1fr; }
+    .c-overview { grid-template-columns: repeat(2, 1fr); }
+    .c-two-col { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    .sim-sidebar { display: none; }
+    .sim-main { padding: 24px 20px 60px; }
+    .goal-hero { margin: -24px -20px 24px; padding: 20px 20px 32px; }
+    .a-hero-circle { flex-direction: column; gap: 20px; text-align: center; }
+    .c-overview { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG gradient definition (shared across concepts) -->
+<svg style="height:0;width:0;position:absolute">
+  <defs>
+    <linearGradient id="goalGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6c5ce7"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- CONCEPT SELECTOR -->
+<div class="concept-nav">
+  <button class="concept-btn active" onclick="showConcept('a')">A — Focus Card</button>
+  <button class="concept-btn" onclick="showConcept('b')">B — Multi-Goal</button>
+  <button class="concept-btn" onclick="showConcept('c')">C — Timeline Tracker</button>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT A: FOCUS CARD                   -->
+<!-- Single prominent goal with breakdown    -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept visible" id="concept-a">
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sim-sidebar">
+      <a class="sim-logo" href="#">My<span>Talli</span></a>
+      <nav class="sim-nav">
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Platforms</a>
+        <a class="sim-link active" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Goals</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Export</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Suggestions</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Settings</a>
+      </nav>
+    </aside>
+
+    <div class="sim-main">
+      <!-- Hero with circle progress -->
+      <section class="goal-hero animate-in delay-1">
+        <div class="goal-hero-bg" aria-hidden="true">
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc"/>
+          </svg>
+          <div class="goal-deco goal-deco-1"></div>
+          <div class="goal-deco goal-deco-2"></div>
+          <div class="goal-deco goal-deco-3"></div>
+        </div>
+        <div class="goal-hero-content">
+          <div class="goal-hero-top">
+            <div>
+              <h1>Revenue Goals</h1>
+              <p>Track your progress toward your targets.</p>
+            </div>
+            <button class="btn-outline" style="border-color: rgba(255,255,255,0.3); color: #fff;">Edit Goal</button>
+          </div>
+
+          <div class="a-hero-circle">
+            <div class="a-circle-wrap">
+              <svg viewBox="0 0 140 140">
+                <circle class="a-circle-bg" cx="70" cy="70" r="65"/>
+                <circle class="a-circle-fill" cx="70" cy="70" r="65"/>
+              </svg>
+              <div class="a-circle-inner">
+                <span class="a-circle-pct">68%</span>
+                <span class="a-circle-sub">of target</span>
+              </div>
+            </div>
+            <div class="a-hero-info">
+              <div class="a-hero-amount">$1,847 <span>/ $2,700</span></div>
+              <div class="a-hero-target">Monthly Target &middot; March 2026</div>
+              <div class="a-hero-status">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                On track &mdash; 12 days left
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Period toggle -->
+      <div class="a-period-pills animate-in delay-2">
+        <button class="a-pill active">Monthly</button>
+        <button class="a-pill">Yearly</button>
+      </div>
+
+      <!-- Platform breakdown -->
+      <div class="a-breakdown animate-in delay-3">
+        <div class="card a-break-card">
+          <div class="a-break-header">
+            <span class="a-break-title">Stripe</span>
+            <span class="goal-badge on-track">On track</span>
+          </div>
+          <div class="a-break-amount">$982 <span>/ $1,400</span></div>
+          <div class="a-break-bar">
+            <div class="progress-track"><div class="progress-fill" style="width: 70%;"></div></div>
+          </div>
+          <div class="a-break-meta">70% &middot; $418 remaining</div>
+        </div>
+
+        <div class="card a-break-card">
+          <div class="a-break-header">
+            <span class="a-break-title">Etsy</span>
+            <span class="goal-badge ahead">Ahead</span>
+          </div>
+          <div class="a-break-amount">$865 <span>/ $1,000</span></div>
+          <div class="a-break-bar">
+            <div class="progress-track"><div class="progress-fill" style="width: 87%;"></div></div>
+          </div>
+          <div class="a-break-meta">87% &middot; $135 remaining</div>
+        </div>
+
+        <div class="card a-break-card">
+          <div class="a-break-header">
+            <span class="a-break-title">Gumroad</span>
+            <span class="goal-badge behind">Behind</span>
+          </div>
+          <div class="a-break-amount">$0 <span>/ $300</span></div>
+          <div class="a-break-bar">
+            <div class="progress-track"><div class="progress-fill" style="width: 0%;"></div></div>
+          </div>
+          <div class="a-break-meta">Not connected yet</div>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="card a-history animate-in delay-4">
+        <h3>Past Months</h3>
+        <div class="a-history-row">
+          <span class="a-history-month">Feb</span>
+          <div class="a-history-bar">
+            <div class="progress-track"><div class="progress-fill" style="width: 94%;"></div></div>
+          </div>
+          <div class="a-history-nums">
+            <span class="a-history-earned">$2,528</span>
+            <span class="a-history-target">/ $2,700</span>
+            <span class="goal-badge on-track">94%</span>
+          </div>
+        </div>
+        <div class="a-history-row">
+          <span class="a-history-month">Jan</span>
+          <div class="a-history-bar">
+            <div class="progress-track"><div class="progress-fill" style="width: 108%; max-width: 100%;"></div></div>
+          </div>
+          <div class="a-history-nums">
+            <span class="a-history-earned">$2,916</span>
+            <span class="a-history-target">/ $2,700</span>
+            <span class="goal-badge ahead">108%</span>
+          </div>
+        </div>
+        <div class="a-history-row">
+          <span class="a-history-month">Dec</span>
+          <div class="a-history-bar">
+            <div class="progress-track"><div class="progress-fill" style="width: 76%;"></div></div>
+          </div>
+          <div class="a-history-nums">
+            <span class="a-history-earned">$2,052</span>
+            <span class="a-history-target">/ $2,700</span>
+            <span class="goal-badge behind">76%</span>
+          </div>
+        </div>
+        <div class="a-history-row">
+          <span class="a-history-month">Nov</span>
+          <div class="a-history-bar">
+            <div class="progress-track"><div class="progress-fill" style="width: 89%;"></div></div>
+          </div>
+          <div class="a-history-nums">
+            <span class="a-history-earned">$2,403</span>
+            <span class="a-history-target">/ $2,700</span>
+            <span class="goal-badge on-track">89%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT B: MULTI-GOAL                   -->
+<!-- Multiple goals with circular progress   -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept" id="concept-b">
+  <div class="app-shell">
+    <aside class="sim-sidebar">
+      <a class="sim-logo" href="#">My<span>Talli</span></a>
+      <nav class="sim-nav">
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Platforms</a>
+        <a class="sim-link active" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Goals</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Export</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Suggestions</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Settings</a>
+      </nav>
+    </aside>
+
+    <div class="sim-main">
+      <section class="goal-hero animate-in delay-1">
+        <div class="goal-hero-bg" aria-hidden="true">
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc"/>
+          </svg>
+          <div class="goal-deco goal-deco-1"></div>
+          <div class="goal-deco goal-deco-2"></div>
+          <div class="goal-deco goal-deco-3"></div>
+        </div>
+        <div class="goal-hero-content">
+          <div class="goal-hero-top">
+            <div>
+              <h1>Your Goals</h1>
+              <p>Set targets for what matters. Track them all in one place.</p>
+            </div>
+            <button class="btn-primary" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.25);">
+              + New Goal
+            </button>
+          </div>
+          <div class="b-hero-stats">
+            <div class="b-stat">
+              <span class="b-stat-num">3</span>
+              <span class="b-stat-label">Active Goals</span>
+            </div>
+            <div class="b-stat">
+              <span class="b-stat-num">2</span>
+              <span class="b-stat-label">On Track</span>
+            </div>
+            <div class="b-stat">
+              <span class="b-stat-num">$5,547</span>
+              <span class="b-stat-label">Total Earned</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="b-goals-grid animate-in delay-2">
+        <!-- Monthly revenue goal -->
+        <div class="card b-goal-card">
+          <div class="b-goal-top">
+            <div class="b-goal-circle">
+              <div class="circle-wrap">
+                <svg viewBox="0 0 140 140">
+                  <circle class="circle-bg" cx="70" cy="70" r="54"/>
+                  <circle class="circle-fill" cx="70" cy="70" r="54" style="stroke-dasharray: 339.3; stroke-dashoffset: 108.6;"/>
+                </svg>
+                <div class="circle-inner">
+                  <span class="circle-pct">68%</span>
+                </div>
+              </div>
+            </div>
+            <div class="b-goal-info">
+              <div class="b-goal-label">Monthly Target</div>
+              <div class="b-goal-name">March Revenue</div>
+              <div class="b-goal-amounts">$1,847 <span>/ $2,700</span></div>
+              <div style="margin-top: 8px;"><span class="goal-badge on-track">On track</span></div>
+            </div>
+          </div>
+          <div class="b-goal-bottom">
+            <div class="b-goal-days"><strong>12</strong> days remaining</div>
+            <button class="btn-ghost">Edit &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Yearly revenue goal -->
+        <div class="card b-goal-card">
+          <div class="b-goal-top">
+            <div class="b-goal-circle">
+              <div class="circle-wrap">
+                <svg viewBox="0 0 140 140">
+                  <circle class="circle-bg" cx="70" cy="70" r="54"/>
+                  <circle class="circle-fill" cx="70" cy="70" r="54" style="stroke-dasharray: 339.3; stroke-dashoffset: 264.6;"/>
+                </svg>
+                <div class="circle-inner">
+                  <span class="circle-pct">22%</span>
+                </div>
+              </div>
+            </div>
+            <div class="b-goal-info">
+              <div class="b-goal-label">Yearly Target</div>
+              <div class="b-goal-name">2026 Revenue</div>
+              <div class="b-goal-amounts">$5,547 <span>/ $25,000</span></div>
+              <div style="margin-top: 8px;"><span class="goal-badge ahead">Ahead</span></div>
+            </div>
+          </div>
+          <div class="b-goal-bottom">
+            <div class="b-goal-days"><strong>280</strong> days remaining</div>
+            <button class="btn-ghost">Edit &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Stripe-specific goal -->
+        <div class="card b-goal-card">
+          <div class="b-goal-top">
+            <div class="b-goal-circle">
+              <div class="circle-wrap">
+                <svg viewBox="0 0 140 140">
+                  <circle class="circle-bg" cx="70" cy="70" r="54"/>
+                  <circle class="circle-fill" cx="70" cy="70" r="54" style="stroke-dasharray: 339.3; stroke-dashoffset: 169.6;"/>
+                </svg>
+                <div class="circle-inner">
+                  <span class="circle-pct">50%</span>
+                </div>
+              </div>
+            </div>
+            <div class="b-goal-info">
+              <div class="b-goal-label">Platform Goal</div>
+              <div class="b-goal-name">Stripe Revenue</div>
+              <div class="b-goal-amounts">$982 <span>/ $2,000</span></div>
+              <div style="margin-top: 8px;"><span class="goal-badge behind">Behind</span></div>
+            </div>
+          </div>
+          <div class="b-goal-bottom">
+            <div class="b-goal-days"><strong>12</strong> days remaining</div>
+            <button class="btn-ghost">Edit &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Add new goal -->
+        <div class="card b-add-card">
+          <div class="b-add-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+          </div>
+          <div class="b-add-text">Add a new goal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCEPT C: TIMELINE TRACKER             -->
+<!-- Year-at-a-glance with milestones        -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept" id="concept-c">
+  <div class="app-shell">
+    <aside class="sim-sidebar">
+      <a class="sim-logo" href="#">My<span>Talli</span></a>
+      <nav class="sim-nav">
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Platforms</a>
+        <a class="sim-link active" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Goals</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Export</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Suggestions</a>
+        <a class="sim-link" href="#"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Settings</a>
+      </nav>
+    </aside>
+
+    <div class="sim-main">
+      <section class="goal-hero animate-in delay-1">
+        <div class="goal-hero-bg" aria-hidden="true">
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc"/>
+          </svg>
+          <div class="goal-deco goal-deco-1"></div>
+          <div class="goal-deco goal-deco-2"></div>
+          <div class="goal-deco goal-deco-3"></div>
+        </div>
+        <div class="goal-hero-content">
+          <div class="goal-hero-top">
+            <div>
+              <h1>2026 Revenue Goal</h1>
+              <p>Your yearly target and monthly progress.</p>
+            </div>
+            <button class="btn-outline" style="border-color: rgba(255,255,255,0.3); color: #fff;">Edit Target</button>
+          </div>
+          <div class="c-hero-amount">$5,547 <span>/ $25,000</span></div>
+          <div class="c-hero-bar-wrap">
+            <div class="c-hero-bar-track"><div class="c-hero-bar-fill"></div></div>
+            <div class="c-hero-bar-labels">
+              <span>$0</span>
+              <span>22% complete</span>
+              <span>$25,000</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick stats -->
+      <div class="c-overview animate-in delay-2">
+        <div class="card c-stat-card">
+          <div class="c-stat-label">This Month</div>
+          <div class="c-stat-value">$1,847</div>
+          <div class="c-stat-sub">of $2,700 target</div>
+        </div>
+        <div class="card c-stat-card">
+          <div class="c-stat-label">Monthly Avg</div>
+          <div class="c-stat-value">$1,849</div>
+          <div class="c-stat-sub">across 3 months</div>
+        </div>
+        <div class="card c-stat-card">
+          <div class="c-stat-label">Best Month</div>
+          <div class="c-stat-value">$2,916</div>
+          <div class="c-stat-sub">January 2026</div>
+        </div>
+        <div class="card c-stat-card">
+          <div class="c-stat-label">Needed / Mo</div>
+          <div class="c-stat-value">$2,161</div>
+          <div class="c-stat-sub">to hit $25K yearly</div>
+        </div>
+      </div>
+
+      <div class="c-two-col">
+        <!-- Monthly bars -->
+        <div class="card c-tracker animate-in delay-3">
+          <h3>Monthly Progress</h3>
+
+          <div class="c-month-row c-month-current">
+            <span class="c-month-label" style="padding-left: 10px;">Mar</span>
+            <div class="c-month-bar">
+              <div class="c-month-bar-track">
+                <div class="c-month-bar-fill" style="width: 68%; background: linear-gradient(90deg, #6c5ce7, #8b5cf6);"></div>
+              </div>
+            </div>
+            <span class="c-month-nums" style="padding-right: 10px;">$1,847</span>
+          </div>
+
+          <div class="c-month-row">
+            <span class="c-month-label">Feb</span>
+            <div class="c-month-bar">
+              <div class="c-month-bar-track">
+                <div class="c-month-bar-fill" style="width: 94%; background: linear-gradient(90deg, #6c5ce7, #8b5cf6);"></div>
+              </div>
+            </div>
+            <span class="c-month-nums">$2,528</span>
+          </div>
+
+          <div class="c-month-row">
+            <span class="c-month-label">Jan</span>
+            <div class="c-month-bar">
+              <div class="c-month-bar-track">
+                <div class="c-month-bar-fill" style="width: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71);"></div>
+              </div>
+            </div>
+            <span class="c-month-nums">$2,916</span>
+          </div>
+
+          <div class="c-month-row" style="opacity: 0.4;">
+            <span class="c-month-label">Apr</span>
+            <div class="c-month-bar">
+              <div class="c-month-bar-track">
+                <div class="c-month-bar-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+            <span class="c-month-nums">—</span>
+          </div>
+
+          <div class="c-month-row" style="opacity: 0.4;">
+            <span class="c-month-label">May</span>
+            <div class="c-month-bar">
+              <div class="c-month-bar-track">
+                <div class="c-month-bar-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+            <span class="c-month-nums">—</span>
+          </div>
+
+          <div class="c-month-row" style="opacity: 0.4;">
+            <span class="c-month-label">Jun</span>
+            <div class="c-month-bar">
+              <div class="c-month-bar-track">
+                <div class="c-month-bar-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+            <span class="c-month-nums">—</span>
+          </div>
+        </div>
+
+        <!-- Milestones -->
+        <div class="card c-milestones animate-in delay-4">
+          <h3>Revenue Milestones</h3>
+
+          <div class="c-milestone reached">
+            <div class="c-milestone-dot reached">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="c-milestone-info">
+              <div class="c-milestone-title">First $1,000</div>
+              <div class="c-milestone-desc">Reached January 12, 2026</div>
+            </div>
+            <span class="c-milestone-amount">$1,000</span>
+          </div>
+
+          <div class="c-milestone reached">
+            <div class="c-milestone-dot reached">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="c-milestone-info">
+              <div class="c-milestone-title">First $5,000</div>
+              <div class="c-milestone-desc">Reached March 18, 2026</div>
+            </div>
+            <span class="c-milestone-amount">$5,000</span>
+          </div>
+
+          <div class="c-milestone">
+            <div class="c-milestone-dot">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></svg>
+            </div>
+            <div class="c-milestone-info">
+              <div class="c-milestone-title">$10,000 Total</div>
+              <div class="c-milestone-desc">$4,453 to go &middot; est. June</div>
+            </div>
+            <span class="c-milestone-amount">$10,000</span>
+          </div>
+
+          <div class="c-milestone upcoming">
+            <div class="c-milestone-dot upcoming">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></svg>
+            </div>
+            <div class="c-milestone-info">
+              <div class="c-milestone-title">Yearly Target</div>
+              <div class="c-milestone-desc">$19,453 to go</div>
+            </div>
+            <span class="c-milestone-amount">$25,000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showConcept(id) {
+  document.querySelectorAll('.concept').forEach(c => c.classList.remove('visible'));
+  document.getElementById('concept-' + id).classList.add('visible');
+  document.querySelectorAll('.concept-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

@@ -11,22 +11,22 @@ public static class UserClaimsHelper
 
     private static readonly string[] FunGreetings =
     [
-        "cash flow captain",
-        "chart topper",
-        "dream chaser",
-        "empire builder",
-        "future millionaire",
-        "goal crusher",
-        "hustler extraordinaire",
-        "legend",
-        "money maker",
-        "mystery hustler",
-        "profit whisperer",
-        "revenue rockstar",
-        "side-hustle hero",
-        "side-hustle wizard",
-        "stack builder",
-        "tally master"
+        "Cash Flow Captain",
+        "Chart Topper",
+        "Dream Chaser",
+        "Empire Builder",
+        "Future Millionaire",
+        "Goal Crusher",
+        "Hustler Extraordinaire",
+        "Legend",
+        "Money Maker",
+        "Mystery Hustler",
+        "Profit Whisperer",
+        "Revenue Rockstar",
+        "Side-Hustle Hero",
+        "Side-Hustle Wizard",
+        "Stack Builder",
+        "Tally Master"
     ];
 
     #endregion
@@ -42,6 +42,11 @@ public static class UserClaimsHelper
         var displayName = user.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
         var email = user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
 
+        return Resolve(firstName, lastName, displayName, email);
+    }
+
+    public static UserDisplayInfo Resolve(string firstName, string lastName, string displayName, string email)
+    {
         var hasRealName = !string.IsNullOrWhiteSpace(firstName) || !string.IsNullOrWhiteSpace(displayName);
 
         var fullName = !string.IsNullOrWhiteSpace(displayName)

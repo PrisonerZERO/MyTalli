@@ -6,23 +6,6 @@
 .deco-circle-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
 .deco-circle-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
 .deco-circle-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
-/* ─── USER MENU ─── */
-.user-menu-wrapper { position: relative; z-index: 1000; }
-.user-trigger { align-items: center; background: rgba(255, 255, 255, 0.18); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; color: #fff; cursor: pointer; display: flex; font-family: inherit; font-size: 14px; font-weight: 600; height: 40px; justify-content: center; transition: background 0.15s ease, border-color 0.15s ease; width: 40px; }
-.user-trigger:hover { background: rgba(255, 255, 255, 0.28); border-color: rgba(255, 255, 255, 0.5); }
-.user-menu-backdrop { bottom: 0; left: 0; position: fixed; right: 0; top: 0; z-index: 999; }
-.user-dropdown { background: #fff; border: 1px solid #eee; border-radius: 14px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); min-width: 240px; overflow: hidden; position: absolute; right: 0; top: calc(100% + 8px); z-index: 1000; }
-.dropdown-header { align-items: center; display: flex; gap: 12px; padding: 18px 18px 14px; }
-.dropdown-avatar { align-items: center; background: linear-gradient(135deg, #6c5ce7, #8b5cf6); border-radius: 50%; color: #fff; display: flex; flex-shrink: 0; font-size: 14px; font-weight: 600; height: 42px; justify-content: center; width: 42px; }
-.dropdown-user-info { min-width: 0; }
-.dropdown-user-name { color: #1a1a2e; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dropdown-user-email { color: #999; font-size: 12px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dropdown-divider { background: #f0edff; height: 1px; margin: 0; }
-.dropdown-item { align-items: center; color: #555; cursor: pointer; display: flex; font-size: 14px; font-weight: 500; gap: 10px; padding: 11px 18px; text-decoration: none; transition: background 0.12s ease, color 0.12s ease; }
-.dropdown-item:hover { background: #f8f7fc; color: #1a1a2e; }
-.dropdown-item svg { flex-shrink: 0; height: 18px; width: 18px; }
-.dropdown-sign-out { border-top: 1px solid #f0edff; color: #e74c3c; margin-top: 0; }
-.dropdown-sign-out:hover { background: rgba(231, 76, 60, 0.06); color: #c0392b; }
 
 /* ─── SAMPLE DATA BANNER ─── */
 .sample-banner { align-items: center; background: linear-gradient(135deg, #f0edff 0%, #e8e4ff 100%); border: 1px solid #e0dce8; border-left: 4px solid #6c5ce7; border-radius: 10px; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 24px; padding: 14px 20px; }
@@ -31,9 +14,20 @@
 .sample-banner-cta { background: #6c5ce7; border-radius: 8px; color: #fff; flex-shrink: 0; font-size: 13px; font-weight: 600; padding: 8px 18px; text-decoration: none; transition: background 0.15s ease; white-space: nowrap; }
 .sample-banner-cta:hover { background: #5a4bd1; }
 
+/* ─── KNOWN ISSUE BANNER ─── */
+.known-issue-banner { align-items: center; border: 1px solid transparent; border-left: 4px solid; border-radius: 10px; display: flex; gap: 16px; margin-bottom: 24px; padding: 14px 20px; }
+.known-issue-content { align-items: center; color: #555; display: flex; font-size: 14px; gap: 10px; }
+.known-issue-content svg { flex-shrink: 0; height: 20px; width: 20px; }
+.known-issue-warning { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-color: #f5c842; border-left-color: #f5c842; }
+.known-issue-warning svg { color: #d97706; }
+.known-issue-error { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-color: #fca5a5; border-left-color: #e74c3c; }
+.known-issue-error svg { color: #e74c3c; }
+.known-issue-info { background: linear-gradient(135deg, #f0edff 0%, #e8e4ff 100%); border-color: #e0dce8; border-left-color: #6c5ce7; }
+.known-issue-info svg { color: #6c5ce7; }
+
 /* ─── TOP BAR ─── */
 .top-bar { align-items: flex-start; display: flex; justify-content: space-between; position: relative; z-index: 2; }
-.top-bar-right { align-items: center; display: flex; gap: 16px; margin-top: 4px; }
+.top-bar-right { align-items: center; display: flex; gap: 16px; margin-top: 4px; padding-right: 56px; }
 .greeting h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
 .greeting p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
 .period-pills { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; display: flex; gap: 2px; padding: 4px; }
@@ -138,6 +132,8 @@
 
 @media (max-width: 641px) {
     .dash-hero { margin: -24px -20px 24px; padding: 20px 20px 100px; }
+    .known-issue-banner { flex-direction: column; gap: 12px; text-align: center; }
+    .known-issue-content { flex-direction: column; gap: 8px; }
     .sample-banner { flex-direction: column; gap: 12px; text-align: center; }
     .sample-banner-content { flex-direction: column; gap: 8px; }
     .summary-row { grid-template-columns: 1fr; }

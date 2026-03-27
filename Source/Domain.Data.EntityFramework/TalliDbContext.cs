@@ -15,6 +15,10 @@ public class TalliDbContext : DbContext
 
     #region <Properties>
 
+    public SemaphoreSlim ConcurrencyLock { get; } = new(1, 1);
+
+    public DbSet<AuthenticatedUser> AuthenticatedUsers { get; set; } = null!;
+
     public DbSet<Billing> Billings { get; set; } = null!;
 
     public DbSet<BillingStripe> BillingStripes { get; set; } = null!;

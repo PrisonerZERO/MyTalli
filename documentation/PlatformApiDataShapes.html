@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTalli — Platform API Data Shapes</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: #f8f7fc; color: #1a1a2e; line-height: 1.6; }
+
+        /* Header */
+        .header { background: linear-gradient(135deg, #6c5ce7, #8b5cf6, #6c5ce7); color: #fff; padding: 48px 32px 36px; position: relative; overflow: hidden; }
+        .header::before { content: ''; position: absolute; width: 300px; height: 300px; border-radius: 50%; background: rgba(255,255,255,0.07); top: -120px; right: -60px; }
+        .header::after { content: ''; position: absolute; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.05); bottom: -80px; left: 40px; }
+        .header h1 { font-size: 2rem; font-weight: 700; position: relative; z-index: 2; }
+        .header p { font-size: 1.05rem; opacity: 0.9; margin-top: 8px; position: relative; z-index: 2; max-width: 720px; }
+        .header .meta { font-size: 0.85rem; opacity: 0.7; margin-top: 12px; position: relative; z-index: 2; }
+
+        /* Layout */
+        .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; }
+
+        /* Table of Contents */
+        .toc { background: #fff; border-radius: 12px; padding: 28px 32px; margin-bottom: 32px; box-shadow: 0 2px 8px rgba(108,92,231,0.08); }
+        .toc h2 { font-size: 1.15rem; font-weight: 700; color: #6c5ce7; margin-bottom: 16px; }
+        .toc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px 32px; }
+        .toc a { color: #1a1a2e; text-decoration: none; font-size: 0.92rem; padding: 4px 0; display: block; border-bottom: 1px solid transparent; transition: color 0.15s; }
+        .toc a:hover { color: #6c5ce7; }
+        .toc a .num { color: #a78bfa; font-weight: 600; margin-right: 6px; }
+
+        /* Section */
+        .section { background: #fff; border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(108,92,231,0.08); }
+        .section h2 { font-size: 1.35rem; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; padding-bottom: 12px; border-bottom: 2px solid #f0edff; }
+        .section h3 { font-size: 1.05rem; font-weight: 600; color: #6c5ce7; margin: 24px 0 10px; }
+        .section h4 { font-size: 0.95rem; font-weight: 600; color: #555; margin: 18px 0 8px; }
+        .section p { font-size: 0.93rem; color: #555; margin-bottom: 12px; }
+        .section ul, .section ol { font-size: 0.93rem; color: #555; margin: 0 0 12px 20px; }
+        .section li { margin-bottom: 4px; }
+
+        /* Platform badges */
+        .platform-badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: #fff; margin-right: 6px; vertical-align: middle; }
+        .badge-stripe { background: #635bff; }
+        .badge-etsy { background: #f56400; }
+        .badge-gumroad { background: #ff90e8; color: #1a1a2e; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.88rem; }
+        th { background: #f0edff; color: #1a1a2e; font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 2px solid #e0dce8; white-space: nowrap; }
+        td { padding: 8px 12px; border-bottom: 1px solid #f0edff; vertical-align: top; }
+        tr:hover td { background: #faf9ff; }
+        td code { background: #f0edff; padding: 1px 6px; border-radius: 4px; font-size: 0.84rem; color: #6c5ce7; font-family: 'Consolas', 'Monaco', monospace; }
+
+        /* Category pills */
+        .cat { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
+        .cat-revenue { background: #e8f5e9; color: #27ae60; }
+        .cat-fee { background: #fff3e0; color: #e65100; }
+        .cat-refund { background: #fce4ec; color: #c62828; }
+        .cat-dispute { background: #fce4ec; color: #c62828; }
+        .cat-payout { background: #e3f2fd; color: #1565c0; }
+        .cat-tax { background: #f3e5f5; color: #7b1fa2; }
+        .cat-meta { background: #f0edff; color: #6c5ce7; }
+        .cat-net { background: #e0f2f1; color: #00695c; }
+        .cat-expense { background: #fff3e0; color: #e65100; }
+        .cat-discount { background: #fff8e1; color: #f57f17; }
+        .cat-shipping { background: #e8eaf6; color: #283593; }
+
+        /* Callout boxes */
+        .callout { padding: 14px 18px; border-radius: 8px; margin: 16px 0; font-size: 0.9rem; }
+        .callout-info { background: #f0edff; border-left: 4px solid #6c5ce7; }
+        .callout-warn { background: #fff8e1; border-left: 4px solid #f5c842; }
+        .callout-tip { background: #e8f5e9; border-left: 4px solid #27ae60; }
+        .callout strong { color: #1a1a2e; }
+
+        /* Code blocks */
+        .code-block { background: #1a1a2e; color: #e8e6f0; padding: 16px 20px; border-radius: 8px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.84rem; overflow-x: auto; margin: 12px 0 16px; line-height: 1.5; }
+        .code-block .comment { color: #7a7790; }
+        .code-block .keyword { color: #a78bfa; }
+        .code-block .string { color: #2ecc71; }
+        .code-block .number { color: #f5c842; }
+
+        /* Comparison grid */
+        .compare-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 16px 0; }
+        .compare-card { background: #faf9ff; border-radius: 10px; padding: 18px; border: 1px solid #e0dce8; }
+        .compare-card h4 { margin: 0 0 10px; font-size: 0.95rem; }
+        .compare-card ul { margin: 0 0 0 16px; font-size: 0.85rem; }
+        .compare-card li { margin-bottom: 3px; }
+
+        /* Endpoint label */
+        .endpoint { display: inline-block; background: #1a1a2e; color: #a78bfa; padding: 3px 10px; border-radius: 4px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.82rem; margin: 4px 0; }
+        .method { font-weight: 700; margin-right: 6px; }
+        .method-get { color: #2ecc71; }
+        .method-post { color: #f5c842; }
+
+        /* Scroll anchor offset */
+        [id] { scroll-margin-top: 24px; }
+
+        /* ERD Diagrams */
+        .erd { position: relative; padding: 20px 0; }
+        .erd svg { width: 100%; height: auto; display: block; }
+        .erd-label { font-size: 0.85rem; color: #999; text-align: center; margin-top: 8px; font-style: italic; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header { padding: 32px 20px 28px; }
+            .header h1 { font-size: 1.5rem; }
+            .container { padding: 20px 16px 48px; }
+            .section { padding: 20px; }
+            .compare-grid { grid-template-columns: 1fr; }
+            table { font-size: 0.82rem; }
+            th, td { padding: 6px 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Platform API Data Shapes</h1>
+    <p>Research documentation for revenue platform integrations. Covers the data returned by Stripe, Etsy, and Gumroad APIs — used to design the <code style="background:rgba(255,255,255,0.15);color:#fff;padding:2px 8px;border-radius:4px;">app</code> schema tables for revenue aggregation, goals, and analytics.</p>
+    <div class="meta">Last updated: March 27, 2026 &nbsp;|&nbsp; Platforms: Stripe, Etsy, Gumroad &nbsp;|&nbsp; PayPal &amp; Shopify pending</div>
+</div>
+
+<div class="container">
+
+    <!-- Table of Contents -->
+    <div class="toc">
+        <h2>Contents</h2>
+        <div class="toc-grid">
+            <div>
+                <a href="#overview"><span class="num">1</span> Overview &amp; Common Patterns</a>
+                <a href="#stripe"><span class="num">2</span> Stripe API</a>
+                <a href="#stripe-balance"><span class="num">2.1</span> Balance Transactions</a>
+                <a href="#stripe-charges"><span class="num">2.2</span> Charges</a>
+                <a href="#stripe-paymentintents"><span class="num">2.3</span> PaymentIntents</a>
+                <a href="#stripe-payouts"><span class="num">2.4</span> Payouts</a>
+                <a href="#stripe-refunds"><span class="num">2.5</span> Refunds</a>
+                <a href="#stripe-disputes"><span class="num">2.6</span> Disputes</a>
+                <a href="#stripe-invoices"><span class="num">2.7</span> Invoices</a>
+                <a href="#stripe-subscriptions"><span class="num">2.8</span> Subscriptions</a>
+                <a href="#stripe-unique"><span class="num">2.9</span> Stripe-Unique Fields</a>
+            </div>
+            <div>
+                <a href="#etsy"><span class="num">3</span> Etsy API</a>
+                <a href="#etsy-receipts"><span class="num">3.1</span> Shop Receipts (Orders)</a>
+                <a href="#etsy-transactions"><span class="num">3.2</span> Transactions (Line Items)</a>
+                <a href="#etsy-payments"><span class="num">3.3</span> Payments</a>
+                <a href="#etsy-ledger"><span class="num">3.4</span> Ledger Entries</a>
+                <a href="#etsy-fees"><span class="num">3.5</span> Fee Structure</a>
+                <a href="#etsy-unique"><span class="num">3.6</span> Etsy-Unique Fields</a>
+                <a href="#gumroad"><span class="num">4</span> Gumroad API</a>
+                <a href="#gumroad-products"><span class="num">4.1</span> Products</a>
+                <a href="#gumroad-sales"><span class="num">4.2</span> Sales</a>
+                <a href="#gumroad-subscribers"><span class="num">4.3</span> Subscribers</a>
+                <a href="#gumroad-payouts"><span class="num">4.4</span> Payouts</a>
+                <a href="#gumroad-unique"><span class="num">4.5</span> Gumroad-Unique Fields</a>
+                <a href="#classification"><span class="num">5</span> Revenue Classification Across Platforms</a>
+                <a href="#normalized"><span class="num">6</span> Normalized Data Shape (Proposed)</a>
+                <a href="#db-implications"><span class="num">7</span> Database Design Implications</a>
+                <a href="#erd-stripe"><span class="num">8</span> ERD — Stripe API Data Model</a>
+                <a href="#erd-etsy"><span class="num">9</span> ERD — Etsy API Data Model</a>
+                <a href="#erd-gumroad"><span class="num">10</span> ERD — Gumroad API Data Model</a>
+                <a href="#erd-mytalli"><span class="num">11</span> ERD — Proposed MyTalli Database</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. Overview -->
+    <div class="section" id="overview">
+        <h2>1. Overview &amp; Common Patterns</h2>
+        <p>Every revenue platform ultimately answers the same fundamental questions — but the shape, granularity, and terminology differ significantly.</p>
+
+        <div class="compare-grid">
+            <div class="compare-card">
+                <h4><span class="platform-badge badge-stripe">Stripe</span></h4>
+                <ul>
+                    <li>Amounts in <strong>cents (integers)</strong></li>
+                    <li>IDs are strings (<code>ch_xxx</code>, <code>txn_xxx</code>)</li>
+                    <li>Timestamps are <strong>Unix epoch</strong></li>
+                    <li>Currency: 3-letter ISO lowercase</li>
+                    <li>Pagination: cursor-based (<code>starting_after</code>)</li>
+                    <li>Auth: API key + <code>Stripe-Account</code> header</li>
+                </ul>
+            </div>
+            <div class="compare-card">
+                <h4><span class="platform-badge badge-etsy">Etsy</span></h4>
+                <ul>
+                    <li>Amounts via <strong>Money object</strong> (<code>amount</code> / <code>divisor</code>)</li>
+                    <li>IDs are <strong>integers</strong></li>
+                    <li>Timestamps are <strong>Unix epoch (seconds)</strong></li>
+                    <li>Currency: 3-letter ISO uppercase</li>
+                    <li>Pagination: offset-based (<code>limit</code> + <code>offset</code>)</li>
+                    <li>Auth: OAuth 2.0 (PKCE), requires commercial access</li>
+                </ul>
+            </div>
+            <div class="compare-card">
+                <h4><span class="platform-badge badge-gumroad">Gumroad</span></h4>
+                <ul>
+                    <li>Sale amounts in <strong>cents (integers)</strong>; payouts as <strong>decimal strings</strong></li>
+                    <li>IDs are <strong>Base64 strings</strong></li>
+                    <li>Timestamps are <strong>ISO 8601 strings</strong></li>
+                    <li>Currency: ISO lowercase on products</li>
+                    <li>Pagination: cursor-based (<code>page_key</code>)</li>
+                    <li>Auth: OAuth 2.0 (<code>access_token</code> param)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="callout callout-info">
+            <strong>Key Insight:</strong> Despite different shapes, all three platforms provide: gross revenue, platform fees, net revenue, refund tracking, and payout/disbursement data. The normalized <code>app.Revenue</code> table can absorb all of them.
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 2. STRIPE -->
+    <!-- ============================================================ -->
+
+    <div class="section" id="stripe">
+        <h2>2. <span class="platform-badge badge-stripe">Stripe</span> API</h2>
+        <p>Stripe Connect (Standard or Express) gives MyTalli read access to a connected seller's account via the <code>Stripe-Account</code> header. Stripe has the richest, most granular financial API of the three platforms.</p>
+
+        <div class="callout callout-tip">
+            <strong>Primary data source:</strong> <code>Balance Transactions</code> — the single source of truth for all money movement. Every charge, refund, payout, fee, and dispute creates a balance transaction.
+        </div>
+
+        <h3 id="stripe-balance">2.1 Balance Transactions</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v1/balance_transactions</span></p>
+        <p>The most important Stripe endpoint for revenue aggregation. Every money movement creates a balance transaction.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>Unique identifier (e.g., <code>txn_xxx</code>)</td></tr>
+                <tr><td><code>amount</code></td><td>integer</td><td><span class="cat cat-revenue">Revenue</span></td><td>Gross amount in cents. Positive = funds in, negative = funds out</td></tr>
+                <tr><td><code>fee</code></td><td>integer</td><td><span class="cat cat-fee">Fee</span></td><td>Total Stripe fees in cents</td></tr>
+                <tr><td><code>net</code></td><td>integer</td><td><span class="cat cat-net">Net</span></td><td>Net impact = amount − fee (what the seller keeps)</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>3-letter ISO code (lowercase)</td></tr>
+                <tr><td><code>type</code></td><td>enum</td><td><span class="cat cat-meta">Meta</span></td><td>Transaction type — 47 possible values (see below)</td></tr>
+                <tr><td><code>reporting_category</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Accounting classification (more useful than <code>type</code> for grouping)</td></tr>
+                <tr><td><code>status</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td><code>available</code> or <code>pending</code></td></tr>
+                <tr><td><code>created</code></td><td>timestamp</td><td><span class="cat cat-meta">Meta</span></td><td>When the transaction occurred</td></tr>
+                <tr><td><code>available_on</code></td><td>timestamp</td><td><span class="cat cat-meta">Meta</span></td><td>When funds become available in Stripe balance</td></tr>
+                <tr><td><code>description</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>Human-readable description</td></tr>
+                <tr><td><code>source</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>ID of the related object (charge, payout, refund, etc.)</td></tr>
+                <tr><td><code>exchange_rate</code></td><td>float?</td><td><span class="cat cat-meta">Meta</span></td><td>Currency conversion rate if applicable</td></tr>
+            </tbody>
+        </table>
+
+        <h4>fee_details[] (nested)</h4>
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>amount</code></td><td>integer</td><td>Fee amount in cents</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td>Fee currency</td></tr>
+                <tr><td><code>type</code></td><td>string</td><td><code>stripe_fee</code>, <code>application_fee</code>, <code>payment_method_passthrough_fee</code>, or <code>tax</code></td></tr>
+                <tr><td><code>description</code></td><td>string?</td><td>e.g., "Stripe processing fees"</td></tr>
+            </tbody>
+        </table>
+
+        <h4>Balance Transaction Types (key ones for revenue)</h4>
+        <table>
+            <thead><tr><th>Category</th><th>Types</th></tr></thead>
+            <tbody>
+                <tr><td><span class="cat cat-revenue">Revenue</span></td><td><code>charge</code>, <code>payment</code></td></tr>
+                <tr><td><span class="cat cat-fee">Fees</span></td><td><code>stripe_fee</code>, <code>stripe_fx_fee</code>, <code>tax_fee</code>, <code>application_fee</code></td></tr>
+                <tr><td><span class="cat cat-refund">Refunds</span></td><td><code>refund</code>, <code>payment_refund</code>, <code>payment_failure_refund</code>, <code>application_fee_refund</code></td></tr>
+                <tr><td><span class="cat cat-dispute">Disputes</span></td><td><code>adjustment</code> (for dispute debits/credits)</td></tr>
+                <tr><td><span class="cat cat-payout">Payouts</span></td><td><code>payout</code>, <code>payout_cancel</code>, <code>payout_failure</code></td></tr>
+                <tr><td><span class="cat cat-meta">Transfers</span></td><td><code>transfer</code>, <code>transfer_cancel</code>, <code>transfer_failure</code>, <code>transfer_refund</code></td></tr>
+                <tr><td><span class="cat cat-meta">Other</span></td><td><code>topup</code>, <code>reserve_transaction</code>, <code>advance</code>, issuing types (40+ total)</td></tr>
+            </tbody>
+        </table>
+
+        <h4>Reporting Categories (for accounting)</h4>
+        <p><code>charge</code>, <code>refund</code>, <code>payout_reversal</code>, <code>transfer</code>, <code>transfer_reversal</code>, <code>fee</code>, <code>platform_earning</code>, <code>platform_earning_refund</code>, <code>connect_reserved_funds</code>, <code>risk_reserved_funds</code>, <code>partial_capture_reversal</code>, <code>dispute</code>, <code>dispute_reversal</code>, <code>adjustment</code></p>
+
+        <!-- Charges -->
+        <h3 id="stripe-charges">2.2 Charges</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v1/charges</span></p>
+        <p>A single payment attempt. More detail than balance transactions — includes customer info, payment method details, and fraud assessment.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>Charge ID (<code>ch_xxx</code>)</td></tr>
+                <tr><td><code>amount</code></td><td>integer</td><td><span class="cat cat-revenue">Revenue</span></td><td>Amount intended to collect (cents)</td></tr>
+                <tr><td><code>amount_captured</code></td><td>integer</td><td><span class="cat cat-revenue">Revenue</span></td><td>Actually captured (may differ for partial captures)</td></tr>
+                <tr><td><code>amount_refunded</code></td><td>integer</td><td><span class="cat cat-refund">Refund</span></td><td>Amount refunded (cents)</td></tr>
+                <tr><td><code>application_fee_amount</code></td><td>integer?</td><td><span class="cat cat-fee">Fee</span></td><td>Platform fee requested</td></tr>
+                <tr><td><code>balance_transaction</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Link to balance transaction</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>3-letter ISO code</td></tr>
+                <tr><td><code>customer</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>Customer ID</td></tr>
+                <tr><td><code>description</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>Charge description</td></tr>
+                <tr><td><code>disputed</code></td><td>boolean</td><td><span class="cat cat-dispute">Dispute</span></td><td>Whether the charge has been disputed</td></tr>
+                <tr><td><code>paid</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Whether charge succeeded</td></tr>
+                <tr><td><code>refunded</code></td><td>boolean</td><td><span class="cat cat-refund">Refund</span></td><td>Whether fully refunded</td></tr>
+                <tr><td><code>created</code></td><td>timestamp</td><td><span class="cat cat-meta">Meta</span></td><td>When created</td></tr>
+                <tr><td><code>metadata</code></td><td>object</td><td><span class="cat cat-meta">Meta</span></td><td>Custom key-value pairs</td></tr>
+                <tr><td><code>payment_method</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>Payment method ID</td></tr>
+            </tbody>
+        </table>
+
+        <h4>Nested: billing_details</h4>
+        <p><code>name</code>, <code>email</code>, <code>phone</code>, <code>tax_id</code> (all string?), plus <code>address</code> object with <code>city</code>, <code>country</code>, <code>line1</code>, <code>line2</code>, <code>postal_code</code>, <code>state</code>.</p>
+
+        <h4>Nested: outcome (fraud assessment)</h4>
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>network_status</code></td><td>string</td><td><code>approved_by_network</code>, <code>declined_by_network</code>, <code>not_sent_to_network</code>, <code>reversed_after_approval</code></td></tr>
+                <tr><td><code>risk_level</code></td><td>string</td><td><code>normal</code>, <code>elevated</code>, <code>highest</code>, <code>not_assessed</code></td></tr>
+                <tr><td><code>risk_score</code></td><td>integer</td><td>0–100 fraud risk score (Stripe Radar)</td></tr>
+                <tr><td><code>seller_message</code></td><td>string</td><td>Human-readable outcome</td></tr>
+                <tr><td><code>type</code></td><td>string</td><td><code>authorized</code>, <code>manual_review</code>, <code>issuer_declined</code>, <code>blocked</code>, <code>invalid</code></td></tr>
+            </tbody>
+        </table>
+
+        <h4>Nested: payment_method_details</h4>
+        <p><code>type</code> identifies the method (card, bank_transfer, paypal, etc.). For <code>card</code>: <code>brand</code>, <code>last4</code>, <code>exp_month</code>, <code>exp_year</code>, <code>funding</code> (credit/debit/prepaid), <code>country</code>, <code>wallet</code> (apple_pay, google_pay, etc.). 40+ payment method types supported.</p>
+
+        <!-- PaymentIntents -->
+        <h3 id="stripe-paymentintents">2.3 PaymentIntents</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v1/payment_intents</span></p>
+        <p>Higher-level abstraction over charges. Tracks the full lifecycle of a payment attempt including retries.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>PaymentIntent ID (<code>pi_xxx</code>)</td></tr>
+                <tr><td><code>amount</code></td><td>integer</td><td><span class="cat cat-revenue">Revenue</span></td><td>Amount to collect (cents)</td></tr>
+                <tr><td><code>amount_received</code></td><td>integer</td><td><span class="cat cat-revenue">Revenue</span></td><td>Amount actually collected</td></tr>
+                <tr><td><code>status</code></td><td>enum</td><td><span class="cat cat-meta">Meta</span></td><td><code>requires_payment_method</code>, <code>processing</code>, <code>succeeded</code>, <code>canceled</code>, etc.</td></tr>
+                <tr><td><code>application_fee_amount</code></td><td>integer?</td><td><span class="cat cat-fee">Fee</span></td><td>Platform fee</td></tr>
+            </tbody>
+        </table>
+
+        <h4>Nested: amount_details</h4>
+        <p>Itemized breakdown: <code>tip.amount</code>, <code>shipping.amount</code>, <code>tax.total_tax_amount</code>, <code>discount_amount</code>, and <code>line_items.data[]</code> with individual <code>product_code</code>, <code>product_name</code>, <code>quantity</code>, <code>unit_cost</code>.</p>
+
+        <!-- Payouts -->
+        <h3 id="stripe-payouts">2.4 Payouts</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v1/payouts</span></p>
+        <p>Funds transferred from Stripe balance to the seller's bank. <strong>Not revenue</strong> — this is the cash-out event.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>Payout ID (<code>po_xxx</code>)</td></tr>
+                <tr><td><code>amount</code></td><td>integer</td><td><span class="cat cat-payout">Payout</span></td><td>Amount transferred (cents)</td></tr>
+                <tr><td><code>arrival_date</code></td><td>timestamp</td><td><span class="cat cat-meta">Meta</span></td><td>Expected arrival at bank</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Currency</td></tr>
+                <tr><td><code>status</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td><code>paid</code>, <code>pending</code>, <code>in_transit</code>, <code>canceled</code>, <code>failed</code></td></tr>
+                <tr><td><code>method</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td><code>standard</code> or <code>instant</code></td></tr>
+                <tr><td><code>type</code></td><td>enum</td><td><span class="cat cat-meta">Meta</span></td><td><code>bank_account</code> or <code>card</code></td></tr>
+                <tr><td><code>failure_code</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>Reason for failure</td></tr>
+                <tr><td><code>trace_id</code></td><td>object?</td><td><span class="cat cat-meta">Meta</span></td><td>Bank trace info for tracking delivery</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Refunds -->
+        <h3 id="stripe-refunds">2.5 Refunds</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v1/refunds</span></p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>Refund ID (<code>re_xxx</code>)</td></tr>
+                <tr><td><code>amount</code></td><td>integer</td><td><span class="cat cat-refund">Refund</span></td><td>Refund amount (cents)</td></tr>
+                <tr><td><code>charge</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Related charge</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Currency</td></tr>
+                <tr><td><code>status</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td><code>pending</code>, <code>succeeded</code>, <code>failed</code>, <code>canceled</code></td></tr>
+                <tr><td><code>reason</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td><code>duplicate</code>, <code>fraudulent</code>, <code>requested_by_customer</code></td></tr>
+                <tr><td><code>created</code></td><td>timestamp</td><td><span class="cat cat-meta">Meta</span></td><td>When created</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Disputes -->
+        <h3 id="stripe-disputes">2.6 Disputes</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v1/disputes</span></p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>Dispute ID (<code>dp_xxx</code>)</td></tr>
+                <tr><td><code>amount</code></td><td>integer</td><td><span class="cat cat-dispute">Dispute</span></td><td>Disputed amount (cents)</td></tr>
+                <tr><td><code>charge</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Related charge</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Currency</td></tr>
+                <tr><td><code>status</code></td><td>enum</td><td><span class="cat cat-meta">Meta</span></td><td><code>needs_response</code>, <code>under_review</code>, <code>won</code>, <code>lost</code>, etc.</td></tr>
+                <tr><td><code>reason</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td><code>fraudulent</code>, <code>product_not_received</code>, <code>duplicate</code>, <code>subscription_canceled</code>, etc.</td></tr>
+                <tr><td><code>is_charge_refundable</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Whether refunding resolves it</td></tr>
+                <tr><td><code>created</code></td><td>timestamp</td><td><span class="cat cat-meta">Meta</span></td><td>When filed</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Invoices -->
+        <h3 id="stripe-invoices">2.7 Invoices</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v1/invoices</span></p>
+        <p>Billing documents for subscription cycles and one-off charges.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>Invoice ID (<code>in_xxx</code>)</td></tr>
+                <tr><td><code>amount_due</code></td><td>integer</td><td><span class="cat cat-revenue">Revenue</span></td><td>Final amount due (cents)</td></tr>
+                <tr><td><code>amount_paid</code></td><td>integer</td><td><span class="cat cat-revenue">Revenue</span></td><td>Amount actually paid (cents)</td></tr>
+                <tr><td><code>amount_remaining</code></td><td>integer</td><td><span class="cat cat-meta">Meta</span></td><td>Unpaid balance (cents)</td></tr>
+                <tr><td><code>subtotal</code></td><td>integer</td><td><span class="cat cat-revenue">Revenue</span></td><td>Before discounts/tax (cents)</td></tr>
+                <tr><td><code>total</code></td><td>integer</td><td><span class="cat cat-revenue">Revenue</span></td><td>After discounts and tax (cents)</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Currency</td></tr>
+                <tr><td><code>status</code></td><td>enum</td><td><span class="cat cat-meta">Meta</span></td><td><code>draft</code>, <code>open</code>, <code>paid</code>, <code>uncollectible</code>, <code>void</code></td></tr>
+                <tr><td><code>billing_reason</code></td><td>enum</td><td><span class="cat cat-meta">Meta</span></td><td><code>subscription_create</code>, <code>subscription_cycle</code>, <code>manual</code>, etc.</td></tr>
+                <tr><td><code>period_start</code></td><td>timestamp</td><td><span class="cat cat-meta">Meta</span></td><td>Service period start</td></tr>
+                <tr><td><code>period_end</code></td><td>timestamp</td><td><span class="cat cat-meta">Meta</span></td><td>Service period end</td></tr>
+                <tr><td><code>number</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Human-readable invoice number</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Subscriptions -->
+        <h3 id="stripe-subscriptions">2.8 Subscriptions</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v1/subscriptions</span></p>
+        <p>Recurring billing relationships. Not a financial transaction itself, but the context for recurring revenue (MRR/ARR calculations).</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>Subscription ID (<code>sub_xxx</code>)</td></tr>
+                <tr><td><code>status</code></td><td>enum</td><td><span class="cat cat-meta">Meta</span></td><td><code>trialing</code>, <code>active</code>, <code>past_due</code>, <code>canceled</code>, <code>unpaid</code>, <code>paused</code>, etc.</td></tr>
+                <tr><td><code>customer</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Customer ID</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Currency</td></tr>
+                <tr><td><code>start_date</code></td><td>timestamp</td><td><span class="cat cat-meta">Meta</span></td><td>When first created</td></tr>
+                <tr><td><code>cancel_at_period_end</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Cancel at end of period</td></tr>
+                <tr><td><code>canceled_at</code></td><td>timestamp?</td><td><span class="cat cat-meta">Meta</span></td><td>When canceled</td></tr>
+                <tr><td><code>ended_at</code></td><td>timestamp?</td><td><span class="cat cat-meta">Meta</span></td><td>When ended</td></tr>
+            </tbody>
+        </table>
+
+        <h4>Nested: items.data[] (subscription items)</h4>
+        <p><code>current_period_start</code>, <code>current_period_end</code> (billing period dates live here), <code>quantity</code>, and <code>price</code> object with <code>unit_amount</code>, <code>currency</code>, <code>recurring.interval</code> (day/week/month/year), <code>recurring.interval_count</code>.</p>
+
+        <h4>Nested: cancellation_details</h4>
+        <p><code>reason</code> (<code>cancellation_requested</code>, <code>payment_failed</code>, <code>payment_disputed</code>), <code>feedback</code> (<code>too_expensive</code>, <code>missing_features</code>, <code>switched_service</code>, etc.), <code>comment</code> (freetext).</p>
+
+        <!-- Stripe Unique -->
+        <h3 id="stripe-unique">2.9 Stripe-Unique Fields</h3>
+        <p>These fields exist only on Stripe and have no equivalents on Etsy or Gumroad:</p>
+        <table>
+            <thead><tr><th>Field / Concept</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>fee_details[]</code></td><td>Per-component fee decomposition (processing, method-specific, tax on fees). Other platforms give a single fee number.</td></tr>
+                <tr><td><code>outcome.risk_score</code></td><td>0–100 fraud score from Stripe Radar ML. No other platform exposes fraud scoring.</td></tr>
+                <tr><td><code>available_on</code></td><td>When funds become available. Stripe has variable hold periods.</td></tr>
+                <tr><td><code>reporting_category</code></td><td>Accounting-grade classification. Other platforms don't categorize for accounting.</td></tr>
+                <tr><td><code>payment_method_details</code></td><td>Exhaustive breakdown of 40+ payment methods with method-specific fields.</td></tr>
+                <tr><td><code>presentment_details</code></td><td>Multi-currency: amount/currency shown to the customer vs. settlement currency.</td></tr>
+                <tr><td><code>exchange_rate</code></td><td>Explicit FX rate when currency conversion occurs.</td></tr>
+                <tr><td>Dispute <code>evidence</code></td><td>25+ structured evidence fields for chargeback defense.</td></tr>
+                <tr><td><code>billing_reason</code></td><td>Why an invoice was created (subscription lifecycle context).</td></tr>
+                <tr><td><code>cancellation_details</code></td><td>Structured reason + customer feedback enum + freetext comment on subscriptions.</td></tr>
+                <tr><td><code>trace_id</code></td><td>Bank trace information for tracking payout delivery.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 3. ETSY -->
+    <!-- ============================================================ -->
+
+    <div class="section" id="etsy">
+        <h2>3. <span class="platform-badge badge-etsy">Etsy</span> API</h2>
+        <p>Etsy Open API v3 (REST). OAuth 2.0 with PKCE. Multi-seller apps (like MyTalli) require <strong>commercial access approval</strong> from Etsy. Required scope: <code>transactions_r</code> + <code>shops_r</code>.</p>
+
+        <div class="callout callout-warn">
+            <strong>Etsy Money Object:</strong> All monetary amounts use <code>{ amount, divisor, currency_code }</code>. Divide <code>amount</code> by <code>divisor</code> to get human-readable value (e.g., <code>{ amount: 1500, divisor: 100, currency_code: "USD" }</code> = $15.00).
+        </div>
+
+        <h3 id="etsy-receipts">3.1 Shop Receipts (Orders)</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v3/application/shops/{shop_id}/receipts</span></p>
+        <p>One receipt = one checkout by a buyer. Contains totals, shipping address, status, and nested transactions + refunds.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>receipt_id</code></td><td>integer</td><td><span class="cat cat-meta">ID</span></td><td>Unique receipt identifier</td></tr>
+                <tr><td><code>receipt_type</code></td><td>integer</td><td><span class="cat cat-meta">Meta</span></td><td>0 = Etsy.com, 1 = Pattern shop</td></tr>
+                <tr><td><code>seller_user_id</code></td><td>integer</td><td><span class="cat cat-meta">ID</span></td><td>Seller's Etsy user ID</td></tr>
+                <tr><td><code>buyer_user_id</code></td><td>integer</td><td><span class="cat cat-meta">ID</span></td><td>Buyer's Etsy user ID</td></tr>
+                <tr><td><code>status</code></td><td>enum</td><td><span class="cat cat-meta">Meta</span></td><td><code>paid</code>, <code>completed</code>, <code>open</code>, <code>payment processing</code>, <code>canceled</code></td></tr>
+                <tr><td><code>payment_method</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td><code>cc</code>, <code>paypal</code>, <code>check</code>, <code>bt</code>, <code>other</code></td></tr>
+                <tr><td><code>grandtotal</code></td><td>Money</td><td><span class="cat cat-revenue">Revenue</span></td><td>Total with tax + shipping − discounts (what buyer paid)</td></tr>
+                <tr><td><code>subtotal</code></td><td>Money</td><td><span class="cat cat-revenue">Revenue</span></td><td>Total minus coupons (excludes tax and shipping)</td></tr>
+                <tr><td><code>total_price</code></td><td>Money</td><td><span class="cat cat-revenue">Revenue</span></td><td>Sum of (listing price × quantity) for all items</td></tr>
+                <tr><td><code>total_shipping_cost</code></td><td>Money</td><td><span class="cat cat-shipping">Shipping</span></td><td>Total shipping charged to buyer</td></tr>
+                <tr><td><code>total_tax_cost</code></td><td>Money</td><td><span class="cat cat-tax">Tax</span></td><td>Sales tax collected</td></tr>
+                <tr><td><code>total_vat_cost</code></td><td>Money</td><td><span class="cat cat-tax">Tax</span></td><td>VAT collected (separate from sales tax)</td></tr>
+                <tr><td><code>discount_amt</code></td><td>Money</td><td><span class="cat cat-discount">Discount</span></td><td>Total discount from coupons</td></tr>
+                <tr><td><code>gift_wrap_price</code></td><td>Money</td><td><span class="cat cat-revenue">Revenue</span></td><td>Gift wrap charge</td></tr>
+                <tr><td><code>is_gift</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Whether order was marked as gift</td></tr>
+                <tr><td><code>create_timestamp</code></td><td>integer</td><td><span class="cat cat-meta">Meta</span></td><td>Creation time (epoch seconds)</td></tr>
+                <tr><td><code>transactions</code></td><td>array</td><td><span class="cat cat-meta">Nested</span></td><td>Line items (see 3.2)</td></tr>
+                <tr><td><code>refunds</code></td><td>array</td><td><span class="cat cat-refund">Refund</span></td><td>Refunds issued (see below)</td></tr>
+            </tbody>
+        </table>
+
+        <h4>Nested: refunds[] (ShopRefund)</h4>
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>amount</code></td><td>Money</td><td>Refund total</td></tr>
+                <tr><td><code>created_timestamp</code></td><td>integer</td><td>When the refund was issued (epoch seconds)</td></tr>
+                <tr><td><code>reason</code></td><td>string</td><td>Reason for refund</td></tr>
+                <tr><td><code>status</code></td><td>string</td><td>Refund status</td></tr>
+            </tbody>
+        </table>
+
+        <h3 id="etsy-transactions">3.2 Transactions (Line Items)</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v3/application/shops/{shop_id}/transactions</span></p>
+        <p>A single line item within a receipt. Each transaction = one listing purchased.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>transaction_id</code></td><td>integer</td><td><span class="cat cat-meta">ID</span></td><td>Unique transaction identifier</td></tr>
+                <tr><td><code>title</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Listing title at time of purchase</td></tr>
+                <tr><td><code>receipt_id</code></td><td>integer</td><td><span class="cat cat-meta">FK</span></td><td>Parent receipt ID</td></tr>
+                <tr><td><code>listing_id</code></td><td>integer</td><td><span class="cat cat-meta">FK</span></td><td>The listing that was purchased</td></tr>
+                <tr><td><code>product_id</code></td><td>integer</td><td><span class="cat cat-meta">FK</span></td><td>Specific product variant purchased</td></tr>
+                <tr><td><code>sku</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>SKU</td></tr>
+                <tr><td><code>is_digital</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Whether this is a digital download</td></tr>
+                <tr><td><code>quantity</code></td><td>integer</td><td><span class="cat cat-meta">Meta</span></td><td>Number of units purchased</td></tr>
+                <tr><td><code>price</code></td><td>Money</td><td><span class="cat cat-revenue">Revenue</span></td><td>Unit price at time of purchase</td></tr>
+                <tr><td><code>shipping_cost</code></td><td>Money</td><td><span class="cat cat-shipping">Shipping</span></td><td>Shipping cost for this line item</td></tr>
+                <tr><td><code>buyer_coupon</code></td><td>float</td><td><span class="cat cat-discount">Discount</span></td><td>Buyer coupon discount amount</td></tr>
+                <tr><td><code>shop_coupon</code></td><td>float</td><td><span class="cat cat-discount">Discount</span></td><td>Shop coupon discount amount</td></tr>
+                <tr><td><code>variations</code></td><td>array</td><td><span class="cat cat-meta">Meta</span></td><td>Buyer-selected variations (size, color, personalization)</td></tr>
+                <tr><td><code>create_timestamp</code></td><td>integer</td><td><span class="cat cat-meta">Meta</span></td><td>Created (epoch seconds)</td></tr>
+                <tr><td><code>paid_timestamp</code></td><td>integer</td><td><span class="cat cat-meta">Meta</span></td><td>When paid (epoch seconds)</td></tr>
+            </tbody>
+        </table>
+
+        <h3 id="etsy-payments">3.3 Payments</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v3/application/shops/{shop_id}/receipts/{receipt_id}/payments</span></p>
+        <p>The full financial breakdown in <strong>three stages</strong>: original amount, posted amount (at ship time), and adjusted amount (after refunds). This is the most important object for understanding seller revenue vs. Etsy's cut.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>payment_id</code></td><td>integer</td><td><span class="cat cat-meta">ID</span></td><td>Unique payment identifier</td></tr>
+                <tr><td><code>receipt_id</code></td><td>integer</td><td><span class="cat cat-meta">FK</span></td><td>Associated receipt</td></tr>
+                <tr><td><code>amount_gross</code></td><td>Money</td><td><span class="cat cat-revenue">Revenue</span></td><td>Original gross amount</td></tr>
+                <tr><td><code>amount_fees</code></td><td>Money</td><td><span class="cat cat-fee">Fee</span></td><td>Original card processing fees</td></tr>
+                <tr><td><code>amount_net</code></td><td>Money</td><td><span class="cat cat-net">Net</span></td><td>Original net (gross − fees)</td></tr>
+                <tr><td><code>posted_gross</code></td><td>Money</td><td><span class="cat cat-revenue">Revenue</span></td><td>Gross posted at ship time</td></tr>
+                <tr><td><code>posted_fees</code></td><td>Money</td><td><span class="cat cat-fee">Fee</span></td><td>Fees posted at ship time</td></tr>
+                <tr><td><code>posted_net</code></td><td>Money</td><td><span class="cat cat-net">Net</span></td><td>Net posted at ship time</td></tr>
+                <tr><td><code>adjusted_gross</code></td><td>Money</td><td><span class="cat cat-revenue">Revenue</span></td><td>Final gross after refunds</td></tr>
+                <tr><td><code>adjusted_fees</code></td><td>Money</td><td><span class="cat cat-fee">Fee</span></td><td>Final fees after refund adjustments</td></tr>
+                <tr><td><code>adjusted_net</code></td><td>Money</td><td><span class="cat cat-net">Net</span></td><td>Final net after all refunds and fee adjustments</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Payment currency</td></tr>
+                <tr><td><code>shop_currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Shop's currency</td></tr>
+                <tr><td><code>buyer_currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Buyer's currency</td></tr>
+                <tr><td><code>status</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Commonly <code>settled</code> or <code>authed</code></td></tr>
+                <tr><td><code>payment_adjustments</code></td><td>array</td><td><span class="cat cat-refund">Refund</span></td><td>Refund/adjustment objects</td></tr>
+            </tbody>
+        </table>
+
+        <div class="callout callout-info">
+            <strong>Three-stage amounts:</strong> <code>amount_*</code> = original, <code>posted_*</code> = at ship time, <code>adjusted_*</code> = final after refunds. Use <code>adjusted_*</code> for accurate revenue reporting.
+        </div>
+
+        <h3 id="etsy-ledger">3.4 Ledger Entries</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v3/application/shops/{shop_id}/payment-account/ledger-entries</span></p>
+        <p>A running ledger of every debit and credit — sales, fees, refunds, disbursements, listing fees, offsite ad fees, shipping labels, and tax remittance.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>entry_id</code></td><td>integer</td><td><span class="cat cat-meta">ID</span></td><td>Unique entry identifier</td></tr>
+                <tr><td><code>sequence_number</code></td><td>integer</td><td><span class="cat cat-meta">Meta</span></td><td>Chronological sort key</td></tr>
+                <tr><td><code>amount</code></td><td>integer</td><td><span class="cat cat-revenue">Amount</span></td><td>Credit (+) or debit (−) in smallest currency unit</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>ISO currency code</td></tr>
+                <tr><td><code>description</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Human-readable description</td></tr>
+                <tr><td><code>balance</code></td><td>integer</td><td><span class="cat cat-net">Balance</span></td><td>Running balance after this entry</td></tr>
+                <tr><td><code>ledger_type</code></td><td>string</td><td><span class="cat cat-meta">Type</span></td><td>Machine-readable entry type (see below)</td></tr>
+                <tr><td><code>reference_type</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>What object this entry refers to</td></tr>
+                <tr><td><code>reference_id</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>ID of the referenced object</td></tr>
+                <tr><td><code>create_date</code></td><td>integer</td><td><span class="cat cat-meta">Meta</span></td><td>Created (epoch seconds)</td></tr>
+            </tbody>
+        </table>
+
+        <h4>Ledger Types by Category</h4>
+        <table>
+            <thead><tr><th>Category</th><th>Ledger Types</th></tr></thead>
+            <tbody>
+                <tr><td><span class="cat cat-revenue">Revenue</span></td><td><code>transaction</code>, <code>shipping_transaction</code>, <code>gift_wrap_fees</code></td></tr>
+                <tr><td><span class="cat cat-fee">Fees</span></td><td><code>listing</code>, <code>listing_private</code>, <code>renew_sold</code>, <code>renew_sold_auto</code>, <code>renew_expired</code>, <code>auto_renew_expired</code>, <code>transaction_quantity</code>, <code>offsite_ads_fee</code>, <code>shipping_labels</code></td></tr>
+                <tr><td><span class="cat cat-tax">Tax</span></td><td><code>sales_tax</code>, <code>vat_seller_services</code></td></tr>
+                <tr><td><span class="cat cat-refund">Refunds</span></td><td><code>REFUND</code>, <code>transaction_refund</code>, <code>transaction_quantity_refund</code>, <code>listing_refund</code>, <code>shipping_transaction_refund</code>, <code>offsite_ads_fee_refund</code>, <code>renew_sold_auto_refund</code>, <code>shipping_label_refund</code></td></tr>
+                <tr><td><span class="cat cat-payout">Disbursements</span></td><td><code>DISBURSE2</code></td></tr>
+            </tbody>
+        </table>
+
+        <div class="callout callout-warn">
+            <strong>Important:</strong> The Payment object's <code>amount_fees</code> only captures <em>payment processing</em> fees. Listing fees, transaction fees, offsite ad fees, and other Etsy fees are separate ledger entries. Use Ledger Entries for the full fee picture.
+        </div>
+
+        <h3 id="etsy-fees">3.5 Fee Structure</h3>
+        <table>
+            <thead><tr><th>Fee</th><th>Rate</th><th>Ledger Type</th></tr></thead>
+            <tbody>
+                <tr><td>Listing fee</td><td>$0.20 per listing</td><td><code>listing</code>, <code>listing_private</code></td></tr>
+                <tr><td>Transaction fee</td><td>6.5% of (item + shipping + gift wrap)</td><td>Part of <code>transaction</code> debits</td></tr>
+                <tr><td>Payment processing</td><td>3% + $0.25 (US, varies by country)</td><td>Payment <code>amount_fees</code></td></tr>
+                <tr><td>Offsite ads fee</td><td>12% (over $10K) or 15% (under $10K, optional)</td><td><code>offsite_ads_fee</code></td></tr>
+                <tr><td>Shipping labels</td><td>Varies by carrier/weight</td><td><code>shipping_labels</code></td></tr>
+                <tr><td>Renewal on sale</td><td>$0.20 per item sold (auto-renew)</td><td><code>renew_sold</code>, <code>renew_sold_auto</code></td></tr>
+                <tr><td>VAT on seller services</td><td>Varies by jurisdiction</td><td><code>vat_seller_services</code></td></tr>
+            </tbody>
+        </table>
+
+        <h3 id="etsy-unique">3.6 Etsy-Unique Fields</h3>
+        <table>
+            <thead><tr><th>Field / Concept</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>receipt_type</code> (0 vs 1)</td><td>Etsy.com vs Pattern shop sales channel</td></tr>
+                <tr><td><code>is_digital</code> + <code>file_data</code></td><td>Digital download product support</td></tr>
+                <tr><td><code>variations</code> / <code>product_data</code></td><td>Buyer-selected personalization/variations</td></tr>
+                <tr><td><code>buyer_coupon</code> / <code>shop_coupon</code></td><td>Two distinct coupon types (Etsy-issued vs seller-issued)</td></tr>
+                <tr><td><code>offsite_ads_fee</code></td><td>Etsy's mandatory offsite advertising program</td></tr>
+                <tr><td>$0.20 listing fee</td><td>Per-listing fee is unique to Etsy's model</td></tr>
+                <tr><td><code>renew_sold_auto</code></td><td>Auto-renewal fees on sales</td></tr>
+                <tr><td>Money object (<code>amount</code>/<code>divisor</code>/<code>currency_code</code>)</td><td>Etsy's specific monetary representation</td></tr>
+                <tr><td>Three-stage payment amounts</td><td><code>amount_*</code>, <code>posted_*</code>, <code>adjusted_*</code> — pre-ship, at-ship, and post-refund snapshots</td></tr>
+                <tr><td><code>total_vat_cost</code> separate from <code>total_tax_cost</code></td><td>VAT tracked separately from sales tax</td></tr>
+                <tr><td><code>sequence_number</code></td><td>Chronological ordering beyond timestamps on ledger entries</td></tr>
+                <tr><td>Commercial access requirement</td><td>Multi-seller apps must apply for approval from Etsy</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 4. GUMROAD -->
+    <!-- ============================================================ -->
+
+    <div class="section" id="gumroad">
+        <h2>4. <span class="platform-badge badge-gumroad">Gumroad</span> API</h2>
+        <p>REST API at <code>https://api.gumroad.com/v2</code>. OAuth 2.0 with <code>access_token</code> parameter. Scopes needed: <code>view_sales</code>, <code>view_payouts</code>, <code>view_profile</code>.</p>
+
+        <div class="callout callout-warn">
+            <strong>ID Format:</strong> Gumroad IDs are <strong>Base64-encoded strings</strong> (e.g., <code>"A-m3CDDC5dlrSdKZp0RFhA=="</code>), not integers. Database columns must be NVARCHAR.
+        </div>
+
+        <h3 id="gumroad-products">4.1 Products</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v2/products</span></p>
+        <p>Product catalog with aggregate sales data.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>Product ID (Base64)</td></tr>
+                <tr><td><code>name</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Product name</td></tr>
+                <tr><td><code>price</code></td><td>number</td><td><span class="cat cat-revenue">Revenue</span></td><td>Price in cents</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>ISO currency code (lowercase)</td></tr>
+                <tr><td><code>sales_count</code></td><td>string</td><td><span class="cat cat-revenue">Revenue</span></td><td>Total number of sales</td></tr>
+                <tr><td><code>sales_usd_cents</code></td><td>string</td><td><span class="cat cat-revenue">Revenue</span></td><td>Total sales revenue in USD cents</td></tr>
+                <tr><td><code>published</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Whether the product is live</td></tr>
+                <tr><td><code>subscription_duration</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>Subscription billing interval (e.g., "monthly")</td></tr>
+                <tr><td><code>is_tiered_membership</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Whether product is a tiered membership</td></tr>
+                <tr><td><code>require_shipping</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Physical product flag</td></tr>
+                <tr><td><code>custom_permalink</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>Custom URL slug</td></tr>
+                <tr><td><code>purchasing_power_parity_prices</code></td><td>object</td><td><span class="cat cat-meta">Meta</span></td><td>Per-country PPP prices</td></tr>
+            </tbody>
+        </table>
+
+        <h3 id="gumroad-sales">4.2 Sales (Primary Revenue Endpoint)</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v2/sales</span></p>
+        <p>Individual sale records. Supports filtering by date, product, email. Cursor-based pagination via <code>page_key</code>.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>Sale ID (Base64)</td></tr>
+                <tr><td><code>email</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Buyer's email</td></tr>
+                <tr><td><code>order_id</code></td><td>number</td><td><span class="cat cat-meta">ID</span></td><td>Numeric order identifier</td></tr>
+                <tr><td><code>product_id</code></td><td>string</td><td><span class="cat cat-meta">FK</span></td><td>Product ID</td></tr>
+                <tr><td><code>product_name</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Product name</td></tr>
+                <tr><td><code>price</code></td><td>number</td><td><span class="cat cat-revenue">Revenue</span></td><td>Price paid in cents (gross)</td></tr>
+                <tr><td><code>gumroad_fee</code></td><td>number</td><td><span class="cat cat-fee">Fee</span></td><td>Gumroad's fee in cents</td></tr>
+                <tr><td><code>currency_symbol</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Currency symbol (e.g., "$")</td></tr>
+                <tr><td><code>quantity</code></td><td>number</td><td><span class="cat cat-meta">Meta</span></td><td>Quantity purchased</td></tr>
+                <tr><td><code>partially_refunded</code></td><td>boolean</td><td><span class="cat cat-refund">Refund</span></td><td>Whether partially refunded</td></tr>
+                <tr><td><code>chargedback</code></td><td>boolean</td><td><span class="cat cat-dispute">Dispute</span></td><td>Whether a chargeback was filed</td></tr>
+                <tr><td><code>disputed</code></td><td>boolean</td><td><span class="cat cat-dispute">Dispute</span></td><td>Whether a dispute has been filed</td></tr>
+                <tr><td><code>dispute_won</code></td><td>boolean</td><td><span class="cat cat-dispute">Dispute</span></td><td>Whether dispute was won</td></tr>
+                <tr><td><code>paid</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Whether payment was collected</td></tr>
+                <tr><td><code>discover_fee_charged</code></td><td>boolean</td><td><span class="cat cat-fee">Fee</span></td><td>Whether Gumroad Discover fee was charged (30% vs 10%)</td></tr>
+                <tr><td><code>is_additional_contribution</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Whether this is a tip/extra contribution</td></tr>
+                <tr><td><code>is_recurring_billing</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Whether this is a recurring subscription charge</td></tr>
+                <tr><td><code>subscription_id</code></td><td>string?</td><td><span class="cat cat-meta">FK</span></td><td>Subscription identifier</td></tr>
+                <tr><td><code>cancelled</code></td><td>boolean</td><td><span class="cat cat-meta">Meta</span></td><td>Whether subscription was cancelled</td></tr>
+                <tr><td><code>license_key</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>License key for the purchase</td></tr>
+                <tr><td><code>referrer</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Referrer URL or "direct"</td></tr>
+                <tr><td><code>variants</code></td><td>object</td><td><span class="cat cat-meta">Meta</span></td><td>Selected variant options (e.g., <code>{"Tier": "Premium"}</code>)</td></tr>
+                <tr><td><code>offer_code</code></td><td>object?</td><td><span class="cat cat-discount">Discount</span></td><td>Offer code details (<code>code</code>, <code>name</code>, <code>displayed_amount_off</code>)</td></tr>
+                <tr><td><code>affiliate</code></td><td>object?</td><td><span class="cat cat-expense">Affiliate</span></td><td>Affiliate details (<code>email</code>, <code>amount</code>)</td></tr>
+                <tr><td><code>card</code></td><td>object</td><td><span class="cat cat-meta">Meta</span></td><td>Payment card (<code>visual</code>, <code>type</code>)</td></tr>
+                <tr><td><code>created_at</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>ISO 8601 timestamp</td></tr>
+            </tbody>
+        </table>
+
+        <div class="callout callout-info">
+            <strong>No explicit "net" field per sale.</strong> Calculate as: <code>price − gumroad_fee − affiliate commission</code>. The only net figure comes from payout transactions.
+        </div>
+
+        <h3 id="gumroad-subscribers">4.3 Subscribers</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v2/products/{product_id}/subscribers</span></p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string</td><td><span class="cat cat-meta">ID</span></td><td>Subscriber ID</td></tr>
+                <tr><td><code>product_id</code></td><td>string</td><td><span class="cat cat-meta">FK</span></td><td>Product ID</td></tr>
+                <tr><td><code>user_email</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Subscriber's email</td></tr>
+                <tr><td><code>status</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td><code>alive</code>, <code>pending_cancellation</code>, <code>pending_failure</code>, <code>failed_payment</code>, <code>cancelled</code></td></tr>
+                <tr><td><code>charge_occurrence_count</code></td><td>number?</td><td><span class="cat cat-revenue">Revenue</span></td><td>Number of charges made (LTV metric)</td></tr>
+                <tr><td><code>recurrence</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Billing interval ("monthly", "yearly")</td></tr>
+                <tr><td><code>free_trial_ends_at</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>Free trial end timestamp</td></tr>
+                <tr><td><code>cancelled_at</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>Cancellation timestamp</td></tr>
+                <tr><td><code>ended_at</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>End timestamp</td></tr>
+                <tr><td><code>failed_at</code></td><td>string?</td><td><span class="cat cat-meta">Meta</span></td><td>Payment failure timestamp</td></tr>
+                <tr><td><code>license_key</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>License key</td></tr>
+            </tbody>
+        </table>
+
+        <h3 id="gumroad-payouts">4.4 Payouts</h3>
+        <p><span class="endpoint"><span class="method method-get">GET</span> /v2/payouts</span></p>
+        <p>When <code>include_transactions=true</code>, each payout includes a detailed per-transaction breakdown — the richest financial data source for Gumroad.</p>
+
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>string?</td><td><span class="cat cat-meta">ID</span></td><td>Payout ID (null for upcoming)</td></tr>
+                <tr><td><code>amount</code></td><td>string</td><td><span class="cat cat-payout">Payout</span></td><td>Payout amount as decimal string (e.g., "150.00")</td></tr>
+                <tr><td><code>currency</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>ISO currency code</td></tr>
+                <tr><td><code>status</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td><code>payable</code>, <code>completed</code>, <code>pending</code>, <code>failed</code></td></tr>
+                <tr><td><code>payment_processor</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Processor: <code>stripe</code> or <code>paypal</code></td></tr>
+                <tr><td><code>sales</code></td><td>array</td><td><span class="cat cat-revenue">Revenue</span></td><td>Sale IDs included in this payout</td></tr>
+                <tr><td><code>refunded_sales</code></td><td>array</td><td><span class="cat cat-refund">Refund</span></td><td>Refunded sale IDs</td></tr>
+                <tr><td><code>disputed_sales</code></td><td>array</td><td><span class="cat cat-dispute">Dispute</span></td><td>Disputed sale IDs</td></tr>
+            </tbody>
+        </table>
+
+        <h4>Payout Transaction Objects (nested, when include_transactions=true)</h4>
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Category</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>type</code></td><td>string</td><td><span class="cat cat-meta">Type</span></td><td>Transaction type (see below)</td></tr>
+                <tr><td><code>sale_price</code></td><td>number</td><td><span class="cat cat-revenue">Revenue</span></td><td>Sale price (negative for refunds/chargebacks)</td></tr>
+                <tr><td><code>gumroad_fees</code></td><td>number</td><td><span class="cat cat-fee">Fee</span></td><td>Gumroad fees</td></tr>
+                <tr><td><code>taxes</code></td><td>number</td><td><span class="cat cat-tax">Tax</span></td><td>Tax amount</td></tr>
+                <tr><td><code>shipping</code></td><td>number</td><td><span class="cat cat-shipping">Shipping</span></td><td>Shipping amount</td></tr>
+                <tr><td><code>net_total</code></td><td>number</td><td><span class="cat cat-net">Net</span></td><td>Net amount for this transaction</td></tr>
+                <tr><td><code>purchase_id</code></td><td>string</td><td><span class="cat cat-meta">FK</span></td><td>Associated sale ID</td></tr>
+                <tr><td><code>item_name</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Product name</td></tr>
+                <tr><td><code>date</code></td><td>string</td><td><span class="cat cat-meta">Meta</span></td><td>Date (YYYY-MM-DD)</td></tr>
+            </tbody>
+        </table>
+
+        <h4>Payout Transaction Types</h4>
+        <table>
+            <thead><tr><th>Category</th><th>Types</th></tr></thead>
+            <tbody>
+                <tr><td><span class="cat cat-revenue">Revenue</span></td><td><code>Sale</code></td></tr>
+                <tr><td><span class="cat cat-refund">Refunds</span></td><td><code>Full Refund</code>, <code>Partial Refund</code>, <code>Stripe Connect Refund</code></td></tr>
+                <tr><td><span class="cat cat-dispute">Disputes</span></td><td><code>Chargeback</code></td></tr>
+                <tr><td><span class="cat cat-expense">Affiliate</span></td><td><code>Affiliate Credit</code>, <code>PayPal Connect Affiliate Fees</code>, <code>Stripe Connect Affiliate Fees</code></td></tr>
+                <tr><td><span class="cat cat-payout">Payouts</span></td><td><code>PayPal Payouts</code>, <code>Stripe Connect Payouts</code></td></tr>
+                <tr><td><span class="cat cat-fee">Fees</span></td><td><code>Payout Fee</code></td></tr>
+                <tr><td><span class="cat cat-meta">Other</span></td><td><code>Credit</code>, <code>Technical Adjustment</code></td></tr>
+            </tbody>
+        </table>
+
+        <h3 id="gumroad-unique">4.5 Gumroad-Unique Fields</h3>
+        <table>
+            <thead><tr><th>Field / Concept</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>discover_fee_charged</code></td><td>Two fee tiers: 10% for direct sales, 30% for Gumroad Discover marketplace sales</td></tr>
+                <tr><td><code>purchasing_power_parity_prices</code></td><td>Per-country pricing for PPP</td></tr>
+                <tr><td><code>is_additional_contribution</code></td><td>Tip/extra contribution tracking</td></tr>
+                <tr><td><code>free_trial_ends_at</code></td><td>Native free trial support on subscriptions</td></tr>
+                <tr><td><code>license_key</code> / <code>license_id</code></td><td>Built-in software license key generation and management</td></tr>
+                <tr><td>Gift system</td><td><code>is_gift_sender_purchase</code>, <code>is_gift_receiver_purchase</code>, <code>gifter_email</code>, <code>gift_price</code></td></tr>
+                <tr><td><code>url_params</code></td><td>Custom URL parameters passed through the purchase URL (attribution)</td></tr>
+                <tr><td>Tiered memberships</td><td><code>is_tiered_membership</code>, <code>recurrences</code>, <code>recurrence_prices</code> — multiple tiers per product</td></tr>
+                <tr><td>Granular cancellation reasons</td><td><code>cancelled_by_admin</code>, <code>cancelled_by_buyer</code>, <code>cancelled_by_seller</code>, <code>cancelled_due_to_payment_failures</code></td></tr>
+                <tr><td><code>charge_occurrence_count</code></td><td>Number of subscription charges (LTV calculations)</td></tr>
+                <tr><td><code>payment_processor</code></td><td>Gumroad pays sellers via either Stripe or PayPal, tracked per payout</td></tr>
+                <tr><td>Base64 IDs</td><td>All IDs are Base64-encoded strings, not integers</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 5. CLASSIFICATION -->
+    <!-- ============================================================ -->
+
+    <div class="section" id="classification">
+        <h2>5. Revenue Classification Across Platforms</h2>
+        <p>How each platform represents the same financial concepts:</p>
+
+        <h3>Revenue (money coming in)</h3>
+        <table>
+            <thead><tr><th>Platform</th><th>Source</th><th>Key Fields</th></tr></thead>
+            <tbody>
+                <tr><td><span class="platform-badge badge-stripe">Stripe</span></td><td>Balance Transactions (<code>type: charge/payment</code>)</td><td><code>amount</code> (cents, integer)</td></tr>
+                <tr><td><span class="platform-badge badge-etsy">Etsy</span></td><td>Receipts / Payments / Ledger (<code>type: transaction</code>)</td><td><code>grandtotal</code> (Money object) / <code>adjusted_gross</code> (Money object)</td></tr>
+                <tr><td><span class="platform-badge badge-gumroad">Gumroad</span></td><td>Sales endpoint</td><td><code>price</code> (cents, integer)</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Fees (platform's cut)</h3>
+        <table>
+            <thead><tr><th>Platform</th><th>Source</th><th>Key Fields</th></tr></thead>
+            <tbody>
+                <tr><td><span class="platform-badge badge-stripe">Stripe</span></td><td>Balance Transaction <code>fee</code> + <code>fee_details[]</code></td><td>Per-component breakdown (processing, method-specific, tax on fees)</td></tr>
+                <tr><td><span class="platform-badge badge-etsy">Etsy</span></td><td>Payment <code>amount_fees</code> + Ledger entries (listing, renew, offsite ads)</td><td>Processing fees on Payment; all other fees on Ledger</td></tr>
+                <tr><td><span class="platform-badge badge-gumroad">Gumroad</span></td><td>Sale <code>gumroad_fee</code></td><td>Single number (10% or 30% + flat fee)</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Net Revenue (what the seller actually keeps)</h3>
+        <table>
+            <thead><tr><th>Platform</th><th>Source</th><th>Key Fields</th></tr></thead>
+            <tbody>
+                <tr><td><span class="platform-badge badge-stripe">Stripe</span></td><td>Balance Transaction</td><td><code>net</code> = amount − fee</td></tr>
+                <tr><td><span class="platform-badge badge-etsy">Etsy</span></td><td>Payment object</td><td><code>adjusted_net</code> (final after all refunds and fee adjustments)</td></tr>
+                <tr><td><span class="platform-badge badge-gumroad">Gumroad</span></td><td>Payout transactions only</td><td><code>net_total</code> per transaction; no per-sale net on the Sales endpoint</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Refunds</h3>
+        <table>
+            <thead><tr><th>Platform</th><th>Source</th><th>Key Fields</th></tr></thead>
+            <tbody>
+                <tr><td><span class="platform-badge badge-stripe">Stripe</span></td><td>Refund objects + Balance Transactions (<code>type: refund</code>)</td><td><code>amount</code>, <code>reason</code>, <code>status</code></td></tr>
+                <tr><td><span class="platform-badge badge-etsy">Etsy</span></td><td>Receipt <code>refunds[]</code> + Payment <code>payment_adjustments[]</code></td><td>Refund in 3 currencies (payment, shop, buyer)</td></tr>
+                <tr><td><span class="platform-badge badge-gumroad">Gumroad</span></td><td>Sale flags (<code>partially_refunded</code>) + Payout transactions</td><td>No explicit refund amount on sale — only in payout breakdown</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Disputes / Chargebacks</h3>
+        <table>
+            <thead><tr><th>Platform</th><th>Source</th><th>Key Fields</th></tr></thead>
+            <tbody>
+                <tr><td><span class="platform-badge badge-stripe">Stripe</span></td><td>Dispute objects</td><td><code>amount</code>, <code>status</code> (won/lost), <code>reason</code>, evidence system</td></tr>
+                <tr><td><span class="platform-badge badge-etsy">Etsy</span></td><td>Not directly exposed via API</td><td>Handled by Etsy's case system; limited API visibility</td></tr>
+                <tr><td><span class="platform-badge badge-gumroad">Gumroad</span></td><td>Sale flags (<code>chargedback</code>, <code>disputed</code>, <code>dispute_won</code>)</td><td>Boolean flags only — no dispute amounts on sale object</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Payouts / Disbursements</h3>
+        <table>
+            <thead><tr><th>Platform</th><th>Source</th><th>Key Fields</th></tr></thead>
+            <tbody>
+                <tr><td><span class="platform-badge badge-stripe">Stripe</span></td><td>Payout objects</td><td><code>amount</code>, <code>arrival_date</code>, <code>status</code>, <code>method</code></td></tr>
+                <tr><td><span class="platform-badge badge-etsy">Etsy</span></td><td>Ledger entries (<code>DISBURSE2</code>)</td><td>Amount and date via ledger — no dedicated payout endpoint</td></tr>
+                <tr><td><span class="platform-badge badge-gumroad">Gumroad</span></td><td>Payout objects</td><td><code>amount</code> (decimal string), <code>payment_processor</code> (stripe/paypal)</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 6. NORMALIZED -->
+    <!-- ============================================================ -->
+
+    <div class="section" id="normalized">
+        <h2>6. Normalized Data Shape (Proposed)</h2>
+        <p>The common fields that all three platforms can provide — this is what <code>app.Revenue</code> and related normalized tables would store:</p>
+
+        <h3>app.Revenue (normalized)</h3>
+        <table>
+            <thead><tr><th>Field</th><th>Source: Stripe</th><th>Source: Etsy</th><th>Source: Gumroad</th></tr></thead>
+            <tbody>
+                <tr><td>Gross Amount</td><td><code>balance_transaction.amount</code></td><td><code>payment.adjusted_gross</code></td><td><code>sale.price</code></td></tr>
+                <tr><td>Fee Amount</td><td><code>balance_transaction.fee</code></td><td><code>payment.adjusted_fees</code> (processing only)</td><td><code>sale.gumroad_fee</code></td></tr>
+                <tr><td>Net Amount</td><td><code>balance_transaction.net</code></td><td><code>payment.adjusted_net</code></td><td>Calculated: <code>price − gumroad_fee</code></td></tr>
+                <tr><td>Currency</td><td><code>balance_transaction.currency</code></td><td><code>payment.currency</code></td><td><code>product.currency</code> / symbol</td></tr>
+                <tr><td>Transaction Date</td><td><code>balance_transaction.created</code></td><td><code>receipt.create_timestamp</code></td><td><code>sale.created_at</code></td></tr>
+                <tr><td>Description</td><td><code>charge.description</code></td><td><code>transaction.title</code></td><td><code>sale.product_name</code></td></tr>
+                <tr><td>Is Refunded</td><td><code>charge.refunded</code></td><td>Receipt <code>refunds[]</code> presence</td><td><code>sale.partially_refunded</code></td></tr>
+                <tr><td>Is Disputed</td><td><code>charge.disputed</code></td><td>N/A (not exposed)</td><td><code>sale.disputed</code></td></tr>
+                <tr><td>Platform</td><td>"Stripe"</td><td>"Etsy"</td><td>"Gumroad"</td></tr>
+                <tr><td>Platform Transaction ID</td><td><code>balance_transaction.id</code></td><td><code>receipt.receipt_id</code></td><td><code>sale.id</code></td></tr>
+            </tbody>
+        </table>
+
+        <div class="callout callout-tip">
+            <strong>Design principle:</strong> Goals and dashboard analytics query <strong>only</strong> the normalized tables. Platform-specific tables exist for drill-down detail and data preservation — they are never touched by the goals engine.
+        </div>
+
+        <h3>Expense / Fee Normalization Challenge</h3>
+        <p>Fees are the hardest category to normalize because platforms track them very differently:</p>
+        <ul>
+            <li><strong>Stripe:</strong> Fees are per-transaction on the balance transaction itself, with a per-component breakdown</li>
+            <li><strong>Etsy:</strong> Processing fees are on the Payment object, but listing fees, offsite ad fees, and other platform fees are separate ledger entries — they're not tied to a specific sale</li>
+            <li><strong>Gumroad:</strong> Single <code>gumroad_fee</code> per sale, but affiliate commissions are separate</li>
+        </ul>
+
+        <div class="callout callout-warn">
+            <strong>Decision needed:</strong> Do we store Etsy's non-sale fees (listing fees, ad fees) as <code>app.Expense</code> records? Or do we only normalize per-transaction fees and ignore platform overhead? This affects whether goals can track "true profit" vs. just "revenue minus processing fees."
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 7. DB IMPLICATIONS -->
+    <!-- ============================================================ -->
+
+    <div class="section" id="db-implications">
+        <h2>7. Database Design Implications</h2>
+
+        <h3>Key Decisions for ERD Design</h3>
+
+        <h4>1. ID Column Types Vary by Platform</h4>
+        <table>
+            <thead><tr><th>Platform</th><th>ID Format</th><th>DB Column Type</th></tr></thead>
+            <tbody>
+                <tr><td><span class="platform-badge badge-stripe">Stripe</span></td><td>String with prefix (<code>ch_xxx</code>, <code>txn_xxx</code>)</td><td>NVARCHAR(255)</td></tr>
+                <tr><td><span class="platform-badge badge-etsy">Etsy</span></td><td>Integers</td><td>BIGINT</td></tr>
+                <tr><td><span class="platform-badge badge-gumroad">Gumroad</span></td><td>Base64 strings</td><td>NVARCHAR(255)</td></tr>
+            </tbody>
+        </table>
+        <p>Platform-specific ID columns on the 1-to-1 tables must accommodate these differences. The normalized <code>app.Revenue</code> table should store the platform transaction ID as <code>NVARCHAR</code> to handle all formats.</p>
+
+        <h4>2. Money Representation</h4>
+        <ul>
+            <li><strong>Stripe &amp; Gumroad:</strong> Amounts in cents (integers)</li>
+            <li><strong>Etsy:</strong> Money object with amount/divisor</li>
+            <li><strong>Gumroad payouts:</strong> Decimal strings</li>
+        </ul>
+        <p>Normalize to <strong>DECIMAL(18,2)</strong> in the database — convert cents to dollars during ingestion. Store the original platform value on the platform-specific table if needed.</p>
+
+        <h4>3. Timestamp Formats</h4>
+        <ul>
+            <li><strong>Stripe:</strong> Unix epoch (seconds)</li>
+            <li><strong>Etsy:</strong> Unix epoch (seconds)</li>
+            <li><strong>Gumroad:</strong> ISO 8601 strings</li>
+        </ul>
+        <p>Normalize to <strong>DATETIME2</strong> (UTC) in the database.</p>
+
+        <h4>4. Currency Handling</h4>
+        <p>All three platforms provide ISO currency codes. Store as <code>NVARCHAR(3)</code>. Multi-currency support (exchange rates, presentment currency) is Stripe-specific — store on <code>app.RevenueStripe</code> only.</p>
+
+        <h4>5. Platform Connection Table</h4>
+        <p>Before any revenue data can be ingested, the user must connect their platform account via OAuth. This requires an <code>app.PlatformConnection</code> table tracking:</p>
+        <ul>
+            <li>User → Platform relationship</li>
+            <li>OAuth tokens (access token, refresh token, expiry)</li>
+            <li>Platform-specific account IDs (Stripe account ID, Etsy shop ID, Gumroad user ID)</li>
+            <li>Connection status (active, expired, revoked)</li>
+            <li>Last sync timestamp</li>
+        </ul>
+
+        <h4>6. What the Normalized Layer Gives Goals</h4>
+        <p>With a clean <code>app.Revenue</code> table, goal queries become simple:</p>
+        <div class="code-block">
+<span class="comment">-- "Monthly Revenue Target" goal check</span>
+<span class="keyword">SELECT</span> <span class="keyword">SUM</span>(NetAmount) <span class="keyword">AS</span> CurrentRevenue
+<span class="keyword">FROM</span> app.Revenue
+<span class="keyword">WHERE</span> UserId = <span class="number">@UserId</span>
+  <span class="keyword">AND</span> TransactionDate <span class="keyword">BETWEEN</span> <span class="string">@StartOfMonth</span> <span class="keyword">AND</span> <span class="string">@EndOfMonth</span>
+  <span class="keyword">AND</span> IsDeleted = <span class="number">0</span>
+
+<span class="comment">-- "Platform Monthly Target" goal check (e.g., "Earn $2K/mo from Etsy")</span>
+<span class="keyword">SELECT</span> <span class="keyword">SUM</span>(NetAmount) <span class="keyword">AS</span> CurrentRevenue
+<span class="keyword">FROM</span> app.Revenue
+<span class="keyword">WHERE</span> UserId = <span class="number">@UserId</span>
+  <span class="keyword">AND</span> Platform = <span class="string">'Etsy'</span>
+  <span class="keyword">AND</span> TransactionDate <span class="keyword">BETWEEN</span> <span class="string">@StartOfMonth</span> <span class="keyword">AND</span> <span class="string">@EndOfMonth</span>
+  <span class="keyword">AND</span> IsDeleted = <span class="number">0</span>
+        </div>
+
+        <h3>Proposed Table Summary</h3>
+        <table>
+            <thead><tr><th>Table</th><th>Purpose</th><th>Follows Pattern</th></tr></thead>
+            <tbody>
+                <tr><td><code>app.PlatformConnection</code></td><td>OAuth link between user and their platform account</td><td>Similar to auth provider tables</td></tr>
+                <tr><td><code>app.Revenue</code></td><td>Normalized revenue records from all platforms</td><td>Base table (like <code>auth.User</code>)</td></tr>
+                <tr><td><code>app.RevenueStripe</code></td><td>Stripe-specific raw data (1-to-1)</td><td>Like <code>auth.UserAuthenticationGoogle</code></td></tr>
+                <tr><td><code>app.RevenueEtsy</code></td><td>Etsy-specific raw data (1-to-1)</td><td>Like <code>auth.UserAuthenticationApple</code></td></tr>
+                <tr><td><code>app.RevenueGumroad</code></td><td>Gumroad-specific raw data (1-to-1)</td><td>Like <code>auth.UserAuthenticationMicrosoft</code></td></tr>
+                <tr><td><code>app.Expense</code></td><td>Normalized expense/fee records (TBD)</td><td>Base table</td></tr>
+                <tr><td><code>app.GoalType</code></td><td>Lookup — pre-defined goal types</td><td>Like <code>commerce.ProductType</code></td></tr>
+                <tr><td><code>app.Goal</code></td><td>User's specific goal instances</td><td>New</td></tr>
+            </tbody>
+        </table>
+
+        <div class="callout callout-info">
+            <strong>PayPal &amp; Shopify:</strong> Not yet researched. They will each get their own <code>app.RevenuePayPal</code> and <code>app.RevenueShopify</code> tables following the same 1-to-1 pattern. The normalized layer and goal engine won't need any changes.
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 8. ERD — STRIPE -->
+    <!-- ============================================================ -->
+
+    <div class="section" id="erd-stripe">
+        <h2>8. ERD — <span class="platform-badge badge-stripe">Stripe</span> API Data Model</h2>
+        <p>How Stripe's API objects relate to each other. <strong>Balance Transaction</strong> is the central hub — every money movement creates one.</p>
+
+        <div class="erd">
+            <svg viewBox="0 0 1000 620" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+                <!-- Defs -->
+                <defs>
+                    <marker id="s-arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
+                    </marker>
+                    <filter id="s-shadow" x="-4%" y="-4%" width="108%" height="116%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#6c5ce7" flood-opacity="0.10"/>
+                    </filter>
+                </defs>
+
+                <!-- Background groups -->
+                <!-- Financial Core -->
+                <rect x="20" y="10" width="960" height="260" rx="12" fill="#f0edff" opacity="0.4"/>
+                <text x="40" y="36" font-size="11" font-weight="600" fill="#6c5ce7" opacity="0.7">FINANCIAL CORE</text>
+
+                <!-- Billing -->
+                <rect x="20" y="290" width="500" height="160" rx="12" fill="#e8f5e9" opacity="0.3"/>
+                <text x="40" y="316" font-size="11" font-weight="600" fill="#27ae60" opacity="0.7">BILLING &amp; SUBSCRIPTIONS</text>
+
+                <!-- Detail -->
+                <rect x="540" y="290" width="440" height="310" rx="12" fill="#fff3e0" opacity="0.3"/>
+                <text x="560" y="316" font-size="11" font-weight="600" fill="#e65100" opacity="0.7">NESTED DETAIL OBJECTS</text>
+
+                <!-- === BOXES === -->
+                <!-- Balance Transaction (central) -->
+                <rect x="340" y="90" rx="8" width="200" height="56" fill="#635bff" filter="url(#s-shadow)"/>
+                <text x="440" y="115" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Balance Transaction</text>
+                <text x="440" y="133" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">amount · fee · net · type</text>
+
+                <!-- Charge -->
+                <rect x="60" y="90" rx="8" width="160" height="56" fill="#fff" stroke="#635bff" stroke-width="2" filter="url(#s-shadow)"/>
+                <text x="140" y="115" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Charge</text>
+                <text x="140" y="133" text-anchor="middle" font-size="10" fill="#a09cae">amount · paid · refunded</text>
+
+                <!-- PaymentIntent -->
+                <rect x="60" y="180" rx="8" width="160" height="56" fill="#fff" stroke="#635bff" stroke-width="2" filter="url(#s-shadow)"/>
+                <text x="140" y="205" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">PaymentIntent</text>
+                <text x="140" y="223" text-anchor="middle" font-size="10" fill="#a09cae">amount · status · lifecycle</text>
+
+                <!-- Refund -->
+                <rect x="650" y="55" rx="8" width="160" height="56" fill="#fff" stroke="#c62828" stroke-width="2" filter="url(#s-shadow)"/>
+                <text x="730" y="80" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Refund</text>
+                <text x="730" y="98" text-anchor="middle" font-size="10" fill="#a09cae">amount · reason · status</text>
+
+                <!-- Dispute -->
+                <rect x="650" y="140" rx="8" width="160" height="56" fill="#fff" stroke="#c62828" stroke-width="2" filter="url(#s-shadow)"/>
+                <text x="730" y="165" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Dispute</text>
+                <text x="730" y="183" text-anchor="middle" font-size="10" fill="#a09cae">amount · status · reason</text>
+
+                <!-- Payout -->
+                <rect x="650" y="220" rx="8" width="160" height="44" fill="#fff" stroke="#1565c0" stroke-width="2" filter="url(#s-shadow)"/>
+                <text x="730" y="247" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Payout</text>
+
+                <!-- Customer -->
+                <rect x="340" y="180" rx="8" width="160" height="44" fill="#fff" stroke="#a09cae" stroke-width="1.5" filter="url(#s-shadow)"/>
+                <text x="420" y="207" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Customer</text>
+
+                <!-- Invoice -->
+                <rect x="60" y="330" rx="8" width="160" height="56" fill="#fff" stroke="#27ae60" stroke-width="2" filter="url(#s-shadow)"/>
+                <text x="140" y="355" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Invoice</text>
+                <text x="140" y="373" text-anchor="middle" font-size="10" fill="#a09cae">amount_paid · line items</text>
+
+                <!-- Subscription -->
+                <rect x="300" y="330" rx="8" width="180" height="56" fill="#fff" stroke="#27ae60" stroke-width="2" filter="url(#s-shadow)"/>
+                <text x="390" y="355" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Subscription</text>
+                <text x="390" y="373" text-anchor="middle" font-size="10" fill="#a09cae">status · items · period</text>
+
+                <!-- Nested details -->
+                <!-- fee_details -->
+                <rect x="575" y="340" rx="6" width="150" height="40" fill="#fff8e1" stroke="#e65100" stroke-width="1.5"/>
+                <text x="650" y="365" text-anchor="middle" font-size="12" font-weight="500" fill="#1a1a2e">fee_details[]</text>
+
+                <!-- outcome -->
+                <rect x="575" y="395" rx="6" width="150" height="40" fill="#fff8e1" stroke="#e65100" stroke-width="1.5"/>
+                <text x="650" y="420" text-anchor="middle" font-size="12" font-weight="500" fill="#1a1a2e">outcome (fraud)</text>
+
+                <!-- payment_method_details -->
+                <rect x="575" y="450" rx="6" width="180" height="40" fill="#fff8e1" stroke="#e65100" stroke-width="1.5"/>
+                <text x="665" y="475" text-anchor="middle" font-size="12" font-weight="500" fill="#1a1a2e">payment_method_details</text>
+
+                <!-- billing_details -->
+                <rect x="575" y="505" rx="6" width="150" height="40" fill="#fff8e1" stroke="#e65100" stroke-width="1.5"/>
+                <text x="650" y="530" text-anchor="middle" font-size="12" font-weight="500" fill="#1a1a2e">billing_details</text>
+
+                <!-- cancellation_details -->
+                <rect x="780" y="340" rx="6" width="170" height="40" fill="#fff8e1" stroke="#e65100" stroke-width="1.5"/>
+                <text x="865" y="365" text-anchor="middle" font-size="12" font-weight="500" fill="#1a1a2e">cancellation_details</text>
+
+                <!-- evidence -->
+                <rect x="780" y="395" rx="6" width="170" height="40" fill="#fff8e1" stroke="#e65100" stroke-width="1.5"/>
+                <text x="865" y="420" text-anchor="middle" font-size="12" font-weight="500" fill="#1a1a2e">evidence (25+ fields)</text>
+
+                <!-- amount_details -->
+                <rect x="780" y="450" rx="6" width="170" height="40" fill="#fff8e1" stroke="#e65100" stroke-width="1.5"/>
+                <text x="865" y="475" text-anchor="middle" font-size="12" font-weight="500" fill="#1a1a2e">amount_details</text>
+
+                <!-- === LINES === -->
+                <!-- Charge → Balance Transaction -->
+                <line x1="220" y1="118" x2="340" y2="118" stroke="#a09cae" stroke-width="1.5" marker-end="url(#s-arrow)"/>
+
+                <!-- PaymentIntent → Charge -->
+                <line x1="140" y1="180" x2="140" y2="146" stroke="#a09cae" stroke-width="1.5" marker-end="url(#s-arrow)"/>
+
+                <!-- Balance Transaction → Refund -->
+                <line x1="540" y1="105" x2="650" y2="83" stroke="#a09cae" stroke-width="1.5" marker-end="url(#s-arrow)"/>
+
+                <!-- Balance Transaction → Dispute -->
+                <line x1="540" y1="125" x2="650" y2="160" stroke="#a09cae" stroke-width="1.5" marker-end="url(#s-arrow)"/>
+
+                <!-- Balance Transaction → Payout -->
+                <line x1="540" y1="140" x2="650" y2="240" stroke="#a09cae" stroke-width="1.5" marker-end="url(#s-arrow)"/>
+
+                <!-- Charge → Customer -->
+                <line x1="220" y1="135" x2="340" y2="195" stroke="#a09cae" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#s-arrow)"/>
+
+                <!-- Invoice → Subscription -->
+                <line x1="220" y1="358" x2="300" y2="358" stroke="#a09cae" stroke-width="1.5" marker-end="url(#s-arrow)"/>
+
+                <!-- Subscription → Customer -->
+                <line x1="390" y1="330" x2="420" y2="224" stroke="#a09cae" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#s-arrow)"/>
+
+                <!-- Charge → nested: fee_details -->
+                <path d="M 140 146 L 140 360 L 575 360" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#s-arrow)"/>
+
+                <!-- Charge → nested: outcome -->
+                <path d="M 155 146 L 155 415 L 575 415" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Charge → nested: payment_method_details -->
+                <path d="M 170 146 L 170 470 L 575 470" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Charge → nested: billing_details -->
+                <path d="M 185 146 L 185 525 L 575 525" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Subscription → cancellation_details -->
+                <path d="M 480 355 L 530 355 L 530 360 L 780 360" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Dispute → evidence -->
+                <path d="M 810 168 L 865 168 L 865 395" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- PaymentIntent → amount_details -->
+                <path d="M 220 208 L 250 208 L 250 560 L 865 560 L 865 490" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Legend -->
+                <rect x="20" y="480" width="180" height="120" rx="8" fill="#fff" stroke="#e0dce8" stroke-width="1"/>
+                <text x="35" y="500" font-size="11" font-weight="600" fill="#1a1a2e">Legend</text>
+                <line x1="35" y1="515" x2="65" y2="515" stroke="#a09cae" stroke-width="1.5" marker-end="url(#s-arrow)"/>
+                <text x="72" y="519" font-size="10" fill="#555">references / creates</text>
+                <line x1="35" y1="535" x2="65" y2="535" stroke="#a09cae" stroke-width="1.5" stroke-dasharray="5,3"/>
+                <text x="72" y="539" font-size="10" fill="#555">optional / belongs to</text>
+                <line x1="35" y1="555" x2="65" y2="555" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+                <text x="72" y="559" font-size="10" fill="#555">nested detail object</text>
+                <rect x="35" y="568" width="12" height="12" rx="2" fill="#635bff"/>
+                <text x="55" y="578" font-size="10" fill="#555">primary / hub entity</text>
+                <rect x="35" y="585" width="12" height="12" rx="2" fill="#fff" stroke="#635bff" stroke-width="1.5"/>
+                <text x="55" y="595" font-size="10" fill="#555">standard entity</text>
+            </svg>
+            <div class="erd-label">Stripe API — high-level object relationships</div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 9. ERD — ETSY -->
+    <!-- ============================================================ -->
+
+    <div class="section" id="erd-etsy">
+        <h2>9. ERD — <span class="platform-badge badge-etsy">Etsy</span> API Data Model</h2>
+        <p>Etsy's data flows through two parallel streams: the <strong>Receipt → Transaction → Payment</strong> pipeline (per-order) and the <strong>Ledger</strong> (running account balance covering all activity).</p>
+
+        <div class="erd">
+            <svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+                <defs>
+                    <marker id="e-arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
+                    </marker>
+                    <filter id="e-shadow" x="-4%" y="-4%" width="108%" height="116%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#f56400" flood-opacity="0.10"/>
+                    </filter>
+                </defs>
+
+                <!-- Background: Order Pipeline -->
+                <rect x="20" y="10" width="640" height="530" rx="12" fill="#fff3e0" opacity="0.25"/>
+                <text x="40" y="36" font-size="11" font-weight="600" fill="#f56400" opacity="0.7">ORDER PIPELINE (per checkout)</text>
+
+                <!-- Background: Ledger Stream -->
+                <rect x="680" y="10" width="300" height="530" rx="12" fill="#e8f5e9" opacity="0.25"/>
+                <text x="700" y="36" font-size="11" font-weight="600" fill="#27ae60" opacity="0.7">ACCOUNT LEDGER (running balance)</text>
+
+                <!-- === BOXES === -->
+                <!-- Shop Receipt -->
+                <rect x="210" y="60" rx="8" width="200" height="56" fill="#f56400" filter="url(#e-shadow)"/>
+                <text x="310" y="85" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Shop Receipt</text>
+                <text x="310" y="103" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">grandtotal · subtotal · status</text>
+
+                <!-- Transaction (line item) -->
+                <rect x="60" y="170" rx="8" width="190" height="56" fill="#fff" stroke="#f56400" stroke-width="2" filter="url(#e-shadow)"/>
+                <text x="155" y="195" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Transaction</text>
+                <text x="155" y="213" text-anchor="middle" font-size="10" fill="#a09cae">price · qty · title · listing</text>
+
+                <!-- Shop Refund -->
+                <rect x="380" y="170" rx="8" width="160" height="56" fill="#fff" stroke="#c62828" stroke-width="2" filter="url(#e-shadow)"/>
+                <text x="460" y="195" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Refund</text>
+                <text x="460" y="213" text-anchor="middle" font-size="10" fill="#a09cae">amount · reason · status</text>
+
+                <!-- Payment -->
+                <rect x="200" y="290" rx="8" width="220" height="70" fill="#fff" stroke="#f56400" stroke-width="2" filter="url(#e-shadow)"/>
+                <text x="310" y="318" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Payment</text>
+                <text x="310" y="336" text-anchor="middle" font-size="10" fill="#a09cae">3-stage: amount → posted → adjusted</text>
+                <text x="310" y="350" text-anchor="middle" font-size="10" fill="#a09cae">gross · fees · net (each stage)</text>
+
+                <!-- Payment Adjustment -->
+                <rect x="200" y="420" rx="8" width="200" height="50" fill="#fff" stroke="#c62828" stroke-width="1.5" filter="url(#e-shadow)"/>
+                <text x="300" y="445" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a2e">Payment Adjustment</text>
+                <text x="300" y="460" text-anchor="middle" font-size="10" fill="#a09cae">refund amounts in 3 currencies</text>
+
+                <!-- Payment Adjustment Item -->
+                <rect x="200" y="495" rx="8" width="200" height="36" fill="#fff" stroke="#a09cae" stroke-width="1" filter="url(#e-shadow)"/>
+                <text x="300" y="518" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Adjustment Item</text>
+
+                <!-- Listing -->
+                <rect x="60" y="280" rx="8" width="110" height="40" fill="#fff" stroke="#a09cae" stroke-width="1.5"/>
+                <text x="115" y="305" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a2e">Listing</text>
+
+                <!-- Variations -->
+                <rect x="60" y="340" rx="8" width="110" height="36" fill="#fff8e1" stroke="#e65100" stroke-width="1"/>
+                <text x="115" y="363" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Variations</text>
+
+                <!-- Shipments -->
+                <rect x="460" y="90" rx="8" width="130" height="36" fill="#fff" stroke="#a09cae" stroke-width="1"/>
+                <text x="525" y="113" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Shipments</text>
+
+                <!-- Ledger Entry -->
+                <rect x="720" y="80" rx="8" width="220" height="56" fill="#27ae60" filter="url(#e-shadow)"/>
+                <text x="830" y="105" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Ledger Entry</text>
+                <text x="830" y="123" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">amount · balance · ledger_type</text>
+
+                <!-- Ledger type categories -->
+                <rect x="720" y="170" rx="6" width="220" height="36" fill="#e8f5e9" stroke="#27ae60" stroke-width="1"/>
+                <text x="830" y="193" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Revenue: transaction, shipping</text>
+
+                <rect x="720" y="220" rx="6" width="220" height="36" fill="#fff3e0" stroke="#e65100" stroke-width="1"/>
+                <text x="830" y="243" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Fees: listing, renew, offsite_ads</text>
+
+                <rect x="720" y="270" rx="6" width="220" height="36" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+                <text x="830" y="293" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Tax: sales_tax, vat</text>
+
+                <rect x="720" y="320" rx="6" width="220" height="36" fill="#fce4ec" stroke="#c62828" stroke-width="1"/>
+                <text x="830" y="343" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Refunds: *_refund types</text>
+
+                <rect x="720" y="370" rx="6" width="220" height="36" fill="#e3f2fd" stroke="#1565c0" stroke-width="1"/>
+                <text x="830" y="393" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Disbursement: DISBURSE2</text>
+
+                <!-- Fee note -->
+                <rect x="720" y="430" rx="6" width="220" height="60" fill="#fff8e1" stroke="#f5c842" stroke-width="1.5"/>
+                <text x="830" y="452" text-anchor="middle" font-size="10" font-weight="600" fill="#1a1a2e">Payment.amount_fees</text>
+                <text x="830" y="467" text-anchor="middle" font-size="10" fill="#555">= processing fees ONLY</text>
+                <text x="830" y="482" text-anchor="middle" font-size="10" fill="#555">All other fees are on the Ledger</text>
+
+                <!-- === LINES === -->
+                <!-- Receipt → Transaction (1:many) -->
+                <line x1="260" y1="116" x2="155" y2="170" stroke="#a09cae" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+                <text x="185" y="148" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- Receipt → Refund (1:many) -->
+                <line x1="360" y1="116" x2="460" y2="170" stroke="#a09cae" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+                <text x="425" y="148" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- Receipt → Payment -->
+                <line x1="310" y1="116" x2="310" y2="290" stroke="#a09cae" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+                <text x="318" y="215" font-size="10" fill="#a09cae">1:1</text>
+
+                <!-- Receipt → Shipments -->
+                <line x1="410" y1="82" x2="460" y2="100" stroke="#a09cae" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#e-arrow)"/>
+
+                <!-- Payment → Payment Adjustment -->
+                <line x1="300" y1="360" x2="300" y2="420" stroke="#a09cae" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+                <text x="308" y="400" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- Payment Adjustment → Adjustment Item -->
+                <line x1="300" y1="470" x2="300" y2="495" stroke="#a09cae" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+                <text x="308" y="488" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- Transaction → Listing -->
+                <line x1="115" y1="226" x2="115" y2="280" stroke="#a09cae" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#e-arrow)"/>
+
+                <!-- Transaction → Variations -->
+                <line x1="80" y1="226" x2="80" y2="340" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Ledger Entry → categories -->
+                <line x1="830" y1="136" x2="830" y2="170" stroke="#a09cae" stroke-width="1.5"/>
+            </svg>
+            <div class="erd-label">Etsy API — dual-stream data model (order pipeline + account ledger)</div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 10. ERD — GUMROAD -->
+    <!-- ============================================================ -->
+
+    <div class="section" id="erd-gumroad">
+        <h2>10. ERD — <span class="platform-badge badge-gumroad">Gumroad</span> API Data Model</h2>
+        <p>Gumroad has the simplest data model. <strong>Sale</strong> is the primary revenue record. Payouts with <code>include_transactions=true</code> provide the richest financial breakdown.</p>
+
+        <div class="erd">
+            <svg viewBox="0 0 1000 480" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+                <defs>
+                    <marker id="g-arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
+                    </marker>
+                    <filter id="g-shadow" x="-4%" y="-4%" width="108%" height="116%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#ff90e8" flood-opacity="0.15"/>
+                    </filter>
+                </defs>
+
+                <!-- Background: Sales -->
+                <rect x="20" y="10" width="580" height="450" rx="12" fill="#fce4ec" opacity="0.18"/>
+                <text x="40" y="36" font-size="11" font-weight="600" fill="#c62828" opacity="0.5">SALES &amp; PRODUCTS</text>
+
+                <!-- Background: Payouts -->
+                <rect x="620" y="10" width="360" height="450" rx="12" fill="#e3f2fd" opacity="0.25"/>
+                <text x="640" y="36" font-size="11" font-weight="600" fill="#1565c0" opacity="0.7">PAYOUTS</text>
+
+                <!-- === BOXES === -->
+                <!-- Sale (central) -->
+                <rect x="200" y="70" rx="8" width="200" height="60" fill="#ff90e8" filter="url(#g-shadow)"/>
+                <text x="300" y="96" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">Sale</text>
+                <text x="300" y="114" text-anchor="middle" font-size="10" fill="rgba(0,0,0,0.55)">price · gumroad_fee · created_at</text>
+
+                <!-- Product -->
+                <rect x="50" y="70" rx="8" width="120" height="56" fill="#fff" stroke="#ff90e8" stroke-width="2" filter="url(#g-shadow)"/>
+                <text x="110" y="95" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Product</text>
+                <text x="110" y="113" text-anchor="middle" font-size="10" fill="#a09cae">name · price · currency</text>
+
+                <!-- Subscriber -->
+                <rect x="50" y="190" rx="8" width="160" height="56" fill="#fff" stroke="#ff90e8" stroke-width="2" filter="url(#g-shadow)"/>
+                <text x="130" y="215" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Subscriber</text>
+                <text x="130" y="233" text-anchor="middle" font-size="10" fill="#a09cae">status · recurrence · charges</text>
+
+                <!-- Offer Code -->
+                <rect x="250" y="190" rx="8" width="130" height="44" fill="#fff" stroke="#a09cae" stroke-width="1.5" filter="url(#g-shadow)"/>
+                <text x="315" y="217" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a2e">Offer Code</text>
+
+                <!-- Affiliate -->
+                <rect x="410" y="190" rx="8" width="130" height="44" fill="#fff" stroke="#e65100" stroke-width="1.5" filter="url(#g-shadow)"/>
+                <text x="475" y="217" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a2e">Affiliate</text>
+
+                <!-- Card -->
+                <rect x="440" y="80" rx="8" width="110" height="40" fill="#fff" stroke="#a09cae" stroke-width="1" filter="url(#g-shadow)"/>
+                <text x="495" y="105" text-anchor="middle" font-size="12" font-weight="500" fill="#1a1a2e">Card Details</text>
+
+                <!-- Variants -->
+                <rect x="250" y="280" rx="6" width="130" height="36" fill="#fff8e1" stroke="#e65100" stroke-width="1"/>
+                <text x="315" y="303" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Variants</text>
+
+                <!-- Custom Fields -->
+                <rect x="410" y="280" rx="6" width="130" height="36" fill="#fff8e1" stroke="#e65100" stroke-width="1"/>
+                <text x="475" y="303" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Custom Fields</text>
+
+                <!-- Gift info -->
+                <rect x="50" y="300" rx="6" width="160" height="36" fill="#fff8e1" stroke="#e65100" stroke-width="1"/>
+                <text x="130" y="323" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Gift Info (sender/receiver)</text>
+
+                <!-- License -->
+                <rect x="50" y="360" rx="6" width="160" height="36" fill="#fff8e1" stroke="#e65100" stroke-width="1"/>
+                <text x="130" y="383" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">License Key</text>
+
+                <!-- PPP Prices -->
+                <rect x="50" y="145" rx="6" width="120" height="30" fill="#fff8e1" stroke="#e65100" stroke-width="1"/>
+                <text x="110" y="165" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">PPP Prices</text>
+
+                <!-- Payout -->
+                <rect x="680" y="70" rx="8" width="200" height="56" fill="#1565c0" filter="url(#g-shadow)"/>
+                <text x="780" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Payout</text>
+                <text x="780" y="113" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">amount · status · processor</text>
+
+                <!-- Payout Transaction -->
+                <rect x="670" y="180" rx="8" width="220" height="70" fill="#fff" stroke="#1565c0" stroke-width="2" filter="url(#g-shadow)"/>
+                <text x="780" y="208" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">Payout Transaction</text>
+                <text x="780" y="226" text-anchor="middle" font-size="10" fill="#a09cae">sale_price · gumroad_fees · net_total</text>
+                <text x="780" y="241" text-anchor="middle" font-size="10" fill="#a09cae">taxes · shipping · type</text>
+
+                <!-- Transaction Types -->
+                <rect x="670" y="285" rx="6" width="220" height="36" fill="#e8f5e9" stroke="#27ae60" stroke-width="1"/>
+                <text x="780" y="308" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Sale</text>
+
+                <rect x="670" y="330" rx="6" width="220" height="36" fill="#fce4ec" stroke="#c62828" stroke-width="1"/>
+                <text x="780" y="353" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Full Refund · Partial Refund · Chargeback</text>
+
+                <rect x="670" y="375" rx="6" width="220" height="36" fill="#fff3e0" stroke="#e65100" stroke-width="1"/>
+                <text x="780" y="398" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Affiliate Credit · Payout Fee</text>
+
+                <rect x="670" y="420" rx="6" width="220" height="36" fill="#e3f2fd" stroke="#1565c0" stroke-width="1"/>
+                <text x="780" y="443" text-anchor="middle" font-size="11" font-weight="500" fill="#1a1a2e">Stripe/PayPal Payouts</text>
+
+                <!-- === LINES === -->
+                <!-- Product → Sale -->
+                <line x1="170" y1="98" x2="200" y2="98" stroke="#a09cae" stroke-width="1.5" marker-end="url(#g-arrow)"/>
+                <text x="177" y="92" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- Sale → Subscriber -->
+                <path d="M 250 130 L 130 190" fill="none" stroke="#a09cae" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#g-arrow)"/>
+
+                <!-- Sale → Offer Code -->
+                <line x1="315" y1="130" x2="315" y2="190" stroke="#a09cae" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+                <!-- Sale → Affiliate -->
+                <line x1="400" y1="115" x2="475" y2="190" stroke="#a09cae" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+                <!-- Sale → Card -->
+                <line x1="400" y1="95" x2="440" y2="95" stroke="#a09cae" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Sale → Variants -->
+                <path d="M 300 130 L 300 160 L 315 280" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Sale → Custom Fields -->
+                <path d="M 340 130 L 340 160 L 475 280" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Sale → Gift Info -->
+                <path d="M 260 130 L 260 260 L 130 300" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Sale → License -->
+                <path d="M 240 130 L 240 380 L 210 380" fill="none" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Product → PPP -->
+                <line x1="110" y1="126" x2="110" y2="145" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Subscriber → Product -->
+                <line x1="90" y1="190" x2="90" y2="126" stroke="#a09cae" stroke-width="1.5" marker-end="url(#g-arrow)"/>
+
+                <!-- Payout → Payout Transaction -->
+                <line x1="780" y1="126" x2="780" y2="180" stroke="#a09cae" stroke-width="1.5" marker-end="url(#g-arrow)"/>
+                <text x="788" y="158" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- Payout Transaction → types -->
+                <line x1="780" y1="250" x2="780" y2="285" stroke="#a09cae" stroke-width="1"/>
+
+                <!-- Payout → Sale (cross-link) -->
+                <path d="M 680 100 L 600 100 L 600 60 L 400 60 L 400 80" fill="none" stroke="#a09cae" stroke-width="1" stroke-dasharray="6,4" marker-end="url(#g-arrow)"/>
+                <text x="530" y="55" font-size="10" fill="#a09cae">sale IDs</text>
+            </svg>
+            <div class="erd-label">Gumroad API — sales-centric data model with payout breakdown</div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 11. ERD — PROPOSED MYTALLI DATABASE -->
+    <!-- ============================================================ -->
+
+    <div class="section" id="erd-mytalli">
+        <h2>11. ERD — Proposed MyTalli Database</h2>
+        <p>How all platform data funnels into MyTalli's <code>app</code> schema. The <strong>normalized layer</strong> (Revenue, Expense) is what Goals and the Dashboard query. Platform-specific tables preserve raw data for drill-down.</p>
+
+        <div class="erd">
+            <svg viewBox="0 0 1060 700" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+                <defs>
+                    <marker id="m-arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
+                    </marker>
+                    <marker id="m-arrow-purple" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#6c5ce7"/>
+                    </marker>
+                    <filter id="m-shadow" x="-4%" y="-4%" width="108%" height="116%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#6c5ce7" flood-opacity="0.12"/>
+                    </filter>
+                </defs>
+
+                <!-- Background: Existing auth schema -->
+                <rect x="20" y="10" width="230" height="120" rx="12" fill="#f0edff" opacity="0.4"/>
+                <text x="40" y="34" font-size="11" font-weight="600" fill="#6c5ce7" opacity="0.7">auth SCHEMA (existing)</text>
+
+                <!-- Background: Platform Connections -->
+                <rect x="270" y="10" width="250" height="120" rx="12" fill="#e3f2fd" opacity="0.25"/>
+                <text x="290" y="34" font-size="11" font-weight="600" fill="#1565c0" opacity="0.7">PLATFORM CONNECTIONS</text>
+
+                <!-- Background: Normalized layer -->
+                <rect x="20" y="150" width="500" height="200" rx="12" fill="#e8f5e9" opacity="0.25"/>
+                <text x="40" y="174" font-size="11" font-weight="600" fill="#27ae60" opacity="0.7">NORMALIZED LAYER (Goals &amp; Dashboard query here)</text>
+
+                <!-- Background: Platform-specific -->
+                <rect x="540" y="150" width="500" height="320" rx="12" fill="#fff3e0" opacity="0.25"/>
+                <text x="560" y="174" font-size="11" font-weight="600" fill="#e65100" opacity="0.7">PLATFORM-SPECIFIC (1-to-1 detail, raw data preservation)</text>
+
+                <!-- Background: Goals -->
+                <rect x="20" y="380" width="500" height="300" rx="12" fill="#f3e5f5" opacity="0.2"/>
+                <text x="40" y="404" font-size="11" font-weight="600" fill="#7b1fa2" opacity="0.7">GOALS ENGINE</text>
+
+                <!-- === BOXES === -->
+                <!-- auth.User (existing) -->
+                <rect x="50" y="50" rx="8" width="170" height="50" fill="#6c5ce7" filter="url(#m-shadow)"/>
+                <text x="135" y="72" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">auth.User</text>
+                <text x="135" y="88" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">existing — identity</text>
+
+                <!-- app.PlatformConnection -->
+                <rect x="300" y="48" rx="8" width="200" height="56" fill="#1565c0" filter="url(#m-shadow)"/>
+                <text x="400" y="72" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.PlatformConnection</text>
+                <text x="400" y="88" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">OAuth tokens · account ID · status</text>
+
+                <!-- app.Revenue -->
+                <rect x="50" y="200" rx="8" width="220" height="64" fill="#27ae60" filter="url(#m-shadow)"/>
+                <text x="160" y="226" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">app.Revenue</text>
+                <text x="160" y="244" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">gross · fee · net · currency · date</text>
+                <text x="160" y="256" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">platform · description</text>
+
+                <!-- app.Expense -->
+                <rect x="300" y="200" rx="8" width="200" height="64" fill="#fff" stroke="#27ae60" stroke-width="2" filter="url(#m-shadow)"/>
+                <text x="400" y="226" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">app.Expense</text>
+                <text x="400" y="244" text-anchor="middle" font-size="10" fill="#a09cae">amount · type · currency · date</text>
+                <text x="400" y="256" text-anchor="middle" font-size="10" fill="#a09cae">platform · description</text>
+
+                <!-- TBD note on Expense -->
+                <rect x="380" y="272" rx="4" width="60" height="18" fill="#f5c842" opacity="0.4"/>
+                <text x="410" y="285" text-anchor="middle" font-size="9" font-weight="600" fill="#e65100">TBD</text>
+
+                <!-- app.RevenueStripe -->
+                <rect x="580" y="195" rx="8" width="190" height="56" fill="#fff" stroke="#635bff" stroke-width="2" filter="url(#m-shadow)"/>
+                <text x="675" y="218" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a2e">app.RevenueStripe</text>
+                <text x="675" y="236" text-anchor="middle" font-size="10" fill="#a09cae">balance_txn_id · risk_score</text>
+                <text x="675" y="248" text-anchor="middle" font-size="10" fill="#a09cae">payment_method · exchange_rate</text>
+
+                <!-- app.RevenueEtsy -->
+                <rect x="800" y="195" rx="8" width="190" height="56" fill="#fff" stroke="#f56400" stroke-width="2" filter="url(#m-shadow)"/>
+                <text x="895" y="218" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a2e">app.RevenueEtsy</text>
+                <text x="895" y="236" text-anchor="middle" font-size="10" fill="#a09cae">receipt_id · listing_id</text>
+                <text x="895" y="248" text-anchor="middle" font-size="10" fill="#a09cae">3-stage amounts · shop_currency</text>
+
+                <!-- app.RevenueGumroad -->
+                <rect x="580" y="280" rx="8" width="190" height="56" fill="#fff" stroke="#ff90e8" stroke-width="2" filter="url(#m-shadow)"/>
+                <text x="675" y="303" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a2e">app.RevenueGumroad</text>
+                <text x="675" y="321" text-anchor="middle" font-size="10" fill="#a09cae">sale_id · discover_fee · license_key</text>
+
+                <!-- Future platform placeholders -->
+                <rect x="800" y="280" rx="8" width="190" height="44" fill="#faf9ff" stroke="#e0dce8" stroke-width="1.5" stroke-dasharray="6,4"/>
+                <text x="895" y="300" text-anchor="middle" font-size="12" font-weight="500" fill="#a09cae">app.RevenuePayPal</text>
+                <text x="895" y="316" text-anchor="middle" font-size="10" fill="#ccc">future</text>
+
+                <rect x="800" y="345" rx="8" width="190" height="44" fill="#faf9ff" stroke="#e0dce8" stroke-width="1.5" stroke-dasharray="6,4"/>
+                <text x="895" y="365" text-anchor="middle" font-size="12" font-weight="500" fill="#a09cae">app.RevenueShopify</text>
+                <text x="895" y="381" text-anchor="middle" font-size="10" fill="#ccc">future</text>
+
+                <!-- Payout (future) -->
+                <rect x="580" y="370" rx="8" width="190" height="44" fill="#faf9ff" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="6,4"/>
+                <text x="675" y="390" text-anchor="middle" font-size="12" font-weight="500" fill="#a09cae">app.Payout</text>
+                <text x="675" y="406" text-anchor="middle" font-size="10" fill="#ccc">future — tracks disbursements</text>
+
+                <!-- app.GoalType -->
+                <rect x="50" y="430" rx="8" width="180" height="56" fill="#7b1fa2" filter="url(#m-shadow)"/>
+                <text x="140" y="455" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.GoalType</text>
+                <text x="140" y="473" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">name — lookup / seed data</text>
+
+                <!-- app.Goal -->
+                <rect x="280" y="430" rx="8" width="220" height="70" fill="#fff" stroke="#7b1fa2" stroke-width="2" filter="url(#m-shadow)"/>
+                <text x="390" y="456" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">app.Goal</text>
+                <text x="390" y="474" text-anchor="middle" font-size="10" fill="#a09cae">target_amount · start/end date</text>
+                <text x="390" y="488" text-anchor="middle" font-size="10" fill="#a09cae">platform (optional filter) · status</text>
+
+                <!-- Goal Type examples -->
+                <rect x="50" y="510" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+                <text x="140" y="530" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Monthly Revenue Target</text>
+
+                <rect x="50" y="548" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+                <text x="140" y="568" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Yearly Revenue Target</text>
+
+                <rect x="50" y="586" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+                <text x="140" y="606" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Platform Monthly Target</text>
+
+                <rect x="50" y="624" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+                <text x="140" y="644" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Growth Rate Target</text>
+
+                <!-- Goal queries Revenue note -->
+                <rect x="280" y="530" rx="8" width="220" height="70" fill="#e8f5e9" stroke="#27ae60" stroke-width="1.5"/>
+                <text x="390" y="555" text-anchor="middle" font-size="11" font-weight="600" fill="#27ae60">Goal queries Revenue</text>
+                <text x="390" y="572" text-anchor="middle" font-size="10" fill="#555">SUM(NetAmount) WHERE</text>
+                <text x="390" y="586" text-anchor="middle" font-size="10" fill="#555">date range + optional platform</text>
+
+                <!-- === LINES === -->
+                <!-- User → PlatformConnection -->
+                <line x1="220" y1="75" x2="300" y2="75" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="252" y="69" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- User → Revenue -->
+                <path d="M 100 100 L 100 200" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="108" y="155" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- User → Expense -->
+                <path d="M 180 100 L 180 145 L 380 145 L 380 200" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="290" y="140" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- User → Goal -->
+                <path d="M 50 90 L 30 90 L 30 465 L 280 465" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="35" y="300" font-size="10" fill="#a09cae" transform="rotate(-90, 35, 300)">1:N</text>
+
+                <!-- PlatformConnection → Revenue -->
+                <path d="M 400 104 L 400 130 L 200 130 L 200 200" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+
+                <!-- Revenue → RevenueStripe (1:1) -->
+                <line x1="270" y1="225" x2="580" y2="220" stroke="#635bff" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="420" y="216" font-size="10" fill="#635bff">1:1</text>
+
+                <!-- Revenue → RevenueEtsy (1:1) -->
+                <path d="M 270 240 L 520 240 L 520 225 L 800 225" fill="none" stroke="#f56400" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="660" y="236" font-size="10" fill="#f56400">1:1</text>
+
+                <!-- Revenue → RevenueGumroad (1:1) -->
+                <path d="M 270 250 L 520 250 L 520 308 L 580 308" fill="none" stroke="#ff90e8" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="545" y="300" font-size="10" fill="#c62828">1:1</text>
+
+                <!-- GoalType → Goal -->
+                <line x1="230" y1="458" x2="280" y2="458" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="248" y="452" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- GoalType → examples -->
+                <line x1="140" y1="486" x2="140" y2="510" stroke="#7b1fa2" stroke-width="1" stroke-dasharray="4,3"/>
+
+                <!-- Goal → Revenue (queries) -->
+                <path d="M 390 500 L 390 530" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#m-arrow)"/>
+
+                <!-- Legend -->
+                <rect x="560" y="450" width="220" height="130" rx="8" fill="#fff" stroke="#e0dce8" stroke-width="1"/>
+                <text x="575" y="472" font-size="11" font-weight="600" fill="#1a1a2e">Legend</text>
+                <line x1="575" y1="490" x2="605" y2="490" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="615" y="494" font-size="10" fill="#555">FK relationship</text>
+                <line x1="575" y1="510" x2="605" y2="510" stroke="#635bff" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="615" y="514" font-size="10" fill="#555">1-to-1 (shared PK)</text>
+                <line x1="575" y1="530" x2="605" y2="530" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3"/>
+                <text x="615" y="534" font-size="10" fill="#555">queries (not FK)</text>
+                <rect x="575" y="543" width="12" height="12" rx="2" fill="#27ae60"/>
+                <text x="595" y="553" font-size="10" fill="#555">normalized (Goals query here)</text>
+                <rect x="575" y="560" width="12" height="12" rx="2" fill="#fff" stroke="#635bff" stroke-width="1.5"/>
+                <text x="595" y="570" font-size="10" fill="#555">platform-specific (1-to-1)</text>
+            </svg>
+            <div class="erd-label">Proposed MyTalli app schema — normalized revenue layer with platform-specific detail tables</div>
+        </div>
+
+        <div class="callout callout-tip">
+            <strong>Key pattern:</strong> This mirrors the existing <code>auth</code> schema design. Just as <code>auth.User</code> is the common identity with <code>UserAuthenticationGoogle</code> / <code>Apple</code> / <code>Microsoft</code> as 1-to-1 provider tables, <code>app.Revenue</code> is the common financial record with <code>RevenueStripe</code> / <code>RevenueEtsy</code> / <code>RevenueGumroad</code> as 1-to-1 platform tables. Same shared-PK pattern, same "new provider = new table" extensibility.
+        </div>
+
+        <h3>Data Flow Summary</h3>
+        <div class="code-block">
+<span class="comment">-- How data flows through the system:</span>
+
+<span class="string">User connects Stripe</span> → app.PlatformConnection (OAuth tokens, account ID)
+                        ↓
+<span class="string">Sync job pulls data</span>  → Stripe API: GET /v1/balance_transactions
+                        ↓
+<span class="string">Ingestion normalizes</span> → app.Revenue (gross, fee, net, currency, date, "Stripe")
+                        → app.RevenueStripe (balance_txn_id, risk_score, payment_method)
+                        ↓
+<span class="string">Dashboard queries</span>    → SELECT SUM(NetAmount) FROM app.Revenue WHERE ...
+                        ↓
+<span class="string">Goals engine checks</span>  → app.Goal.TargetAmount vs. current SUM from Revenue
+                        ↓
+<span class="string">Drill-down detail</span>   → JOIN app.RevenueStripe for platform-specific info
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
