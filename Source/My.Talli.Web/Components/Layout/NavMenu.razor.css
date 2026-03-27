@@ -15,7 +15,7 @@
 .upgrade-card::before { background: radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.12) 0%, transparent 60%); content: ''; height: 100%; left: 0; pointer-events: none; position: absolute; top: 0; width: 100%; }
 .upgrade-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; position: relative; }
 .upgrade-card p { color: rgba(255, 255, 255, 0.75); font-size: 12px; line-height: 1.5; margin-bottom: 14px; position: relative; }
-.upgrade-btn { background: #fff; border: none; border-radius: 8px; color: #6c5ce7; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 20px; position: relative; transition: box-shadow 0.15s ease, transform 0.15s ease; }
+.upgrade-btn { background: #fff; border: none; border-radius: 8px; color: #6c5ce7; cursor: pointer; display: block; font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 20px; position: relative; text-align: center; text-decoration: none; transition: box-shadow 0.15s ease, transform 0.15s ease; }
 .upgrade-btn:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); transform: translateY(-1px); }
 
 /* ─── USER SECTION ─── */

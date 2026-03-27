@@ -51,8 +51,6 @@ public class DashboardViewModel : ComponentBase
 
     public bool IsSampleData { get; private set; } = true;
 
-    public bool IsUserMenuOpen { get; private set; }
-
     public int MonthlyGoalPercentage { get; private set; } = 68;
 
     public List<string> Periods { get; } = ["7D", "30D", "90D", "12M"];
@@ -71,13 +69,7 @@ public class DashboardViewModel : ComponentBase
 
     public string TotalRevenueChange { get; private set; } = "23%";
 
-    public string UserEmail { get; private set; } = string.Empty;
-
     public string UserFirstName { get; private set; } = string.Empty;
-
-    public string UserFullName { get; private set; } = string.Empty;
-
-    public string UserInitials { get; private set; } = string.Empty;
 
 
     #endregion
@@ -95,20 +87,10 @@ public class DashboardViewModel : ComponentBase
 
     #region <Methods>
 
-    public void CloseUserMenu()
-    {
-        IsUserMenuOpen = false;
-    }
-
     public void SelectPeriod(string period)
     {
         ActivePeriod = period;
         StateHasChanged();
-    }
-
-    public void ToggleUserMenu()
-    {
-        IsUserMenuOpen = !IsUserMenuOpen;
     }
 
     private async Task LoadUserFromClaims()
@@ -127,10 +109,7 @@ public class DashboardViewModel : ComponentBase
 
         var (info, userPreferences) = await UserDisplayCache.GetOrLoadAsync(userId, email);
 
-        UserEmail = info.Email;
         UserFirstName = info.FirstName;
-        UserFullName = info.FullName;
-        UserInitials = info.Initials;
 
         var preferences = PreferencesSerializer.Deserialize(userPreferences);
 
