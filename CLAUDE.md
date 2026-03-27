@@ -548,7 +548,8 @@ My.Talli/
         │   │   ├── StripeBillingService.cs  # Stripe Checkout, Portal, & plan switch API wrapper
         │   │   └── StripeSettings.cs        # Stripe configuration POCO
         │   ├── Identity/
-        │   │   └── CurrentUserService.cs    # ICurrentUserService implementation (scoped, set by CurrentUserMiddleware)
+        │   │   ├── CurrentUserService.cs    # ICurrentUserService implementation (scoped, set by CurrentUserMiddleware)
+        │   │   └── UserDisplayCache.cs      # Scoped cache — serializes DB access for user display info across concurrent Blazor components
         │   ├── Email/
         │   │   ├── EmailSettings.cs             # SMTP config POCO (IOptions<EmailSettings>)
         │   │   ├── ExceptionEmailHandler.cs     # IExceptionHandler — sends email, returns false
@@ -1079,12 +1080,15 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 
 ### Missing Name Fallback
 
-- **Some OAuth providers (especially Apple) may not provide a user's name.** The UI must never show blank names, empty initials, or broken layouts when name data is missing.
-- **`UserClaimsHelper.Resolve()`** (`Helpers/UserClaimsHelper.cs`) is the single source of truth for resolving user display info from claims. Both `DashboardViewModel` and `NavMenuViewModel` use it. Any new ViewModel that needs user display info should use it too.
-- **Fallback chain for display name:** DisplayName → email prefix (before `@`) → `"User"`
-- **Fallback chain for greeting (first name):** FirstName → first word of DisplayName → email prefix → `"there"` (produces "Good morning, there")
+- **Names can be missing for multiple reasons:** OAuth providers (especially Apple) may not provide a name, or users may clear their name in Settings. The UI must never show blank names, empty initials, or broken layouts when name data is missing.
+- **`UserClaimsHelper.Resolve()`** (`Helpers/UserClaimsHelper.cs`) is the single source of truth for resolving user display info. Has two overloads: one from `ClaimsPrincipal` (used by claims-only contexts), one from raw strings (used by DB-backed contexts). Any new ViewModel that needs user display info should use it.
+- **`UserDisplayCache`** (`Services/Identity/UserDisplayCache.cs`) — scoped service that loads user display info from the database once per Blazor circuit, caches it, and serializes access with a `SemaphoreSlim`. Both `DashboardViewModel` and `NavMenuViewModel` use it to avoid concurrent `DbContext` access (Blazor Server renders layout and page components in parallel). `SettingsViewModel` calls `Invalidate()` after saving so the next navigation picks up updated names.
+- **Display info comes from the database, not claims.** Auth cookie claims contain name data frozen at sign-in time. The `UserDisplayCache` reads from `auth.User` so name changes in Settings take effect immediately without requiring sign-out/sign-in.
+- **Fallback chain for display name:** DisplayName → email prefix (before `@`)
+- **Fallback chain for greeting (first name):** FirstName → first word of DisplayName → random Fun Greeting (title case, e.g., "Good morning, Stack Builder")
 - **Fallback chain for initials:** First+Last initials → first+last word of DisplayName → first letter of email → `"?"`
-- **Profile editing** — users should be able to update their DisplayName, FirstName, and LastName from the Settings page (not yet built). This is the permanent fix for missing Apple names.
+- **Fun Greetings** — when no name is available, the greeting falls back to a random title-cased fun greeting (e.g., "Revenue Rockstar", "Side-Hustle Hero"). This is the last-resort fallback in `Resolve()` and always activates when names are empty, regardless of the Fun Greetings user preference. The Fun Greetings preference adds randomness on top (a different greeting each visit) when the user *does* have a name.
+- **Email notifications** — all customer emails (`WelcomeEmailNotification`, `SubscriptionConfirmationEmailNotification`, `WeeklySummaryEmailNotification`) fall back to `"there"` when FirstName is empty (e.g., "Welcome to MyTalli, there!").
 
 ### Summary Tag Convention
 

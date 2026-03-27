@@ -6,6 +6,7 @@ using Domain.Models;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Services.Identity;
 using System.Security.Claims;
 
 using ENTITIES = Domain.Entities;
@@ -26,6 +27,9 @@ public class SettingsViewModel : ComponentBase
 
     [Inject]
     private RepositoryAdapterAsync<User, ENTITIES.User> UserAdapter { get; set; } = default!;
+
+    [Inject]
+    private UserDisplayCache UserDisplayCache { get; set; } = default!;
 
     private long? _userId;
 
@@ -132,6 +136,8 @@ public class SettingsViewModel : ComponentBase
         user.UserPreferences = PreferencesSerializer.Serialize(preferences);
 
         await UserAdapter.UpdateAsync(user);
+
+        UserDisplayCache.Invalidate();
 
         IsSaving = false;
         IsSaved = true;

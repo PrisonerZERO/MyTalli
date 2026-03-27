@@ -19,6 +19,7 @@ public class SubscriptionConfirmationEmailNotification : EmailNotificationOf<Sub
     public override SmtpNotification Build(EmailNotificationArgumentOf<SubscriptionConfirmationEmailNotificationPayload> arguments)
     {
         var payload = arguments.Payload;
+        var firstName = string.IsNullOrWhiteSpace(payload.FirstName) ? "there" : payload.FirstName;
 
         var template = Assembly.GetExecutingAssembly().GetManifestResourceContent(TemplateResourceName);
 
@@ -28,7 +29,7 @@ public class SubscriptionConfirmationEmailNotification : EmailNotificationOf<Sub
             .Replace("[[Subscription.Amount]]", WebUtility.HtmlEncode(payload.Amount))
             .Replace("[[Subscription.Plan]]", WebUtility.HtmlEncode(payload.Plan))
             .Replace("[[Subscription.RenewalDate]]", WebUtility.HtmlEncode(payload.RenewalDate))
-            .Replace("[[User.FirstName]]", WebUtility.HtmlEncode(payload.FirstName));
+            .Replace("[[User.FirstName]]", WebUtility.HtmlEncode(firstName));
 
         Subject = "You're on Pro! \u2014 MyTalli";
 

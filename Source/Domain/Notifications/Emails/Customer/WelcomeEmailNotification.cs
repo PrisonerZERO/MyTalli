@@ -19,14 +19,15 @@ public class WelcomeEmailNotification : EmailNotificationOf<WelcomeEmailNotifica
     public override SmtpNotification Build(EmailNotificationArgumentOf<WelcomeEmailNotificationPayload> arguments)
     {
         var payload = arguments.Payload;
+        var firstName = string.IsNullOrWhiteSpace(payload.FirstName) ? "there" : payload.FirstName;
 
         var template = Assembly.GetExecutingAssembly().GetManifestResourceContent(TemplateResourceName);
 
         Body = template
             .Replace("[[UnsubscribeUrl]]", $"https://www.mytalli.com/unsubscribe?token={WebUtility.UrlEncode(payload.UnsubscribeToken)}")
-            .Replace("[[User.FirstName]]", WebUtility.HtmlEncode(payload.FirstName));
+            .Replace("[[User.FirstName]]", WebUtility.HtmlEncode(firstName));
 
-        Subject = $"Welcome to MyTalli, {payload.FirstName}!";
+        Subject = $"Welcome to MyTalli, {firstName}!";
 
         return FinalizeEmail();
     }

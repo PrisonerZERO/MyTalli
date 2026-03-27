@@ -19,6 +19,7 @@ public class WeeklySummaryEmailNotification : EmailNotificationOf<WeeklySummaryE
     public override SmtpNotification Build(EmailNotificationArgumentOf<WeeklySummaryEmailNotificationPayload> arguments)
     {
         var payload = arguments.Payload;
+        var firstName = string.IsNullOrWhiteSpace(payload.FirstName) ? "there" : payload.FirstName;
 
         var template = Assembly.GetExecutingAssembly().GetManifestResourceContent(TemplateResourceName);
 
@@ -33,7 +34,7 @@ public class WeeklySummaryEmailNotification : EmailNotificationOf<WeeklySummaryE
             .Replace("[[Summary.TrendDirection]]", WebUtility.HtmlEncode(payload.TrendDirection))
             .Replace("[[Summary.TrendPercent]]", WebUtility.HtmlEncode(payload.TrendPercent))
             .Replace("[[Summary.WeekRange]]", WebUtility.HtmlEncode(payload.WeekRange))
-            .Replace("[[User.FirstName]]", WebUtility.HtmlEncode(payload.FirstName));
+            .Replace("[[User.FirstName]]", WebUtility.HtmlEncode(firstName));
 
         Subject = $"Your Week in Review \u2014 {payload.TotalRevenue} \u2014 MyTalli";
 

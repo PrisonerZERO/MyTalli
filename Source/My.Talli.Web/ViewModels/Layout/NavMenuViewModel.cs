@@ -1,8 +1,9 @@
 namespace My.Talli.Web.ViewModels.Layout;
 
-using Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Services.Identity;
+using System.Security.Claims;
 
 /// <summary>View Model</summary>
 public class NavMenuViewModel : ComponentBase
@@ -11,6 +12,9 @@ public class NavMenuViewModel : ComponentBase
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+	[Inject]
+	private UserDisplayCache UserDisplayCache { get; set; } = default!;
 
 	#endregion
 
@@ -35,7 +39,13 @@ public class NavMenuViewModel : ComponentBase
 		if (principal.Identity?.IsAuthenticated != true)
 			return;
 
-		var info = UserClaimsHelper.Resolve(principal);
+		var email = principal.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
+		var userIdClaim = principal.FindFirst("UserId")?.Value;
+
+		if (userIdClaim is null || !long.TryParse(userIdClaim, out var userId))
+			return;
+
+		var (info, _) = await UserDisplayCache.GetOrLoadAsync(userId, email);
 
 		UserEmail = info.Email;
 		UserFullName = info.FullName;
