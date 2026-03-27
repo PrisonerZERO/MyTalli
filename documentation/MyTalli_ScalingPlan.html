@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Scaling Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.6; padding: 0; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; padding: 48px; position: relative; overflow: hidden; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 200px; position: absolute; right: -40px; top: -60px; width: 200px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 120px; left: 30%; position: absolute; top: 80px; width: 120px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.8); font-size: 15px; margin-top: 6px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 12px; position: relative; z-index: 1; }
+
+  /* Content */
+  .content { margin: 0 auto; max-width: 960px; padding: 48px 32px 80px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-tag { background: #f0edff; border-radius: 20px; color: #6c5ce7; display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 16px; padding: 6px 16px; text-transform: uppercase; }
+  .section h2 { color: #1a1a2e; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .section p { color: #555; font-size: 15px; margin-bottom: 16px; }
+
+  /* Cards */
+  .card { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; padding: 24px; }
+  .card h3 { color: #1a1a2e; font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .card p { color: #555; font-size: 14px; margin-bottom: 0; }
+
+  /* Tier cards */
+  .tier-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .tier-grid { grid-template-columns: 1fr 1fr; } }
+  .tier-card { background: #fff; border: 2px solid #e0dce8; border-radius: 12px; padding: 24px; position: relative; transition: border-color 0.2s; }
+  .tier-card.current { border-color: #6c5ce7; }
+  .tier-card.current::after { background: #6c5ce7; border-radius: 0 0 6px 6px; color: #fff; content: 'CURRENT'; font-size: 10px; font-weight: 700; left: 20px; letter-spacing: 1px; padding: 3px 10px; position: absolute; top: 0; }
+  .tier-card.recommended { border-color: #27ae60; }
+  .tier-card.recommended::after { background: #27ae60; border-radius: 0 0 6px 6px; color: #fff; content: 'RECOMMENDED'; font-size: 10px; font-weight: 700; left: 20px; letter-spacing: 1px; padding: 3px 10px; position: absolute; top: 0; }
+  .tier-name { color: #6c5ce7; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px; text-transform: uppercase; }
+  .tier-users { color: #1a1a2e; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .tier-desc { color: #999; font-size: 13px; margin-bottom: 16px; }
+  .tier-specs { border-top: 1px solid #f0edff; list-style: none; padding-top: 16px; }
+  .tier-specs li { color: #555; font-size: 13px; margin-bottom: 8px; padding-left: 20px; position: relative; }
+  .tier-specs li::before { color: #6c5ce7; content: '\2713'; font-weight: 700; left: 0; position: absolute; }
+
+  /* Tables */
+  .table-wrap { border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th { background: #f0edff; color: #6c5ce7; font-size: 11px; font-weight: 600; letter-spacing: 1px; padding: 12px 16px; text-align: left; text-transform: uppercase; }
+  td { border-top: 1px solid #f0edff; color: #555; font-size: 14px; padding: 12px 16px; }
+  tr:hover td { background: #faf9ff; }
+  .highlight-row td { background: #f0edff; color: #1a1a2e; font-weight: 600; }
+
+  /* Metric badges */
+  .metric { align-items: center; display: inline-flex; gap: 8px; margin-right: 24px; margin-bottom: 8px; }
+  .metric-value { color: #6c5ce7; font-size: 28px; font-weight: 700; }
+  .metric-label { color: #999; font-size: 12px; font-weight: 500; line-height: 1.3; }
+
+  /* Alert / callout */
+  .callout { background: #fff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin-bottom: 16px; padding: 16px 20px; }
+  .callout.warning { border-left-color: #f5c842; }
+  .callout.success { border-left-color: #27ae60; }
+  .callout strong { color: #1a1a2e; }
+  .callout p { color: #555; font-size: 14px; margin: 0; }
+
+  /* Timeline */
+  .timeline { padding-left: 32px; position: relative; }
+  .timeline::before { background: #e0dce8; content: ''; height: 100%; left: 8px; position: absolute; top: 0; width: 2px; }
+  .timeline-item { margin-bottom: 32px; position: relative; }
+  .timeline-item::before { background: #6c5ce7; border: 3px solid #f0edff; border-radius: 50%; content: ''; height: 16px; left: -32px; position: absolute; top: 4px; width: 16px; }
+  .timeline-item.future::before { background: #e0dce8; }
+  .timeline-item h4 { color: #1a1a2e; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .timeline-item p { color: #555; font-size: 13px; margin: 0; }
+  .timeline-trigger { background: #f0edff; border-radius: 6px; color: #6c5ce7; display: inline-block; font-size: 11px; font-weight: 600; margin-top: 6px; padding: 3px 10px; }
+
+  /* Footer */
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 48px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Scaling Plan</h1>
+  <p class="subtitle">Infrastructure scaling strategy as user base grows from 10 to 10,000+</p>
+  <p class="doc-date">Last updated: March 2026</p>
+</div>
+
+<div class="content">
+
+  <!-- Overview -->
+  <div class="section">
+    <span class="section-tag">Overview</span>
+    <h2>Architecture at a Glance</h2>
+    <p>MyTalli runs as a <strong>Blazor Server</strong> application on Azure App Service. Each connected user maintains a persistent SignalR WebSocket connection (a "circuit") that holds UI state in server memory. This architecture delivers rich real-time dashboard updates but means server resources scale linearly with concurrent users.</p>
+
+    <div style="margin: 24px 0;">
+      <span class="metric"><span class="metric-value">~400 KB</span><span class="metric-label">Memory per<br>user circuit</span></span>
+      <span class="metric"><span class="metric-value">3 min</span><span class="metric-label">Disconnected circuit<br>retention</span></span>
+      <span class="metric"><span class="metric-value">100</span><span class="metric-label">Max retained<br>disconnected circuits</span></span>
+    </div>
+
+    <div class="callout">
+      <p><strong>Key insight:</strong> "Concurrent users" is not the same as "registered users." A side-hustle dashboard app typically sees 5-15% of registered users online at any given time. 1,000 registered users likely means 50-150 concurrent circuits.</p>
+    </div>
+  </div>
+
+  <!-- Scaling Tiers -->
+  <div class="section">
+    <span class="section-tag">Scaling Tiers</span>
+    <h2>Growth Stages</h2>
+    <p>Each tier defines the infrastructure changes needed and the trigger point to scale up.</p>
+
+    <div class="tier-grid">
+      <div class="tier-card current">
+        <div class="tier-name">Stage 1 — Launch</div>
+        <div class="tier-users">1 - 50 concurrent users</div>
+        <div class="tier-desc">Up to ~500 registered users</div>
+        <ul class="tier-specs">
+          <li>App Service: <span style="background: #fee2e2; border-radius: 4px; color: #b91c1c; font-size: 12px; font-weight: 600; padding: 2px 8px;">Standard S1</span> (1 core, 1.75 GB)</li>
+          <li>SQL Database: <span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">Basic</span> (5 DTU)</li>
+          <li>SignalR: Built-in (no Azure SignalR Service)</li>
+          <li>Single instance, no auto-scaling</li>
+          <li>Staging + production deployment slots</li>
+        </ul>
+      </div>
+
+      <div class="tier-card recommended">
+        <div class="tier-name">Stage 2 — Quick Win</div>
+        <div class="tier-users">50 - 500 concurrent users</div>
+        <div class="tier-desc">Up to ~5,000 registered users</div>
+        <ul class="tier-specs">
+          <li>App Service: <span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">Premium P0v3</span> (1 core, 4 GB)</li>
+          <li>SQL Database: <span style="background: #fef3c7; border-radius: 4px; color: #92400e; font-size: 12px; font-weight: 600; padding: 2px 8px;">Standard S0</span> (10 DTU)</li>
+          <li>SignalR: Built-in</li>
+          <li>2.3x more RAM for ~$4/mo more than S1</li>
+          <li>Single instance still sufficient</li>
+        </ul>
+      </div>
+
+      <div class="tier-card">
+        <div class="tier-name">Stage 3 — Growing</div>
+        <div class="tier-users">500 - 2,000 concurrent users</div>
+        <div class="tier-desc">Up to ~20,000 registered users</div>
+        <ul class="tier-specs">
+          <li>App Service: <span style="background: #dbeafe; border-radius: 4px; color: #1e40af; font-size: 12px; font-weight: 600; padding: 2px 8px;">Premium P1v3</span> (2 cores, 8 GB)</li>
+          <li>SQL Database: <span style="background: #fed7aa; border-radius: 4px; color: #9a3412; font-size: 12px; font-weight: 600; padding: 2px 8px;">Standard S1</span> (20 DTU)</li>
+          <li>SignalR: Built-in</li>
+          <li>Consider Application Insights for monitoring</li>
+          <li>Still single instance</li>
+        </ul>
+      </div>
+
+      <div class="tier-card">
+        <div class="tier-name">Stage 4 — Scaling Out</div>
+        <div class="tier-users">2,000 - 5,000+ concurrent users</div>
+        <div class="tier-desc">20,000+ registered users</div>
+        <ul class="tier-specs">
+          <li>App Service: <span style="background: #e9d5ff; border-radius: 4px; color: #6b21a8; font-size: 12px; font-weight: 600; padding: 2px 8px;">Premium P2v3</span> (4 cores, 16 GB)</li>
+          <li>SQL Database: <span style="background: #fecaca; border-radius: 4px; color: #991b1b; font-size: 12px; font-weight: 600; padding: 2px 8px;">Standard S2</span> (50 DTU)</li>
+          <li>Azure SignalR Service (if multi-instance)</li>
+          <li>Auto-scaling rules or manual scale-out</li>
+          <li>Sticky sessions required for multi-instance</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blazor Server Specifics -->
+  <div class="section">
+    <span class="section-tag">Blazor Server</span>
+    <h2>Circuit Management</h2>
+    <p>Each Blazor Server user consumes a circuit — a persistent server-side connection holding the component tree, scoped DI services, and UI state in RAM.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Default</th>
+            <th>Purpose</th>
+            <th>Recommendation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>DisconnectedCircuitRetentionPeriod</td>
+            <td>3 minutes</td>
+            <td>How long a disconnected circuit stays in memory</td>
+            <td><span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">Keep default</span> — balances UX (reconnection) vs memory</td>
+          </tr>
+          <tr>
+            <td>DisconnectedCircuitMaxRetained</td>
+            <td>100</td>
+            <td>Max disconnected circuits kept in memory</td>
+            <td><span style="background: #fef3c7; border-radius: 4px; color: #92400e; font-size: 12px; font-weight: 600; padding: 2px 8px;">Increase at scale</span> — keep default until 500+ concurrent users, then 200-300</td>
+          </tr>
+          <tr>
+            <td>JSInteropDefaultCallTimeout</td>
+            <td>1 minute</td>
+            <td>Timeout for JS interop calls</td>
+            <td><span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">Keep default</span></td>
+          </tr>
+          <tr>
+            <td>MaxBufferedUnacknowledgedRenderBatches</td>
+            <td>10</td>
+            <td>Buffered render batches before circuit is closed</td>
+            <td><span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">Keep default</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>What Happens When a User Disconnects</h3>
+      <p>1. SignalR connection breaks (tab close, sleep, network loss)<br>
+      2. Blazor shows reconnection overlay to the user<br>
+      3. Client auto-retries at 0s, 2s, 10s, 30s, then every 30s<br>
+      4. If reconnected within 3 minutes — user resumes with no state loss<br>
+      5. After 3 minutes — circuit disposed, memory freed, user must refresh</p>
+    </div>
+
+    <div class="callout success">
+      <p><strong>For a dashboard app, this is ideal.</strong> No user data is lost on disconnect — only UI state (which tab was selected, which filter was active). A refresh restores everything from the database.</p>
+    </div>
+  </div>
+
+  <!-- Memory Planning -->
+  <div class="section">
+    <span class="section-tag">Memory</span>
+    <h2>RAM Capacity Planning</h2>
+    <p>Memory is the primary scaling constraint for Blazor Server. Each circuit holds the component tree, scoped services (DbContext, repositories, adapters), and view model state.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>App Service Tier</th>
+            <th>Total RAM</th>
+            <th>Available for Circuits</th>
+            <th>Est. Max Concurrent Users</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight-row">
+            <td><span style="background: #fee2e2; border-radius: 4px; color: #b91c1c; font-size: 12px; font-weight: 600; padding: 2px 8px;">Standard S1 (current)</span></td>
+            <td>1.75 GB</td>
+            <td>~1.25 GB</td>
+            <td>~500</td>
+          </tr>
+          <tr>
+            <td><span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">Premium P0v3</span></td>
+            <td>4 GB</td>
+            <td>~3.5 GB</td>
+            <td>~1,200</td>
+          </tr>
+          <tr>
+            <td><span style="background: #dbeafe; border-radius: 4px; color: #1e40af; font-size: 12px; font-weight: 600; padding: 2px 8px;">Premium P1v3</span></td>
+            <td>8 GB</td>
+            <td>~7 GB</td>
+            <td>~2,500</td>
+          </tr>
+          <tr>
+            <td><span style="background: #e9d5ff; border-radius: 4px; color: #6b21a8; font-size: 12px; font-weight: 600; padding: 2px 8px;">Premium P2v3</span></td>
+            <td>16 GB</td>
+            <td>~14.5 GB</td>
+            <td>~5,000</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-size: 13px; color: #999;">Estimates assume ~400 KB per circuit for MyTalli (dashboard with KPI cards, charts, scoped services). ~500 MB reserved for .NET runtime, GC overhead, and OS. Actual capacity varies with usage patterns.</p>
+
+    <div class="callout warning">
+      <p><strong>Scale-up trigger:</strong> When Azure portal shows memory usage consistently above 70%, scale up to the next tier. Don't wait for 90% — GC pressure degrades performance well before you hit the ceiling.</p>
+    </div>
+  </div>
+
+  <!-- Database Scaling -->
+  <div class="section">
+    <span class="section-tag">Database</span>
+    <h2>SQL Database Scaling</h2>
+    <p>MyTalli uses Azure SQL Database with the DTU (Database Transaction Unit) pricing model. DTUs are a blended measure of CPU, memory, and I/O.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>DTUs</th>
+            <th>Storage</th>
+            <th>Suited For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight-row">
+            <td><span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">Basic (current)</span></td>
+            <td>5</td>
+            <td>2 GB</td>
+            <td>Development, &lt;50 concurrent users</td>
+          </tr>
+          <tr>
+            <td><span style="background: #fef3c7; border-radius: 4px; color: #92400e; font-size: 12px; font-weight: 600; padding: 2px 8px;">Standard S0</span></td>
+            <td>10</td>
+            <td>250 GB</td>
+            <td>Launch, up to ~500 concurrent users</td>
+          </tr>
+          <tr>
+            <td><span style="background: #fed7aa; border-radius: 4px; color: #9a3412; font-size: 12px; font-weight: 600; padding: 2px 8px;">Standard S1</span></td>
+            <td>20</td>
+            <td>250 GB</td>
+            <td>Growing, up to ~2,000 concurrent users</td>
+          </tr>
+          <tr>
+            <td><span style="background: #fecaca; border-radius: 4px; color: #991b1b; font-size: 12px; font-weight: 600; padding: 2px 8px;">Standard S2</span></td>
+            <td>50</td>
+            <td>250 GB</td>
+            <td>Scaling, 2,000+ concurrent users</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p><strong>Scale-up trigger:</strong> When DTU utilization consistently exceeds 80% (check in Azure portal under SQL Database > Monitoring > DTU percentage), move to the next tier. Dashboard apps are read-heavy with simple queries — 10 DTU goes a long way.</p>
+    </div>
+
+    <div class="card">
+      <h3>DbContext Thread Safety</h3>
+      <p>Blazor Server's parallel component rendering can cause concurrent access to the shared scoped DbContext. MyTalli handles this with a <strong>SemaphoreSlim lock on TalliDbContext</strong> that serializes all repository operations per circuit. This is a once-and-for-all fix — every new entity, page, or adapter is automatically protected through the repository layer.</p>
+    </div>
+  </div>
+
+  <!-- SignalR -->
+  <div class="section">
+    <span class="section-tag">SignalR</span>
+    <h2>WebSocket Connection Strategy</h2>
+    <p>Every Blazor Server user maintains a persistent SignalR WebSocket connection. Azure App Service handles these natively — no additional service is needed for a single instance.</p>
+
+    <div class="card">
+      <h3>When Is Azure SignalR Service Needed?</h3>
+      <p><strong>Single instance (current and recommended through Stage 3):</strong> Built-in SignalR is sufficient. App Service handles WebSocket connections natively with no connection limits beyond memory and CPU.<br><br>
+      <strong>Multi-instance (Stage 4+):</strong> If you scale out to multiple App Service instances, you need either:<br>
+      &bull; <strong>Azure SignalR Service</strong> ($48/mo per unit, 1,000 connections/unit) — manages connection routing across instances<br>
+      &bull; <strong>Sticky sessions (ARR affinity)</strong> — routes each user to the same instance. Simpler but less resilient to instance failures.</p>
+    </div>
+
+    <div class="callout success">
+      <p><strong>Bottom line:</strong> You don't need Azure SignalR Service until you run multiple App Service instances. A single P1v3 (8 GB) can handle ~2,500 concurrent users — that's likely 20,000+ registered users. You'll be well into revenue before this becomes relevant.</p>
+    </div>
+  </div>
+
+  <!-- Scaling Timeline -->
+  <div class="section">
+    <span class="section-tag">Action Plan</span>
+    <h2>Scaling Timeline</h2>
+    <p>Concrete actions to take at each growth milestone.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <h4>Immediate — Switch S1 to P0v3</h4>
+        <p>For ~$4/month more, get 4 GB RAM instead of 1.75 GB. This is the single highest-value optimization. Takes 5 minutes in Azure portal — no code changes, no downtime (swap slots).</p>
+        <span class="timeline-trigger" style="background: #d1fae5; color: #065f46;">Trigger: Do this now</span>
+      </div>
+
+      <div class="timeline-item">
+        <h4>Immediate — Upgrade SQL to Standard S0</h4>
+        <p>Move from Basic (5 DTU) to Standard S0 (10 DTU). Double the capacity, 250 GB storage, and get geo-restore backup. This removes the database as a potential bottleneck during launch.</p>
+        <span class="timeline-trigger" style="background: #d1fae5; color: #065f46;">Trigger: Do this before going live</span>
+      </div>
+
+      <div class="timeline-item future">
+        <h4>At 500 Concurrent Users — Upgrade to P1v3</h4>
+        <p>When memory usage trends above 70%. Doubles CPU and RAM. Still single instance, no architectural changes needed.</p>
+        <span class="timeline-trigger" style="background: #f3f4f6; color: #6b7280;">Trigger: Memory consistently above 70%</span>
+      </div>
+
+      <div class="timeline-item future">
+        <h4>At 500 Concurrent Users — Add Application Insights</h4>
+        <p>At this scale, you need real observability — request traces, dependency tracking, circuit lifecycle monitoring, and alerting. Elmah covers error logging but doesn't give you performance telemetry.</p>
+        <span class="timeline-trigger" style="background: #f3f4f6; color: #6b7280;">Trigger: When you need to diagnose performance, not just errors</span>
+      </div>
+
+      <div class="timeline-item future">
+        <h4>At 2,000 Concurrent Users — Evaluate Multi-Instance</h4>
+        <p>Decide between vertical scaling (P2v3, 16 GB) or horizontal scaling (2x P1v3 with Azure SignalR Service or sticky sessions). Vertical is simpler; horizontal is more resilient.</p>
+        <span class="timeline-trigger" style="background: #f3f4f6; color: #6b7280;">Trigger: Single instance at sustained 70%+ CPU or memory</span>
+      </div>
+
+      <div class="timeline-item future">
+        <h4>At 5,000+ Concurrent Users — Architecture Review</h4>
+        <p>At this scale, consider whether Blazor Server is still the right fit or if a hybrid approach (Blazor WASM for read-heavy views, Server for real-time) would reduce server load. Also evaluate Azure SQL elastic pools or premium tier.</p>
+        <span class="timeline-trigger" style="background: #f3f4f6; color: #6b7280;">Trigger: Monthly infrastructure cost exceeds revenue threshold</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monitoring -->
+  <div class="section">
+    <span class="section-tag">Monitoring</span>
+    <h2>Key Metrics to Watch</h2>
+    <p>These are the signals that tell you when to scale — don't wait for users to complain.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Where to Find</th>
+            <th>Warning Threshold</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Memory usage %</td>
+            <td>Azure Portal > App Service > Metrics</td>
+            <td>Sustained above 70%</td>
+            <td><span style="background: #fee2e2; border-radius: 4px; color: #b91c1c; font-size: 12px; font-weight: 600; padding: 2px 8px;">Scale up App Service tier</span></td>
+          </tr>
+          <tr>
+            <td>CPU usage %</td>
+            <td>Azure Portal > App Service > Metrics</td>
+            <td>Sustained above 80%</td>
+            <td><span style="background: #fee2e2; border-radius: 4px; color: #b91c1c; font-size: 12px; font-weight: 600; padding: 2px 8px;">Scale up App Service tier</span></td>
+          </tr>
+          <tr>
+            <td>DTU utilization %</td>
+            <td>Azure Portal > SQL Database > Monitoring</td>
+            <td>Sustained above 80%</td>
+            <td><span style="background: #fee2e2; border-radius: 4px; color: #b91c1c; font-size: 12px; font-weight: 600; padding: 2px 8px;">Scale up SQL tier</span></td>
+          </tr>
+          <tr>
+            <td>WebSocket connections</td>
+            <td>Azure Portal > App Service > Metrics</td>
+            <td>Approaching tier max</td>
+            <td><span style="background: #fef3c7; border-radius: 4px; color: #92400e; font-size: 12px; font-weight: 600; padding: 2px 8px;">Scale up or out</span></td>
+          </tr>
+          <tr>
+            <td>Response time (P95)</td>
+            <td>Application Insights (when added)</td>
+            <td>Above 2 seconds</td>
+            <td><span style="background: #dbeafe; border-radius: 4px; color: #1e40af; font-size: 12px; font-weight: 600; padding: 2px 8px;">Investigate — DB or circuit contention</span></td>
+          </tr>
+          <tr>
+            <td>Elmah error rate</td>
+            <td>/elmah dashboard</td>
+            <td>Spike in errors</td>
+            <td><span style="background: #dbeafe; border-radius: 4px; color: #1e40af; font-size: 12px; font-weight: 600; padding: 2px 8px;">Investigate — resource exhaustion</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Risk Mitigations -->
+  <div class="section">
+    <span class="section-tag">Risk Mitigation</span>
+    <h2>Production Safeguards Already in Place</h2>
+
+    <div class="card">
+      <h3>DbContext Thread Safety</h3>
+      <p>SemaphoreSlim on TalliDbContext serializes all repository operations per circuit. Prevents the "second operation started" exception that Blazor Server's parallel rendering can cause. Automatically protects all current and future entities.</p>
+    </div>
+
+    <div class="card">
+      <h3>Probe Filter Middleware</h3>
+      <p>ProbeFilterMiddleware short-circuits bot/scanner traffic (.env, .php, wp-admin, expired circuit disconnects) before it reaches Blazor routing or Elmah. Reduces noise and wasted resources.</p>
+    </div>
+
+    <div class="card">
+      <h3>Static Error Pages</h3>
+      <p>Error pages render as static SSR (no @rendermode) so they work even when the SignalR circuit fails. Users always see a branded error page, never a raw browser error.</p>
+    </div>
+
+    <div class="card">
+      <h3>Zero-Downtime Deployments</h3>
+      <p>Staging + production deployment slots with swap. New code deploys to staging, warms up, then swaps to production with no user interruption.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli — Internal Documentation
+  </div>
+</div>
+
+</body>
+</html>

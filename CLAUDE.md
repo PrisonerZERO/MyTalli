@@ -71,6 +71,17 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
 - **Audit field self-creation sentinel** — `CreateByUserId = 0` means "self-created" (the user created their own account). This avoids a second database round-trip to self-stamp the generated Id. Only applies to `auth.User` rows created during OAuth sign-up.
 - **Audit fields on insert** — on INSERT, only `CreateByUserId` and `CreatedOnDateTime` are populated. `UpdatedByUserId` and `UpdatedOnDate` remain `null` — nothing has been updated yet. They are only set on the first actual UPDATE.
 
+### DbContext Thread Safety
+
+Blazor Server renders layout components (NavMenu) and page components in parallel. All scoped services — including `TalliDbContext` and every repository — share the same instance per circuit. Without protection, concurrent async DB calls from different components hit the same non-thread-safe DbContext and throw `InvalidOperationException`.
+
+- **`TalliDbContext.ConcurrencyLock`** — a `SemaphoreSlim(1, 1)` property on the DbContext itself. Since the DbContext is scoped (one per circuit), all repositories sharing it automatically share the same lock.
+- **`GenericRepositoryAsync<T>`** — every method (`GetByIdAsync`, `GetAllAsync`, `FindAsync`, `AddAsync`, `Remove`, `Update`) acquires `_dbContext.ConcurrencyLock` before touching the DbContext and releases it in a `finally` block.
+- **`GenericAuditableRepositoryAsync<T>`** — every method (`InsertAsync`, `UpdateAsync`, `DeleteAsync`, and their Range/SaveChanges variants) acquires the lock once and does all work inside — including `_dbSet.Remove()` calls (inlined, not delegated to the base class, to avoid deadlocking the non-re-entrant semaphore).
+- **Automatic protection** — any code using `RepositoryAdapterAsync` (the only gateway to the data layer) is automatically serialized. New entities, pages, and adapters get protection without any per-page wiring.
+- **Direct DbContext access** — code that queries `TalliDbContext` directly (e.g., `GetAdminUserListCommand` for the `AuthenticatedUsers` view) must manually acquire `_dbContext.ConcurrencyLock`. This is rare — per conventions, `RepositoryAdapterAsync` is the standard gateway.
+- **`UserDisplayCache`** — retains its own `SemaphoreSlim` for caching purposes (avoiding redundant DB calls). The DbContext-level lock makes the serialization aspect redundant but harmless.
+
 ### Schemas
 
 | Schema | Purpose | Tables |
@@ -232,6 +243,14 @@ My.Talli/
 ├── mytalli-logo-white-bg.png       # Brand logo (white bg)
 ├── og-image.png                    # Social share image (1200×630) — source copy
 ├── setup-iis.ps1                   # IIS setup script for local dev
+├── documentation/                  # Internal planning & reference documents
+│   ├── cost-report/                # Skill — branded financial/costing HTML document builder
+│   │   └── SKILL.md
+│   ├── scaling-plan/               # Skill — branded scaling/capacity planning HTML document builder
+│   │   └── SKILL.md
+│   ├── MyTalli_CostingPlan.html    # Infrastructure cost projections & optimization strategies
+│   ├── MyTalli_PlatformCapabilities.html # Platform API capabilities, data richness & integration roadmap
+│   └── MyTalli_ScalingPlan.html    # Scaling strategy as user base grows (tiers, triggers, capacity)
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
 │   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
 │   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
@@ -764,6 +783,18 @@ dotnet run --project Source/My.Talli.Web
 - **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys (legacy)
 - **Static assets note:** The `deploy/` and `favicon-concepts/` folders are from the static HTML era. Static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) now live in `wwwroot/`. The `deploy/emails/` folder is still needed — it hosts PNG images referenced by customer-facing email templates.
 
+### Scaling & Cost Planning
+
+- **Documentation:** `documentation/MyTalli_ScalingPlan.html` (scaling strategy) and `documentation/MyTalli_CostingPlan.html` (cost projections & optimization)
+- **Blazor Server memory per circuit:** ~400 KB for MyTalli (dashboard with KPI cards, charts, scoped services)
+- **Current capacity (S1):** ~500 concurrent users (1.75 GB RAM, 1 core)
+- **Recommended upgrade (P0v3):** ~1,200 concurrent users (4 GB RAM, 1 core) for only ~$4/mo more than S1
+- **Concurrent vs registered:** A dashboard app typically sees 5-15% of registered users online at any given time
+- **Circuit defaults:** `DisconnectedCircuitRetentionPeriod` = 3 minutes, `DisconnectedCircuitMaxRetained` = 100
+- **Azure SignalR Service:** Not needed until scaling out to multiple App Service instances (~2,000+ concurrent users)
+- **Scale-up triggers:** Memory consistently above 70% → scale up App Service tier. DTU consistently above 80% → scale up SQL tier.
+- **Break-even:** At 5% Pro conversion ($12/mo), infrastructure costs are covered at ~8 paying users
+
 ### Social Media
 
 - **X (Twitter):** [@MyTalliApp](https://x.com/MyTalliApp) — verified (blue check, yearly subscription). Profile icon: favicon PNG. Banner: Coming Soon image. Pinned post: launch teaser with branded image.
@@ -983,39 +1014,64 @@ Templates embedded from `Domain/.resources/emails/` get resource names like:
 
 ## Platform API Notes
 
-Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data.
+Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data. Full comparison document: `documentation/MyTalli_PlatformCapabilities.html`.
+
+**Integration priority:** Stripe → Gumroad → Etsy → Shopify → PayPal (based on data richness, complexity, and approval timelines).
 
 ### Stripe
 
-- **API:** REST API (extensive) — [docs.stripe.com/api](https://docs.stripe.com/api)
-- **Auth:** OAuth via Stripe Connect (Standard or Express) — user authorizes MyTalli to read their account
-- **Key endpoints:** Balance Transactions (charges, refunds, fees, payouts), Charges, PaymentIntents, Reports API (scheduled CSV reports), Revenue Recognition API
-- **Data richness:** Excellent — granular transaction-level data, fees, net amounts, metadata
-- **Caveats:** None significant. Best-documented API of the three.
+- **API:** REST API — [docs.stripe.com/api](https://docs.stripe.com/api)
+- **Auth:** OAuth 2.0 via Stripe Connect (Standard accounts), scope: `read_only`. Access token: 1hr, refresh token: 1yr rolling.
+- **Key endpoints:** Balance Transactions (`/v1/balance_transactions`), Charges, PaymentIntents, Payouts, Refunds
+- **Data richness:** Excellent — gross, net, fee (per-component breakdown), currency, payout schedule, exchange rates
+- **Webhooks:** Full catalog (`charge.succeeded`, `charge.refunded`, `payout.paid`, etc.). Connect webhook endpoint with `account` property per connected account.
+- **Rate limits:** 25 read req/s per endpoint, 100 req/s global (live)
+- **Approval:** None for Connect OAuth. Stripe App Marketplace listing requires ~4 day review.
+- **Caveat:** Stripe is steering new platforms toward Stripe Apps (Marketplace) rather than traditional Connect OAuth. Confirm recommended path with Stripe support before building.
 
 ### Etsy
 
 - **API:** Etsy Open API v3 (REST) — [developers.etsy.com](https://developers.etsy.com/)
-- **Auth:** OAuth 2.0 (PKCE flow)
-- **Key endpoints:** Shop Receipts (orders/sales per shop), Transactions (line-item detail), Payments (payment & transaction lookups by shop/listing/receipt)
-- **Data richness:** Good — order-level sales, item details, shop stats
-- **Caveats:** Multi-seller apps (like MyTalli) require **commercial access approval** from Etsy. Must apply and be approved before production use.
+- **Auth:** OAuth 2.0 + PKCE (S256), scopes: `transactions_r shops_r`. Access token: 1hr, refresh token: 90 days.
+- **Key endpoints:** Shop Receipts, Transactions, Payments, Ledger Entries (running account balance)
+- **Data richness:** Good — order totals, item prices, shipping, taxes, Etsy fees, refunds, multi-currency
+- **Webhooks:** 4 order events (`order.paid`, `order.canceled`, `order.shipped`, `order.delivered`). Payloads are lightweight (URL only) — require follow-up API call for data.
+- **Rate limits:** ~10 QPS, ~10,000 QPD (sliding window). Receipts endpoint may enforce 1 req/s/shop.
+- **Approval:** **Commercial access required** for 4+ shops (~20+ day review). Apply early — approved at Etsy's sole discretion.
+- **Caveat:** Refresh token expires in 90 days — if a user doesn't visit MyTalli for 3 months, their connection breaks and they must re-authorize.
 
 ### Gumroad
 
-- **API:** REST API — [gumroad.com/api](https://gumroad.com/api)
-- **Auth:** OAuth 2.0
-- **Key endpoints:** Sales (list sales with filtering), Products (product info & pricing), Subscribers (subscription data)
-- **Data richness:** Basic — covers sales and products but less granular than Stripe (no fee breakdowns, limited filtering)
-- **Caveats:** Simpler API overall. Sufficient for revenue aggregation but won't support deep financial reporting.
+- **API:** REST API v2 — [gumroad.com/api](https://gumroad.com/api)
+- **Auth:** OAuth 2.0, scope: `view_sales`. Access tokens **never expire** — simplest auth of all platforms.
+- **Key endpoints:** Sales (`/v2/sales` with date filtering), Products, Subscribers
+- **Data richness:** Basic — sale amount, flat Gumroad fee (10%, no breakdown), product details, refunds, subscriptions
+- **Webhooks:** Ping feature — `sale`, `refund`, `subscription_updated`, `subscription_ended`. HMAC-SHA256 verification.
+- **Rate limits:** Undocumented — implement adaptive backoff
+- **Approval:** None — immediate access
+- **Caveats:** No payout/disbursement API. No net amount (calculate manually). API docs are sparse. Platform stability uncertain (open-sourced, company changes).
 
-### PayPal (not yet researched in detail)
+### PayPal
 
-- Known to have extensive REST APIs and OAuth for third-party access. Needs detailed review before integration.
+- **API:** REST API v1 — [developer.paypal.com/docs/api/transaction-search/v1/](https://developer.paypal.com/docs/api/transaction-search/v1/)
+- **Auth:** OAuth 2.0 Authorization Code via "Log In with PayPal", scopes: `openid` + `reporting/search/read` + `reporting/balances/read`. Access token: ~8hr, refresh token: 180 days.
+- **Key endpoints:** Transaction Search (`/v1/reporting/transactions`, 31-day max range, 500/page, 10K max records), Balance (`/v1/reporting/balances`)
+- **Data richness:** Good — transaction amount, fees, status, timestamp, payer info (not anonymized), multi-currency balances. No net amount field (calculate gross - fees). Payouts via T-code filtering.
+- **Webhooks:** Full catalog (`PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.REFUNDED`, etc.). Up to 10 webhook URLs per app. Retries up to 25 times over 3 days.
+- **Rate limits:** ~50 req/min per IP (dynamic, not formally published)
+- **Approval:** Reporting scopes require PayPal approval (24-72hr). **Third-party access may require Partner program enrollment** — path is unclear. Contact PayPal partner team early.
+- **Caveats:** Transaction data delayed 3-72 hours in Search API — must use webhooks for real-time. 31-day max date range per query (12+ calls for a year). Refresh token expires at 180 days.
 
-### Shopify (not yet researched in detail)
+### Shopify
 
-- Known to have Admin API (REST + GraphQL) with OAuth. Needs detailed review before integration.
+- **API:** GraphQL Admin API (required for new apps since April 2025) — [shopify.dev/docs/api/admin-graphql](https://shopify.dev/docs/api/admin-graphql/latest)
+- **Auth:** OAuth 2.0 Authorization Code, scopes: `read_orders` (60 days) + `read_all_orders` (full history, requires approval) + `read_shopify_payments_payouts` + `read_shopify_payments_accounts`. Offline access token: 60min, refresh token: 90 days rolling. **Expiring offline tokens mandatory for new apps April 1, 2026.**
+- **Key endpoints:** Orders (with nested transactions, refunds in single GraphQL query), Shopify Payments Balance/Payouts/Balance Transactions
+- **Data richness:** Good — order totals, subtotals, taxes, shipping, discounts, multi-currency (shop + presentment). **Fee/net data only available for Shopify Payments merchants** — third-party gateway merchants only have gross amounts.
+- **Webhooks:** Full catalog (`orders/paid`, `refunds/create`, `order_transactions/create`, `disputes/create`). HMAC-SHA256 verification. Delivery not guaranteed — retries for 48hr.
+- **Rate limits:** 1,000pt bucket, 50pt/s restore (Standard plans). GraphQL calculated query cost.
+- **Approval:** `read_all_orders` is a protected scope — request in Partner Dashboard. Unlisted public app distribution (no App Store listing required).
+- **Caveats:** Fee data is Shopify Payments only. 60-day order limit without `read_all_orders` approval. GraphQL only (no REST for new apps). Mandatory compliance webhooks (`customers/data_request`, `customers/redact`, `shop/redact`).
 
 ## Planned Features
 
