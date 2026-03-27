@@ -33,9 +33,20 @@ public class GetAdminUserListCommand
     public async Task<List<AdminUserListItem>> ExecuteAsync()
     {
         // Users with emails from the view
-        var authenticatedUsers = await _dbContext.AuthenticatedUsers
-            .OrderBy(u => u.Id)
-            .ToListAsync();
+        List<ENTITIES.AuthenticatedUser> authenticatedUsers;
+
+        await _dbContext.ConcurrencyLock.WaitAsync();
+
+        try
+        {
+            authenticatedUsers = await _dbContext.AuthenticatedUsers
+                .OrderBy(u => u.Id)
+                .ToListAsync();
+        }
+        finally
+        {
+            _dbContext.ConcurrencyLock.Release();
+        }
 
         // Active subscription user IDs (Active or Cancelling = still has Pro access)
         var activeSubscriptions = await _subscriptionAdapter.FindAsync(s =>
