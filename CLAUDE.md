@@ -77,7 +77,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 
 - **`TalliDbContext.ConcurrencyLock`** — a `SemaphoreSlim(1, 1)` property on the DbContext itself. Since the DbContext is scoped (one per circuit), all repositories sharing it automatically share the same lock.
 - **`GenericRepositoryAsync<T>`** — every method (`GetByIdAsync`, `GetAllAsync`, `FindAsync`, `AddAsync`, `Remove`, `Update`) acquires `_dbContext.ConcurrencyLock` before touching the DbContext and releases it in a `finally` block.
-- **`GenericAuditableRepositoryAsync<T>`** — every method (`InsertAsync`, `UpdateAsync`, `DeleteAsync`, and their Range/SaveChanges variants) acquires the lock once and does all work inside — including `_dbSet.Remove()` calls (inlined, not delegated to the base class, to avoid deadlocking the non-re-entrant semaphore).
+- **`GenericAuditableRepositoryAsync<T>`** — every method (`InsertAsync`, `UpdateAsync`, `DeleteAsync`, and their Range/SaveChanges variants) acquires the lock once and does all work inside — including `_dbSet.Remove()` calls (inlined, not delegated to the base class, to avoid deadlocking the non-re-entrant semaphore). Both `UpdateAsync` and `DeleteAsync` check `_dbSet.Local` for already-tracked entities to avoid `InvalidOperationException` when another query has already loaded the same entity into the change tracker.
 - **Automatic protection** — any code using `RepositoryAdapterAsync` (the only gateway to the data layer) is automatically serialized. New entities, pages, and adapters get protection without any per-page wiring.
 - **Direct DbContext access** — code that queries `TalliDbContext` directly (e.g., `GetAdminUserListCommand` for the `AuthenticatedUsers` view) must manually acquire `_dbContext.ConcurrencyLock`. This is rare — per conventions, `RepositoryAdapterAsync` is the standard gateway.
 - **`UserDisplayCache`** — retains its own `SemaphoreSlim` for caching purposes (avoiding redundant DB calls). The DbContext-level lock makes the serialization aspect redundant but harmless.
@@ -104,7 +104,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - Design: Goals and dashboard analytics query **only** this normalized table. Platform-specific tables exist for drill-down detail.
 
 **`app.RevenueManual`** — Manual Entry detail (1-to-1 with Revenue, shared PK)
-- `RevenueId` (PK/FK → Revenue, C# property: `Id`), `Category` (Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other), `Notes` (nullable)
+- `RevenueId` (PK/FK → Revenue, C# property: `Id`), `Category` (Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other), `Notes` (nullable), `Quantity` (int, default 1)
 
 ### Schema: `auth`
 
@@ -118,10 +118,20 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
       "unsubscribeAll": false,
       "subscriptionConfirmationEmail": true,
       "weeklySummaryEmail": true
+    },
+    "funGreetings": true,
+    "gridPreferences": {
+      "manualEntry.entryGrid": {
+        "density": "compact",
+        "pageSize": 25,
+        "sortColumn": "TransactionDate",
+        "sortDescending": true
+      }
     }
   }
   ```
-  - Models: `UserPreferences` (root) → `EmailPreferences` (nested), both in `Domain/Models/`
+  - Models: `UserPreferences` (root) → `EmailPreferences` (nested) + `GridPreference` (dictionary), all in `Domain/Models/`
+  - **GridPreferences** — `Dictionary<string, GridPreference>` keyed by `page.control` name. Each grid/widget saves its own density, page size, sort column, and sort direction. Keys use dot notation: `"manualEntry.entryGrid"`, `"dashboard.revenueGrid"`, etc. Future widget types (charts, filters) will get their own typed dictionaries.
   - `unsubscribeAll` is a master kill switch — if `true`, no emails are sent regardless of individual settings
   - Individual toggles default to `true` (opt-out model). Adding a new email type = new `bool` property with `true` default.
   - Welcome email is excluded — it's a one-time transactional email, not a recurring subscription.
@@ -343,7 +353,8 @@ My.Talli/
     │   ├── Models/
     │   │   ├── ActionResponseOf.cs            # Generic response wrapper (ValidationResult + Payload)
     │   │   ├── EmailPreferences.cs            # Email opt-in/out preferences model
-    │   │   ├── UserPreferences.cs             # Root user preferences model (wraps EmailPreferences)
+    │   │   ├── GridPreference.cs              # Per-widget grid preferences (density, pageSize, sort)
+    │   │   ├── UserPreferences.cs             # Root user preferences model (wraps EmailPreferences, GridPreferences)
     │   │   ├── DefaultModel.cs                # Standard model base (Id + IsDeleted + IsVisible)
     │   │   ├── ValidationResult.cs            # Abstract base (IsValid, ValidationSummary, WarningSummary)
     │   │   ├── Entity/                        # 1-to-1 entity representations (no audit fields, no nav properties)
@@ -577,7 +588,9 @@ My.Talli/
         │   │   └── Error.razor.css
         │   └── Shared/
         │       ├── BrandHeader.razor     # Reusable purple swoosh header (logo + action slot)
-        │       └── BrandHeader.razor.css
+        │       ├── BrandHeader.razor.css
+        │       ├── ConfirmDialog.razor       # Reusable Yes/No confirmation dialog (danger/primary variants)
+        │       └── ConfirmDialog.razor.css
         ├── Helpers/
         │   └── LayoutHelper.cs            # Static helpers (CurrentYear, VersionNumber) for layouts
         ├── Services/
@@ -608,7 +621,8 @@ My.Talli/
         │   │   ├── SuggestionBoxViewModel.cs
         │   │   └── UnsubscribeViewModel.cs
         │   └── Shared/
-        │       └── BrandHeaderViewModel.cs
+        │       ├── BrandHeaderViewModel.cs
+        │       └── ConfirmDialogViewModel.cs
         ├── Properties/
         │   └── launchSettings.json
         ├── wwwroot/
@@ -1153,6 +1167,22 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - **Modals do not close on backdrop click.** Only the Cancel button (or equivalent) closes the modal. This prevents accidental data loss when users click outside a form modal.
 - **Exception:** The `UserProfileButton` dropdown closes on backdrop click — this is intentional since it's a menu, not a form.
 
+### ConfirmDialog Component
+
+- **`ConfirmDialog`** (`Components/Shared/ConfirmDialog.razor`) — reusable Yes/No confirmation dialog. The component provides the modal shell + buttons; the caller passes in content via `ChildContent` (RenderFragment).
+- **Parameters:** `Visible` (bool), `ConfirmStyle` (`"primary"` or `"danger"`), `OnConfirm` (EventCallback), `OnCancel` (EventCallback).
+- **Button text:** Always "Yes" / "No" — not customizable.
+- **Usage:** `<ConfirmDialog Visible="..." ConfirmStyle="danger" OnConfirm="..." OnCancel="...">` with icon, heading, and message as child content.
+- **CSS isolation:** Uses `::deep` for `.confirm-body` styles to reach projected `ChildContent`. SVGs passed as child content should have explicit `height`/`width` attributes.
+
+### Sample Data for Gated Features
+
+- **Never show a lock gate for paid features.** Always show the page with sample data + a CTA banner at the top (same pattern as the Dashboard).
+- **Sample data providers** — static classes in `Models/SampleData/` (e.g., `ManualEntrySampleData`) that return `List<T>` of fake items.
+- **`IsSampleData` flag** — on the ViewModel, controls the banner visibility. When `true`: CTA banner shown, "New Entry" / action buttons hidden, edit/delete hidden, grid fully interactive (sort, paginate, density).
+- **The page doesn't know or care** whether data is real or sample — it renders the same grid either way.
+- **Grid preferences** still save for sample data viewers — their density/sort/page size choices persist.
+
 ### Mobile-First Responsive Strategy
 
 - **Principle: "Keyhole Data"** — phones are for glancing at numbers, not configuring things. Desktop gets the full experience; mobile gets a focused, read-only snapshot.
@@ -1546,7 +1576,7 @@ Upcoming features:
 
 - [x] **Admin Page** — role-based admin section (`/admin`) with email management: resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, bulk-send Welcome emails to selected or all users. Visible only to `Admin` role via conditional NavMenu link. Uses `vAuthenticatedUser` view (keyless entity) for user list with emails. ViewModel redirects non-admins to `/dashboard`; API endpoints enforce Admin role via `.RequireAuthorization()`.
 - [x] **Admin Email Resend** — admin ability to resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, plus bulk-send Welcome emails to selected or all users. Implemented as part of the Admin page (`/admin`). API endpoints: `POST /api/admin/email/resend`, `POST /api/admin/email/bulk-welcome`, `POST /api/admin/email/bulk-welcome-all`. Commands: `SendSubscriptionConfirmationEmailCommand` (validates active subscription exists), `SendWeeklySummaryEmailCommand` (uses sample data). Fail-silent on individual errors during bulk sends.
-- [x] **Manual Entry Module** — `app.Revenue` (base normalized revenue table) and `app.RevenueManual` (1-to-1 manual entry detail). Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with module access gate, entry form (description, gross, fee, currency, category, notes), entry list with edit/delete. Net auto-calculated. Categories: Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other.
+- [x] **Manual Entry Module** — `app.Revenue` (base normalized revenue table) and `app.RevenueManual` (1-to-1 manual entry detail, includes `Quantity` column). Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with data grid (sortable columns, user-selectable pagination 10/25/50, row density toggle compact/comfortable/spacious). Entry form uses Unit Price × Quantity = Gross auto-calculation. Grid preferences (density, page size, sort) persist in `UserPreferences` JSON under `gridPreferences["manualEntry.entryGrid"]`. Non-subscribers see sample data (`ManualEntrySampleData`) with CTA banner instead of a lock gate. Delete uses `ConfirmDialog` component. "New Entry" button in grid toolbar. Empty state renders inside grid tbody. Categories: Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other.
 - [x] **My Plan Page** — consolidated plan and module management at `/my-plan`. Replaces the old `/subscription` and `/upgrade` pages (both deleted). Free users see inline pricing cards (Free vs Pro with monthly/yearly toggle). Pro users see their plan card with billing actions (Manage Billing, Change Plan, Cancel). Module owners see per-module cards with billing/cancel. Available modules listed at the bottom. Sidebar upgrade card shows "Pro Plan" for subscribers, "Upgrade to Pro" for free users, with a single "My Plan" button.
 - [ ] **Module Checkout Flow** — extend `/api/billing/create-checkout-session` to handle module product IDs (currently only handles `plan=monthly|yearly` for Pro). Needed for "Add Module" button on My Plan page.
 - [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.

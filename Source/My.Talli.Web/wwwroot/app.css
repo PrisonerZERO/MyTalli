@@ -1,4 +1,12 @@
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scrollbar-color: #a78bfa #f0edff; scrollbar-width: thin; }
+
+/* Scrollbar */
+*, *::-webkit-scrollbar { scrollbar-color: #a78bfa #f0edff; scrollbar-width: thin; }
+::-webkit-scrollbar { height: 6px; width: 6px; }
+::-webkit-scrollbar-button { display: none; }
+::-webkit-scrollbar-track { background: #f0edff; }
+::-webkit-scrollbar-thumb { background: #a78bfa; border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: #6c5ce7; }
 html, body { -webkit-font-smoothing: antialiased; color: #1a1a2e; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
 
 /* Skip Link */

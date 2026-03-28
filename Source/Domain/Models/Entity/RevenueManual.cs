@@ -5,4 +5,5 @@ public class RevenueManual : DefaultModel
 {
     public string Category { get; set; } = string.Empty;
     public string? Notes { get; set; }
+    public int Quantity { get; set; } = 1;
 }

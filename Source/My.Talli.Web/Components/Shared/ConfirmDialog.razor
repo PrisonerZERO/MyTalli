@@ -1,0 +1,16 @@
+@inherits My.Talli.Web.ViewModels.Shared.ConfirmDialogViewModel
+
+@if (Visible)
+{
+    <div class="confirm-overlay">
+        <div class="confirm-dialog" role="alertdialog" aria-modal="true" aria-label="Confirmation">
+            <div class="confirm-body">
+                @ChildContent
+            </div>
+            <div class="confirm-actions">
+                <button class="confirm-btn-no" @onclick="OnCancel">No</button>
+                <button class="confirm-btn-yes @ConfirmCss" @onclick="OnConfirm">Yes</button>
+            </div>
+        </div>
+    </div>
+}
