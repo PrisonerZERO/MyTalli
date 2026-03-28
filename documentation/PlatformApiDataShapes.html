@@ -876,18 +876,18 @@
 
         <h3>app.Revenue (normalized)</h3>
         <table>
-            <thead><tr><th>Field</th><th>Source: Stripe</th><th>Source: Etsy</th><th>Source: Gumroad</th></tr></thead>
+            <thead><tr><th>Field</th><th>Source: Stripe</th><th>Source: Etsy</th><th>Source: Gumroad</th><th>Source: Manual</th></tr></thead>
             <tbody>
-                <tr><td>Gross Amount</td><td><code>balance_transaction.amount</code></td><td><code>payment.adjusted_gross</code></td><td><code>sale.price</code></td></tr>
-                <tr><td>Fee Amount</td><td><code>balance_transaction.fee</code></td><td><code>payment.adjusted_fees</code> (processing only)</td><td><code>sale.gumroad_fee</code></td></tr>
-                <tr><td>Net Amount</td><td><code>balance_transaction.net</code></td><td><code>payment.adjusted_net</code></td><td>Calculated: <code>price − gumroad_fee</code></td></tr>
-                <tr><td>Currency</td><td><code>balance_transaction.currency</code></td><td><code>payment.currency</code></td><td><code>product.currency</code> / symbol</td></tr>
-                <tr><td>Transaction Date</td><td><code>balance_transaction.created</code></td><td><code>receipt.create_timestamp</code></td><td><code>sale.created_at</code></td></tr>
-                <tr><td>Description</td><td><code>charge.description</code></td><td><code>transaction.title</code></td><td><code>sale.product_name</code></td></tr>
-                <tr><td>Is Refunded</td><td><code>charge.refunded</code></td><td>Receipt <code>refunds[]</code> presence</td><td><code>sale.partially_refunded</code></td></tr>
-                <tr><td>Is Disputed</td><td><code>charge.disputed</code></td><td>N/A (not exposed)</td><td><code>sale.disputed</code></td></tr>
-                <tr><td>Platform</td><td>"Stripe"</td><td>"Etsy"</td><td>"Gumroad"</td></tr>
-                <tr><td>Platform Transaction ID</td><td><code>balance_transaction.id</code></td><td><code>receipt.receipt_id</code></td><td><code>sale.id</code></td></tr>
+                <tr><td>Gross Amount</td><td><code>balance_transaction.amount</code></td><td><code>payment.adjusted_gross</code></td><td><code>sale.price</code></td><td>User-entered</td></tr>
+                <tr><td>Fee Amount</td><td><code>balance_transaction.fee</code></td><td><code>payment.adjusted_fees</code> (processing only)</td><td><code>sale.gumroad_fee</code></td><td>User-entered (optional)</td></tr>
+                <tr><td>Net Amount</td><td><code>balance_transaction.net</code></td><td><code>payment.adjusted_net</code></td><td>Calculated: <code>price − gumroad_fee</code></td><td>Calculated: <code>gross − fee</code></td></tr>
+                <tr><td>Currency</td><td><code>balance_transaction.currency</code></td><td><code>payment.currency</code></td><td><code>product.currency</code> / symbol</td><td>User-selected</td></tr>
+                <tr><td>Transaction Date</td><td><code>balance_transaction.created</code></td><td><code>receipt.create_timestamp</code></td><td><code>sale.created_at</code></td><td>User-entered</td></tr>
+                <tr><td>Description</td><td><code>charge.description</code></td><td><code>transaction.title</code></td><td><code>sale.product_name</code></td><td>User-entered</td></tr>
+                <tr><td>Is Refunded</td><td><code>charge.refunded</code></td><td>Receipt <code>refunds[]</code> presence</td><td><code>sale.partially_refunded</code></td><td>User-toggled</td></tr>
+                <tr><td>Is Disputed</td><td><code>charge.disputed</code></td><td>N/A (not exposed)</td><td><code>sale.disputed</code></td><td>N/A</td></tr>
+                <tr><td>Platform</td><td>"Stripe"</td><td>"Etsy"</td><td>"Gumroad"</td><td>"Manual"</td></tr>
+                <tr><td>Platform Transaction ID</td><td><code>balance_transaction.id</code></td><td><code>receipt.receipt_id</code></td><td><code>sale.id</code></td><td>Auto-generated</td></tr>
             </tbody>
         </table>
 
@@ -985,6 +985,7 @@
                 <tr><td><code>app.RevenueStripe</code></td><td>Stripe-specific raw data (1-to-1)</td><td>Like <code>auth.UserAuthenticationGoogle</code></td></tr>
                 <tr><td><code>app.RevenueEtsy</code></td><td>Etsy-specific raw data (1-to-1)</td><td>Like <code>auth.UserAuthenticationApple</code></td></tr>
                 <tr><td><code>app.RevenueGumroad</code></td><td>Gumroad-specific raw data (1-to-1)</td><td>Like <code>auth.UserAuthenticationMicrosoft</code></td></tr>
+                <tr><td><code>app.RevenueManual</code></td><td>Manual entry metadata — category, notes (1-to-1)</td><td>Same shared-PK pattern</td></tr>
                 <tr><td><code>app.Expense</code></td><td>Normalized expense/fee records (TBD)</td><td>Base table</td></tr>
                 <tr><td><code>app.GoalType</code></td><td>Lookup — pre-defined goal types</td><td>Like <code>commerce.ProductType</code></td></tr>
                 <tr><td><code>app.Goal</code></td><td>User's specific goal instances</td><td>New</td></tr>
@@ -992,7 +993,7 @@
         </table>
 
         <div class="callout callout-info">
-            <strong>PayPal &amp; Shopify:</strong> Not yet researched. They will each get their own <code>app.RevenuePayPal</code> and <code>app.RevenueShopify</code> tables following the same 1-to-1 pattern. The normalized layer and goal engine won't need any changes.
+            <strong>PayPal &amp; Shopify:</strong> Not yet researched. They will each get their own <code>app.RevenuePayPal</code> and <code>app.RevenueShopify</code> tables following the same 1-to-1 pattern. <strong>Manual Entry</strong> follows the same pattern — <code>app.RevenueManual</code> stores category and notes while the normalized <code>app.Revenue</code> row is identical to any API-sourced record. The normalized layer and goal engine won't need any changes.
         </div>
     </div>
 
@@ -1458,7 +1459,7 @@
         <p>How all platform data funnels into MyTalli's <code>app</code> schema. The <strong>normalized layer</strong> (Revenue, Expense) is what Goals and the Dashboard query. Platform-specific tables preserve raw data for drill-down.</p>
 
         <div class="erd">
-            <svg viewBox="0 0 1060 700" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+            <svg viewBox="0 0 1060 780" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
                 <defs>
                     <marker id="m-arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
                         <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
@@ -1484,12 +1485,12 @@
                 <text x="40" y="174" font-size="11" font-weight="600" fill="#27ae60" opacity="0.7">NORMALIZED LAYER (Goals &amp; Dashboard query here)</text>
 
                 <!-- Background: Platform-specific -->
-                <rect x="540" y="150" width="500" height="320" rx="12" fill="#fff3e0" opacity="0.25"/>
+                <rect x="540" y="150" width="500" height="390" rx="12" fill="#fff3e0" opacity="0.25"/>
                 <text x="560" y="174" font-size="11" font-weight="600" fill="#e65100" opacity="0.7">PLATFORM-SPECIFIC (1-to-1 detail, raw data preservation)</text>
 
                 <!-- Background: Goals -->
-                <rect x="20" y="380" width="500" height="300" rx="12" fill="#f3e5f5" opacity="0.2"/>
-                <text x="40" y="404" font-size="11" font-weight="600" fill="#7b1fa2" opacity="0.7">GOALS ENGINE</text>
+                <rect x="20" y="460" width="500" height="300" rx="12" fill="#f3e5f5" opacity="0.2"/>
+                <text x="40" y="484" font-size="11" font-weight="600" fill="#7b1fa2" opacity="0.7">GOALS ENGINE</text>
 
                 <!-- === BOXES === -->
                 <!-- auth.User (existing) -->
@@ -1544,40 +1545,45 @@
                 <text x="895" y="365" text-anchor="middle" font-size="12" font-weight="500" fill="#a09cae">app.RevenueShopify</text>
                 <text x="895" y="381" text-anchor="middle" font-size="10" fill="#ccc">future</text>
 
+                <!-- app.RevenueManual -->
+                <rect x="580" y="365" rx="8" width="190" height="56" fill="#fff" stroke="#6c5ce7" stroke-width="2" filter="url(#m-shadow)"/>
+                <text x="675" y="388" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a2e">app.RevenueManual</text>
+                <text x="675" y="406" text-anchor="middle" font-size="10" fill="#a09cae">category · notes</text>
+
                 <!-- Payout (future) -->
-                <rect x="580" y="370" rx="8" width="190" height="44" fill="#faf9ff" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="6,4"/>
-                <text x="675" y="390" text-anchor="middle" font-size="12" font-weight="500" fill="#a09cae">app.Payout</text>
-                <text x="675" y="406" text-anchor="middle" font-size="10" fill="#ccc">future — tracks disbursements</text>
+                <rect x="580" y="450" rx="8" width="190" height="44" fill="#faf9ff" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="6,4"/>
+                <text x="675" y="470" text-anchor="middle" font-size="12" font-weight="500" fill="#a09cae">app.Payout</text>
+                <text x="675" y="486" text-anchor="middle" font-size="10" fill="#ccc">future — tracks disbursements</text>
 
                 <!-- app.GoalType -->
-                <rect x="50" y="430" rx="8" width="180" height="56" fill="#7b1fa2" filter="url(#m-shadow)"/>
-                <text x="140" y="455" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.GoalType</text>
-                <text x="140" y="473" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">name — lookup / seed data</text>
+                <rect x="50" y="510" rx="8" width="180" height="56" fill="#7b1fa2" filter="url(#m-shadow)"/>
+                <text x="140" y="535" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.GoalType</text>
+                <text x="140" y="553" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">name — lookup / seed data</text>
 
                 <!-- app.Goal -->
-                <rect x="280" y="430" rx="8" width="220" height="70" fill="#fff" stroke="#7b1fa2" stroke-width="2" filter="url(#m-shadow)"/>
-                <text x="390" y="456" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">app.Goal</text>
-                <text x="390" y="474" text-anchor="middle" font-size="10" fill="#a09cae">target_amount · start/end date</text>
-                <text x="390" y="488" text-anchor="middle" font-size="10" fill="#a09cae">platform (optional filter) · status</text>
+                <rect x="280" y="510" rx="8" width="220" height="70" fill="#fff" stroke="#7b1fa2" stroke-width="2" filter="url(#m-shadow)"/>
+                <text x="390" y="536" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">app.Goal</text>
+                <text x="390" y="554" text-anchor="middle" font-size="10" fill="#a09cae">target_amount · start/end date</text>
+                <text x="390" y="568" text-anchor="middle" font-size="10" fill="#a09cae">platform (optional filter) · status</text>
 
                 <!-- Goal Type examples -->
-                <rect x="50" y="510" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
-                <text x="140" y="530" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Monthly Revenue Target</text>
+                <rect x="50" y="590" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+                <text x="140" y="610" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Monthly Revenue Target</text>
 
-                <rect x="50" y="548" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
-                <text x="140" y="568" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Yearly Revenue Target</text>
+                <rect x="50" y="628" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+                <text x="140" y="648" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Yearly Revenue Target</text>
 
-                <rect x="50" y="586" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
-                <text x="140" y="606" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Platform Monthly Target</text>
+                <rect x="50" y="666" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+                <text x="140" y="686" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Platform Monthly Target</text>
 
-                <rect x="50" y="624" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
-                <text x="140" y="644" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Growth Rate Target</text>
+                <rect x="50" y="704" rx="6" width="180" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+                <text x="140" y="724" text-anchor="middle" font-size="10" font-weight="500" fill="#1a1a2e">Growth Rate Target</text>
 
                 <!-- Goal queries Revenue note -->
-                <rect x="280" y="530" rx="8" width="220" height="70" fill="#e8f5e9" stroke="#27ae60" stroke-width="1.5"/>
-                <text x="390" y="555" text-anchor="middle" font-size="11" font-weight="600" fill="#27ae60">Goal queries Revenue</text>
-                <text x="390" y="572" text-anchor="middle" font-size="10" fill="#555">SUM(NetAmount) WHERE</text>
-                <text x="390" y="586" text-anchor="middle" font-size="10" fill="#555">date range + optional platform</text>
+                <rect x="280" y="610" rx="8" width="220" height="70" fill="#e8f5e9" stroke="#27ae60" stroke-width="1.5"/>
+                <text x="390" y="635" text-anchor="middle" font-size="11" font-weight="600" fill="#27ae60">Goal queries Revenue</text>
+                <text x="390" y="652" text-anchor="middle" font-size="10" fill="#555">SUM(NetAmount) WHERE</text>
+                <text x="390" y="666" text-anchor="middle" font-size="10" fill="#555">date range + optional platform</text>
 
                 <!-- === LINES === -->
                 <!-- User → PlatformConnection -->
@@ -1593,8 +1599,8 @@
                 <text x="290" y="140" font-size="10" fill="#a09cae">1:N</text>
 
                 <!-- User → Goal -->
-                <path d="M 50 90 L 30 90 L 30 465 L 280 465" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
-                <text x="35" y="300" font-size="10" fill="#a09cae" transform="rotate(-90, 35, 300)">1:N</text>
+                <path d="M 50 90 L 30 90 L 30 545 L 280 545" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="35" y="340" font-size="10" fill="#a09cae" transform="rotate(-90, 35, 340)">1:N</text>
 
                 <!-- PlatformConnection → Revenue -->
                 <path d="M 400 104 L 400 130 L 200 130 L 200 200" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
@@ -1611,29 +1617,33 @@
                 <path d="M 270 250 L 520 250 L 520 308 L 580 308" fill="none" stroke="#ff90e8" stroke-width="1.5" marker-end="url(#m-arrow)"/>
                 <text x="545" y="300" font-size="10" fill="#c62828">1:1</text>
 
+                <!-- Revenue → RevenueManual (1:1) -->
+                <path d="M 270 255 L 520 255 L 520 393 L 580 393" fill="none" stroke="#6c5ce7" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="545" y="386" font-size="10" fill="#6c5ce7">1:1</text>
+
                 <!-- GoalType → Goal -->
-                <line x1="230" y1="458" x2="280" y2="458" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
-                <text x="248" y="452" font-size="10" fill="#a09cae">1:N</text>
+                <line x1="230" y1="538" x2="280" y2="538" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="248" y="532" font-size="10" fill="#a09cae">1:N</text>
 
                 <!-- GoalType → examples -->
-                <line x1="140" y1="486" x2="140" y2="510" stroke="#7b1fa2" stroke-width="1" stroke-dasharray="4,3"/>
+                <line x1="140" y1="566" x2="140" y2="590" stroke="#7b1fa2" stroke-width="1" stroke-dasharray="4,3"/>
 
                 <!-- Goal → Revenue (queries) -->
-                <path d="M 390 500 L 390 530" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#m-arrow)"/>
+                <path d="M 390 580 L 390 610" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#m-arrow)"/>
 
                 <!-- Legend -->
-                <rect x="560" y="450" width="220" height="130" rx="8" fill="#fff" stroke="#e0dce8" stroke-width="1"/>
-                <text x="575" y="472" font-size="11" font-weight="600" fill="#1a1a2e">Legend</text>
-                <line x1="575" y1="490" x2="605" y2="490" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
-                <text x="615" y="494" font-size="10" fill="#555">FK relationship</text>
-                <line x1="575" y1="510" x2="605" y2="510" stroke="#635bff" stroke-width="1.5" marker-end="url(#m-arrow)"/>
-                <text x="615" y="514" font-size="10" fill="#555">1-to-1 (shared PK)</text>
-                <line x1="575" y1="530" x2="605" y2="530" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3"/>
-                <text x="615" y="534" font-size="10" fill="#555">queries (not FK)</text>
-                <rect x="575" y="543" width="12" height="12" rx="2" fill="#27ae60"/>
-                <text x="595" y="553" font-size="10" fill="#555">normalized (Goals query here)</text>
-                <rect x="575" y="560" width="12" height="12" rx="2" fill="#fff" stroke="#635bff" stroke-width="1.5"/>
-                <text x="595" y="570" font-size="10" fill="#555">platform-specific (1-to-1)</text>
+                <rect x="560" y="530" width="220" height="130" rx="8" fill="#fff" stroke="#e0dce8" stroke-width="1"/>
+                <text x="575" y="552" font-size="11" font-weight="600" fill="#1a1a2e">Legend</text>
+                <line x1="575" y1="570" x2="605" y2="570" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="615" y="574" font-size="10" fill="#555">FK relationship</text>
+                <line x1="575" y1="590" x2="605" y2="590" stroke="#635bff" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="615" y="594" font-size="10" fill="#555">1-to-1 (shared PK)</text>
+                <line x1="575" y1="610" x2="605" y2="610" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3"/>
+                <text x="615" y="614" font-size="10" fill="#555">queries (not FK)</text>
+                <rect x="575" y="623" width="12" height="12" rx="2" fill="#27ae60"/>
+                <text x="595" y="633" font-size="10" fill="#555">normalized (Goals query here)</text>
+                <rect x="575" y="640" width="12" height="12" rx="2" fill="#fff" stroke="#635bff" stroke-width="1.5"/>
+                <text x="595" y="650" font-size="10" fill="#555">platform-specific (1-to-1)</text>
             </svg>
             <div class="erd-label">Proposed MyTalli app schema — normalized revenue layer with platform-specific detail tables</div>
         </div>
@@ -1658,6 +1668,14 @@
 <span class="string">Goals engine checks</span>  → app.Goal.TargetAmount vs. current SUM from Revenue
                         ↓
 <span class="string">Drill-down detail</span>   → JOIN app.RevenueStripe for platform-specific info
+
+<span class="comment">-- Manual Entry flow (no OAuth, no sync — user enters directly):</span>
+
+<span class="string">User enters revenue</span> → app.Revenue (gross, fee, net, currency, date, "Manual")
+                        → app.RevenueManual (category, notes)
+                        ↓
+<span class="string">Dashboard queries</span>    → Same normalized query — manual entries are indistinguishable
+<span class="string">Goals engine checks</span>  → Manual revenue counts toward all goals (total + platform-filtered)
         </div>
     </div>
 

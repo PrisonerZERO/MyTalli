@@ -33,6 +33,10 @@ public class TalliDbContext : DbContext
 
     public DbSet<ProductVendor> ProductVendors { get; set; } = null!;
 
+    public DbSet<Revenue> Revenues { get; set; } = null!;
+
+    public DbSet<RevenueManual> RevenueManuals { get; set; } = null!;
+
     public DbSet<Subscription> Subscriptions { get; set; } = null!;
 
     public DbSet<SubscriptionStripe> SubscriptionStripes { get; set; } = null!;

@@ -1,0 +1,208 @@
+@page "/manual-entry"
+@inherits My.Talli.Web.ViewModels.Pages.ManualEntryViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Manual Entry — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<section class="manual-hero" aria-label="Manual entry overview">
+    <div class="manual-hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="manual-hero-content">
+        <div class="manual-hero-top">
+            <div>
+                <h1>Manual Entry</h1>
+                <p>Record revenue from any source</p>
+            </div>
+            @if (HasModuleAccess)
+            {
+                <button class="manual-new-btn" @onclick="OpenModal">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                        <line x1="12" x2="12" y1="5" y2="19" />
+                        <line x1="5" x2="19" y1="12" y2="12" />
+                    </svg>
+                    New Entry
+                </button>
+            }
+        </div>
+
+        @if (HasModuleAccess)
+        {
+            <div class="manual-stats" role="group" aria-label="Entry statistics">
+                <div class="manual-stat">
+                    <span class="manual-stat-num">@TotalEntries</span>
+                    <span class="manual-stat-label">Entries</span>
+                </div>
+                <div class="manual-stat">
+                    <span class="manual-stat-num">@TotalGross.ToString("C2")</span>
+                    <span class="manual-stat-label">Gross</span>
+                </div>
+                <div class="manual-stat">
+                    <span class="manual-stat-num">@TotalNet.ToString("C2")</span>
+                    <span class="manual-stat-label">Net</span>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@if (!HasModuleAccess)
+{
+    <!-- Module gate -->
+    <div class="manual-gate animate-in delay-2">
+        <div class="manual-gate-icon" aria-hidden="true">
+            <svg fill="none" stroke="#6c5ce7" stroke-linecap="round" stroke-width="1.5" viewBox="0 0 24 24">
+                <rect height="11" rx="2" ry="2" width="18" x="3" y="11" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+        </div>
+        <h2>Unlock Manual Entry</h2>
+        <p>Record revenue from platforms we don't integrate with yet — freelance gigs, cash sales, consulting fees, and more.</p>
+        <div class="manual-gate-price">
+            <span class="manual-gate-amount">$3</span>
+            <span class="manual-gate-period">/mo</span>
+        </div>
+        <a class="manual-gate-btn" href="/upgrade">Get Manual Entry</a>
+    </div>
+}
+else if (Entries.Count == 0)
+{
+    <!-- Empty state -->
+    <div class="manual-empty animate-in delay-2">
+        <div class="manual-empty-icon" aria-hidden="true">
+            <svg fill="none" stroke="#a78bfa" stroke-linecap="round" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14" />
+            </svg>
+        </div>
+        <h2>No entries yet</h2>
+        <p>Start tracking your revenue by adding your first manual entry.</p>
+        <button class="manual-empty-btn" @onclick="OpenModal">Add Your First Entry</button>
+    </div>
+}
+else
+{
+    <!-- Entry list -->
+    <div class="manual-list animate-in delay-2">
+        @foreach (var entry in Entries)
+        {
+            <article class="manual-card">
+                <div class="manual-card-header">
+                    <div>
+                        <h3 class="manual-card-title">@entry.Description</h3>
+                        <span class="manual-card-date">@entry.TransactionDateLabel</span>
+                    </div>
+                    <span class="manual-cat-tag @entry.CategoryCss">@entry.Category</span>
+                </div>
+                <div class="manual-card-amounts">
+                    <div class="manual-card-amount">
+                        <span class="manual-amount-label">Gross</span>
+                        <span class="manual-amount-value">@entry.GrossAmount.ToString("C2")</span>
+                    </div>
+                    @if (entry.FeeAmount > 0)
+                    {
+                        <div class="manual-card-amount">
+                            <span class="manual-amount-label">Fees</span>
+                            <span class="manual-amount-value fee">-@entry.FeeAmount.ToString("C2")</span>
+                        </div>
+                    }
+                    <div class="manual-card-amount">
+                        <span class="manual-amount-label">Net</span>
+                        <span class="manual-amount-value net">@entry.NetAmount.ToString("C2")</span>
+                    </div>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(entry.Notes))
+                {
+                    <div class="manual-card-notes">@entry.Notes</div>
+                }
+                <div class="manual-card-actions">
+                    <button class="manual-action-btn" aria-label="Edit @entry.Description" @onclick="() => EditEntryAsync(entry.Id)">
+                        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                    </button>
+                    <button class="manual-action-btn danger" aria-label="Delete @entry.Description" @onclick="() => DeleteEntryAsync(entry.Id)">
+                        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                    </button>
+                </div>
+            </article>
+        }
+    </div>
+}
+
+<!-- Entry modal -->
+@if (ShowEntryModal)
+{
+    <div class="manual-modal-overlay" @onclick="CloseModal">
+        <div class="manual-modal" @onclick:stopPropagation="true" role="dialog" aria-modal="true" aria-label="@ModalTitle">
+            <h2>@ModalTitle</h2>
+
+            <div class="manual-form-row">
+                <div class="manual-form-group flex-2">
+                    <label class="manual-form-label" for="manual-desc">Description</label>
+                    <input class="manual-form-input" id="manual-desc" type="text" placeholder="e.g. Logo design for client" @bind="NewDescription">
+                </div>
+                <div class="manual-form-group flex-1">
+                    <label class="manual-form-label" for="manual-date">Date</label>
+                    <input class="manual-form-input" id="manual-date" type="date" @bind="NewTransactionDate">
+                </div>
+            </div>
+
+            <div class="manual-form-row">
+                <div class="manual-form-group flex-1">
+                    <label class="manual-form-label" for="manual-gross">Gross Amount</label>
+                    <input class="manual-form-input" id="manual-gross" type="number" step="0.01" min="0" placeholder="0.00" @bind="NewGrossAmount">
+                </div>
+                <div class="manual-form-group flex-1">
+                    <label class="manual-form-label" for="manual-fee">Fee Amount</label>
+                    <input class="manual-form-input" id="manual-fee" type="number" step="0.01" min="0" placeholder="0.00" @bind="NewFeeAmount">
+                </div>
+                <div class="manual-form-group flex-1">
+                    <label class="manual-form-label" for="manual-currency">Currency</label>
+                    <select class="manual-form-select" id="manual-currency" @bind="NewCurrency">
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                        <option value="CAD">CAD</option>
+                        <option value="AUD">AUD</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="manual-form-row">
+                <div class="manual-form-group flex-1">
+                    <label class="manual-form-label" for="manual-cat">Category</label>
+                    <select class="manual-form-select" id="manual-cat" @bind="NewCategory">
+                        @foreach (var cat in Categories)
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    </select>
+                </div>
+                <div class="manual-form-group flex-2">
+                    <label class="manual-form-label" for="manual-notes">Notes <span class="manual-optional">(optional)</span></label>
+                    <input class="manual-form-input" id="manual-notes" type="text" placeholder="Any extra details..." @bind="NewNotes">
+                </div>
+            </div>
+
+            <div class="manual-form-net">
+                Net: <strong>@((NewGrossAmount - NewFeeAmount).ToString("C2"))</strong>
+            </div>
+
+            <div class="manual-modal-actions">
+                <button class="manual-btn-outline" @onclick="CloseModal">Cancel</button>
+                <button class="manual-btn-submit" @onclick="SubmitEntryAsync">@(EditingId.HasValue ? "Save Changes" : "Add Entry")</button>
+            </div>
+        </div>
+    </div>
+}
