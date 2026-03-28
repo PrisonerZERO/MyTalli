@@ -74,10 +74,14 @@
 <div class="suggest-grid animate-in delay-3">
     @foreach (var item in FilteredSuggestions)
     {
-        <article class="suggest-card">
+        <article class="suggest-card @item.CardCss">
             <div class="suggest-card-header">
                 <h3 class="suggest-card-title">@item.Title</h3>
                 <div class="suggest-card-header-right">
+                    @if (item.Status != "New")
+                    {
+                        <span class="suggest-status-tag @item.StatusCss">@item.StatusLabel</span>
+                    }
                     <span class="suggest-card-date">@item.DateLabel</span>
                     <span class="suggest-cat-tag @item.CategoryCss">@item.Category</span>
                 </div>
@@ -95,15 +99,31 @@
                         @item.Votes
                     </button>
                 </div>
-                @if (item.IsOwn)
-                {
-                    <button class="suggest-edit-btn" aria-label="Edit @item.Title" @onclick="() => EditSuggestionAsync(item.Id)">
-                        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                    </button>
-                }
+                <div class="suggest-card-actions" role="group" aria-label="Actions">
+                    @if (IsAdmin)
+                    {
+                        <select class="suggest-status-select"
+                                aria-label="Change status of @item.Title"
+                                value="@item.Status"
+                                @onchange="(e) => SetStatusAsync(item.Id, e.Value?.ToString()!)">
+                            <option value="New">New</option>
+                            <option value="UnderReview">Under Review</option>
+                            <option value="InProgress">In Progress</option>
+                            <option value="Planned">Planned</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Declined">Declined</option>
+                        </select>
+                    }
+                    @if (item.IsEditable)
+                    {
+                        <button class="suggest-edit-btn" aria-label="Edit @item.Title" @onclick="() => EditSuggestionAsync(item.Id)">
+                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                        </button>
+                    }
+                </div>
             </div>
         </article>
     }
