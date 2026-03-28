@@ -11,7 +11,7 @@ public class SubscriptionUpdatedPayload
 
 	public string Status { get; set; } = string.Empty;
 
-	public string? ProductName { get; set; }
+	public long? ProductId { get; set; }
 
 	public string StripePriceId { get; set; } = string.Empty;
 

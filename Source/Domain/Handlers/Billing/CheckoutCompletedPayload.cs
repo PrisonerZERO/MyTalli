@@ -15,7 +15,7 @@ public class CheckoutCompletedPayload
 
 	public string PaymentMethod { get; set; } = string.Empty;
 
-	public string ProductName { get; set; } = string.Empty;
+	public long ProductId { get; set; }
 
 	public string StripeCustomerId { get; set; } = string.Empty;
 
