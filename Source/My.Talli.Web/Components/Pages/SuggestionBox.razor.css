@@ -1,5 +1,5 @@
 /* ─── SWOOSH HERO ─── */
-.suggest-hero { margin: -32px -40px 60px; padding: 24px 40px 80px; position: relative; }
+.suggest-hero { margin: -32px -40px 0; padding: 24px 40px 40px; position: relative; }
 .suggest-hero-bg { height: calc(100% + 60px); left: 0; overflow: hidden; pointer-events: none; position: absolute; right: 0; top: 0; }
 .suggest-hero-bg svg { display: block; height: 100%; min-height: 280px; width: 100%; }
 .deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
