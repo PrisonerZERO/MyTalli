@@ -656,7 +656,7 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 |------|--------|------|-------------|
 | `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
 | `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | "Sign Out" link |
-| `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button |
+| `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button, edit button on own cards |
 | `/manual-entry` | Inline SVG (`.manual-hero`) | No (sidebar has it) | "New Entry" button |
 | `/my-plan` | Inline SVG (`.plan-hero`) | No (sidebar has it) | N/A |
 | `/subscription/cancel` | Inline SVG (`.cancel-hero`) | No (sidebar has it) | N/A |
@@ -926,11 +926,15 @@ Deploy folder also contains:
 2. `Subscription` + `SubscriptionStripe` — ongoing subscription state
 3. `Billing` + `BillingStripe` — payment record
 
+Product resolution uses `ProductId` (not product name). The web-layer `CheckoutCompletedHandler` resolves the product ID from the Stripe price ID via `ResolveProductId()` — mapping `MonthlyPriceId` → 1, `YearlyPriceId` → 2, and module price IDs from the `Stripe:Modules` config. The same pattern exists in `SubscriptionUpdatedHandler`. This allows the webhook to handle Pro plans and module subscriptions identically.
+
 On subscription updates, it syncs status, dates, and product changes. On deletion, it sets status to `Cancelled`.
 
 ### CurrentUserMiddleware
 
-`CurrentUserMiddleware` (`Middleware/CurrentUserMiddleware.cs`) runs after `UseAuthorization()` on every request. It reads the `"UserId"` claim from `HttpContext.User` and calls `ICurrentUserService.Set()`. This ensures the `AuditResolver` can stamp audit fields on DB operations in both Blazor circuits and API endpoints. Webhook requests from Stripe have no auth cookie — the `StripeWebhookHandler` sets `ICurrentUserService` manually from the subscription's `UserId`.
+`CurrentUserMiddleware` (`Middleware/CurrentUserMiddleware.cs`) runs after `UseAuthorization()` on every request. It reads the `"UserId"` claim from `HttpContext.User` and calls `ICurrentUserService.Set()`. This ensures the `AuditResolver` can stamp audit fields on DB operations in API endpoints. Webhook requests from Stripe have no auth cookie — the `StripeWebhookHandler` sets `ICurrentUserService` manually from the subscription's `UserId`.
+
+**Blazor Server scoping caveat:** `CurrentUserMiddleware` sets `ICurrentUserService` on the HTTP request's DI scope, but the Blazor SignalR circuit creates its **own** DI scope with a fresh `ICurrentUserService` instance. This means the middleware-set user is not available in Blazor components. **Any ViewModel that performs updates via `RepositoryAdapterAsync` must call `CurrentUserService.Set(userId, ...)` in `OnInitializedAsync`** to ensure the `AuditResolver` has the user for audit field stamping. Inserts work without this (they use `userId ?? 0`), but updates require an authenticated user and will throw `InvalidOperationException` if the service is empty. See `ManualEntryViewModel` and `SuggestionBoxViewModel` for the pattern.
 
 ### Local Development
 
@@ -1144,6 +1148,11 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - Pages using `LandingLayout` (Sign-In, Error) use the **`BrandHeader`** component.
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
 
+### Modal Behavior
+
+- **Modals do not close on backdrop click.** Only the Cancel button (or equivalent) closes the modal. This prevents accidental data loss when users click outside a form modal.
+- **Exception:** The `UserProfileButton` dropdown closes on backdrop click — this is intentional since it's a menu, not a form.
+
 ### Mobile-First Responsive Strategy
 
 - **Principle: "Keyhole Data"** — phones are for glancing at numbers, not configuring things. Desktop gets the full experience; mobile gets a focused, read-only snapshot.
@@ -1161,7 +1170,7 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 | **Platforms** | `/platforms` | Connect/manage platform integrations (Stripe, Etsy, etc.) | Hidden |
 | **Goals** | `/goals` | Set and track monthly/yearly revenue targets | Yes (simplified) |
 | **Export** | `/export` | CSV export for tax prep / bookkeeping | Hidden |
-| **Suggestions** | `/suggestions` | User feedback and feature requests (already built) | Yes |
+| **Suggestions** | `/suggestions` | User feedback and feature requests (vote, edit own) | Yes |
 | **Settings** | `/settings` | Account preferences, email settings, linked providers | Hidden |
 | **Admin** | `/admin` | Email resend, bulk welcome send, user list (Admin role only) | Hidden |
 
@@ -1515,7 +1524,7 @@ public AppleSignInHandler(
 - [x] **Branding** — brand color `#6c5ce7`, accent `#8b5cf6`, icon uploaded (favicon PNG)
 - [x] **Business Model** — Platform (not Marketplace)
 - [x] **Payment Integration** — Prebuilt checkout form (Stripe Checkout Sessions)
-- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHVRC4AM5SkTgToKjXCny`. Free tier has no Stripe product (it's just the absence of a subscription).
+- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHVRC4AM5SkTgToKjXCny`. Free tier has no Stripe product (it's just the absence of a subscription). Manual Entry Module: Product ID `prod_UEPfDUVNr9l4kJ`, Price ID `price_1TFwpvRC4AM5SkTgEZMliKrz` ($3/mo). Module price IDs are configured in `Stripe:Modules` (key = DB product ID, value = Stripe price ID).
 - [x] **Webhook Endpoint** — using Stripe CLI local listener (`stripe listen --forward-to https://localhost:7012/api/billing/webhook`). Stripe CLI installed via winget at `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`.
 - [x] **API Keys** — test keys added to `appsettings.Development.json` (`Stripe:SecretKey`, `Stripe:PublishableKey`)
 - [x] **Webhook Secret** — webhook signing secret added to `appsettings.Development.json` (from Stripe CLI listener)
