@@ -79,10 +79,17 @@
     </nav>
 
     <div class="upgrade-card">
-        <h4>Upgrade to Pro</h4>
-        <p>Unlimited platforms, full history, goals &amp; CSV export.</p>
-        <a class="upgrade-btn" href="subscription">Manage Plan</a>
-        <a class="modules-btn" href="upgrade">Manage Modules</a>
+        @if (IsProSubscriber)
+        {
+            <h4>Pro Plan</h4>
+            <p>Manage your subscription, modules, and billing.</p>
+        }
+        else
+        {
+            <h4>Upgrade to Pro</h4>
+            <p>Unlimited platforms, full history, goals &amp; CSV export.</p>
+        }
+        <a class="upgrade-btn" href="my-plan">My Plan</a>
     </div>
 
     <div class="sidebar-user">

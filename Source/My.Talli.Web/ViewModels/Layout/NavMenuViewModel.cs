@@ -1,9 +1,14 @@
 namespace My.Talli.Web.ViewModels.Layout;
 
+using Domain.Framework;
+using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Services.Identity;
 using System.Security.Claims;
+
+using ENTITIES = Domain.Entities;
+using MODELS = Domain.Models;
 
 /// <summary>View Model</summary>
 public class NavMenuViewModel : ComponentBase
@@ -14,6 +19,9 @@ public class NavMenuViewModel : ComponentBase
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
 	[Inject]
+	private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
+
+	[Inject]
 	private UserDisplayCache UserDisplayCache { get; set; } = default!;
 
 	#endregion
@@ -21,6 +29,8 @@ public class NavMenuViewModel : ComponentBase
 	#region <Properties>
 
 	public bool IsAdmin { get; private set; }
+
+	public bool IsProSubscriber { get; private set; }
 
 	public string UserEmail { get; private set; } = string.Empty;
 
@@ -54,6 +64,14 @@ public class NavMenuViewModel : ComponentBase
 		UserEmail = info.Email;
 		UserFullName = info.FullName;
 		UserInitials = info.Initials;
+
+		var proSub = (await SubscriptionAdapter.FindAsync(s =>
+			s.UserId == userId
+			&& (s.ProductId == 1 || s.ProductId == 2)
+			&& (s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling)))
+			.FirstOrDefault();
+
+		IsProSubscriber = proSub is not null;
 	}
 
 

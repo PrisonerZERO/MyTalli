@@ -1,0 +1,306 @@
+@page "/my-plan"
+@inherits My.Talli.Web.ViewModels.Pages.MyPlanViewModel
+@rendermode InteractiveServer
+
+<PageTitle>My Plan — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<section class="plan-hero" aria-label="My plan">
+    <div class="plan-hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="plan-hero-content">
+        <h1>My Plan</h1>
+        <p>Manage your subscription, modules, and billing</p>
+    </div>
+</section>
+
+<!-- Status toasts -->
+@if (ShowSuccessToast)
+{
+    <div class="plan-toast plan-toast-success animate-in delay-1" role="status">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        <span>Welcome to Pro! Your subscription is now active.</span>
+        <button class="plan-toast-dismiss" aria-label="Dismiss notification" @onclick="DismissToast">&times;</button>
+    </div>
+}
+@if (ShowSwitchedToast)
+{
+    <div class="plan-toast plan-toast-success animate-in delay-1" role="status">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        <span>Plan switched! Your billing period has been updated.</span>
+        <button class="plan-toast-dismiss" aria-label="Dismiss notification" @onclick="DismissToast">&times;</button>
+    </div>
+}
+@if (ShowCancelledToast)
+{
+    <div class="plan-toast plan-toast-info animate-in delay-1" role="status">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" x2="12" y1="8" y2="12" />
+            <line x1="12" x2="12.01" y1="16" y2="16" />
+        </svg>
+        <span>Checkout was cancelled. You can try again anytime.</span>
+        <button class="plan-toast-dismiss" aria-label="Dismiss notification" @onclick="DismissToast">&times;</button>
+    </div>
+}
+
+@if (IsLoading)
+{
+    <div class="plan-card animate-in delay-1" role="status">
+        <p class="plan-loading">Loading your plan...</p>
+    </div>
+}
+else
+{
+    <!-- ═══ SERVICE PLAN ═══ -->
+    <div class="plan-section-header animate-in delay-1">
+        <h2>Service Plan</h2>
+    </div>
+
+    @if (IsFreeUser)
+    {
+        <!-- Free user: inline pricing cards -->
+        <section class="plan-pricing animate-in delay-2" aria-label="Pricing plans">
+            <div class="plan-pricing-card">
+                <div class="plan-current-badge">Current Plan</div>
+                <h3>Free</h3>
+                <div class="plan-price-large">$0</div>
+                <div class="plan-price-period">Forever free</div>
+                <ul class="plan-features-list">
+                    <li><span class="sr-only">Included: </span>1 connected platform</li>
+                    <li><span class="sr-only">Included: </span>Basic dashboard</li>
+                    <li><span class="sr-only">Included: </span>30-day history</li>
+                </ul>
+            </div>
+
+            <div class="plan-pricing-card plan-pricing-card-pro">
+                <div class="plan-badge-recommended">Recommended</div>
+                <h3>Pro</h3>
+
+                <div class="plan-toggle" role="group" aria-label="Billing period">
+                    <button class="plan-toggle-btn @(SelectedPlan == "monthly" ? "active" : "")"
+                            aria-pressed="@(SelectedPlan == "monthly" ? "true" : "false")"
+                            @onclick='() => SelectPlan("monthly")'>Monthly</button>
+                    <button class="plan-toggle-btn @(SelectedPlan == "yearly" ? "active" : "")"
+                            aria-pressed="@(SelectedPlan == "yearly" ? "true" : "false")"
+                            @onclick='() => SelectPlan("yearly")'>Yearly</button>
+                </div>
+
+                @if (SelectedPlan == "monthly")
+                {
+                    <div class="plan-price-large">$12<span>/mo</span></div>
+                    <div class="plan-price-period">Billed monthly</div>
+                }
+                else
+                {
+                    <div class="plan-price-large">$99<span>/yr</span></div>
+                    <div class="plan-price-period">$8.25/mo — save 31%</div>
+                }
+
+                <ul class="plan-features-list">
+                    <li><span class="sr-only">Included: </span>Unlimited platforms</li>
+                    <li><span class="sr-only">Included: </span>Full revenue history</li>
+                    <li><span class="sr-only">Included: </span>Goals &amp; weekly emails</li>
+                    <li><span class="sr-only">Included: </span>CSV export</li>
+                </ul>
+
+                <button class="plan-cta" @onclick="HandleUpgrade">Upgrade Now</button>
+            </div>
+        </section>
+    }
+    else
+    {
+        <!-- Pro subscriber: current plan card -->
+        <section class="plan-card plan-card-pro animate-in delay-2" aria-labelledby="plan-heading">
+            <div class="plan-card-header">
+                <h3 id="plan-heading">Current Plan</h3>
+                <div class="plan-status @(IsCancelling ? "plan-status-cancelling" : "")" role="status">
+                    <span class="plan-status-dot" aria-hidden="true"></span>
+                    @PlanStatus
+                </div>
+            </div>
+
+            <div class="plan-name-row">
+                <span class="plan-badge">PRO</span>
+                <div class="plan-price">@PlanPrice<span>@PlanPeriod</span></div>
+            </div>
+
+            @if (IsCancelling)
+            {
+                <div class="plan-cancelling-banner" role="alert">
+                    <span aria-hidden="true">⚠</span>
+                    Your plan will cancel on <strong>@CancelsOnDate</strong>. You'll be downgraded to the Free plan after this date.
+                </div>
+            }
+
+            <div class="plan-meta">
+                @if (!IsCancelling)
+                {
+                    <div class="plan-meta-item">
+                        <span class="plan-meta-label">Next billing date</span>
+                        <span class="plan-meta-value">@NextBillingDate</span>
+                    </div>
+                }
+                <div class="plan-meta-item">
+                    <span class="plan-meta-label">Member since</span>
+                    <span class="plan-meta-value">@MemberSince</span>
+                </div>
+            </div>
+
+            <div class="plan-includes">
+                <h4>What's Included</h4>
+                <ul class="plan-features-grid">
+                    <li><span class="sr-only">Included: </span>Unlimited platforms</li>
+                    <li><span class="sr-only">Included: </span>Full revenue history</li>
+                    <li><span class="sr-only">Included: </span>Goals &amp; weekly emails</li>
+                    <li><span class="sr-only">Included: </span>CSV export</li>
+                </ul>
+            </div>
+
+            <div class="plan-actions">
+                <div class="plan-action-row">
+                    <div class="plan-action-info">
+                        <h4>Manage Billing</h4>
+                        <p>Update payment method, view invoices, and download receipts.</p>
+                    </div>
+                    <button class="plan-btn plan-btn-primary" @onclick="HandleManageBilling">Manage Billing</button>
+                </div>
+
+                @if (IsCancelling)
+                {
+                    <div class="plan-action-row">
+                        <div class="plan-action-info">
+                            <h4>Reactivate Subscription</h4>
+                            <p>Changed your mind? Reactivate to keep your Pro benefits.</p>
+                        </div>
+                        <button class="plan-btn plan-btn-outline" @onclick="HandleManageBilling">Reactivate</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="plan-action-row">
+                        <div class="plan-action-info">
+                            <h4>Change Plan</h4>
+                            <p>Switch between monthly and yearly.</p>
+                        </div>
+                        <div class="plan-switch-group">
+                            <div class="plan-toggle plan-toggle-sm" role="group" aria-label="Billing period">
+                                <button class="plan-toggle-btn @(SelectedPlan == "monthly" ? "active" : "")"
+                                        aria-pressed="@(SelectedPlan == "monthly" ? "true" : "false")"
+                                        @onclick='() => SelectPlan("monthly")'>Monthly</button>
+                                <button class="plan-toggle-btn @(SelectedPlan == "yearly" ? "active" : "")"
+                                        aria-pressed="@(SelectedPlan == "yearly" ? "true" : "false")"
+                                        @onclick='() => SelectPlan("yearly")'>Yearly</button>
+                            </div>
+                            @if (!IsCurrentPeriodSelected)
+                            {
+                                <button class="plan-btn plan-btn-outline" @onclick="HandleSwitchPlan">@SwitchButtonText</button>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="plan-action-row">
+                        <div class="plan-action-info">
+                            <h4>Cancel Subscription</h4>
+                            <p>Downgrade to the Free plan at the end of your billing period.</p>
+                        </div>
+                        <button class="plan-btn plan-btn-danger" @onclick="HandleCancel">Cancel</button>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    <!-- ═══ YOUR MODULES ═══ -->
+    @if (ActiveModules.Count > 0)
+    {
+        <div class="plan-section-header animate-in delay-2" style="margin-top: 16px;">
+            <h2>Your Modules</h2>
+            <span class="plan-section-tag">@ActiveModules.Count Active</span>
+        </div>
+
+        @foreach (var module in ActiveModules)
+        {
+            <section class="plan-card plan-card-module animate-in delay-3" aria-label="@module.Name module">
+                <div class="plan-card-header">
+                    <h3>@module.Name</h3>
+                    <div class="plan-status @(module.IsCancelling ? "plan-status-cancelling" : "")" role="status">
+                        <span class="plan-status-dot" aria-hidden="true"></span>
+                        @module.Status
+                    </div>
+                </div>
+
+                <div class="plan-name-row">
+                    <span class="plan-badge plan-badge-module">MODULE</span>
+                    <div class="plan-price">@module.Price<span>/mo</span></div>
+                </div>
+
+                <div class="plan-meta">
+                    @if (!module.IsCancelling)
+                    {
+                        <div class="plan-meta-item">
+                            <span class="plan-meta-label">Next billing date</span>
+                            <span class="plan-meta-value">@module.NextBillingDate</span>
+                        </div>
+                    }
+                    <div class="plan-meta-item">
+                        <span class="plan-meta-label">Active since</span>
+                        <span class="plan-meta-value">@module.ActiveSince</span>
+                    </div>
+                </div>
+
+                <div class="plan-actions">
+                    <div class="plan-action-row">
+                        <div class="plan-action-info">
+                            <h4>Manage Billing</h4>
+                            <p>Update payment method or view invoices.</p>
+                        </div>
+                        <button class="plan-btn plan-btn-primary" @onclick="() => HandleManageBilling()">Manage Billing</button>
+                    </div>
+                    <div class="plan-action-row">
+                        <div class="plan-action-info">
+                            <h4>Cancel Module</h4>
+                            <p>Remove this module at the end of your billing period.</p>
+                        </div>
+                        <button class="plan-btn plan-btn-danger" @onclick="() => HandleCancelModule(module.ProductId)">Cancel</button>
+                    </div>
+                </div>
+            </section>
+        }
+    }
+
+    <!-- ═══ AVAILABLE MODULES ═══ -->
+    @if (AvailableModules.Count > 0)
+    {
+        <div class="plan-section-header animate-in delay-3" style="margin-top: 16px;">
+            <h2>Available Modules</h2>
+        </div>
+
+        @foreach (var module in AvailableModules)
+        {
+            <div class="plan-module-available animate-in delay-3">
+                <div class="plan-module-info">
+                    <h4>@module.Name</h4>
+                    <p>Expand your MyTalli experience with this add-on module.</p>
+                </div>
+                <div class="plan-module-right">
+                    <span class="plan-module-price">@module.Price<span>/mo</span></span>
+                    <button class="plan-btn plan-btn-outline" @onclick="() => HandleAddModule(module.ProductId)">Add Module</button>
+                </div>
+            </div>
+        }
+    }
+}

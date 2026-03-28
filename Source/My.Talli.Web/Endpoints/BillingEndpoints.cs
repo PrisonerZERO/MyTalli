@@ -52,12 +52,12 @@ public static class BillingEndpoints
         var (subscription, stripeRecord) = await findSubscription.ExecuteAsync(userId);
         if (subscription is null || stripeRecord is null)
         {
-            context.Response.Redirect("/upgrade");
+            context.Response.Redirect("/my-plan");
             return Results.Empty;
         }
 
         var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
-        var session = await billing.CreatePortalSessionAsync(stripeRecord.StripeCustomerId, $"{baseUrl}/subscription");
+        var session = await billing.CreatePortalSessionAsync(stripeRecord.StripeCustomerId, $"{baseUrl}/my-plan");
 
         context.Response.Redirect(session.Url);
         return Results.Empty;
@@ -72,14 +72,14 @@ public static class BillingEndpoints
         var plan = context.Request.Query["plan"].ToString();
         if (plan != "monthly" && plan != "yearly")
         {
-            context.Response.Redirect("/upgrade");
+            context.Response.Redirect("/my-plan");
             return Results.Empty;
         }
 
         var (subscription, stripeRecord) = await findSubscription.ExecuteAsync(userId);
         if (subscription is null || stripeRecord is null)
         {
-            context.Response.Redirect("/upgrade");
+            context.Response.Redirect("/my-plan");
             return Results.Empty;
         }
 

@@ -88,7 +88,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application configuration | Milestone (legacy — table exists but no longer used by app code) |
+| `app` | Application features & revenue | Milestone (legacy), Revenue, RevenueManual, Suggestion, SuggestionVote |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
@@ -97,6 +97,14 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 **`app.Milestone`** — (legacy) waitlist progress tracker milestones. The table still exists in the database but all app code references (entity, model, mapper, configuration, framework constants) have been removed. The data remains for historical reference.
 - `Id` (PK), `Description`, `MilestoneGroup` (Beta, FullLaunch), `SortOrder` (display order within group), `Status` (Complete, InProgress, Upcoming), `Title`
 - `MilestoneStatuses.cs` and `MilestoneGroups.cs` (formerly in `Domain/Framework/`) have been removed.
+
+**`app.Revenue`** — normalized revenue record from all platforms (API-sourced and manual entry)
+- `Id` (PK), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
+- Composite index on `(Platform, TransactionDate)` for dashboard queries
+- Design: Goals and dashboard analytics query **only** this normalized table. Platform-specific tables exist for drill-down detail.
+
+**`app.RevenueManual`** — Manual Entry detail (1-to-1 with Revenue, shared PK)
+- `RevenueId` (PK/FK → Revenue, C# property: `Id`), `Category` (Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other), `Notes` (nullable)
 
 ### Schema: `auth`
 
@@ -557,12 +565,12 @@ My.Talli/
         │   │   ├── LandingPage.razor.css
         │   │   ├── SignIn.razor          # Sign-in page (route: /signin)
         │   │   ├── SignIn.razor.css
-        │   │   ├── Subscription.razor    # Subscription hub (route: /subscription)
-        │   │   ├── Subscription.razor.css
+        │   │   ├── ManualEntry.razor       # Manual entry module (route: /manual-entry)
+        │   │   ├── ManualEntry.razor.css
+        │   │   ├── MyPlan.razor          # Consolidated plan & module management (route: /my-plan)
+        │   │   ├── MyPlan.razor.css
         │   │   ├── SuggestionBox.razor       # Suggestion box (route: /suggestions)
         │   │   ├── SuggestionBox.razor.css
-        │   │   ├── Upgrade.razor         # Upgrade pricing page (route: /upgrade)
-        │   │   ├── Upgrade.razor.css
         │   │   ├── Unsubscribe.razor      # Email preference management (route: /unsubscribe?token=xxx)
         │   │   ├── Unsubscribe.razor.css
         │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
@@ -595,10 +603,10 @@ My.Talli/
         │   │   ├── ErrorViewModel.cs
         │   │   ├── LandingPageViewModel.cs
         │   │   ├── SignInViewModel.cs
-        │   │   ├── SubscriptionViewModel.cs
+        │   │   ├── ManualEntryViewModel.cs
+        │   │   ├── MyPlanViewModel.cs
         │   │   ├── SuggestionBoxViewModel.cs
-        │   │   ├── UnsubscribeViewModel.cs
-        │   │   └── UpgradeViewModel.cs
+        │   │   └── UnsubscribeViewModel.cs
         │   └── Shared/
         │       └── BrandHeaderViewModel.cs
         ├── Properties/
@@ -649,9 +657,9 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 | `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
 | `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | "Sign Out" link |
 | `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button |
-| `/subscription` | Inline SVG (`.sub-hero`) | No (sidebar has it) | N/A |
+| `/manual-entry` | Inline SVG (`.manual-hero`) | No (sidebar has it) | "New Entry" button |
+| `/my-plan` | Inline SVG (`.plan-hero`) | No (sidebar has it) | N/A |
 | `/subscription/cancel` | Inline SVG (`.cancel-hero`) | No (sidebar has it) | N/A |
-| `/upgrade` | Inline SVG (`.upgrade-hero`) | No (sidebar has it) | N/A |
 | `/admin` | Inline SVG (`.admin-hero`) | No (sidebar has it) | N/A |
 | `/unsubscribe` | `<BrandHeader>` | Yes | "Go to Homepage" link |
 | `/Error` | `<BrandHeader>` | Yes | "Go Back" button |
@@ -909,7 +917,7 @@ Deploy folder also contains:
 | `Unpaid` | Payment failed, no grace | Stripe status `unpaid` |
 
 - **Cancelling vs Cancelled:** "Cancelling" means the user requested cancellation but still has access until the billing period ends. "Cancelled" means the subscription is fully terminated. The Subscription page shows a warning banner and "Reactivate" button during "Cancelling" state.
-- **Queries:** Any query for "active" subscriptions must include both `Active` and `Cancelling` statuses (the user still has Pro access in both states). This applies to: `SubscriptionViewModel`, `UpgradeViewModel`, portal endpoint, switch-plan endpoint.
+- **Queries:** Any query for "active" subscriptions must include both `Active` and `Cancelling` statuses (the user still has Pro access in both states). This applies to: `MyPlanViewModel`, `NavMenuViewModel`, `ManualEntryViewModel`, portal endpoint, switch-plan endpoint.
 
 ### Webhook Handler
 
@@ -935,7 +943,7 @@ On subscription updates, it syncs status, dates, and product changes. On deletio
 
 The app runs in **Dashboard Mode** — full app experience with all routes active. Sign-in takes users to the dashboard, sidebar navigation is functional.
 
-- **Active routes:** All routes (`/dashboard`, `/suggestions`, `/subscription`, `/upgrade`, etc.)
+- **Active routes:** All routes (`/dashboard`, `/suggestions`, `/my-plan`, `/manual-entry`, etc.)
 - **OAuth redirect:** Set to `/dashboard` in the login endpoint (`Program.cs`)
 - **Historical note:** The app previously operated in Waitlist Mode (landing page, sign-in, and waitlist only, all other routes redirected to `/waitlist`). Waitlist Mode and its associated code (page, view model, milestone display) have been removed. The branch `main_WAITLIST` is a frozen snapshot of `main` at the end of Waitlist Mode, preserved for historical reference.
 
@@ -1149,6 +1157,7 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 | Page | Route | Purpose | Mobile |
 |------|-------|---------|--------|
 | **Dashboard** | `/dashboard` | Revenue overview — KPI cards, charts, trends, recent transactions | Yes (keyhole) |
+| **Manual Entry** | `/manual-entry` | Record revenue from non-integrated sources (module, $3/mo) | Yes |
 | **Platforms** | `/platforms` | Connect/manage platform integrations (Stripe, Etsy, etc.) | Hidden |
 | **Goals** | `/goals` | Set and track monthly/yearly revenue targets | Yes (simplified) |
 | **Export** | `/export` | CSV export for tax prep / bookkeeping | Hidden |
@@ -1528,4 +1537,7 @@ Upcoming features:
 
 - [x] **Admin Page** — role-based admin section (`/admin`) with email management: resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, bulk-send Welcome emails to selected or all users. Visible only to `Admin` role via conditional NavMenu link. Uses `vAuthenticatedUser` view (keyless entity) for user list with emails. ViewModel redirects non-admins to `/dashboard`; API endpoints enforce Admin role via `.RequireAuthorization()`.
 - [x] **Admin Email Resend** — admin ability to resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, plus bulk-send Welcome emails to selected or all users. Implemented as part of the Admin page (`/admin`). API endpoints: `POST /api/admin/email/resend`, `POST /api/admin/email/bulk-welcome`, `POST /api/admin/email/bulk-welcome-all`. Commands: `SendSubscriptionConfirmationEmailCommand` (validates active subscription exists), `SendWeeklySummaryEmailCommand` (uses sample data). Fail-silent on individual errors during bulk sends.
+- [x] **Manual Entry Module** — `app.Revenue` (base normalized revenue table) and `app.RevenueManual` (1-to-1 manual entry detail). Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with module access gate, entry form (description, gross, fee, currency, category, notes), entry list with edit/delete. Net auto-calculated. Categories: Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other.
+- [x] **My Plan Page** — consolidated plan and module management at `/my-plan`. Replaces the old `/subscription` and `/upgrade` pages (both deleted). Free users see inline pricing cards (Free vs Pro with monthly/yearly toggle). Pro users see their plan card with billing actions (Manage Billing, Change Plan, Cancel). Module owners see per-module cards with billing/cancel. Available modules listed at the bottom. Sidebar upgrade card shows "Pro Plan" for subscribers, "Upgrade to Pro" for free users, with a single "My Plan" button.
+- [ ] **Module Checkout Flow** — extend `/api/billing/create-checkout-session` to handle module product IDs (currently only handles `plan=monthly|yearly` for Pro). Needed for "Add Module" button on My Plan page.
 - [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.
