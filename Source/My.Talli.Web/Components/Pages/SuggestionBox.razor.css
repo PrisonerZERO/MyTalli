@@ -41,6 +41,8 @@
 .suggest-card { background: #fff; border: 1px solid #eee; border-radius: 14px; display: flex; flex-direction: column; padding: 24px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
 .suggest-card:hover { border-color: #e0dce8; box-shadow: 0 4px 20px rgba(108, 92, 231, 0.06); }
 .suggest-card-header { align-items: flex-start; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 10px; }
+.suggest-card-header-right { align-items: center; display: flex; flex-shrink: 0; gap: 10px; }
+.suggest-card-date { color: #999; font-size: 12px; }
 .suggest-card-title { color: #1a1a2e; font-size: 15px; font-weight: 600; }
 .suggest-card-desc { color: #555; flex: 1; font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
 .suggest-card-footer { align-items: center; border-top: 1px solid #f8f7fc; display: flex; gap: 12px; justify-content: space-between; margin-top: auto; padding-top: 14px; }
@@ -52,6 +54,9 @@
 .suggest-vote-btn svg { height: 12px; width: 12px; }
 
 .suggest-card-meta { align-items: center; display: flex; gap: 8px; }
+.suggest-edit-btn { background: transparent; border: 1px solid #e0dce8; border-radius: 8px; color: #999; cursor: pointer; margin-left: auto; padding: 5px 8px; transition: all 0.15s; }
+.suggest-edit-btn:hover { border-color: #6c5ce7; color: #6c5ce7; }
+.suggest-edit-btn svg { height: 14px; width: 14px; }
 .suggest-meta-text { color: #999; font-size: 12px; }
 
 /* ─── CATEGORY TAGS ─── */

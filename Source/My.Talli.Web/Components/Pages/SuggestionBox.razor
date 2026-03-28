@@ -77,7 +77,10 @@
         <article class="suggest-card">
             <div class="suggest-card-header">
                 <h3 class="suggest-card-title">@item.Title</h3>
-                <span class="suggest-cat-tag @item.CategoryCss">@item.Category</span>
+                <div class="suggest-card-header-right">
+                    <span class="suggest-card-date">@item.DateLabel</span>
+                    <span class="suggest-cat-tag @item.CategoryCss">@item.Category</span>
+                </div>
             </div>
             <div class="suggest-card-desc">@item.Description</div>
             <div class="suggest-card-footer">
@@ -92,9 +95,15 @@
                         @item.Votes
                     </button>
                 </div>
-                <div class="suggest-card-meta">
-                    <span class="suggest-meta-text">@item.Author &middot; @item.TimeLabel</span>
-                </div>
+                @if (item.IsOwn)
+                {
+                    <button class="suggest-edit-btn" aria-label="Edit @item.Title" @onclick="() => EditSuggestionAsync(item.Id)">
+                        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                    </button>
+                }
             </div>
         </article>
     }
@@ -105,7 +114,7 @@
 {
     <div class="suggest-modal-overlay">
         <div class="suggest-modal" role="dialog" aria-modal="true" aria-label="Submit a suggestion">
-            <h2>New Suggestion</h2>
+            <h2>@ModalTitle</h2>
             <div class="suggest-form-group">
                 <label class="suggest-form-label" for="suggest-title">Title</label>
                 <input class="suggest-form-input" id="suggest-title" type="text" placeholder="e.g. Dark mode support" @bind="NewTitle">
@@ -125,7 +134,7 @@
             </div>
             <div class="suggest-modal-actions">
                 <button class="suggest-btn-outline" @onclick="CloseModal">Cancel</button>
-                <button class="suggest-btn-submit" @onclick="SubmitSuggestionAsync">Submit</button>
+                <button class="suggest-btn-submit" @onclick="SubmitSuggestionAsync">@(EditingId.HasValue ? "Save Changes" : "Submit")</button>
             </div>
         </div>
     </div>
