@@ -10,6 +10,7 @@ public class SuggestionMapper : EntityMapper<MODELS.Suggestion, ENTITIES.Suggest
 
 	public override void ApplyTo(ENTITIES.Suggestion source, MODELS.Suggestion destination)
 	{
+		destination.AdminNote = source.AdminNote;
 		destination.Category = source.Category;
 		destination.CreatedOn = source.CreatedOnDateTime;
 		destination.Description = source.Description;
@@ -23,6 +24,7 @@ public class SuggestionMapper : EntityMapper<MODELS.Suggestion, ENTITIES.Suggest
 
 	public override ENTITIES.Suggestion ToEntity(MODELS.Suggestion model) => new()
 	{
+		AdminNote = model.AdminNote,
 		Category = model.Category,
 		Description = model.Description,
 		Id = model.Id,
@@ -35,6 +37,7 @@ public class SuggestionMapper : EntityMapper<MODELS.Suggestion, ENTITIES.Suggest
 
 	public override MODELS.Suggestion ToModel(ENTITIES.Suggestion entity) => new()
 	{
+		AdminNote = entity.AdminNote,
 		Category = entity.Category,
 		CreatedOn = entity.CreatedOnDateTime,
 		Description = entity.Description,

@@ -7,8 +7,15 @@
 <!-- Swoosh hero -->
 <section class="plat-hero" aria-label="Platform status overview">
     <div class="plat-hero-bg" aria-hidden="true">
-        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc" />
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="platSwooshGrad" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#6c5ce7" />
+                    <stop offset="50%" stop-color="#8b5cf6" />
+                    <stop offset="100%" stop-color="#6c5ce7" />
+                </linearGradient>
+            </defs>
+            <path d="M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z" fill="url(#platSwooshGrad)" />
         </svg>
         <div class="deco-circle deco-circle-1"></div>
         <div class="deco-circle deco-circle-2"></div>
@@ -21,6 +28,9 @@
                 <h1>Platform Status</h1>
                 <p>Monitor your connections and sync health at a glance.</p>
             </div>
+            <ul class="hero-nav">
+                <li><My.Talli.Web.Components.Shared.UserProfileButton @rendermode="InteractiveServer" /></li>
+            </ul>
         </div>
 
         <div class="plat-hero-stats" role="group" aria-label="Platform statistics">

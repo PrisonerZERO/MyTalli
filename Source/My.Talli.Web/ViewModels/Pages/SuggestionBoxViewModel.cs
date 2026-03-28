@@ -41,6 +41,7 @@ public class SuggestionBoxViewModel : ComponentBase
 
 	public long? EditingId { get; private set; }
 
+	public long? EditingNoteId { get; private set; }
 
 	public List<string> Categories { get; private set; } =
 	[
@@ -60,6 +61,8 @@ public class SuggestionBoxViewModel : ComponentBase
 	public string NewDescription { get; set; } = string.Empty;
 
 	public string NewTitle { get; set; } = string.Empty;
+
+	public string NoteText { get; set; } = string.Empty;
 
 	public string ModalTitle => EditingId.HasValue ? "Edit Suggestion" : "New Suggestion";
 
@@ -136,6 +139,34 @@ public class SuggestionBoxViewModel : ComponentBase
 
 		suggestion.Status = status;
 		await SuggestionAdapter.UpdateAsync(suggestion);
+		await LoadSuggestionsAsync();
+	}
+
+	public void StartEditNote(SuggestionItem item)
+	{
+		if (!IsAdmin) return;
+		EditingNoteId = item.Id;
+		NoteText = item.AdminNote ?? string.Empty;
+	}
+
+	public void CancelEditNote()
+	{
+		EditingNoteId = null;
+		NoteText = string.Empty;
+	}
+
+	public async Task SaveNoteAsync()
+	{
+		if (!IsAdmin || EditingNoteId is null) return;
+
+		var suggestion = await SuggestionAdapter.GetByIdAsync(EditingNoteId.Value);
+		if (suggestion is null) return;
+
+		suggestion.AdminNote = string.IsNullOrWhiteSpace(NoteText) ? null : NoteText.Trim();
+		await SuggestionAdapter.UpdateAsync(suggestion);
+
+		EditingNoteId = null;
+		NoteText = string.Empty;
 		await LoadSuggestionsAsync();
 	}
 
@@ -239,6 +270,7 @@ public class SuggestionBoxViewModel : ComponentBase
 		var votesForSuggestion = allVotes.Where(v => v.SuggestionId == s.Id).ToList();
 
 		return new SuggestionItem {
+			AdminNote = s.AdminNote,
 			Category = s.Category,
 			CreatedOn = s.CreatedOn,
 			Description = s.Description,

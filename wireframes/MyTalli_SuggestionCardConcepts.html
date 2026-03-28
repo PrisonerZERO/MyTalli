@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTalli — Suggestion Card Concepts</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; padding: 40px; }
+        h1 { color: #1a1a2e; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .subtitle { color: #999; font-size: 14px; margin-bottom: 48px; }
+        .concept { margin-bottom: 60px; }
+        .concept-label { background: #6c5ce7; border-radius: 8px; color: #fff; display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: 1px; margin-bottom: 16px; padding: 6px 16px; text-transform: uppercase; }
+        .concept-desc { color: #555; font-size: 14px; line-height: 1.6; margin-bottom: 20px; max-width: 600px; }
+        .card-grid { display: grid; gap: 20px; grid-template-columns: repeat(2, 1fr); max-width: 900px; }
+
+        /* ─── SHARED CARD BASE ─── */
+        .card { background: #fff; border: 1px solid #eee; border-radius: 14px; display: flex; flex-direction: column; padding: 24px; }
+        .card-header { align-items: flex-start; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 10px; }
+        .card-header-right { align-items: center; display: flex; flex-shrink: 0; gap: 10px; }
+        .card-title { color: #1a1a2e; font-size: 15px; font-weight: 600; }
+        .card-date { color: #999; font-size: 12px; }
+        .card-desc { color: #555; flex: 1; font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
+        .card-footer { align-items: center; border-top: 1px solid #f0edff; display: flex; gap: 12px; justify-content: space-between; margin-top: auto; padding-top: 14px; }
+        .vote-btn { align-items: center; background: #f0edff; border: 1px solid #6c5ce7; border-radius: 8px; color: #6c5ce7; display: flex; font-family: inherit; font-size: 13px; font-weight: 600; gap: 6px; padding: 6px 14px; }
+        .vote-btn svg { height: 12px; width: 12px; }
+        .cat-tag { border-radius: 6px; font-size: 11px; font-weight: 600; padding: 3px 10px; text-transform: uppercase; }
+        .cat-feature { background: #f0edff; color: #6c5ce7; }
+        .cat-integration { background: rgba(99, 91, 255, 0.08); color: #635bff; }
+        .status-tag { border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; padding: 3px 10px; text-transform: uppercase; }
+        .status-in-progress { background: rgba(39, 174, 96, 0.08); color: #27ae60; }
+        .status-declined { background: rgba(231, 76, 60, 0.08); color: #e74c3c; }
+        .status-planned { background: rgba(39, 174, 96, 0.08); color: #27ae60; }
+        .card-actions { align-items: center; display: flex; gap: 6px; margin-left: auto; }
+        .status-select { appearance: none; background: #f8f7fc; border: 1px solid #e0dce8; border-radius: 8px; color: #6c5ce7; font-family: inherit; font-size: 11px; font-weight: 600; padding: 5px 24px 5px 10px; }
+
+        /* Card status variants */
+        .card-in-progress { border: 2px solid #27ae60; }
+        .card-planned { border-left: 3px solid #27ae60; }
+        .card-declined { opacity: 0.55; }
+
+        /* ─── CONCEPT A: Inline Note ─── */
+        .note-inline { background: #faf9fe; border-left: 3px solid #6c5ce7; border-radius: 0 8px 8px 0; color: #555; font-size: 12px; font-style: italic; line-height: 1.5; margin-top: 12px; padding: 10px 14px; }
+        .note-inline-label { color: #6c5ce7; font-style: normal; font-weight: 600; margin-right: 4px; }
+
+        /* ─── CONCEPT B: Bubble Note ─── */
+        .note-bubble { background: #f0edff; border-radius: 12px; color: #555; font-size: 12px; line-height: 1.5; margin-top: 12px; padding: 12px 16px; position: relative; }
+        .note-bubble::before { border: 8px solid transparent; border-bottom-color: #f0edff; content: ""; left: 20px; position: absolute; top: -16px; }
+        .note-bubble-header { align-items: center; display: flex; gap: 6px; margin-bottom: 4px; }
+        .note-bubble-avatar { align-items: center; background: linear-gradient(135deg, #6c5ce7, #8b5cf6); border-radius: 50%; color: #fff; display: flex; font-size: 8px; font-weight: 700; height: 18px; justify-content: center; width: 18px; }
+        .note-bubble-name { color: #6c5ce7; font-size: 11px; font-weight: 600; }
+        .note-bubble-text { color: #555; font-size: 12px; line-height: 1.5; }
+
+        /* ─── CONCEPT C: Footer Note ─── */
+        .note-footer { color: #999; font-size: 12px; font-style: italic; line-height: 1.5; padding-top: 10px; }
+        .note-footer-icon { color: #6c5ce7; display: inline-block; height: 13px; margin-right: 4px; vertical-align: -1px; width: 13px; }
+        .note-footer-label { color: #6c5ce7; font-style: normal; font-weight: 600; }
+
+        @media (max-width: 700px) { .card-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<h1>Suggestion Card — Admin Note Concepts</h1>
+<p class="subtitle">Three placement options for admin notes on suggestion cards</p>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- CONCEPT A -->
+<!-- ════════════════════════════════════════════ -->
+<div class="concept">
+    <span class="concept-label">Concept A — Inline Callout</span>
+    <p class="concept-desc">
+        Purple left-border callout below the description. Clean, distinct from user content.
+        Feels like an official annotation — not a conversation. The "Admin:" label makes authorship clear.
+    </p>
+    <div class="card-grid">
+        <!-- In Progress with note -->
+        <article class="card card-in-progress">
+            <div class="card-header">
+                <h3 class="card-title">Stripe Webhook Real-Time Sync</h3>
+                <div class="card-header-right">
+                    <span class="status-tag status-in-progress">In Progress</span>
+                    <span class="card-date">Mar 19, 2026</span>
+                    <span class="cat-tag cat-integration">Integration</span>
+                </div>
+            </div>
+            <div class="card-desc">Use Stripe webhooks so new transactions appear in the dashboard instantly instead of polling.</div>
+            <div class="note-inline">
+                <span class="note-inline-label">Admin:</span>
+                Started building the webhook listener. Targeting next release for basic charge events.
+            </div>
+            <div class="card-footer">
+                <div class="vote-btn">
+                    <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                    4
+                </div>
+                <div class="card-actions">
+                    <select class="status-select"><option>In Progress</option></select>
+                </div>
+            </div>
+        </article>
+
+        <!-- Declined with note -->
+        <article class="card card-declined">
+            <div class="card-header">
+                <h3 class="card-title">Import from QuickBooks</h3>
+                <div class="card-header-right">
+                    <span class="status-tag status-declined">Declined</span>
+                    <span class="card-date">Mar 8, 2026</span>
+                    <span class="cat-tag cat-integration">Integration</span>
+                </div>
+            </div>
+            <div class="card-desc">Would be great to pull revenue data directly from QuickBooks Online.</div>
+            <div class="note-inline">
+                <span class="note-inline-label">Admin:</span>
+                QuickBooks is an accounting tool, not a revenue source. MyTalli pulls from payment platforms (Stripe, Etsy, etc.) that feed into accounting tools like QuickBooks.
+            </div>
+            <div class="card-footer">
+                <div class="vote-btn">
+                    <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                    1
+                </div>
+                <div class="card-actions">
+                    <select class="status-select"><option>Declined</option></select>
+                </div>
+            </div>
+        </article>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- CONCEPT B -->
+<!-- ════════════════════════════════════════════ -->
+<div class="concept">
+    <span class="concept-label">Concept B — Chat Bubble</span>
+    <p class="concept-desc">
+        Soft purple bubble with a speech-bubble pointer. Feels like a personal response.
+        Includes a tiny admin avatar and name. More conversational, hints at future threading.
+    </p>
+    <div class="card-grid">
+        <!-- In Progress with note -->
+        <article class="card card-in-progress">
+            <div class="card-header">
+                <h3 class="card-title">Stripe Webhook Real-Time Sync</h3>
+                <div class="card-header-right">
+                    <span class="status-tag status-in-progress">In Progress</span>
+                    <span class="card-date">Mar 19, 2026</span>
+                    <span class="cat-tag cat-integration">Integration</span>
+                </div>
+            </div>
+            <div class="card-desc">Use Stripe webhooks so new transactions appear in the dashboard instantly instead of polling.</div>
+            <div class="note-bubble">
+                <div class="note-bubble-header">
+                    <span class="note-bubble-avatar">R</span>
+                    <span class="note-bubble-name">Admin</span>
+                </div>
+                <div class="note-bubble-text">Started building the webhook listener. Targeting next release for basic charge events.</div>
+            </div>
+            <div class="card-footer">
+                <div class="vote-btn">
+                    <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                    4
+                </div>
+                <div class="card-actions">
+                    <select class="status-select"><option>In Progress</option></select>
+                </div>
+            </div>
+        </article>
+
+        <!-- Declined with note -->
+        <article class="card card-declined">
+            <div class="card-header">
+                <h3 class="card-title">Import from QuickBooks</h3>
+                <div class="card-header-right">
+                    <span class="status-tag status-declined">Declined</span>
+                    <span class="card-date">Mar 8, 2026</span>
+                    <span class="cat-tag cat-integration">Integration</span>
+                </div>
+            </div>
+            <div class="card-desc">Would be great to pull revenue data directly from QuickBooks Online.</div>
+            <div class="note-bubble">
+                <div class="note-bubble-header">
+                    <span class="note-bubble-avatar">R</span>
+                    <span class="note-bubble-name">Admin</span>
+                </div>
+                <div class="note-bubble-text">QuickBooks is an accounting tool, not a revenue source. MyTalli pulls from payment platforms (Stripe, Etsy, etc.) that feed into accounting tools like QuickBooks.</div>
+            </div>
+            <div class="card-footer">
+                <div class="vote-btn">
+                    <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                    1
+                </div>
+                <div class="card-actions">
+                    <select class="status-select"><option>Declined</option></select>
+                </div>
+            </div>
+        </article>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- CONCEPT C -->
+<!-- ════════════════════════════════════════════ -->
+<div class="concept">
+    <span class="concept-label">Concept C — Subtle Footer Note</span>
+    <p class="concept-desc">
+        Minimal — note sits below the divider line in the footer area, right above the vote button.
+        Least visual weight. Good if notes are uncommon and shouldn't dominate the card.
+    </p>
+    <div class="card-grid">
+        <!-- In Progress with note -->
+        <article class="card card-in-progress">
+            <div class="card-header">
+                <h3 class="card-title">Stripe Webhook Real-Time Sync</h3>
+                <div class="card-header-right">
+                    <span class="status-tag status-in-progress">In Progress</span>
+                    <span class="card-date">Mar 19, 2026</span>
+                    <span class="cat-tag cat-integration">Integration</span>
+                </div>
+            </div>
+            <div class="card-desc">Use Stripe webhooks so new transactions appear in the dashboard instantly instead of polling.</div>
+            <div class="card-footer" style="flex-direction: column; align-items: stretch;">
+                <div class="note-footer">
+                    <svg class="note-footer-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span class="note-footer-label">Admin:</span>
+                    Started building the webhook listener. Targeting next release for basic charge events.
+                </div>
+                <div style="align-items: center; display: flex; justify-content: space-between; padding-top: 10px;">
+                    <div class="vote-btn">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                        4
+                    </div>
+                    <div class="card-actions">
+                        <select class="status-select"><option>In Progress</option></select>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Declined with note -->
+        <article class="card card-declined">
+            <div class="card-header">
+                <h3 class="card-title">Import from QuickBooks</h3>
+                <div class="card-header-right">
+                    <span class="status-tag status-declined">Declined</span>
+                    <span class="card-date">Mar 8, 2026</span>
+                    <span class="cat-tag cat-integration">Integration</span>
+                </div>
+            </div>
+            <div class="card-desc">Would be great to pull revenue data directly from QuickBooks Online.</div>
+            <div class="card-footer" style="flex-direction: column; align-items: stretch;">
+                <div class="note-footer">
+                    <svg class="note-footer-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span class="note-footer-label">Admin:</span>
+                    QuickBooks is an accounting tool, not a revenue source. MyTalli pulls from payment platforms (Stripe, Etsy, etc.) that feed into accounting tools like QuickBooks.
+                </div>
+                <div style="align-items: center; display: flex; justify-content: space-between; padding-top: 10px;">
+                    <div class="vote-btn">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                        1
+                    </div>
+                    <div class="card-actions">
+                        <select class="status-select"><option>Declined</option></select>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- No Note comparison -->
+<!-- ════════════════════════════════════════════ -->
+<div class="concept">
+    <span class="concept-label">Reference — No Note</span>
+    <p class="concept-desc">Current card without admin note, for visual comparison.</p>
+    <div class="card-grid">
+        <article class="card">
+            <div class="card-header">
+                <h3 class="card-title">Dark Mode Support</h3>
+                <div class="card-header-right">
+                    <span class="card-date">Mar 19, 2026</span>
+                    <span class="cat-tag cat-feature">Feature</span>
+                </div>
+            </div>
+            <div class="card-desc">Would love a dark mode option for late-night revenue tracking. The current light theme can be harsh on the eyes.</div>
+            <div class="card-footer">
+                <div class="vote-btn">
+                    <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                    7
+                </div>
+                <div class="card-actions">
+                    <select class="status-select"><option>New</option></select>
+                </div>
+            </div>
+        </article>
+
+        <article class="card card-planned">
+            <div class="card-header">
+                <h3 class="card-title">Shopify Integration</h3>
+                <div class="card-header-right">
+                    <span class="status-tag status-planned">Planned</span>
+                    <span class="card-date">Mar 1, 2026</span>
+                    <span class="cat-tag cat-integration">Integration</span>
+                </div>
+            </div>
+            <div class="card-desc">Connect Shopify stores to pull in sales data and display it on the dashboard.</div>
+            <div class="card-footer">
+                <div class="vote-btn">
+                    <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                    3
+                </div>
+                <div class="card-actions">
+                    <select class="status-select"><option>Planned</option></select>
+                </div>
+            </div>
+        </article>
+    </div>
+</div>
+
+</body>
+</html>

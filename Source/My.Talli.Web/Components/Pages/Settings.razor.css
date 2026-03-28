@@ -1,5 +1,6 @@
 /* ─── SWOOSH HERO ─── */
-.settings-hero { margin: -32px -40px 32px; overflow: hidden; padding: 28px 40px 48px; position: relative; }
+.settings-hero { margin: -32px -40px 32px; padding: 28px 40px 48px; position: relative; }
+.settings-hero-top { align-items: center; display: flex; justify-content: space-between; position: relative; z-index: 1; }
 .settings-hero-bg { height: 100%; left: 0; overflow: hidden; pointer-events: none; position: absolute; right: 0; top: 0; }
 .settings-hero-bg svg { display: block; height: 100%; min-height: 200px; width: 100%; }
 .deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }

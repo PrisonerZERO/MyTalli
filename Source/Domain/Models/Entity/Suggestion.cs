@@ -5,6 +5,8 @@ public class Suggestion : DefaultModel
 {
 	#region <Properties>
 
+	public string? AdminNote { get; set; }
+
 	public string Category { get; set; } = string.Empty;
 
 	public DateTime CreatedOn { get; set; }

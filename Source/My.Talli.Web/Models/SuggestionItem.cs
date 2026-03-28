@@ -7,6 +7,8 @@ public class SuggestionItem
 {
 	#region <Properties>
 
+	public string? AdminNote { get; set; }
+
 	public string Category { get; set; } = "";
 
 	public string CardCss => Status switch
@@ -17,6 +19,8 @@ public class SuggestionItem
 		SuggestionStatuses.Declined => "suggest-card-declined",
 		_ => ""
 	};
+
+	public bool HasAdminNote => !string.IsNullOrWhiteSpace(AdminNote);
 
 	public string CategoryCss => Category switch
 	{
