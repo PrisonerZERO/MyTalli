@@ -69,6 +69,40 @@ public class UserPreferencesJsonSerializerTests
 	}
 
 	[Fact]
+	public void RoundTrip_GridPreferences_PreservesAllValues()
+	{
+		var original = new UserPreferences();
+		original.GridPreferences["manualEntry.entryGrid"] = new GridPreference
+		{
+			Density = "compact",
+			PageSize = 25,
+			SortColumn = "Description",
+			SortDescending = false,
+		};
+
+		var json = _serializer.Serialize(original);
+		var result = _serializer.Deserialize(json);
+
+		Assert.True(result.GridPreferences.ContainsKey("manualEntry.entryGrid"));
+		var grid = result.GridPreferences["manualEntry.entryGrid"];
+		Assert.Equal("compact", grid.Density);
+		Assert.Equal(25, grid.PageSize);
+		Assert.Equal("Description", grid.SortColumn);
+		Assert.False(grid.SortDescending);
+	}
+
+	[Fact]
+	public void Deserialize_MissingGridPreferences_ReturnsEmptyDictionary()
+	{
+		var json = "{\"emailPreferences\":{},\"funGreetings\":true}";
+
+		var result = _serializer.Deserialize(json);
+
+		Assert.NotNull(result.GridPreferences);
+		Assert.Empty(result.GridPreferences);
+	}
+
+	[Fact]
 	public void Serialize_CustomValues_PreservesValues()
 	{
 		var preferences = new UserPreferences

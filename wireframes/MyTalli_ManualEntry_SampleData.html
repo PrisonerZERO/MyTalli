@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Entry — Sample Data Concepts</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; }
+.concepts { display: flex; flex-direction: column; gap: 60px; margin: 0 auto; max-width: 1100px; padding: 40px 24px; }
+.concept { background: #fff; border: 2px solid #e0dce8; border-radius: 16px; overflow: hidden; }
+.concept-label { background: #1a1a2e; color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 1px; padding: 10px 20px; text-transform: uppercase; }
+
+/* Hero */
+.hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); padding: 24px 32px 32px; position: relative; overflow: hidden; }
+.hero-bg { height: calc(100% + 60px); left: 0; pointer-events: none; position: absolute; top: 0; width: 100%; }
+.hero-bg svg { bottom: -1px; height: 80px; left: 0; position: absolute; width: 100%; }
+.deco { background: rgba(255,255,255,0.07); border-radius: 50%; position: absolute; }
+.deco-1 { height: 220px; right: 8%; top: -60px; width: 220px; }
+.deco-2 { height: 160px; left: 20%; top: 80px; width: 160px; }
+.hero-content { position: relative; z-index: 2; }
+.hero-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.hero-top h1 { color: #fff; font-size: 26px; font-weight: 700; }
+.hero-top p { color: rgba(255,255,255,0.8); font-size: 14px; margin-top: 4px; }
+.hero-btn { align-items: center; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: #fff; cursor: pointer; display: flex; font-family: inherit; font-size: 14px; font-weight: 600; gap: 8px; padding: 10px 20px; text-decoration: none; }
+.stats { display: flex; gap: 32px; margin-top: 20px; }
+.stat-num { color: #fff; font-size: 22px; font-weight: 700; display: block; }
+.stat-label { color: rgba(255,255,255,0.65); font-size: 12px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+
+/* Sample banner */
+.sample-banner { align-items: center; background: #f0edff; border: 1px solid #e0dce8; border-radius: 12px; display: flex; gap: 12px; justify-content: space-between; margin: 0 24px 0; padding: 14px 20px; }
+.sample-banner-left { align-items: center; display: flex; gap: 10px; }
+.sample-banner-icon { align-items: center; background: #fff; border: 1px solid #e0dce8; border-radius: 50%; display: flex; height: 32px; justify-content: center; width: 32px; }
+.sample-banner-icon svg { color: #6c5ce7; height: 16px; width: 16px; }
+.sample-banner p { color: #555; font-size: 13px; }
+.sample-banner strong { color: #1a1a2e; }
+.sample-banner-btn { background: #6c5ce7; border: none; border-radius: 8px; color: #fff; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 16px; text-decoration: none; white-space: nowrap; }
+
+/* Table */
+.table-wrap { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin: 16px 24px 24px; overflow: hidden; }
+table { border-collapse: collapse; width: 100%; }
+thead th { background: #f8f7fc; border-bottom: 2px solid #e0dce8; color: #999; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; padding: 12px 16px; text-align: left; text-transform: uppercase; white-space: nowrap; }
+th.right { text-align: right; }
+tbody td { border-bottom: 1px solid #f0edff; color: #555; font-size: 13px; padding: 12px 16px; }
+td.date { color: #999; white-space: nowrap; }
+td.desc { color: #1a1a2e; font-weight: 500; }
+td.money { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+td.fee { color: #e74c3c; }
+td.net { color: #27ae60; font-weight: 600; }
+.cat { border-radius: 20px; font-size: 11px; font-weight: 600; padding: 3px 12px; }
+.cat-sale { background: #e8f5e9; color: #27ae60; }
+.cat-freelance { background: #f3e5f5; color: #7b1fa2; }
+.cat-consulting { background: #fff3e0; color: #e65100; }
+.cat-digital { background: #f0edff; color: #6c5ce7; }
+.cat-service { background: #e3f2fd; color: #1565c0; }
+tbody tr:hover { background: #f8f7fc; }
+
+/* Pagination */
+.pagination { align-items: center; border-top: 1px solid #f0edff; display: flex; justify-content: space-between; padding: 12px 16px; }
+.page-size { color: #999; font-size: 13px; }
+.page-info { color: #999; font-size: 13px; }
+.density-btns { display: flex; gap: 2px; }
+.density-btn { align-items: center; background: transparent; border: 1px solid #e0dce8; border-radius: 6px; color: #999; display: flex; justify-content: center; padding: 5px 7px; }
+.density-btn.active { background: #f0edff; border-color: #6c5ce7; color: #6c5ce7; }
+
+/* Gate (Concept B) */
+.gate { background: #fff; border: 1px solid #e0dce8; border-radius: 16px; margin: 0 auto; max-width: 480px; padding: 48px 40px; text-align: center; }
+.gate-icon svg { height: 56px; width: 56px; }
+.gate h2 { color: #1a1a2e; font-size: 22px; font-weight: 700; margin-top: 16px; }
+.gate p { color: #555; font-size: 14px; line-height: 1.6; margin-top: 8px; }
+.gate-price { align-items: baseline; display: flex; gap: 2px; justify-content: center; margin-top: 20px; }
+.gate-amount { color: #6c5ce7; font-size: 36px; font-weight: 700; }
+.gate-period { color: #999; font-size: 16px; }
+.gate-btn { background: #6c5ce7; border-radius: 10px; color: #fff; display: inline-block; font-size: 15px; font-weight: 600; margin-top: 20px; padding: 12px 32px; text-decoration: none; }
+
+/* Concept C: blurred */
+.blurred-wrap { position: relative; margin: 0 24px 24px; }
+.blurred-table { filter: blur(3px); opacity: 0.6; pointer-events: none; }
+.gate-overlay { align-items: center; display: flex; height: 100%; justify-content: center; left: 0; position: absolute; top: 0; width: 100%; z-index: 2; }
+.gate-card { background: #fff; border: 1px solid #e0dce8; border-radius: 16px; box-shadow: 0 8px 32px rgba(108,92,231,0.15); max-width: 400px; padding: 36px 32px; text-align: center; }
+.gate-card h2 { color: #1a1a2e; font-size: 20px; font-weight: 700; margin-top: 12px; }
+.gate-card p { color: #555; font-size: 14px; line-height: 1.5; margin-top: 8px; }
+.gate-card-price { align-items: baseline; display: flex; gap: 2px; justify-content: center; margin-top: 16px; }
+.gate-card-amount { color: #6c5ce7; font-size: 28px; font-weight: 700; }
+.gate-card-period { color: #999; font-size: 14px; }
+.gate-card-btn { background: #6c5ce7; border-radius: 10px; color: #fff; display: inline-block; font-size: 14px; font-weight: 600; margin-top: 16px; padding: 10px 28px; text-decoration: none; }
+
+.section-note { background: #f0edff; border-radius: 8px; color: #555; font-size: 13px; line-height: 1.6; margin: 0 24px 24px; padding: 16px 20px; }
+.section-note strong { color: #6c5ce7; }
+</style>
+</head>
+<body>
+
+<div class="concepts">
+
+<!-- ==================== CONCEPT A ==================== -->
+<div class="concept">
+    <div class="concept-label">Concept A — Sample Data with Banner (like Dashboard)</div>
+
+    <div class="hero">
+        <div class="hero-bg">
+            <svg preserveAspectRatio="none" viewBox="0 0 1000 200"><path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc"/></svg>
+            <div class="deco deco-1"></div>
+            <div class="deco deco-2"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-top">
+                <div>
+                    <h1>Manual Entry</h1>
+                    <p>Record revenue from any source</p>
+                </div>
+            </div>
+            <div class="stats">
+                <div><span class="stat-num">8</span><span class="stat-label">Entries</span></div>
+                <div><span class="stat-num">$4,230.00</span><span class="stat-label">Gross</span></div>
+                <div><span class="stat-num">$3,891.50</span><span class="stat-label">Net</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sample-banner">
+        <div class="sample-banner-left">
+            <div class="sample-banner-icon">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            </div>
+            <p>You're viewing <strong>sample data</strong>. Get Manual Entry to start tracking your own revenue.</p>
+        </div>
+        <a class="sample-banner-btn" href="#">Get Manual Entry — $3/mo</a>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr>
+                <th>Date</th><th>Description</th><th>Category</th><th class="right">Gross</th><th class="right">Fees</th><th class="right">Net</th>
+            </tr></thead>
+            <tbody>
+                <tr><td class="date">Mar 27, 2026</td><td class="desc">Logo design for startup</td><td><span class="cat cat-freelance">Freelance</span></td><td class="money">$850.00</td><td class="money fee">-$42.50</td><td class="money net">$807.50</td></tr>
+                <tr><td class="date">Mar 25, 2026</td><td class="desc">Monthly consulting retainer</td><td><span class="cat cat-consulting">Consulting</span></td><td class="money">$1,200.00</td><td class="money fee">-$60.00</td><td class="money net">$1,140.00</td></tr>
+                <tr><td class="date">Mar 22, 2026</td><td class="desc">UI template pack</td><td><span class="cat cat-digital">Digital Product</span></td><td class="money">$45.00</td><td class="money fee">-$4.50</td><td class="money net">$40.50</td></tr>
+                <tr><td class="date">Mar 20, 2026</td><td class="desc">Workshop facilitation</td><td><span class="cat cat-service">Service</span></td><td class="money">$600.00</td><td class="money fee">-$30.00</td><td class="money net">$570.00</td></tr>
+                <tr><td class="date">Mar 18, 2026</td><td class="desc">Handmade candles (market)</td><td><span class="cat cat-sale">Sale</span></td><td class="money">$185.00</td><td class="money fee">—</td><td class="money net">$185.00</td></tr>
+            </tbody>
+        </table>
+        <div class="pagination">
+            <div class="page-size">Show 10 entries</div>
+            <div class="density-btns">
+                <div class="density-btn active">☰</div>
+                <div class="density-btn">☰</div>
+                <div class="density-btn">☰</div>
+            </div>
+            <div class="page-info">1–5 of 8</div>
+        </div>
+    </div>
+
+    <div class="section-note">
+        <strong>Concept A:</strong> The lock gate is gone. Users see the full grid experience with sample data — sorting, density toggle, pagination all work. The banner + "Get Manual Entry" button is the only upsell. Same pattern as the Dashboard sample data. No "New Entry" button visible (no module access).
+    </div>
+</div>
+
+<!-- ==================== CONCEPT B ==================== -->
+<div class="concept">
+    <div class="concept-label">Concept B — Keep Lock Gate (current behavior)</div>
+
+    <div class="hero">
+        <div class="hero-bg">
+            <svg preserveAspectRatio="none" viewBox="0 0 1000 200"><path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc"/></svg>
+            <div class="deco deco-1"></div>
+            <div class="deco deco-2"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-top">
+                <div>
+                    <h1>Manual Entry</h1>
+                    <p>Record revenue from any source</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="padding: 24px;">
+        <div class="gate">
+            <div class="gate-icon">
+                <svg fill="none" stroke="#6c5ce7" stroke-linecap="round" stroke-width="1.5" viewBox="0 0 24 24"><rect height="11" rx="2" ry="2" width="18" x="3" y="11"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <h2>Unlock Manual Entry</h2>
+            <p>Record revenue from platforms we don't integrate with yet — freelance gigs, cash sales, consulting fees, and more.</p>
+            <div class="gate-price">
+                <span class="gate-amount">$3</span>
+                <span class="gate-period">/mo</span>
+            </div>
+            <a class="gate-btn" href="#">Get Manual Entry</a>
+        </div>
+    </div>
+
+    <div class="section-note">
+        <strong>Concept B:</strong> Current behavior. Lock icon, description, price, and button. User has no idea what the page actually looks like. Less compelling but simpler.
+    </div>
+</div>
+
+<!-- ==================== CONCEPT C ==================== -->
+<div class="concept">
+    <div class="concept-label">Concept C — Blurred Sample Data with Gate Overlay</div>
+
+    <div class="hero">
+        <div class="hero-bg">
+            <svg preserveAspectRatio="none" viewBox="0 0 1000 200"><path d="M0,100 C200,180 400,60 600,120 C800,180 900,140 1000,100 L1000,200 L0,200 Z" fill="#f8f7fc"/></svg>
+            <div class="deco deco-1"></div>
+            <div class="deco deco-2"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-top">
+                <div>
+                    <h1>Manual Entry</h1>
+                    <p>Record revenue from any source</p>
+                </div>
+            </div>
+            <div class="stats">
+                <div><span class="stat-num">8</span><span class="stat-label">Entries</span></div>
+                <div><span class="stat-num">$4,230.00</span><span class="stat-label">Gross</span></div>
+                <div><span class="stat-num">$3,891.50</span><span class="stat-label">Net</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="blurred-wrap">
+        <div class="gate-overlay">
+            <div class="gate-card">
+                <svg fill="none" height="40" stroke="#6c5ce7" stroke-linecap="round" stroke-width="1.5" viewBox="0 0 24 24" width="40"><rect height="11" rx="2" ry="2" width="18" x="3" y="11"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <h2>Unlock Manual Entry</h2>
+                <p>Track freelance gigs, cash sales, consulting fees, and more.</p>
+                <div class="gate-card-price">
+                    <span class="gate-card-amount">$3</span>
+                    <span class="gate-card-period">/mo</span>
+                </div>
+                <a class="gate-card-btn" href="#">Get Manual Entry</a>
+            </div>
+        </div>
+        <div class="blurred-table">
+            <div class="table-wrap" style="margin: 0;">
+                <table>
+                    <thead><tr>
+                        <th>Date</th><th>Description</th><th>Category</th><th class="right">Gross</th><th class="right">Fees</th><th class="right">Net</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr><td class="date">Mar 27, 2026</td><td class="desc">Logo design for startup</td><td><span class="cat cat-freelance">Freelance</span></td><td class="money">$850.00</td><td class="money fee">-$42.50</td><td class="money net">$807.50</td></tr>
+                        <tr><td class="date">Mar 25, 2026</td><td class="desc">Monthly consulting retainer</td><td><span class="cat cat-consulting">Consulting</span></td><td class="money">$1,200.00</td><td class="money fee">-$60.00</td><td class="money net">$1,140.00</td></tr>
+                        <tr><td class="date">Mar 22, 2026</td><td class="desc">UI template pack</td><td><span class="cat cat-digital">Digital Product</span></td><td class="money">$45.00</td><td class="money fee">-$4.50</td><td class="money net">$40.50</td></tr>
+                        <tr><td class="date">Mar 20, 2026</td><td class="desc">Workshop facilitation</td><td><span class="cat cat-service">Service</span></td><td class="money">$600.00</td><td class="money fee">-$30.00</td><td class="money net">$570.00</td></tr>
+                        <tr><td class="date">Mar 18, 2026</td><td class="desc">Handmade candles (market)</td><td><span class="cat cat-sale">Sale</span></td><td class="money">$185.00</td><td class="money fee">—</td><td class="money net">$185.00</td></tr>
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <div class="page-size">Show 10 entries</div>
+                    <div class="page-info">1–5 of 8</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-note">
+        <strong>Concept C:</strong> Hybrid — sample data is visible but blurred behind a floating gate card. User can see the shape of the product without being able to interact. The gate card has a shadow to float above the blurred content.
+    </div>
+</div>
+
+</div>
+</body>
+</html>

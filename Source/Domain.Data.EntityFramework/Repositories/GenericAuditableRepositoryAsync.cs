@@ -32,7 +32,8 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
 
         try
         {
-            _dbSet.Remove(entity);
+            var tracked = _dbSet.Local.FirstOrDefault(e => e.Id == entity.Id);
+            _dbSet.Remove(tracked ?? entity);
             await _dbContext.SaveChangesAsync();
         }
         finally
@@ -49,7 +50,8 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
         {
             foreach (var entity in entities)
             {
-                _dbSet.Remove(entity);
+                var tracked = _dbSet.Local.FirstOrDefault(e => e.Id == entity.Id);
+                _dbSet.Remove(tracked ?? entity);
             }
 
             await _dbContext.SaveChangesAsync();

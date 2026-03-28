@@ -15,6 +15,7 @@ public class RevenueManualMapper : EntityMapper<MODELS.RevenueManual, ENTITIES.R
         destination.IsDeleted = source.IsDeleted;
         destination.IsVisible = source.IsVisible;
         destination.Notes = source.Notes;
+        destination.Quantity = source.Quantity;
     }
 
     public override ENTITIES.RevenueManual ToEntity(MODELS.RevenueManual model) => new()
@@ -24,6 +25,7 @@ public class RevenueManualMapper : EntityMapper<MODELS.RevenueManual, ENTITIES.R
         IsDeleted = model.IsDeleted,
         IsVisible = model.IsVisible,
         Notes = model.Notes,
+        Quantity = model.Quantity,
     };
 
     public override MODELS.RevenueManual ToModel(ENTITIES.RevenueManual entity) => new()
@@ -33,6 +35,7 @@ public class RevenueManualMapper : EntityMapper<MODELS.RevenueManual, ENTITIES.R
         IsDeleted = entity.IsDeleted,
         IsVisible = entity.IsVisible,
         Notes = entity.Notes,
+        Quantity = entity.Quantity,
     };
 
     #endregion

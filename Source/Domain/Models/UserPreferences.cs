@@ -9,6 +9,7 @@ public class UserPreferences
 
 	public bool FunGreetings { get; set; } = true;
 
+	public Dictionary<string, GridPreference> GridPreferences { get; set; } = new();
 
 	#endregion
 }

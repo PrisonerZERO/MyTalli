@@ -32,7 +32,11 @@ public class ManualEntryItem
 
 	public string? Notes { get; set; }
 
+	public int Quantity { get; set; } = 1;
+
 	public DateTime TransactionDate { get; set; }
+
+	public decimal UnitPrice => Quantity > 0 ? GrossAmount / Quantity : GrossAmount;
 
 	public string TransactionDateLabel => TransactionDate.ToString("MMM d, yyyy");
 
