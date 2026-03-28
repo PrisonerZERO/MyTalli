@@ -7,6 +7,8 @@ public class StripeSettings
 
     public string MonthlyPriceId { get; set; } = string.Empty;
 
+    public Dictionary<string, string> Modules { get; set; } = new();
+
     public string PortalConfigurationId { get; set; } = string.Empty;
 
     public string PublishableKey { get; set; } = string.Empty;

@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Data.Interfaces;
 using Domain.Framework;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
@@ -18,6 +19,9 @@ public class ManualEntryViewModel : ComponentBase
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+	[Inject]
+	private ICurrentUserService CurrentUserService { get; set; } = default!;
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.Revenue, ENTITIES.Revenue> RevenueAdapter { get; set; } = default!;
@@ -90,6 +94,7 @@ public class ManualEntryViewModel : ComponentBase
 			return;
 
 		_userId = userId;
+		CurrentUserService.Set(userId, string.Empty);
 
 		// Check module access: active subscription for Manual Entry Module (ProductId = 3)
 		var subscriptions = await SubscriptionAdapter.FindAsync(s =>

@@ -103,8 +103,8 @@
 <!-- Submit modal -->
 @if (ShowSubmitModal)
 {
-    <div class="suggest-modal-overlay" @onclick="CloseModal">
-        <div class="suggest-modal" @onclick:stopPropagation="true" role="dialog" aria-modal="true" aria-label="Submit a suggestion">
+    <div class="suggest-modal-overlay">
+        <div class="suggest-modal" role="dialog" aria-modal="true" aria-label="Submit a suggestion">
             <h2>New Suggestion</h2>
             <div class="suggest-form-group">
                 <label class="suggest-form-label" for="suggest-title">Title</label>

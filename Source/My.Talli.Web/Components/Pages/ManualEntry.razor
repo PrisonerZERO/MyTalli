@@ -143,8 +143,8 @@ else
 <!-- Entry modal -->
 @if (ShowEntryModal)
 {
-    <div class="manual-modal-overlay" @onclick="CloseModal">
-        <div class="manual-modal" @onclick:stopPropagation="true" role="dialog" aria-modal="true" aria-label="@ModalTitle">
+    <div class="manual-modal-overlay">
+        <div class="manual-modal" role="dialog" aria-modal="true" aria-label="@ModalTitle">
             <h2>@ModalTitle</h2>
 
             <div class="manual-form-row">
