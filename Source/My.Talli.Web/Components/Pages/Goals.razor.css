@@ -19,7 +19,7 @@
 /* ─── HERO STATS ─── */
 .goals-hero-stats { display: flex; gap: 24px; margin-bottom: 20px; }
 .goals-stat { text-align: center; }
-.goals-stat-num { font-size: 28px; font-weight: 700; }
+.goals-stat-num { font-size: 22px; font-weight: 700; }
 .goals-stat:nth-child(1) .goals-stat-num { color: #a78bfa; }
 .goals-stat:nth-child(2) .goals-stat-num { color: #2ecc71; }
 .goals-stat:nth-child(3) .goals-stat-num { color: #fff; }

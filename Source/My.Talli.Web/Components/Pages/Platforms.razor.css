@@ -14,7 +14,7 @@
 /* ─── HERO STATS ─── */
 .plat-hero-stats { display: flex; gap: 24px; margin-bottom: 20px; }
 .plat-stat { text-align: center; }
-.plat-stat-num { font-size: 28px; font-weight: 700; }
+.plat-stat-num { font-size: 22px; font-weight: 700; }
 .plat-stat:nth-child(1) .plat-stat-num { color: #a78bfa; }
 .plat-stat:nth-child(2) .plat-stat-num { color: #f5c842; }
 .plat-stat:nth-child(3) .plat-stat-num { color: #fff; }
