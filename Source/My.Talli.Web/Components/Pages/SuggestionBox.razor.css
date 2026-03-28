@@ -7,7 +7,7 @@
 .deco-circle-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
 .deco-circle-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
 .suggest-hero-content { position: relative; z-index: 2; }
-.suggest-hero-top { align-items: center; display: flex; justify-content: space-between; margin-bottom: 8px; padding-right: 52px; }
+.suggest-hero-top { align-items: center; display: flex; justify-content: space-between; margin-bottom: 8px; }
 .suggest-hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
 .suggest-hero p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
 

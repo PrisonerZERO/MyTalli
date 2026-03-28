@@ -7,6 +7,7 @@
 .deco-circle-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
 .deco-circle-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
 .plan-hero-content { position: relative; z-index: 2; }
+.plan-hero-top { align-items: center; display: flex; justify-content: space-between; }
 .plan-hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
 .plan-hero p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
 
