@@ -1,7 +1,7 @@
 namespace My.Talli.Web.Models;
 
 /// <summary>Sample Data</summary>
-public static class ManualEntrySampleData
+public static class ManualEntryDataset
 {
 	#region <Methods>
 

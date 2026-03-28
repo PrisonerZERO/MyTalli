@@ -157,7 +157,7 @@ public class ManualEntryViewModel : ComponentBase
 		else
 		{
 			IsSampleData = true;
-			Entries = ManualEntrySampleData.GetEntries();
+			Entries = ManualEntryDataset.GetEntries();
 		}
 	}
 
