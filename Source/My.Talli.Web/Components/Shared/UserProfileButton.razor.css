@@ -1,5 +1,5 @@
 /* ─── PROFILE MENU ─── */
-.profile-menu-wrapper { position: absolute; right: 40px; top: 24px; z-index: 100; }
+.profile-menu-wrapper { position: relative; z-index: 100; }
 .profile-trigger { align-items: center; background: rgba(255, 255, 255, 0.18); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; color: #fff; cursor: pointer; display: flex; font-family: inherit; font-size: 14px; font-weight: 600; height: 40px; justify-content: center; transition: background 0.15s ease, border-color 0.15s ease; width: 40px; }
 .profile-trigger:hover { background: rgba(255, 255, 255, 0.28); border-color: rgba(255, 255, 255, 0.5); }
 .profile-backdrop { bottom: 0; left: 0; position: fixed; right: 0; top: 0; z-index: 999; }
@@ -16,6 +16,3 @@
 .profile-sign-out { border-top: 1px solid #f0edff; color: #e74c3c; margin-top: 0; }
 .profile-sign-out:hover { background: rgba(231, 76, 60, 0.06); color: #c0392b; }
 
-@media (max-width: 640.98px) {
-    .profile-menu-wrapper { right: 20px; top: 16px; }
-}

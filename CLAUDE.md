@@ -106,6 +106,14 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 **`app.RevenueManual`** — Manual Entry detail (1-to-1 with Revenue, shared PK)
 - `RevenueId` (PK/FK → Revenue, C# property: `Id`), `Category` (Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other), `Notes` (nullable), `Quantity` (int, default 1)
 
+**`app.Suggestion`** — user-submitted feature requests and feedback
+- `Id` (PK), `UserId` (FK → auth.User), `AdminNote` (nullable, max 500 — admin-visible note on the card), `Category` (max 50 — Feature, Integration, Export, UI / UX), `Description` (max 2000), `Status` (max 20 — New, UnderReview, InProgress, Planned, Completed, Declined), `Title` (max 200)
+- Index on `UserId` (`IX_Suggestion_UserId`)
+
+**`app.SuggestionVote`** — user votes on suggestions (junction: User ↔ Suggestion)
+- `Id` (PK), `UserId` (FK → auth.User), `SuggestionId` (FK → Suggestion)
+- Unique constraint on `(UserId, SuggestionId)` prevents duplicate votes
+
 ### Schema: `auth`
 
 **`auth.User`** — core MyTalli identity (one row per person)
@@ -299,6 +307,7 @@ My.Talli/
 │   ├── MyTalli_Email_SubscriptionConfirmation.html # Subscription confirmation email wireframe
 │   ├── MyTalli_Email_WeeklySummary.html # Weekly summary email wireframe
 │   ├── MyTalli_SuggestionBoxConcepts.html # Suggestion box design concepts (A/B/C)
+│   ├── MyTalli_SuggestionCardConcepts.html # Suggestion card layout concepts (admin notes, status tags)
 │   └── MyTalli_WaitlistConcepts.html # Waitlist page design concepts (A/B/C)
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
@@ -345,6 +354,8 @@ My.Talli/
     │   │       ├── ProductVendorMapper.cs
     │   │       ├── SubscriptionMapper.cs
     │   │       ├── SubscriptionStripeMapper.cs
+    │   │       ├── SuggestionMapper.cs
+    │   │       ├── SuggestionVoteMapper.cs
     │   │       ├── UserAuthenticationAppleMapper.cs
     │   │       ├── UserAuthenticationGoogleMapper.cs
     │   │       ├── UserAuthenticationMicrosoftMapper.cs
@@ -367,6 +378,8 @@ My.Talli/
     │   │   │   ├── ProductVendor.cs
     │   │   │   ├── Subscription.cs
     │   │   │   ├── SubscriptionStripe.cs
+    │   │   │   ├── Suggestion.cs
+    │   │   │   ├── SuggestionVote.cs
     │   │   │   ├── User.cs
     │   │   │   ├── UserAuthenticationApple.cs
     │   │   │   ├── UserAuthenticationGoogle.cs
@@ -441,6 +454,11 @@ My.Talli/
     │   ├── Resolvers/
     │   │   └── AuditResolver.cs           # IAuditResolver<T> implementation
     │   └── Configurations/
+    │       ├── App/                       # Entity configs for app schema
+    │       │   ├── RevenueConfiguration.cs
+    │       │   ├── RevenueManualConfiguration.cs
+    │       │   ├── SuggestionConfiguration.cs
+    │       │   └── SuggestionVoteConfiguration.cs
     │       ├── Auth/                      # Entity configs for auth schema
     │       │   ├── AuthenticatedUserConfiguration.cs  # Keyless entity config for vAuthenticatedUser view
     │       │   ├── UserConfiguration.cs
@@ -477,6 +495,8 @@ My.Talli/
     │   │   ├── ProductVendor.cs
     │   │   ├── Subscription.cs
     │   │   ├── SubscriptionStripe.cs
+    │   │   ├── Suggestion.cs
+    │   │   ├── SuggestionVote.cs
     │   │   ├── User.cs
     │   │   ├── UserAuthenticationApple.cs
     │   │   ├── UserAuthenticationGoogle.cs
@@ -572,14 +592,20 @@ My.Talli/
         │   │   ├── CancelSubscription.razor.css
         │   │   ├── Dashboard.razor       # Dashboard (route: /dashboard)
         │   │   ├── Dashboard.razor.css
+        │   │   ├── Goals.razor           # Revenue goals (route: /goals)
+        │   │   ├── Goals.razor.css
         │   │   ├── LandingPage.razor     # Landing page (route: /)
         │   │   ├── LandingPage.razor.css
-        │   │   ├── SignIn.razor          # Sign-in page (route: /signin)
-        │   │   ├── SignIn.razor.css
         │   │   ├── ManualEntry.razor       # Manual entry module (route: /manual-entry)
         │   │   ├── ManualEntry.razor.css
         │   │   ├── MyPlan.razor          # Consolidated plan & module management (route: /my-plan)
         │   │   ├── MyPlan.razor.css
+        │   │   ├── Platforms.razor       # Platform connections (route: /platforms)
+        │   │   ├── Platforms.razor.css
+        │   │   ├── Settings.razor        # Account settings (route: /settings)
+        │   │   ├── Settings.razor.css
+        │   │   ├── SignIn.razor          # Sign-in page (route: /signin)
+        │   │   ├── SignIn.razor.css
         │   │   ├── SuggestionBox.razor       # Suggestion box (route: /suggestions)
         │   │   ├── SuggestionBox.razor.css
         │   │   ├── Unsubscribe.razor      # Email preference management (route: /unsubscribe?token=xxx)
@@ -614,10 +640,13 @@ My.Talli/
         │   │   ├── CancelSubscriptionViewModel.cs
         │   │   ├── DashboardViewModel.cs
         │   │   ├── ErrorViewModel.cs
+        │   │   ├── GoalsViewModel.cs
         │   │   ├── LandingPageViewModel.cs
-        │   │   ├── SignInViewModel.cs
         │   │   ├── ManualEntryViewModel.cs
         │   │   ├── MyPlanViewModel.cs
+        │   │   ├── PlatformsViewModel.cs
+        │   │   ├── SettingsViewModel.cs
+        │   │   ├── SignInViewModel.cs
         │   │   ├── SuggestionBoxViewModel.cs
         │   │   └── UnsubscribeViewModel.cs
         │   └── Shared/
@@ -669,9 +698,12 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 | Page | Swoosh | Logo | Action Slot |
 |------|--------|------|-------------|
 | `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
-| `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | "Sign Out" link |
-| `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button, edit button on own cards |
-| `/manual-entry` | Inline SVG (`.manual-hero`) | No (sidebar has it) | "New Entry" button |
+| `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | Period pills (7D, 30D, 90D, 12M) |
+| `/manual-entry` | Inline SVG (`.manual-hero`) | No (sidebar has it) | N/A |
+| `/platforms` | Inline SVG (`.plat-hero`) | No (sidebar has it) | N/A |
+| `/goals` | Inline SVG (`.goals-hero`) | No (sidebar has it) | "New Goal" button |
+| `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button |
+| `/settings` | Inline SVG (`.settings-hero`) | No (sidebar has it) | N/A |
 | `/my-plan` | Inline SVG (`.plan-hero`) | No (sidebar has it) | N/A |
 | `/subscription/cancel` | Inline SVG (`.cancel-hero`) | No (sidebar has it) | N/A |
 | `/admin` | Inline SVG (`.admin-hero`) | No (sidebar has it) | N/A |
@@ -679,7 +711,7 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 | `/Error` | `<BrandHeader>` | Yes | "Go Back" button |
 | `/` | None | Own nav logo | N/A |
 
-Swoosh visual: purple gradient SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7`) with 3 decorative circles (`rgba(255,255,255,0.07)`).
+Swoosh visual: purple gradient SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7`) with 3 decorative circles (`rgba(255,255,255,0.07)`). All `MainLayout` pages use the same SVG swoosh pattern — `viewBox="0 0 1000 600"` with path `M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z` filled by a per-page `linearGradient`. The hero-bg uses `height: calc(100% + 60px)` to extend the swoosh below the hero content. Pages with hero stats (ManualEntry, Platforms, Goals, Suggestions) use `margin: -32px -40px 0` and `padding: 24px 40px 40px`; pages without stats use `48px` bottom padding.
 - **Font:** DM Sans (Google Fonts) — weights 400, 500, 600, 700
 - **Theme approach:** Purple-tinted surfaces in both modes (no neutral grays in dark mode)
 
@@ -1161,6 +1193,9 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - Pages using `MainLayout` (sidebar pages like Dashboard, Suggestions) use an **inline swoosh** hero within the page markup.
 - Pages using `LandingLayout` (Sign-In, Error) use the **`BrandHeader`** component.
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
+- **Admin page is the reference implementation** for new sidebar pages. Match its SVG (`viewBox="0 0 1000 600"`, swoosh path, gradient fill), hero-bg (`height: calc(100% + 60px)`), and SVG CSS (`min-height: 280px`) exactly. Pages with hero stats use `margin: -32px -40px 0` and `padding: 24px 40px 40px`; pages without stats use `margin: -32px -40px 60px` and `padding: 24px 40px 48px`.
+- **Hero stat numbers** use colorized `nth-child` styling: 1st stat → lavender `#a78bfa`, 2nd stat → contextual color (green `#2ecc71` for money/success, gold `#f5c842` for counts), 3rd stat → white `#fff`. Font size is `22px` on all pages — keep this consistent. Labels are `rgba(255, 255, 255, 0.6)` at `12px`.
+- **Never use CSS `background: linear-gradient(...)` on the hero section.** The SVG gradient provides the purple — this is what creates the curved swoosh edge instead of a flat block.
 
 ### Modal Behavior
 
@@ -1178,7 +1213,7 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 ### Sample Data for Gated Features
 
 - **Never show a lock gate for paid features.** Always show the page with sample data + a CTA banner at the top (same pattern as the Dashboard).
-- **Sample data providers** — static classes in `Models/SampleData/` (e.g., `ManualEntrySampleData`) that return `List<T>` of fake items.
+- **Dataset classes** — all faked/sample data lives in static classes in `Models/SampleData/` named `{Feature}Dataset` (e.g., `DashboardDataset`, `ManualEntryDataset`). Each class returns typed collections or values via static methods.
 - **`IsSampleData` flag** — on the ViewModel, controls the banner visibility. When `true`: CTA banner shown, "New Entry" / action buttons hidden, edit/delete hidden, grid fully interactive (sort, paginate, density).
 - **The page doesn't know or care** whether data is real or sample — it renders the same grid either way.
 - **Grid preferences** still save for sample data viewers — their density/sort/page size choices persist.
@@ -1576,7 +1611,7 @@ Upcoming features:
 
 - [x] **Admin Page** — role-based admin section (`/admin`) with email management: resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, bulk-send Welcome emails to selected or all users. Visible only to `Admin` role via conditional NavMenu link. Uses `vAuthenticatedUser` view (keyless entity) for user list with emails. ViewModel redirects non-admins to `/dashboard`; API endpoints enforce Admin role via `.RequireAuthorization()`.
 - [x] **Admin Email Resend** — admin ability to resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, plus bulk-send Welcome emails to selected or all users. Implemented as part of the Admin page (`/admin`). API endpoints: `POST /api/admin/email/resend`, `POST /api/admin/email/bulk-welcome`, `POST /api/admin/email/bulk-welcome-all`. Commands: `SendSubscriptionConfirmationEmailCommand` (validates active subscription exists), `SendWeeklySummaryEmailCommand` (uses sample data). Fail-silent on individual errors during bulk sends.
-- [x] **Manual Entry Module** — `app.Revenue` (base normalized revenue table) and `app.RevenueManual` (1-to-1 manual entry detail, includes `Quantity` column). Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with data grid (sortable columns, user-selectable pagination 10/25/50, row density toggle compact/comfortable/spacious). Entry form uses Unit Price × Quantity = Gross auto-calculation. Grid preferences (density, page size, sort) persist in `UserPreferences` JSON under `gridPreferences["manualEntry.entryGrid"]`. Non-subscribers see sample data (`ManualEntrySampleData`) with CTA banner instead of a lock gate. Delete uses `ConfirmDialog` component. "New Entry" button in grid toolbar. Empty state renders inside grid tbody. Categories: Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other.
+- [x] **Manual Entry Module** — `app.Revenue` (base normalized revenue table) and `app.RevenueManual` (1-to-1 manual entry detail, includes `Quantity` column). Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with data grid (sortable columns, user-selectable pagination 10/25/50, row density toggle compact/comfortable/spacious). Entry form uses Unit Price × Quantity = Gross auto-calculation. Grid preferences (density, page size, sort) persist in `UserPreferences` JSON under `gridPreferences["manualEntry.entryGrid"]`. Non-subscribers see sample data (`ManualEntryDataset`) with CTA banner instead of a lock gate. Delete uses `ConfirmDialog` component. "New Entry" button in grid toolbar. Empty state renders inside grid tbody. Categories: Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other.
 - [x] **My Plan Page** — consolidated plan and module management at `/my-plan`. Replaces the old `/subscription` and `/upgrade` pages (both deleted). Free users see inline pricing cards (Free vs Pro with monthly/yearly toggle). Pro users see their plan card with billing actions (Manage Billing, Change Plan, Cancel). Module owners see per-module cards with billing/cancel. Available modules listed at the bottom. Sidebar upgrade card shows "Pro Plan" for subscribers, "Upgrade to Pro" for free users, with a single "My Plan" button.
 - [ ] **Module Checkout Flow** — extend `/api/billing/create-checkout-session` to handle module product IDs (currently only handles `plan=monthly|yearly` for Pro). Needed for "Add Module" button on My Plan page.
 - [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.

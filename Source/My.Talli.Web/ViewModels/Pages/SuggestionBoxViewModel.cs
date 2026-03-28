@@ -6,6 +6,7 @@ using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Models;
+using System.Security.Claims;
 
 using ENTITIES = Domain.Entities;
 using MODELS = Domain.Models;
@@ -40,6 +41,7 @@ public class SuggestionBoxViewModel : ComponentBase
 
 	public long? EditingId { get; private set; }
 
+	public long? EditingNoteId { get; private set; }
 
 	public List<string> Categories { get; private set; } =
 	[
@@ -52,11 +54,15 @@ public class SuggestionBoxViewModel : ComponentBase
 
 	public List<SuggestionItem> FilteredSuggestions { get; private set; } = [];
 
+	public bool IsAdmin { get; private set; }
+
 	public string NewCategory { get; set; } = "Feature";
 
 	public string NewDescription { get; set; } = string.Empty;
 
 	public string NewTitle { get; set; } = string.Empty;
+
+	public string NoteText { get; set; } = string.Empty;
 
 	public string ModalTitle => EditingId.HasValue ? "Edit Suggestion" : "New Suggestion";
 
@@ -86,6 +92,7 @@ public class SuggestionBoxViewModel : ComponentBase
 			return;
 
 		_userId = userId;
+		IsAdmin = principal.IsInRole(Roles.Admin);
 		CurrentUserService.Set(userId, string.Empty);
 
 		await LoadSuggestionsAsync();
@@ -105,7 +112,7 @@ public class SuggestionBoxViewModel : ComponentBase
 	public async Task EditSuggestionAsync(long suggestionId)
 	{
 		var suggestion = await SuggestionAdapter.GetByIdAsync(suggestionId);
-		if (suggestion is null) return;
+		if (suggestion is null || suggestion.Status != SuggestionStatuses.New) return;
 
 		EditingId = suggestionId;
 		NewTitle = suggestion.Title;
@@ -121,6 +128,46 @@ public class SuggestionBoxViewModel : ComponentBase
 		NewDescription = string.Empty;
 		NewCategory = "Feature";
 		ShowSubmitModal = true;
+	}
+
+	public async Task SetStatusAsync(long suggestionId, string status)
+	{
+		if (!IsAdmin) return;
+
+		var suggestion = await SuggestionAdapter.GetByIdAsync(suggestionId);
+		if (suggestion is null || suggestion.Status == status) return;
+
+		suggestion.Status = status;
+		await SuggestionAdapter.UpdateAsync(suggestion);
+		await LoadSuggestionsAsync();
+	}
+
+	public void StartEditNote(SuggestionItem item)
+	{
+		if (!IsAdmin) return;
+		EditingNoteId = item.Id;
+		NoteText = item.AdminNote ?? string.Empty;
+	}
+
+	public void CancelEditNote()
+	{
+		EditingNoteId = null;
+		NoteText = string.Empty;
+	}
+
+	public async Task SaveNoteAsync()
+	{
+		if (!IsAdmin || EditingNoteId is null) return;
+
+		var suggestion = await SuggestionAdapter.GetByIdAsync(EditingNoteId.Value);
+		if (suggestion is null) return;
+
+		suggestion.AdminNote = string.IsNullOrWhiteSpace(NoteText) ? null : NoteText.Trim();
+		await SuggestionAdapter.UpdateAsync(suggestion);
+
+		EditingNoteId = null;
+		NoteText = string.Empty;
+		await LoadSuggestionsAsync();
 	}
 
 	public void SelectCategory(string category)
@@ -191,8 +238,8 @@ public class SuggestionBoxViewModel : ComponentBase
 
 		FilteredSuggestions = ActiveSort switch
 		{
-			"New" => filtered.OrderByDescending(s => s.CreatedOn).ToList(),
-			_ => filtered.OrderByDescending(s => s.Votes).ToList()
+			"New" => filtered.OrderBy(s => s.StatusSortWeight).ThenByDescending(s => s.CreatedOn).ToList(),
+			_ => filtered.OrderBy(s => s.StatusSortWeight).ThenByDescending(s => s.Votes).ToList()
 		};
 	}
 
@@ -212,7 +259,7 @@ public class SuggestionBoxViewModel : ComponentBase
 		{
 			Category = NewCategory,
 			Description = NewDescription,
-			Status = SuggestionStatuses.Submitted,
+			Status = SuggestionStatuses.New,
 			Title = NewTitle,
 			UserId = _userId!.Value,
 		};
@@ -223,12 +270,14 @@ public class SuggestionBoxViewModel : ComponentBase
 		var votesForSuggestion = allVotes.Where(v => v.SuggestionId == s.Id).ToList();
 
 		return new SuggestionItem {
+			AdminNote = s.AdminNote,
 			Category = s.Category,
 			CreatedOn = s.CreatedOn,
 			Description = s.Description,
 			HasVoted = votesForSuggestion.Any(v => v.UserId == _userId),
 			Id = s.Id,
 			IsOwn = s.UserId == _userId,
+			Status = s.Status,
 			Title = s.Title,
 			Votes = votesForSuggestion.Count,
 		};

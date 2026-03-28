@@ -7,7 +7,7 @@
 <!-- Swoosh hero -->
 <section class="settings-hero" aria-label="Settings">
     <div class="settings-hero-bg" aria-hidden="true">
-        <svg preserveAspectRatio="none" viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="settingsSwooshGrad" x1="0" x2="1" y1="0" y2="1">
                     <stop offset="0%" stop-color="#6c5ce7" />
@@ -15,7 +15,7 @@
                     <stop offset="100%" stop-color="#6c5ce7" />
                 </linearGradient>
             </defs>
-            <path d="M0,0 L1000,0 L1000,140 C850,180 650,100 450,150 C250,200 100,160 0,130 Z" fill="url(#settingsSwooshGrad)" />
+            <path d="M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z" fill="url(#settingsSwooshGrad)" />
         </svg>
         <div class="deco-circle deco-circle-1"></div>
         <div class="deco-circle deco-circle-2"></div>
@@ -23,8 +23,15 @@
     </div>
 
     <div class="settings-hero-content">
-        <h1>Settings</h1>
-        <p>Manage your profile and preferences</p>
+        <div class="settings-hero-top">
+            <div>
+                <h1>Settings</h1>
+                <p>Manage your profile and preferences</p>
+            </div>
+            <ul class="hero-nav">
+                <li><My.Talli.Web.Components.Shared.UserProfileButton @rendermode="InteractiveServer" /></li>
+            </ul>
+        </div>
     </div>
 </section>
 

@@ -17,16 +17,17 @@ public class SuggestionConfiguration : IEntityTypeConfiguration<Suggestion>
 
         builder.Property(e => e.Id).HasColumnOrder(0);
         builder.Property(e => e.UserId).HasColumnOrder(1);
-        builder.Property(e => e.Category).HasMaxLength(50).IsRequired().HasColumnOrder(2);
-        builder.Property(e => e.Description).HasMaxLength(2000).IsRequired().HasColumnOrder(3);
-        builder.Property(e => e.Status).HasMaxLength(20).IsRequired().HasColumnOrder(4);
-        builder.Property(e => e.Title).HasMaxLength(200).IsRequired().HasColumnOrder(5);
-        builder.Property(e => e.IsDeleted).HasColumnOrder(6);
-        builder.Property(e => e.IsVisible).HasColumnOrder(7);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(8);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(9);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(10);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(11);
+        builder.Property(e => e.AdminNote).HasMaxLength(500).HasColumnOrder(2);
+        builder.Property(e => e.Category).HasMaxLength(50).IsRequired().HasColumnOrder(3);
+        builder.Property(e => e.Description).HasMaxLength(2000).IsRequired().HasColumnOrder(4);
+        builder.Property(e => e.Status).HasMaxLength(20).IsRequired().HasColumnOrder(5);
+        builder.Property(e => e.Title).HasMaxLength(200).IsRequired().HasColumnOrder(6);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(7);
+        builder.Property(e => e.IsVisible).HasColumnOrder(8);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(9);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(10);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(11);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(12);
 
         builder.HasIndex(e => e.UserId).HasDatabaseName("IX_Suggestion_UserId");
 

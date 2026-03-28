@@ -27,7 +27,6 @@
 
 /* ─── TOP BAR ─── */
 .top-bar { align-items: flex-start; display: flex; justify-content: space-between; position: relative; z-index: 2; }
-.top-bar-right { align-items: center; display: flex; gap: 16px; margin-top: 4px; padding-right: 56px; }
 .greeting h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
 .greeting p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
 .period-pills { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; display: flex; gap: 2px; padding: 4px; }
@@ -138,5 +137,4 @@
     .sample-banner-content { flex-direction: column; gap: 8px; }
     .summary-row { grid-template-columns: 1fr; }
     .top-bar { flex-direction: column; gap: 16px; }
-    .top-bar-right { margin-top: 0; }
 }

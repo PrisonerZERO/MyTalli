@@ -27,17 +27,20 @@
             <h1>Good morning, @UserFirstName</h1>
             <p>Here's how your revenue is looking.</p>
         </div>
-        <div class="top-bar-right">
-            <div class="period-pills">
-                @foreach (var period in Periods)
-                {
-                    <button aria-label="Filter by @period" class="pill @(period == ActivePeriod ? "active" : "")"
-                            @onclick="() => SelectPeriod(period)">
-                        @period
-                    </button>
-                }
-            </div>
-        </div>
+        <ul class="hero-nav">
+            <li>
+                <div class="period-pills">
+                    @foreach (var period in Periods)
+                    {
+                        <button aria-label="Filter by @period" class="pill @(period == ActivePeriod ? "active" : "")"
+                                @onclick="() => SelectPeriod(period)">
+                            @period
+                        </button>
+                    }
+                </div>
+            </li>
+            <li><My.Talli.Web.Components.Shared.UserProfileButton @rendermode="InteractiveServer" /></li>
+        </ul>
     </div>
 </div>
 

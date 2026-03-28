@@ -5,6 +5,8 @@ public class Suggestion : DefaultEntity
 {
 	#region <Properties>
 
+	public string? AdminNote { get; set; }
+
 	public string Category { get; set; } = string.Empty;
 
 	public string Description { get; set; } = string.Empty;
