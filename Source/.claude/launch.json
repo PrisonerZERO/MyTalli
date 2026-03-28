@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mytalli-web",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "My.Talli.Web"],
+      "port": 5034
+    }
+  ]
+}

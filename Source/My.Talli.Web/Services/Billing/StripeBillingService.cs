@@ -29,6 +29,8 @@ public class StripeBillingService
 
     public string MonthlyPriceId => _settings.MonthlyPriceId;
 
+    public Dictionary<string, string> Modules => _settings.Modules;
+
     public string PublishableKey => _settings.PublishableKey;
 
     public string YearlyPriceId => _settings.YearlyPriceId;

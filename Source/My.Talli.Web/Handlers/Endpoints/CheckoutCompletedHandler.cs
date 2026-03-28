@@ -91,6 +91,22 @@ public class CheckoutCompletedHandler
         return notification.Build(notificationArgument);
     }
 
+    private long ResolveProductId(string stripePriceId)
+    {
+        // Pro plans
+        if (stripePriceId == _settings.MonthlyPriceId) return 1;
+        if (stripePriceId == _settings.YearlyPriceId) return 2;
+
+        // Modules (config key is the product ID, value is the Stripe price ID)
+        foreach (var (productId, priceId) in _settings.Modules)
+        {
+            if (priceId == stripePriceId && long.TryParse(productId, out var id))
+                return id;
+        }
+
+        return 1; // fallback to Pro Monthly
+    }
+
     private async Task<CheckoutCompletedPayload> ToPayloadAsync(Stripe.Checkout.Session session)
     {
         var stripeSubscriptionId = session.SubscriptionId ?? string.Empty;
@@ -137,7 +153,7 @@ public class CheckoutCompletedHandler
             CurrentPeriodEnd = currentPeriodEnd,
             CustomerEmail = customerEmail,
             PaymentMethod = paymentMethod,
-            ProductName = stripePriceId == _settings.YearlyPriceId ? "Pro Yearly" : "Pro Monthly",
+            ProductId = ResolveProductId(stripePriceId),
             StripeCustomerId = stripeCustomerId,
             StripePaymentIntentId = paymentIntentId,
             StripePriceId = stripePriceId,

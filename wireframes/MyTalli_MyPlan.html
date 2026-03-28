@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTalli — My Plan (Wireframe Options)</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: #f0edff; color: #1a1a2e; }
+
+        /* Option selector */
+        .option-bar { background: #1a1a2e; color: #fff; display: flex; gap: 0; left: 0; position: sticky; top: 0; z-index: 100; }
+        .option-tab { background: transparent; border: none; border-bottom: 3px solid transparent; color: rgba(255,255,255,0.6); cursor: pointer; flex: 1; font-family: inherit; font-size: 15px; font-weight: 600; padding: 16px 24px; transition: all 0.2s; }
+        .option-tab:hover { color: #fff; }
+        .option-tab.active { border-bottom-color: #6c5ce7; color: #fff; }
+        .option-section { display: none; }
+        .option-section.active { display: block; }
+
+        /* Shared: Simulated page shell */
+        .page-shell { display: flex; max-width: 1200px; margin: 0 auto; min-height: 100vh; }
+        .sidebar { background: #fff; border-right: 1px solid #eee; padding: 28px 20px; width: 220px; flex-shrink: 0; }
+        .sidebar-logo { color: #1a1a2e; font-size: 20px; font-weight: 700; margin-bottom: 32px; }
+        .sidebar-logo span { color: #6c5ce7; }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+        .sidebar-link { border-radius: 10px; color: #555; font-size: 13px; font-weight: 500; padding: 10px 14px; text-decoration: none; }
+        .sidebar-link:hover { background: #f8f7fc; }
+        .sidebar-link.active { background: #f0edff; color: #6c5ce7; font-weight: 600; }
+        .page-content { background: #f8f7fc; flex: 1; min-height: 100vh; }
+
+        /* Shared: Hero */
+        .hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); padding: 24px 40px 32px; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,0.07); top: -40px; right: 10%; }
+        .hero::after { content: ''; position: absolute; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.05); top: 80px; left: 15%; }
+        .hero h1 { color: #fff; font-size: 26px; font-weight: 700; position: relative; z-index: 2; }
+        .hero p { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 4px; position: relative; z-index: 2; }
+        .content-area { padding: 32px 40px 48px; }
+
+        /* Shared: Cards */
+        .card { background: #fff; border: 1px solid #eee; border-radius: 14px; padding: 28px; margin-bottom: 24px; }
+        .card-pro { border: 2px solid #6c5ce7; }
+        .card-module { border: 2px solid #a78bfa; }
+        .card h3 { color: #1a1a2e; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+        .card h4 { color: #1a1a2e; font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+
+        /* Section headers */
+        .section-header { align-items: center; display: flex; gap: 12px; margin-bottom: 16px; margin-top: 8px; }
+        .section-header h2 { color: #1a1a2e; font-size: 20px; font-weight: 700; }
+        .section-tag { background: #f0edff; border-radius: 6px; color: #6c5ce7; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; padding: 4px 10px; text-transform: uppercase; }
+
+        /* Plan header */
+        .plan-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .plan-status { align-items: center; color: #27ae60; display: flex; font-size: 13px; font-weight: 600; gap: 6px; }
+        .status-dot { background: #27ae60; border-radius: 50%; height: 8px; width: 8px; }
+        .plan-name-row { align-items: baseline; display: flex; gap: 16px; margin-bottom: 20px; }
+        .plan-badge { background: #6c5ce7; border-radius: 6px; color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; padding: 4px 12px; text-transform: uppercase; }
+        .plan-badge-module { background: #a78bfa; }
+        .plan-price { color: #1a1a2e; font-size: 32px; font-weight: 700; line-height: 1; }
+        .plan-price span { color: #999; font-size: 16px; font-weight: 400; }
+        .plan-meta { display: flex; gap: 40px; margin-bottom: 20px; }
+        .meta-item { display: flex; flex-direction: column; gap: 2px; }
+        .meta-label { color: #999; font-size: 12px; font-weight: 500; text-transform: uppercase; }
+        .meta-value { color: #1a1a2e; font-size: 14px; font-weight: 600; }
+
+        /* Features */
+        .features-section { border-top: 1px solid #f0edff; margin-top: 20px; padding-top: 20px; }
+        .features-section h4 { color: #1a1a2e; font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+        .features-list { display: grid; gap: 4px; grid-template-columns: 1fr 1fr; list-style: none; padding: 0; }
+        .features-list li { color: #555; font-size: 14px; padding: 6px 0 6px 24px; position: relative; }
+        .features-list li::before { color: #27ae60; content: '\2713'; font-weight: 700; left: 0; position: absolute; }
+
+        /* Action rows */
+        .action-row { align-items: center; border-top: 1px solid #f8f7fc; display: flex; gap: 16px; justify-content: space-between; padding: 16px 0; }
+        .action-row:first-of-type { border-top: none; padding-top: 0; }
+        .action-info p { color: #999; font-size: 13px; }
+        .btn { border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 20px; transition: all 0.15s; white-space: nowrap; }
+        .btn-primary { background: linear-gradient(135deg, #6c5ce7, #8b5cf6); border: none; color: #fff; }
+        .btn-primary:hover { box-shadow: 0 4px 12px rgba(108,92,231,0.3); transform: translateY(-1px); }
+        .btn-outline { background: #fff; border: 1px solid #e0dce8; color: #6c5ce7; }
+        .btn-outline:hover { background: #f8f7fc; border-color: #6c5ce7; }
+        .btn-danger { background: #fff; border: 1px solid #e0dce8; color: #e74c3c; }
+        .btn-danger:hover { background: rgba(231,76,60,0.05); border-color: #e74c3c; }
+
+        /* Available modules */
+        .module-available { background: #faf9ff; border: 1px dashed #e0dce8; border-radius: 14px; padding: 24px 28px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+        .module-available-info h4 { color: #1a1a2e; font-size: 15px; font-weight: 600; }
+        .module-available-info p { color: #555; font-size: 13px; margin-top: 2px; }
+        .module-price-tag { color: #6c5ce7; font-size: 18px; font-weight: 700; margin-right: 16px; }
+        .module-price-tag span { color: #999; font-size: 13px; font-weight: 400; }
+        .module-right { align-items: center; display: flex; gap: 16px; }
+
+        /* Two-column layout (Option B) */
+        .two-col { display: grid; gap: 24px; grid-template-columns: 1fr 1fr; }
+        .two-col .full-width { grid-column: 1 / -1; }
+
+        /* Annotations */
+        .annotation { background: #fff8e1; border-left: 3px solid #f5c842; border-radius: 0 8px 8px 0; color: #555; font-size: 13px; line-height: 1.6; margin-bottom: 24px; padding: 12px 16px; }
+        .annotation strong { color: #1a1a2e; }
+
+        /* Option label */
+        .option-label { background: #1a1a2e; border-radius: 8px; color: #a78bfa; display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 24px; padding: 6px 14px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div class="option-bar">
+    <button class="option-tab active" onclick="showOption('a')">Option A — Stacked</button>
+    <button class="option-tab" onclick="showOption('b')">Option B — Two Column</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- OPTION A: STACKED LAYOUT                                      -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="option-a" class="option-section active">
+    <div class="page-shell">
+        <div class="sidebar">
+            <div class="sidebar-logo">My<span>Talli</span></div>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link" href="#">Dashboard</a>
+                <a class="sidebar-link" href="#">Manual Entry</a>
+                <a class="sidebar-link" href="#">Platforms</a>
+                <a class="sidebar-link" href="#">Goals</a>
+                <a class="sidebar-link" href="#">Export</a>
+                <a class="sidebar-link" href="#">Suggestions</a>
+                <a class="sidebar-link" href="#">Settings</a>
+            </nav>
+        </div>
+        <div class="page-content">
+            <div class="hero">
+                <h1>My Plan</h1>
+                <p>Manage your subscription, modules, and billing</p>
+            </div>
+            <div class="content-area">
+
+                <div class="annotation">
+                    <strong>Option A — Stacked:</strong> Everything in a single vertical flow. Service plan first, then owned modules, then available modules at the bottom. Simple to scan, easy to extend. Each purchased item is self-contained with its own billing actions.
+                </div>
+
+                <!-- ─── SERVICE PLAN ─── -->
+                <div class="section-header">
+                    <h2>Service Plan</h2>
+                </div>
+
+                <div class="card card-pro">
+                    <div class="plan-header">
+                        <h3>Current Plan</h3>
+                        <div class="plan-status">
+                            <span class="status-dot"></span>
+                            Active
+                        </div>
+                    </div>
+
+                    <div class="plan-name-row">
+                        <span class="plan-badge">PRO</span>
+                        <div class="plan-price">$12<span>/mo</span></div>
+                    </div>
+
+                    <div class="plan-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Next billing date</span>
+                            <span class="meta-value">Apr 22, 2026</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Member since</span>
+                            <span class="meta-value">Mar 22, 2026</span>
+                        </div>
+                    </div>
+
+                    <div class="features-section">
+                        <h4>What's Included</h4>
+                        <ul class="features-list">
+                            <li>Unlimited platforms</li>
+                            <li>Full revenue history</li>
+                            <li>Goals &amp; weekly emails</li>
+                            <li>CSV export</li>
+                        </ul>
+                    </div>
+
+                    <div class="features-section" style="border-top: 1px solid #f0edff; margin-top: 20px; padding-top: 16px;">
+                        <div class="action-row">
+                            <div class="action-info">
+                                <h4>Manage Billing</h4>
+                                <p>Update payment method, view invoices, and download receipts.</p>
+                            </div>
+                            <button class="btn btn-primary">Manage Billing</button>
+                        </div>
+                        <div class="action-row">
+                            <div class="action-info">
+                                <h4>Change Plan</h4>
+                                <p>Switch between monthly and yearly, or compare plan features.</p>
+                            </div>
+                            <button class="btn btn-outline">Change Plan</button>
+                        </div>
+                        <div class="action-row">
+                            <div class="action-info">
+                                <h4>Cancel Subscription</h4>
+                                <p>Downgrade to the Free plan at the end of your billing period.</p>
+                            </div>
+                            <button class="btn btn-danger">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── ACTIVE MODULES ─── -->
+                <div class="section-header" style="margin-top: 16px;">
+                    <h2>Your Modules</h2>
+                    <span class="section-tag">1 Active</span>
+                </div>
+
+                <div class="card card-module">
+                    <div class="plan-header">
+                        <h3>Manual Entry</h3>
+                        <div class="plan-status">
+                            <span class="status-dot"></span>
+                            Active
+                        </div>
+                    </div>
+
+                    <div class="plan-name-row">
+                        <span class="plan-badge plan-badge-module">MODULE</span>
+                        <div class="plan-price">$3<span>/mo</span></div>
+                    </div>
+
+                    <div class="plan-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Next billing date</span>
+                            <span class="meta-value">Apr 28, 2026</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Active since</span>
+                            <span class="meta-value">Mar 28, 2026</span>
+                        </div>
+                    </div>
+
+                    <p style="color: #555; font-size: 14px; margin-top: 4px;">Record revenue from any source — freelance gigs, cash sales, consulting fees, and more.</p>
+
+                    <div class="features-section" style="border-top: 1px solid #f0edff; margin-top: 16px; padding-top: 12px;">
+                        <div class="action-row">
+                            <div class="action-info">
+                                <h4>Manage Billing</h4>
+                                <p>Update payment method or view invoices.</p>
+                            </div>
+                            <button class="btn btn-primary">Manage Billing</button>
+                        </div>
+                        <div class="action-row">
+                            <div class="action-info">
+                                <h4>Cancel Module</h4>
+                                <p>Remove this module at the end of your billing period.</p>
+                            </div>
+                            <button class="btn btn-danger">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── AVAILABLE MODULES ─── -->
+                <div class="section-header" style="margin-top: 16px;">
+                    <h2>Available Modules</h2>
+                </div>
+
+                <div class="module-available">
+                    <div class="module-available-info">
+                        <h4>Product Management</h4>
+                        <p>Track and manage products across all your platforms in one place.</p>
+                    </div>
+                    <div class="module-right">
+                        <span class="module-price-tag">$5<span>/mo</span></span>
+                        <button class="btn btn-outline">Add Module</button>
+                    </div>
+                </div>
+
+                <div class="module-available" style="opacity: 0.6;">
+                    <div class="module-available-info">
+                        <h4>Advanced Analytics</h4>
+                        <p>Deep insights, cohort analysis, and predictive revenue forecasting.</p>
+                    </div>
+                    <div class="module-right">
+                        <span style="color: #999; font-size: 13px; font-style: italic;">Coming soon</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- OPTION B: TWO-COLUMN LAYOUT                                   -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="option-b" class="option-section">
+    <div class="page-shell">
+        <div class="sidebar">
+            <div class="sidebar-logo">My<span>Talli</span></div>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link" href="#">Dashboard</a>
+                <a class="sidebar-link" href="#">Manual Entry</a>
+                <a class="sidebar-link" href="#">Platforms</a>
+                <a class="sidebar-link" href="#">Goals</a>
+                <a class="sidebar-link" href="#">Export</a>
+                <a class="sidebar-link" href="#">Suggestions</a>
+                <a class="sidebar-link" href="#">Settings</a>
+            </nav>
+        </div>
+        <div class="page-content">
+            <div class="hero">
+                <h1>My Plan</h1>
+                <p>Manage your subscription, modules, and billing</p>
+            </div>
+            <div class="content-area">
+
+                <div class="annotation">
+                    <strong>Option B — Two Column:</strong> Service plan on the left, modules on the right. Gives a clear visual separation between "your main plan" and "your add-ons." Available modules sit below both columns. Feels more like a dashboard view. Collapses to stacked on mobile.
+                </div>
+
+                <div class="two-col">
+                    <!-- Left: Service Plan -->
+                    <div>
+                        <div class="section-header">
+                            <h2>Service Plan</h2>
+                        </div>
+
+                        <div class="card card-pro">
+                            <div class="plan-header">
+                                <h3>Current Plan</h3>
+                                <div class="plan-status">
+                                    <span class="status-dot"></span>
+                                    Active
+                                </div>
+                            </div>
+
+                            <div class="plan-name-row">
+                                <span class="plan-badge">PRO</span>
+                                <div class="plan-price">$12<span>/mo</span></div>
+                            </div>
+
+                            <div class="plan-meta">
+                                <div class="meta-item">
+                                    <span class="meta-label">Next billing</span>
+                                    <span class="meta-value">Apr 22, 2026</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Since</span>
+                                    <span class="meta-value">Mar 22, 2026</span>
+                                </div>
+                            </div>
+
+                            <div class="features-section">
+                                <h4>What's Included</h4>
+                                <ul class="features-list" style="grid-template-columns: 1fr;">
+                                    <li>Unlimited platforms</li>
+                                    <li>Full revenue history</li>
+                                    <li>Goals &amp; weekly emails</li>
+                                    <li>CSV export</li>
+                                </ul>
+                            </div>
+
+                            <div class="features-section" style="border-top: 1px solid #f0edff; margin-top: 16px; padding-top: 12px;">
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <button class="btn btn-primary" style="width: 100%; text-align: center;">Manage Billing</button>
+                                    <button class="btn btn-outline" style="width: 100%; text-align: center;">Change Plan</button>
+                                    <button class="btn btn-danger" style="width: 100%; text-align: center;">Cancel Subscription</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Modules -->
+                    <div>
+                        <div class="section-header">
+                            <h2>Modules</h2>
+                            <span class="section-tag">1 Active</span>
+                        </div>
+
+                        <div class="card card-module">
+                            <div class="plan-header">
+                                <h3>Manual Entry</h3>
+                                <div class="plan-status">
+                                    <span class="status-dot"></span>
+                                    Active
+                                </div>
+                            </div>
+
+                            <div class="plan-name-row">
+                                <span class="plan-badge plan-badge-module">MODULE</span>
+                                <div class="plan-price">$3<span>/mo</span></div>
+                            </div>
+
+                            <div class="plan-meta">
+                                <div class="meta-item">
+                                    <span class="meta-label">Next billing</span>
+                                    <span class="meta-value">Apr 28, 2026</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Since</span>
+                                    <span class="meta-value">Mar 28, 2026</span>
+                                </div>
+                            </div>
+
+                            <p style="color: #555; font-size: 13px; margin-top: 4px;">Record revenue from any source.</p>
+
+                            <div class="features-section" style="border-top: 1px solid #f0edff; margin-top: 12px; padding-top: 10px;">
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-primary" style="flex: 1; text-align: center;">Manage Billing</button>
+                                    <button class="btn btn-danger" style="flex: 1; text-align: center;">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Empty state hint for future modules -->
+                        <div style="border: 1px dashed #e0dce8; border-radius: 14px; color: #999; font-size: 13px; padding: 20px; text-align: center;">
+                            More modules coming soon
+                        </div>
+                    </div>
+
+                    <!-- Full-width: Available modules -->
+                    <div class="full-width" style="margin-top: 8px;">
+                        <div class="section-header">
+                            <h2>Available Modules</h2>
+                        </div>
+
+                        <div class="module-available">
+                            <div class="module-available-info">
+                                <h4>Product Management</h4>
+                                <p>Track and manage products across all your platforms in one place.</p>
+                            </div>
+                            <div class="module-right">
+                                <span class="module-price-tag">$5<span>/mo</span></span>
+                                <button class="btn btn-outline">Add Module</button>
+                            </div>
+                        </div>
+
+                        <div class="module-available" style="opacity: 0.6;">
+                            <div class="module-available-info">
+                                <h4>Advanced Analytics</h4>
+                                <p>Deep insights, cohort analysis, and predictive revenue forecasting.</p>
+                            </div>
+                            <div class="module-right">
+                                <span style="color: #999; font-size: 13px; font-style: italic;">Coming soon</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showOption(id) {
+        document.querySelectorAll('.option-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.option-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('option-' + id).classList.add('active');
+        event.target.classList.add('active');
+        window.scrollTo(0, 0);
+    }
+</script>
+
+</body>
+</html>

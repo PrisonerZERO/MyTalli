@@ -80,8 +80,8 @@ public class StripeWebhookHandler
 		var user = (await _userAdapter.GetByIdAsync(userId.Value))!;
 		_currentUserService.Set(user.Id, user.DisplayName);
 
-		var product = (await _productAdapter.FindAsync(x => x.ProductName == payload.ProductName)).FirstOrDefault()
-			?? throw new NotFoundException($"No product found for name {payload.ProductName}");
+		var product = (await _productAdapter.GetByIdAsync(payload.ProductId))
+			?? throw new NotFoundException($"No product found for ID {payload.ProductId}");
 
 		var order = await _orderAdapter.InsertAsync(new Order
 		{
@@ -189,16 +189,10 @@ public class StripeWebhookHandler
 			stripeRecord.StripePriceId = payload.StripePriceId;
 			await _subscriptionStripeAdapter.UpdateAsync(stripeRecord);
 
-			if (!string.IsNullOrEmpty(payload.ProductName))
+			if (payload.ProductId.HasValue)
 			{
-				var newProduct = (await _productAdapter.FindAsync(
-					x => x.ProductName == payload.ProductName)).FirstOrDefault();
-
-				if (newProduct is not null)
-				{
-					subscription.ProductId = newProduct.Id;
-					await _subscriptionAdapter.UpdateAsync(subscription);
-				}
+				subscription.ProductId = payload.ProductId.Value;
+				await _subscriptionAdapter.UpdateAsync(subscription);
 			}
 		}
 	}

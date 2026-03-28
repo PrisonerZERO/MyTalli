@@ -47,6 +47,20 @@ public class SubscriptionUpdatedHandler
         }
     }
 
+    private long ResolveProductId(string stripePriceId)
+    {
+        if (stripePriceId == _settings.MonthlyPriceId) return 1;
+        if (stripePriceId == _settings.YearlyPriceId) return 2;
+
+        foreach (var (productId, priceId) in _settings.Modules)
+        {
+            if (priceId == stripePriceId && long.TryParse(productId, out var id))
+                return id;
+        }
+
+        return 1;
+    }
+
     private SubscriptionUpdatedPayload ToPayload(Stripe.Subscription subscription)
     {
         var stripePriceId = string.Empty;
@@ -58,15 +72,15 @@ public class SubscriptionUpdatedHandler
             currentPeriodEnd = subscription.Items.Data[0].CurrentPeriodEnd;
         }
 
-        string? productName = null;
+        long? productId = null;
         if (!string.IsNullOrEmpty(stripePriceId))
-            productName = stripePriceId == _settings.YearlyPriceId ? "Pro Yearly" : "Pro Monthly";
+            productId = ResolveProductId(stripePriceId);
 
         return new SubscriptionUpdatedPayload
         {
             CancelAtPeriodEnd = subscription.CancelAtPeriodEnd,
             CurrentPeriodEnd = currentPeriodEnd,
-            ProductName = productName,
+            ProductId = productId,
             Status = subscription.Status,
             StripePriceId = stripePriceId,
             StripeSubscriptionId = subscription.Id

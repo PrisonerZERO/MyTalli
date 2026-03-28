@@ -31,6 +31,8 @@ public class ContainerRegistry : ServiceRegistry
 		For<IEntityMapper<MODELS.Product, ENTITIES.Product>>().Use<ProductMapper>();
 		For<IEntityMapper<MODELS.ProductType, ENTITIES.ProductType>>().Use<ProductTypeMapper>();
 		For<IEntityMapper<MODELS.ProductVendor, ENTITIES.ProductVendor>>().Use<ProductVendorMapper>();
+		For<IEntityMapper<MODELS.Revenue, ENTITIES.Revenue>>().Use<RevenueMapper>();
+		For<IEntityMapper<MODELS.RevenueManual, ENTITIES.RevenueManual>>().Use<RevenueManualMapper>();
 		For<IEntityMapper<MODELS.Subscription, ENTITIES.Subscription>>().Use<SubscriptionMapper>();
 		For<IEntityMapper<MODELS.SubscriptionStripe, ENTITIES.SubscriptionStripe>>().Use<SubscriptionStripeMapper>();
 		For<IEntityMapper<MODELS.Suggestion, ENTITIES.Suggestion>>().Use<SuggestionMapper>();

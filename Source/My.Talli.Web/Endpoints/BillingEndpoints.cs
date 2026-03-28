@@ -33,13 +33,23 @@ public static class BillingEndpoints
         if (long.TryParse(userIdClaim, out var parsed))
             userId = parsed;
 
+        var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
+
+        // Module checkout: ?product={productId}
+        var productParam = context.Request.Query["product"].ToString();
+        if (!string.IsNullOrEmpty(productParam) && billing.Modules.TryGetValue(productParam, out var modulePriceId))
+        {
+            var session = await billing.CreateCheckoutSessionAsync(email, modulePriceId, successUrl: $"{baseUrl}/my-plan?status=success", cancelUrl: $"{baseUrl}/my-plan?status=cancelled", userId: userId);
+            context.Response.Redirect(session.Url);
+            return Results.Empty;
+        }
+
+        // Pro plan checkout: ?plan=monthly|yearly
         var plan = context.Request.Query["plan"].ToString();
         var priceId = plan == "yearly" ? billing.YearlyPriceId : billing.MonthlyPriceId;
 
-        var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
-        var session = await billing.CreateCheckoutSessionAsync(email, priceId, successUrl: $"{baseUrl}/upgrade?status=success", cancelUrl: $"{baseUrl}/upgrade?status=cancelled", userId: userId);
-
-        context.Response.Redirect(session.Url);
+        var proSession = await billing.CreateCheckoutSessionAsync(email, priceId, successUrl: $"{baseUrl}/my-plan?status=success", cancelUrl: $"{baseUrl}/my-plan?status=cancelled", userId: userId);
+        context.Response.Redirect(proSession.Url);
         return Results.Empty;
     }
 
@@ -52,12 +62,12 @@ public static class BillingEndpoints
         var (subscription, stripeRecord) = await findSubscription.ExecuteAsync(userId);
         if (subscription is null || stripeRecord is null)
         {
-            context.Response.Redirect("/upgrade");
+            context.Response.Redirect("/my-plan");
             return Results.Empty;
         }
 
         var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
-        var session = await billing.CreatePortalSessionAsync(stripeRecord.StripeCustomerId, $"{baseUrl}/subscription");
+        var session = await billing.CreatePortalSessionAsync(stripeRecord.StripeCustomerId, $"{baseUrl}/my-plan");
 
         context.Response.Redirect(session.Url);
         return Results.Empty;
@@ -72,14 +82,14 @@ public static class BillingEndpoints
         var plan = context.Request.Query["plan"].ToString();
         if (plan != "monthly" && plan != "yearly")
         {
-            context.Response.Redirect("/upgrade");
+            context.Response.Redirect("/my-plan");
             return Results.Empty;
         }
 
         var (subscription, stripeRecord) = await findSubscription.ExecuteAsync(userId);
         if (subscription is null || stripeRecord is null)
         {
-            context.Response.Redirect("/upgrade");
+            context.Response.Redirect("/my-plan");
             return Results.Empty;
         }
 
@@ -89,7 +99,7 @@ public static class BillingEndpoints
         // UPDATE - Don't wait for webhook
         await updateSubscription.ExecuteAsync(subscription, stripeRecord, plan, newPriceId);
 
-        context.Response.Redirect("/upgrade?status=switched");
+        context.Response.Redirect("/my-plan?status=switched");
         return Results.Empty;
     }
 

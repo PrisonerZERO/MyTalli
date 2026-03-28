@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Data.Interfaces;
 using Domain.Framework;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
@@ -20,6 +21,9 @@ public class SuggestionBoxViewModel : ComponentBase
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
 	[Inject]
+	private ICurrentUserService CurrentUserService { get; set; } = default!;
+
+	[Inject]
 	private RepositoryAdapterAsync<MODELS.Suggestion, ENTITIES.Suggestion> SuggestionAdapter { get; set; } = default!;
 
 	[Inject]
@@ -33,6 +37,9 @@ public class SuggestionBoxViewModel : ComponentBase
 	public string ActiveCategory { get; private set; } = "All";
 
 	public string ActiveSort { get; private set; } = "Top";
+
+	public long? EditingId { get; private set; }
+
 
 	public List<string> Categories { get; private set; } =
 	[
@@ -50,6 +57,8 @@ public class SuggestionBoxViewModel : ComponentBase
 	public string NewDescription { get; set; } = string.Empty;
 
 	public string NewTitle { get; set; } = string.Empty;
+
+	public string ModalTitle => EditingId.HasValue ? "Edit Suggestion" : "New Suggestion";
 
 	public bool ShowSubmitModal { get; private set; }
 
@@ -77,6 +86,7 @@ public class SuggestionBoxViewModel : ComponentBase
 			return;
 
 		_userId = userId;
+		CurrentUserService.Set(userId, string.Empty);
 
 		await LoadSuggestionsAsync();
 	}
@@ -89,10 +99,24 @@ public class SuggestionBoxViewModel : ComponentBase
 	public void CloseModal()
 	{
 		ShowSubmitModal = false;
+		EditingId = null;
+	}
+
+	public async Task EditSuggestionAsync(long suggestionId)
+	{
+		var suggestion = await SuggestionAdapter.GetByIdAsync(suggestionId);
+		if (suggestion is null) return;
+
+		EditingId = suggestionId;
+		NewTitle = suggestion.Title;
+		NewDescription = suggestion.Description;
+		NewCategory = suggestion.Category;
+		ShowSubmitModal = true;
 	}
 
 	public void OpenModal()
 	{
+		EditingId = null;
 		NewTitle = string.Empty;
 		NewDescription = string.Empty;
 		NewCategory = "Feature";
@@ -116,9 +140,24 @@ public class SuggestionBoxViewModel : ComponentBase
 		if (_userId is null || string.IsNullOrWhiteSpace(NewTitle))
 			return;
 
-		await SuggestionAdapter.InsertAsync(ToNewSuggestion());
+		if (EditingId.HasValue)
+		{
+			var suggestion = await SuggestionAdapter.GetByIdAsync(EditingId.Value);
+			if (suggestion is not null)
+			{
+				suggestion.Category = NewCategory;
+				suggestion.Description = NewDescription;
+				suggestion.Title = NewTitle;
+				await SuggestionAdapter.UpdateAsync(suggestion);
+			}
+		}
+		else
+		{
+			await SuggestionAdapter.InsertAsync(ToNewSuggestion());
+		}
 
 		ShowSubmitModal = false;
+		EditingId = null;
 		await LoadSuggestionsAsync();
 	}
 
@@ -184,7 +223,6 @@ public class SuggestionBoxViewModel : ComponentBase
 		var votesForSuggestion = allVotes.Where(v => v.SuggestionId == s.Id).ToList();
 
 		return new SuggestionItem {
-			Author = s.UserId == _userId ? "You" : $"User #{s.UserId}",
 			Category = s.Category,
 			CreatedOn = s.CreatedOn,
 			Description = s.Description,

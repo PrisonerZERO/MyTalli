@@ -88,7 +88,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application configuration | Milestone (legacy — table exists but no longer used by app code) |
+| `app` | Application features & revenue | Milestone (legacy), Revenue, RevenueManual, Suggestion, SuggestionVote |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
@@ -97,6 +97,14 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 **`app.Milestone`** — (legacy) waitlist progress tracker milestones. The table still exists in the database but all app code references (entity, model, mapper, configuration, framework constants) have been removed. The data remains for historical reference.
 - `Id` (PK), `Description`, `MilestoneGroup` (Beta, FullLaunch), `SortOrder` (display order within group), `Status` (Complete, InProgress, Upcoming), `Title`
 - `MilestoneStatuses.cs` and `MilestoneGroups.cs` (formerly in `Domain/Framework/`) have been removed.
+
+**`app.Revenue`** — normalized revenue record from all platforms (API-sourced and manual entry)
+- `Id` (PK), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
+- Composite index on `(Platform, TransactionDate)` for dashboard queries
+- Design: Goals and dashboard analytics query **only** this normalized table. Platform-specific tables exist for drill-down detail.
+
+**`app.RevenueManual`** — Manual Entry detail (1-to-1 with Revenue, shared PK)
+- `RevenueId` (PK/FK → Revenue, C# property: `Id`), `Category` (Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other), `Notes` (nullable)
 
 ### Schema: `auth`
 
@@ -557,12 +565,12 @@ My.Talli/
         │   │   ├── LandingPage.razor.css
         │   │   ├── SignIn.razor          # Sign-in page (route: /signin)
         │   │   ├── SignIn.razor.css
-        │   │   ├── Subscription.razor    # Subscription hub (route: /subscription)
-        │   │   ├── Subscription.razor.css
+        │   │   ├── ManualEntry.razor       # Manual entry module (route: /manual-entry)
+        │   │   ├── ManualEntry.razor.css
+        │   │   ├── MyPlan.razor          # Consolidated plan & module management (route: /my-plan)
+        │   │   ├── MyPlan.razor.css
         │   │   ├── SuggestionBox.razor       # Suggestion box (route: /suggestions)
         │   │   ├── SuggestionBox.razor.css
-        │   │   ├── Upgrade.razor         # Upgrade pricing page (route: /upgrade)
-        │   │   ├── Upgrade.razor.css
         │   │   ├── Unsubscribe.razor      # Email preference management (route: /unsubscribe?token=xxx)
         │   │   ├── Unsubscribe.razor.css
         │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
@@ -595,10 +603,10 @@ My.Talli/
         │   │   ├── ErrorViewModel.cs
         │   │   ├── LandingPageViewModel.cs
         │   │   ├── SignInViewModel.cs
-        │   │   ├── SubscriptionViewModel.cs
+        │   │   ├── ManualEntryViewModel.cs
+        │   │   ├── MyPlanViewModel.cs
         │   │   ├── SuggestionBoxViewModel.cs
-        │   │   ├── UnsubscribeViewModel.cs
-        │   │   └── UpgradeViewModel.cs
+        │   │   └── UnsubscribeViewModel.cs
         │   └── Shared/
         │       └── BrandHeaderViewModel.cs
         ├── Properties/
@@ -648,10 +656,10 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 |------|--------|------|-------------|
 | `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
 | `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | "Sign Out" link |
-| `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button |
-| `/subscription` | Inline SVG (`.sub-hero`) | No (sidebar has it) | N/A |
+| `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button, edit button on own cards |
+| `/manual-entry` | Inline SVG (`.manual-hero`) | No (sidebar has it) | "New Entry" button |
+| `/my-plan` | Inline SVG (`.plan-hero`) | No (sidebar has it) | N/A |
 | `/subscription/cancel` | Inline SVG (`.cancel-hero`) | No (sidebar has it) | N/A |
-| `/upgrade` | Inline SVG (`.upgrade-hero`) | No (sidebar has it) | N/A |
 | `/admin` | Inline SVG (`.admin-hero`) | No (sidebar has it) | N/A |
 | `/unsubscribe` | `<BrandHeader>` | Yes | "Go to Homepage" link |
 | `/Error` | `<BrandHeader>` | Yes | "Go Back" button |
@@ -783,6 +791,22 @@ dotnet run --project Source/My.Talli.Web
 - **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys (legacy)
 - **Static assets note:** The `deploy/` and `favicon-concepts/` folders are from the static HTML era. Static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) now live in `wwwroot/`. The `deploy/emails/` folder is still needed — it hosts PNG images referenced by customer-facing email templates.
 
+### Business Entity
+
+- **Entity:** MyTalli LLC — single-member LLC, Texas
+- **Formation:** Filed 2026-03-27 via LegalZoom (Basic plan, $301 state filing fee only)
+- **Owner/Organizer/Registered Agent:** Robert Merrill Jordan
+- **Management:** Member-managed
+- **Business address:** 5423 Oakhaven Ln, Houston, TX 77091 (home address, on public record)
+- **Industry:** Software
+- **Fiscal year end:** December 31
+- **Status:** Pending Texas Secretary of State approval (5-14 business days from filing)
+- **EIN:** Not yet obtained — apply at [irs.gov/ein](https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online) after Texas approves (free, instant)
+- **Operating agreement:** Not yet created — use a free single-member template after approval
+- **Business bank account:** Not yet opened — requires EIN letter + Articles of Organization
+- **Texas franchise tax report:** Due annually by May 15 (first due May 15, 2027)
+- **Documentation:** `documentation/MyTalli_PlatformApprovals.html` — LLC formation details, Etsy/PayPal approval strategy
+
 ### Scaling & Cost Planning
 
 - **Documentation:** `documentation/MyTalli_ScalingPlan.html` (scaling strategy) and `documentation/MyTalli_CostingPlan.html` (cost projections & optimization)
@@ -893,7 +917,7 @@ Deploy folder also contains:
 | `Unpaid` | Payment failed, no grace | Stripe status `unpaid` |
 
 - **Cancelling vs Cancelled:** "Cancelling" means the user requested cancellation but still has access until the billing period ends. "Cancelled" means the subscription is fully terminated. The Subscription page shows a warning banner and "Reactivate" button during "Cancelling" state.
-- **Queries:** Any query for "active" subscriptions must include both `Active` and `Cancelling` statuses (the user still has Pro access in both states). This applies to: `SubscriptionViewModel`, `UpgradeViewModel`, portal endpoint, switch-plan endpoint.
+- **Queries:** Any query for "active" subscriptions must include both `Active` and `Cancelling` statuses (the user still has Pro access in both states). This applies to: `MyPlanViewModel`, `NavMenuViewModel`, `ManualEntryViewModel`, portal endpoint, switch-plan endpoint.
 
 ### Webhook Handler
 
@@ -902,11 +926,15 @@ Deploy folder also contains:
 2. `Subscription` + `SubscriptionStripe` — ongoing subscription state
 3. `Billing` + `BillingStripe` — payment record
 
+Product resolution uses `ProductId` (not product name). The web-layer `CheckoutCompletedHandler` resolves the product ID from the Stripe price ID via `ResolveProductId()` — mapping `MonthlyPriceId` → 1, `YearlyPriceId` → 2, and module price IDs from the `Stripe:Modules` config. The same pattern exists in `SubscriptionUpdatedHandler`. This allows the webhook to handle Pro plans and module subscriptions identically.
+
 On subscription updates, it syncs status, dates, and product changes. On deletion, it sets status to `Cancelled`.
 
 ### CurrentUserMiddleware
 
-`CurrentUserMiddleware` (`Middleware/CurrentUserMiddleware.cs`) runs after `UseAuthorization()` on every request. It reads the `"UserId"` claim from `HttpContext.User` and calls `ICurrentUserService.Set()`. This ensures the `AuditResolver` can stamp audit fields on DB operations in both Blazor circuits and API endpoints. Webhook requests from Stripe have no auth cookie — the `StripeWebhookHandler` sets `ICurrentUserService` manually from the subscription's `UserId`.
+`CurrentUserMiddleware` (`Middleware/CurrentUserMiddleware.cs`) runs after `UseAuthorization()` on every request. It reads the `"UserId"` claim from `HttpContext.User` and calls `ICurrentUserService.Set()`. This ensures the `AuditResolver` can stamp audit fields on DB operations in API endpoints. Webhook requests from Stripe have no auth cookie — the `StripeWebhookHandler` sets `ICurrentUserService` manually from the subscription's `UserId`.
+
+**Blazor Server scoping caveat:** `CurrentUserMiddleware` sets `ICurrentUserService` on the HTTP request's DI scope, but the Blazor SignalR circuit creates its **own** DI scope with a fresh `ICurrentUserService` instance. This means the middleware-set user is not available in Blazor components. **Any ViewModel that performs updates via `RepositoryAdapterAsync` must call `CurrentUserService.Set(userId, ...)` in `OnInitializedAsync`** to ensure the `AuditResolver` has the user for audit field stamping. Inserts work without this (they use `userId ?? 0`), but updates require an authenticated user and will throw `InvalidOperationException` if the service is empty. See `ManualEntryViewModel` and `SuggestionBoxViewModel` for the pattern.
 
 ### Local Development
 
@@ -919,7 +947,7 @@ On subscription updates, it syncs status, dates, and product changes. On deletio
 
 The app runs in **Dashboard Mode** — full app experience with all routes active. Sign-in takes users to the dashboard, sidebar navigation is functional.
 
-- **Active routes:** All routes (`/dashboard`, `/suggestions`, `/subscription`, `/upgrade`, etc.)
+- **Active routes:** All routes (`/dashboard`, `/suggestions`, `/my-plan`, `/manual-entry`, etc.)
 - **OAuth redirect:** Set to `/dashboard` in the login endpoint (`Program.cs`)
 - **Historical note:** The app previously operated in Waitlist Mode (landing page, sign-in, and waitlist only, all other routes redirected to `/waitlist`). Waitlist Mode and its associated code (page, view model, milestone display) have been removed. The branch `main_WAITLIST` is a frozen snapshot of `main` at the end of Waitlist Mode, preserved for historical reference.
 
@@ -1120,6 +1148,11 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - Pages using `LandingLayout` (Sign-In, Error) use the **`BrandHeader`** component.
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
 
+### Modal Behavior
+
+- **Modals do not close on backdrop click.** Only the Cancel button (or equivalent) closes the modal. This prevents accidental data loss when users click outside a form modal.
+- **Exception:** The `UserProfileButton` dropdown closes on backdrop click — this is intentional since it's a menu, not a form.
+
 ### Mobile-First Responsive Strategy
 
 - **Principle: "Keyhole Data"** — phones are for glancing at numbers, not configuring things. Desktop gets the full experience; mobile gets a focused, read-only snapshot.
@@ -1133,10 +1166,11 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 | Page | Route | Purpose | Mobile |
 |------|-------|---------|--------|
 | **Dashboard** | `/dashboard` | Revenue overview — KPI cards, charts, trends, recent transactions | Yes (keyhole) |
+| **Manual Entry** | `/manual-entry` | Record revenue from non-integrated sources (module, $3/mo) | Yes |
 | **Platforms** | `/platforms` | Connect/manage platform integrations (Stripe, Etsy, etc.) | Hidden |
 | **Goals** | `/goals` | Set and track monthly/yearly revenue targets | Yes (simplified) |
 | **Export** | `/export` | CSV export for tax prep / bookkeeping | Hidden |
-| **Suggestions** | `/suggestions` | User feedback and feature requests (already built) | Yes |
+| **Suggestions** | `/suggestions` | User feedback and feature requests (vote, edit own) | Yes |
 | **Settings** | `/settings` | Account preferences, email settings, linked providers | Hidden |
 | **Admin** | `/admin` | Email resend, bulk welcome send, user list (Admin role only) | Hidden |
 
@@ -1490,7 +1524,7 @@ public AppleSignInHandler(
 - [x] **Branding** — brand color `#6c5ce7`, accent `#8b5cf6`, icon uploaded (favicon PNG)
 - [x] **Business Model** — Platform (not Marketplace)
 - [x] **Payment Integration** — Prebuilt checkout form (Stripe Checkout Sessions)
-- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHVRC4AM5SkTgToKjXCny`. Free tier has no Stripe product (it's just the absence of a subscription).
+- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHVRC4AM5SkTgToKjXCny`. Free tier has no Stripe product (it's just the absence of a subscription). Manual Entry Module: Product ID `prod_UEPfDUVNr9l4kJ`, Price ID `price_1TFwpvRC4AM5SkTgEZMliKrz` ($3/mo). Module price IDs are configured in `Stripe:Modules` (key = DB product ID, value = Stripe price ID).
 - [x] **Webhook Endpoint** — using Stripe CLI local listener (`stripe listen --forward-to https://localhost:7012/api/billing/webhook`). Stripe CLI installed via winget at `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`.
 - [x] **API Keys** — test keys added to `appsettings.Development.json` (`Stripe:SecretKey`, `Stripe:PublishableKey`)
 - [x] **Webhook Secret** — webhook signing secret added to `appsettings.Development.json` (from Stripe CLI listener)
@@ -1512,4 +1546,7 @@ Upcoming features:
 
 - [x] **Admin Page** — role-based admin section (`/admin`) with email management: resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, bulk-send Welcome emails to selected or all users. Visible only to `Admin` role via conditional NavMenu link. Uses `vAuthenticatedUser` view (keyless entity) for user list with emails. ViewModel redirects non-admins to `/dashboard`; API endpoints enforce Admin role via `.RequireAuthorization()`.
 - [x] **Admin Email Resend** — admin ability to resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, plus bulk-send Welcome emails to selected or all users. Implemented as part of the Admin page (`/admin`). API endpoints: `POST /api/admin/email/resend`, `POST /api/admin/email/bulk-welcome`, `POST /api/admin/email/bulk-welcome-all`. Commands: `SendSubscriptionConfirmationEmailCommand` (validates active subscription exists), `SendWeeklySummaryEmailCommand` (uses sample data). Fail-silent on individual errors during bulk sends.
+- [x] **Manual Entry Module** — `app.Revenue` (base normalized revenue table) and `app.RevenueManual` (1-to-1 manual entry detail). Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with module access gate, entry form (description, gross, fee, currency, category, notes), entry list with edit/delete. Net auto-calculated. Categories: Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other.
+- [x] **My Plan Page** — consolidated plan and module management at `/my-plan`. Replaces the old `/subscription` and `/upgrade` pages (both deleted). Free users see inline pricing cards (Free vs Pro with monthly/yearly toggle). Pro users see their plan card with billing actions (Manage Billing, Change Plan, Cancel). Module owners see per-module cards with billing/cancel. Available modules listed at the bottom. Sidebar upgrade card shows "Pro Plan" for subscribers, "Upgrade to Pro" for free users, with a single "My Plan" button.
+- [ ] **Module Checkout Flow** — extend `/api/billing/create-checkout-session` to handle module product IDs (currently only handles `plan=monthly|yearly` for Pro). Needed for "Add Module" button on My Plan page.
 - [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.
