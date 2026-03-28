@@ -1,5 +1,5 @@
 /* ─── SWOOSH HERO ─── */
-.goals-hero { margin: -32px -40px 60px; padding: 24px 40px 48px; position: relative; }
+.goals-hero { margin: -32px -40px 60px; padding: 24px 40px 80px; position: relative; }
 .goals-hero-bg { height: calc(100% + 60px); left: 0; overflow: hidden; pointer-events: none; position: absolute; right: 0; top: 0; }
 .goals-hero-bg svg { display: block; height: 100%; min-height: 280px; width: 100%; }
 .deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
@@ -17,7 +17,7 @@
 .goals-new-btn svg { height: 16px; width: 16px; }
 
 /* ─── HERO STATS ─── */
-.goals-hero-stats { display: flex; gap: 24px; margin-top: 20px; }
+.goals-hero-stats { display: flex; gap: 24px; margin-bottom: 20px; }
 .goals-stat { text-align: center; }
 .goals-stat-num { color: #fff; font-size: 28px; font-weight: 700; }
 .goals-stat-label { color: rgba(255, 255, 255, 0.6); font-size: 12px; margin-left: 6px; }

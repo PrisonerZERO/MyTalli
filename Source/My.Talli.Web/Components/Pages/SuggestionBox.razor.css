@@ -1,5 +1,5 @@
 /* ─── SWOOSH HERO ─── */
-.suggest-hero { margin: -32px -40px 60px; padding: 24px 40px 48px; position: relative; }
+.suggest-hero { margin: -32px -40px 60px; padding: 24px 40px 80px; position: relative; }
 .suggest-hero-bg { height: calc(100% + 60px); left: 0; overflow: hidden; pointer-events: none; position: absolute; right: 0; top: 0; }
 .suggest-hero-bg svg { display: block; height: 100%; min-height: 280px; width: 100%; }
 .deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
@@ -16,7 +16,7 @@
 .suggest-new-btn svg { height: 16px; width: 16px; }
 
 /* ─── STATS ─── */
-.suggest-stats { display: flex; gap: 28px; margin-top: 8px; }
+.suggest-stats { display: flex; gap: 28px; margin-bottom: 20px; }
 .suggest-stat { align-items: center; display: flex; gap: 8px; }
 .suggest-stat-num { font-size: 22px; font-weight: 700; }
 .suggest-stat-label { color: rgba(255, 255, 255, 0.6); font-size: 13px; }
