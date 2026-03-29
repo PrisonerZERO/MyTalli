@@ -88,7 +88,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application features & revenue | Milestone (legacy), Revenue, RevenueManual, Suggestion, SuggestionVote |
+| `app` | Application features & revenue | Milestone (legacy), Revenue, RevenueManual, Suggestion, SuggestionVote, SyncQueue |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
@@ -113,6 +113,12 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 **`app.SuggestionVote`** — user votes on suggestions (junction: User ↔ Suggestion)
 - `Id` (PK), `UserId` (FK → auth.User), `SuggestionId` (FK → Suggestion)
 - Unique constraint on `(UserId, SuggestionId)` prevents duplicate votes
+
+**`app.SyncQueue`** — background sync job work list (one row per user per connected platform)
+- `Id` (PK), `UserId` (FK → auth.User), `Platform` (string, max 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `Status` (string, max 20 — Pending, InProgress, Completed, Failed), `NextSyncDateTime` (when this row is next eligible for processing), `LastSyncDateTime` (nullable — null until first successful sync), `LastErrorMessage` (nullable, max 2000 — most recent failure reason), `ConsecutiveFailures` (int, default 0 — drives exponential backoff), `IsEnabled` (bool, default true — user can pause syncing)
+- Unique constraint on `(UserId, Platform)` prevents duplicate queue entries
+- Index on `(NextSyncDateTime, Status)` for sync job polling query
+- Users can pause sync (`IsEnabled = false`) but cannot disconnect — connected platforms permanently occupy a plan slot
 
 ### Schema: `auth`
 
@@ -276,7 +282,8 @@ My.Talli/
 │   │   └── SKILL.md
 │   ├── MyTalli_CostingPlan.html    # Infrastructure cost projections & optimization strategies
 │   ├── MyTalli_PlatformCapabilities.html # Platform API capabilities, data richness & integration roadmap
-│   └── MyTalli_ScalingPlan.html    # Scaling strategy as user base grows (tiers, triggers, capacity)
+│   ├── MyTalli_ScalingPlan.html    # Scaling strategy as user base grows (tiers, triggers, capacity)
+│   └── PlatformApiDataShapes.html  # Platform API data shapes, normalized schema, ERD with SyncQueue
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
 │   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
 │   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
@@ -1088,9 +1095,38 @@ Templates embedded from `Domain/.resources/emails/` get resource names like:
 
 ## Platform API Notes
 
-Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data. Full comparison document: `documentation/MyTalli_PlatformCapabilities.html`.
+Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data. Full comparison document: `documentation/MyTalli_PlatformCapabilities.html`. Data shapes, normalized schema, and ERD: `documentation/PlatformApiDataShapes.html`.
 
 **Integration priority:** Stripe → Gumroad → Etsy → Shopify → PayPal (based on data richness, complexity, and approval timelines).
+
+### Revenue Sync Architecture
+
+Platform API rate limits are **application-level** — they apply to MyTalli's API keys, not per-user. If hundreds of users connect the same platform, every API call counts against one shared limit. Hitting platform APIs on every page load would exhaust rate limits almost immediately at scale.
+
+**Solution: Local Cache + Periodic Sync**
+
+1. **Dashboard reads are local only.** When a user visits the dashboard (or any revenue-displaying page), all data comes from `app.Revenue` in our database. No external API calls are made during page loads.
+2. **Background sync job runs once per hour.** A scheduled process iterates through all users with connected platforms, pulls their latest transactions from each platform's API, and upserts into `app.Revenue`. The job controls its own pace — adding delays between users and between platforms to stay within each platform's rate limits.
+
+This means:
+- Users always see data instantly (local DB read)
+- Rate limits are manageable (one controlled background process, not N concurrent users)
+- The sync job can spread work across the full hour, throttle per-platform, and retry failures without affecting the user experience
+
+**`app.Revenue` is the single source of truth for the dashboard.** Both API-sourced data (from the sync job) and manual entries flow into this same normalized table. The `Platform` column distinguishes the source ("Stripe", "Etsy", "Manual", etc.) and `PlatformTransactionId` prevents duplicate inserts during re-syncs.
+
+**`app.SyncQueue`** — the sync job's work list. One row per user per connected platform.
+
+- `Id` (PK), `UserId` (FK → auth.User), `Platform` (string — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `Status` (Pending, InProgress, Completed, Failed), `LastSyncDateTime` (nullable — null until first successful sync), `NextSyncDateTime` (when this row is next eligible for processing), `LastErrorMessage` (nullable — most recent failure reason), `ConsecutiveFailures` (int, default 0 — for exponential backoff), `IsEnabled` (bool, default true — user can pause syncing)
+- Unique constraint on `(UserId, Platform)` — one queue entry per user per platform
+- Index on `(NextSyncDateTime, Status)` — the sync job queries "give me rows where `NextSyncDateTime <= now AND Status = Pending AND IsEnabled = true`", ordered by `NextSyncDateTime` ASC (oldest first)
+- **Row lifecycle:** Created when a user connects a platform. `NextSyncDateTime` set to now (immediate first sync). After each sync: `LastSyncDateTime` = now, `NextSyncDateTime` = now + 1 hour, `Status` = Pending, `ConsecutiveFailures` = 0. On failure: `ConsecutiveFailures` incremented, `NextSyncDateTime` pushed out with exponential backoff, `LastErrorMessage` updated.
+- **Backoff strategy:** On failure, `NextSyncDateTime` = now + (base interval × 2^ConsecutiveFailures), capped at a max delay (e.g., 24 hours). This prevents hammering a platform that's down or rate-limiting us.
+- **Sync pause:** Users can toggle `IsEnabled` off to pause syncing for a connected platform. The platform remains connected and still counts against the plan limit.
+- **No disconnect.** Once a platform is connected, it cannot be disconnected. This prevents Free tier users from gaming the platform limit by rotating connections — connect one platform, sync it, disconnect, connect another. A connected platform permanently occupies a plan slot.
+- **Pre-connection warning.** Before completing a platform connection, the user must be shown a confirmation dialog explaining that this connection is permanent and will occupy a plan slot. The user must explicitly confirm before the OAuth flow begins.
+
+**Sync completion notification:** When a sync completes for a user, the app notifies them in real time via the Blazor SignalR circuit. If the user is currently on the dashboard (or any revenue-displaying page), they see a non-intrusive toast or banner (e.g., "Stripe data updated just now") so they know fresh data is available. The page can then refresh its data from `app.Revenue` without a full page reload. If the user is not online, no notification is needed — they'll see the latest data on their next visit. Failed syncs do not notify the user (the backoff mechanism handles retries silently); persistent failures surface on the Platforms page as a connection status indicator.
 
 ### Stripe
 

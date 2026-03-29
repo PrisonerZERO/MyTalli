@@ -1459,7 +1459,7 @@
         <p>How all platform data funnels into MyTalli's <code>app</code> schema. The <strong>normalized layer</strong> (Revenue, Expense) is what Goals and the Dashboard query. Platform-specific tables preserve raw data for drill-down.</p>
 
         <div class="erd">
-            <svg viewBox="0 0 1060 780" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+            <svg viewBox="0 0 1060 860" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
                 <defs>
                     <marker id="m-arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
                         <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
@@ -1476,9 +1476,9 @@
                 <rect x="20" y="10" width="230" height="120" rx="12" fill="#f0edff" opacity="0.4"/>
                 <text x="40" y="34" font-size="11" font-weight="600" fill="#6c5ce7" opacity="0.7">auth SCHEMA (existing)</text>
 
-                <!-- Background: Platform Connections -->
-                <rect x="270" y="10" width="250" height="120" rx="12" fill="#e3f2fd" opacity="0.25"/>
-                <text x="290" y="34" font-size="11" font-weight="600" fill="#1565c0" opacity="0.7">PLATFORM CONNECTIONS</text>
+                <!-- Background: Platform Connections & Sync -->
+                <rect x="270" y="10" width="510" height="120" rx="12" fill="#e3f2fd" opacity="0.25"/>
+                <text x="290" y="34" font-size="11" font-weight="600" fill="#1565c0" opacity="0.7">PLATFORM CONNECTIONS &amp; SYNC</text>
 
                 <!-- Background: Normalized layer -->
                 <rect x="20" y="150" width="500" height="200" rx="12" fill="#e8f5e9" opacity="0.25"/>
@@ -1502,6 +1502,11 @@
                 <rect x="300" y="48" rx="8" width="200" height="56" fill="#1565c0" filter="url(#m-shadow)"/>
                 <text x="400" y="72" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.PlatformConnection</text>
                 <text x="400" y="88" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">OAuth tokens · account ID · status</text>
+
+                <!-- app.SyncQueue -->
+                <rect x="540" y="48" rx="8" width="200" height="56" fill="#1565c0" filter="url(#m-shadow)"/>
+                <text x="640" y="72" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.SyncQueue</text>
+                <text x="640" y="88" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">userId · platform · status · next/last sync</text>
 
                 <!-- app.Revenue -->
                 <rect x="50" y="200" rx="8" width="220" height="64" fill="#27ae60" filter="url(#m-shadow)"/>
@@ -1602,6 +1607,10 @@
                 <path d="M 50 90 L 30 90 L 30 545 L 280 545" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
                 <text x="35" y="340" font-size="10" fill="#a09cae" transform="rotate(-90, 35, 340)">1:N</text>
 
+                <!-- User → SyncQueue -->
+                <path d="M 220 65 L 260 65 L 260 50 L 540 50 L 540 75" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="480" y="44" font-size="10" fill="#a09cae">1:N</text>
+
                 <!-- PlatformConnection → Revenue -->
                 <path d="M 400 104 L 400 130 L 200 130 L 200 200" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
 
@@ -1657,11 +1666,17 @@
 <span class="comment">-- How data flows through the system:</span>
 
 <span class="string">User connects Stripe</span> → app.PlatformConnection (OAuth tokens, account ID)
+                        → app.SyncQueue (UserId + "Stripe", NextSyncDateTime = now)
+                        ↓
+<span class="string">Sync job polls queue</span> → app.SyncQueue WHERE NextSyncDateTime &lt;= now AND Status = Pending
                         ↓
 <span class="string">Sync job pulls data</span>  → Stripe API: GET /v1/balance_transactions
                         ↓
 <span class="string">Ingestion normalizes</span> → app.Revenue (gross, fee, net, currency, date, "Stripe")
                         → app.RevenueStripe (balance_txn_id, risk_score, payment_method)
+                        → app.SyncQueue (LastSyncDateTime = now, NextSyncDateTime = now + 1hr)
+                        ↓
+<span class="string">User notified</span>        → SignalR toast: "Stripe data updated just now" (if online)
                         ↓
 <span class="string">Dashboard queries</span>    → SELECT SUM(NetAmount) FROM app.Revenue WHERE ...
                         ↓
