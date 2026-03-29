@@ -2,6 +2,16 @@
 .goals-hero { margin: -32px -40px 10px; padding: 24px 40px 40px; }
 .hero-stat:nth-child(2) .hero-stat-num { color: #2ecc71; }
 
+/* ─── SAMPLE BANNER ─── */
+.sample-banner { align-items: center; background: linear-gradient(135deg, #f0edff 0%, #e8e4ff 100%); border: 1px solid #e0dce8; border-left: 4px solid #6c5ce7; border-radius: 10px; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 24px; padding: 14px 20px; }
+.sample-banner-content { align-items: center; color: #555; display: flex; font-size: 14px; gap: 10px; }
+.sample-banner-content svg { color: #6c5ce7; flex-shrink: 0; height: 20px; width: 20px; }
+.sample-banner-actions { display: flex; flex-shrink: 0; gap: 8px; }
+.sample-banner-cta { background: #6c5ce7; border-radius: 8px; color: #fff; flex-shrink: 0; font-size: 13px; font-weight: 600; padding: 8px 18px; text-decoration: none; transition: background 0.15s ease, border-color 0.15s ease; white-space: nowrap; }
+.sample-banner-cta:hover { background: #5a4bd1; }
+.sample-banner-cta-secondary { background: transparent; border: 1px solid #6c5ce7; color: #6c5ce7; }
+.sample-banner-cta-secondary:hover { background: #f0edff; color: #5a4bd1; }
+
 /* ─── LOADING ─── */
 .goals-loading-card { background: #fff; border: 1px solid #eee; border-radius: 14px; padding: 28px; }
 .goals-loading { padding: 20px 0; text-align: center; }
@@ -66,4 +76,7 @@
 @media (max-width: 641px) {
     .goals-hero { margin: -24px -20px 24px; padding: 20px 20px 100px; }
     .goals-card-top { flex-direction: column; align-items: center; text-align: center; }
+    .sample-banner { flex-direction: column; gap: 12px; text-align: center; }
+    .sample-banner-actions { flex-direction: column; }
+    .sample-banner-content { flex-direction: column; gap: 8px; }
 }
