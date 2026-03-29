@@ -1214,7 +1214,7 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 ### Sample Data for Gated Features
 
 - **Never show a lock gate for paid features.** Always show the page with sample data + a CTA banner at the top (same pattern as the Dashboard).
-- **Dataset classes** — all faked/sample data lives in static classes in `Models/SampleData/` named `{Feature}Dataset` (e.g., `DashboardDataset`, `ManualEntryDataset`). Each class returns typed collections or values via static methods.
+- **Dataset classes** — all faked/sample data lives in static classes in `Models/SampleData/` named `{Feature}Dataset` (e.g., `DashboardDataset`, `GoalsDataset`, `ManualEntryDataset`). Each class returns typed collections or values via static methods.
 - **`IsSampleData` flag** — on the ViewModel, controls the banner visibility. When `true`: CTA banner shown, "New Entry" / action buttons hidden, edit/delete hidden, grid fully interactive (sort, paginate, density).
 - **The page doesn't know or care** whether data is real or sample — it renders the same grid either way.
 - **Grid preferences** still save for sample data viewers — their density/sort/page size choices persist.
