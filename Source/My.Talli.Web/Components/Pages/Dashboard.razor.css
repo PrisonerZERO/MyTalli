@@ -20,8 +20,8 @@
 .known-issue-info svg { color: #6c5ce7; }
 
 /* ─── TOP BAR ─── */
-.period-pills { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; display: flex; gap: 2px; padding: 4px; }
-.pill { background: transparent; border: none; border-radius: 8px; color: rgba(255, 255, 255, 0.6); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 8px 16px; transition: all 0.15s ease; }
+.period-pills { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 7px; display: flex; gap: 2px; padding: 3px; }
+.pill { background: transparent; border: none; border-radius: 5px; color: rgba(255, 255, 255, 0.6); cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 500; padding: 4px 10px; transition: all 0.15s ease; }
 .pill:hover { color: #fff; }
 .pill.active { background: #fff; color: #6c5ce7; font-weight: 600; }
 
