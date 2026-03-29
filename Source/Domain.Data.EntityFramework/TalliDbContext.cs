@@ -23,6 +23,10 @@ public class TalliDbContext : DbContext
 
     public DbSet<BillingStripe> BillingStripes { get; set; } = null!;
 
+    public DbSet<Goal> Goals { get; set; } = null!;
+
+    public DbSet<GoalType> GoalTypes { get; set; } = null!;
+
     public DbSet<Order> Orders { get; set; } = null!;
 
     public DbSet<OrderItem> OrderItems { get; set; } = null!;
@@ -31,11 +35,19 @@ public class TalliDbContext : DbContext
 
     public DbSet<ProductType> ProductTypes { get; set; } = null!;
 
+    public DbSet<PlatformConnection> PlatformConnections { get; set; } = null!;
+
     public DbSet<ProductVendor> ProductVendors { get; set; } = null!;
 
     public DbSet<Revenue> Revenues { get; set; } = null!;
 
+    public DbSet<RevenueEtsy> RevenueEtsys { get; set; } = null!;
+
+    public DbSet<RevenueGumroad> RevenueGumroads { get; set; } = null!;
+
     public DbSet<RevenueManual> RevenueManuals { get; set; } = null!;
+
+    public DbSet<RevenueStripe> RevenueStripes { get; set; } = null!;
 
     public DbSet<Subscription> Subscriptions { get; set; } = null!;
 

@@ -88,23 +88,46 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application features & revenue | Milestone (legacy), Revenue, RevenueManual, Suggestion, SuggestionVote, SyncQueue |
+| `app` | Application features & revenue | Goal, GoalType, Milestone (legacy), PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, Suggestion, SuggestionVote, SyncQueue |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
 ### Schema: `app`
 
+**`app.Goal`** — user revenue goals (1:N from User, 1:N from GoalType)
+- `Id` (PK), `UserId` (FK → auth.User), `GoalTypeId` (FK → GoalType), `EndDate` (nullable datetime), `Platform` (nullable string 50 — optional filter for platform-specific goals), `StartDate` (datetime), `Status` (string 20), `TargetAmount` (decimal 18,2)
+- Indexes: `IX_Goal_UserId`, `IX_Goal_GoalTypeId`
+- Goals query `app.Revenue` via `SUM(NetAmount) WHERE date range + optional platform` — no direct FK to Revenue
+
+**`app.GoalType`** — lookup table for goal categories (seed data)
+- `Id` (PK), `Name` (string 100)
+- Seeded values: Monthly Revenue Target, Yearly Revenue Target, Platform Monthly Target, Growth Rate Target
+
 **`app.Milestone`** — (legacy) waitlist progress tracker milestones. The table still exists in the database but all app code references (entity, model, mapper, configuration, framework constants) have been removed. The data remains for historical reference.
 - `Id` (PK), `Description`, `MilestoneGroup` (Beta, FullLaunch), `SortOrder` (display order within group), `Status` (Complete, InProgress, Upcoming), `Title`
 - `MilestoneStatuses.cs` and `MilestoneGroups.cs` (formerly in `Domain/Framework/`) have been removed.
+
+**`app.PlatformConnection`** — OAuth tokens and platform account linking (one row per user per connected platform)
+- `Id` (PK), `UserId` (FK → auth.User), `AccessToken` (nvarchar max), `ConnectionStatus` (string 50 — active, expired, revoked), `Platform` (string 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `PlatformAccountId` (string 255), `RefreshToken` (nullable, nvarchar max), `TokenExpiryDateTime` (nullable datetime)
+- Unique constraint on `(UserId, Platform)` — one connection per user per platform
+- Index: `IX_PlatformConnection_UserId`
 
 **`app.Revenue`** — normalized revenue record from all platforms (API-sourced and manual entry)
 - `Id` (PK), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
 - Composite index on `(Platform, TransactionDate)` for dashboard queries
 - Design: Goals and dashboard analytics query **only** this normalized table. Platform-specific tables exist for drill-down detail.
 
+**`app.RevenueEtsy`** — Etsy-specific revenue detail (1-to-1 with Revenue, shared PK)
+- `RevenueId` (PK/FK → Revenue, C# property: `Id`), `AdjustedFees` (nullable decimal 18,2), `AdjustedGross` (nullable decimal 18,2), `AdjustedNet` (nullable decimal 18,2), `ListingId` (long), `ReceiptId` (long), `ShopCurrency` (string 3)
+
+**`app.RevenueGumroad`** — Gumroad-specific revenue detail (1-to-1 with Revenue, shared PK)
+- `RevenueId` (PK/FK → Revenue, C# property: `Id`), `DiscoverFee` (nullable decimal 18,2), `LicenseKey` (nullable string 500), `SaleId` (string 255)
+
 **`app.RevenueManual`** — Manual Entry detail (1-to-1 with Revenue, shared PK)
 - `RevenueId` (PK/FK → Revenue, C# property: `Id`), `Category` (Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other), `Notes` (nullable), `Quantity` (int, default 1)
+
+**`app.RevenueStripe`** — Stripe-specific revenue detail (1-to-1 with Revenue, shared PK)
+- `RevenueId` (PK/FK → Revenue, C# property: `Id`), `BalanceTransactionId` (string 255), `ExchangeRate` (nullable decimal 18,6), `PaymentMethod` (string 50), `RiskScore` (nullable int)
 
 **`app.Suggestion`** — user-submitted feature requests and feedback
 - `Id` (PK), `UserId` (FK → auth.User), `AdminNote` (nullable, max 500 — admin-visible note on the card), `Category` (max 50 — Feature, Integration, Export, UI / UX), `Description` (max 2000), `Status` (max 20 — New, UnderReview, InProgress, Planned, Completed, Declined), `Title` (max 200)
