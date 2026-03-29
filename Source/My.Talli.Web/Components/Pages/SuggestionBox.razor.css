@@ -123,7 +123,7 @@
 }
 
 @media (max-width: 641px) {
-    .suggest-hero { margin: -24px -20px 24px; padding: 20px 20px 32px; }
+    .suggest-hero { margin: -24px -20px 24px; padding: 20px 20px 100px; }
     .suggest-toolbar { flex-direction: column; align-items: flex-start; }
     .suggest-sort { margin-left: 0; }
 }

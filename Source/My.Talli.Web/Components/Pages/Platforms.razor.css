@@ -56,7 +56,7 @@
 
 /* ─── RESPONSIVE ─── */
 @media (max-width: 641px) {
-    .plat-hero { margin: -24px -20px 24px; padding: 20px 20px 32px; }
+    .plat-hero { margin: -24px -20px 24px; padding: 20px 20px 100px; }
     .plat-row { flex-wrap: wrap; gap: 12px; }
     .plat-row-identity { min-width: unset; }
     .plat-row-center { flex-wrap: wrap; gap: 8px; }

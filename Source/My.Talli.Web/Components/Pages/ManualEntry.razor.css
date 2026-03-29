@@ -130,7 +130,7 @@
 
 /* Responsive */
 @media (max-width: 640px) {
-    .manual-hero { margin: -24px -20px 24px; padding: 20px 20px 28px; }
+    .manual-hero { margin: -24px -20px 24px; padding: 20px 20px 100px; }
     .manual-form-row { flex-direction: column; }
     .manual-pagination { flex-direction: column; gap: 10px; }
     .manual-modal { padding: 24px 20px; width: 95%; }
