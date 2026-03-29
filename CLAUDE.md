@@ -88,11 +88,17 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application features & revenue | Goal, GoalType, Milestone (legacy), PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, Suggestion, SuggestionVote, SyncQueue |
+| `app` | Application features & revenue | Expense, Goal, GoalType, Milestone (legacy), Payout, PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, Suggestion, SuggestionVote, SyncQueue |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
 ### Schema: `app`
+
+**`app.Expense`** — platform fees not tied to a specific sale (listing fees, ad fees, subscription fees, etc.)
+- `Id` (PK), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Category` (string 50 — ListingFee, AdFee, SubscriptionFee, ProcessingFee, ShippingLabel, Other), `Currency` (string 3), `Description` (string 500), `ExpenseDate` (datetime), `Platform` (string 50), `PlatformTransactionId` (nullable string 255 — dedup key)
+- Composite index on `(Platform, ExpenseDate)` for dashboard queries
+- Index: `IX_Expense_UserId`
+- Design: Parallel to Revenue — both queried by dashboard, no FK between them. `Revenue.FeeAmount` = per-sale fees; `Expense.Amount` = standalone platform fees.
 
 **`app.Goal`** — user revenue goals (1:N from User, 1:N from GoalType)
 - `Id` (PK), `UserId` (FK → auth.User), `GoalTypeId` (FK → GoalType), `EndDate` (nullable datetime), `Platform` (nullable string 50 — optional filter for platform-specific goals), `StartDate` (datetime), `Status` (string 20), `TargetAmount` (decimal 18,2)
@@ -111,6 +117,13 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - `Id` (PK), `UserId` (FK → auth.User), `AccessToken` (nvarchar max), `ConnectionStatus` (string 50 — active, expired, revoked), `Platform` (string 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `PlatformAccountId` (string 255), `RefreshToken` (nullable, nvarchar max), `TokenExpiryDateTime` (nullable datetime)
 - Unique constraint on `(UserId, Platform)` — one connection per user per platform
 - Index: `IX_PlatformConnection_UserId`
+
+**`app.Payout`** — platform disbursements to user's bank account
+- `Id` (PK), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Currency` (string 3), `ExpectedArrivalDate` (nullable datetime), `PayoutDate` (datetime), `Platform` (string 50), `PlatformPayoutId` (string 255 — dedup key), `Status` (string 20 — Pending, InTransit, Paid, Failed, Cancelled)
+- Composite index on `(Platform, PayoutDate)` for dashboard queries
+- Unique index on `PlatformPayoutId` for dedup
+- Index: `IX_Payout_UserId`
+- Design: No FK to Revenue — one payout covers many sales (batched). Enables cash flow view: earned vs received vs pending.
 
 **`app.Revenue`** — normalized revenue record from all platforms (API-sourced and manual entry)
 - `Id` (PK), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`

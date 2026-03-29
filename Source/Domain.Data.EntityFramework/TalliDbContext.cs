@@ -23,6 +23,8 @@ public class TalliDbContext : DbContext
 
     public DbSet<BillingStripe> BillingStripes { get; set; } = null!;
 
+    public DbSet<Expense> Expenses { get; set; } = null!;
+
     public DbSet<Goal> Goals { get; set; } = null!;
 
     public DbSet<GoalType> GoalTypes { get; set; } = null!;
@@ -30,6 +32,8 @@ public class TalliDbContext : DbContext
     public DbSet<Order> Orders { get; set; } = null!;
 
     public DbSet<OrderItem> OrderItems { get; set; } = null!;
+
+    public DbSet<Payout> Payouts { get; set; } = null!;
 
     public DbSet<Product> Products { get; set; } = null!;
 

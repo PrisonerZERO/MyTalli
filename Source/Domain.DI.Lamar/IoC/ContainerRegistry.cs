@@ -26,10 +26,12 @@ public class ContainerRegistry : ServiceRegistry
 
 		For<IEntityMapper<MODELS.Billing, ENTITIES.Billing>>().Use<BillingMapper>();
 		For<IEntityMapper<MODELS.BillingStripe, ENTITIES.BillingStripe>>().Use<BillingStripeMapper>();
+		For<IEntityMapper<MODELS.Expense, ENTITIES.Expense>>().Use<ExpenseMapper>();
 		For<IEntityMapper<MODELS.Goal, ENTITIES.Goal>>().Use<GoalMapper>();
 		For<IEntityMapper<MODELS.GoalType, ENTITIES.GoalType>>().Use<GoalTypeMapper>();
 		For<IEntityMapper<MODELS.Order, ENTITIES.Order>>().Use<OrderMapper>();
 		For<IEntityMapper<MODELS.OrderItem, ENTITIES.OrderItem>>().Use<OrderItemMapper>();
+		For<IEntityMapper<MODELS.Payout, ENTITIES.Payout>>().Use<PayoutMapper>();
 		For<IEntityMapper<MODELS.Product, ENTITIES.Product>>().Use<ProductMapper>();
 		For<IEntityMapper<MODELS.ProductType, ENTITIES.ProductType>>().Use<ProductTypeMapper>();
 		For<IEntityMapper<MODELS.PlatformConnection, ENTITIES.PlatformConnection>>().Use<PlatformConnectionMapper>();
