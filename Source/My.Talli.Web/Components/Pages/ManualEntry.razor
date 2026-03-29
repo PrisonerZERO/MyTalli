@@ -5,8 +5,8 @@
 <PageTitle>Manual Entry — MyTalli</PageTitle>
 
 <!-- Swoosh hero -->
-<section class="manual-hero" aria-label="Manual entry overview">
-    <div class="manual-hero-bg" aria-hidden="true">
+<section class="hero manual-hero" aria-label="Manual entry overview">
+    <div class="hero-bg" aria-hidden="true">
         <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="manualSwooshGrad" x1="0" x2="1" y1="0" y2="1">
@@ -22,11 +22,11 @@
         <div class="deco-circle deco-circle-3"></div>
     </div>
 
-    <div class="manual-hero-content">
-        <div class="manual-hero-top">
+    <div class="hero-content">
+        <div class="hero-top manual-hero-top">
             <div>
                 <h1>Manual Entry</h1>
-                <p>Record revenue from any source</p>
+                <p class="hero-subtitle">Record revenue from any source</p>
             </div>
             <ul class="hero-nav">
                 <li><My.Talli.Web.Components.Shared.UserProfileButton @rendermode="InteractiveServer" /></li>
@@ -35,18 +35,18 @@
 
         @if (Entries.Count > 0)
         {
-            <div class="manual-stats" role="group" aria-label="Entry statistics">
-                <div class="manual-stat">
-                    <span class="manual-stat-num">@TotalEntries</span>
-                    <span class="manual-stat-label">Entries</span>
+            <div class="hero-stats manual-stats" role="group" aria-label="Entry statistics">
+                <div class="hero-stat">
+                    <span class="hero-stat-num">@TotalEntries</span>
+                    <span class="hero-stat-label">Entries</span>
                 </div>
-                <div class="manual-stat">
-                    <span class="manual-stat-num">@TotalGross.ToString("C2")</span>
-                    <span class="manual-stat-label">Gross</span>
+                <div class="hero-stat">
+                    <span class="hero-stat-num">@TotalGross.ToString("C2")</span>
+                    <span class="hero-stat-label">Gross</span>
                 </div>
-                <div class="manual-stat">
-                    <span class="manual-stat-num">@TotalNet.ToString("C2")</span>
-                    <span class="manual-stat-label">Net</span>
+                <div class="hero-stat">
+                    <span class="hero-stat-num">@TotalNet.ToString("C2")</span>
+                    <span class="hero-stat-label">Net</span>
                 </div>
             </div>
         }

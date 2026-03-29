@@ -5,8 +5,8 @@
 <PageTitle>Suggestion Box — MyTalli</PageTitle>
 
 <!-- Swoosh hero -->
-<section class="suggest-hero" aria-label="Suggestion box overview">
-    <div class="suggest-hero-bg" aria-hidden="true">
+<section class="hero suggest-hero" aria-label="Suggestion box overview">
+    <div class="hero-bg" aria-hidden="true">
         <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="suggestSwooshGrad" x1="0" x2="1" y1="0" y2="1">
@@ -22,15 +22,15 @@
         <div class="deco-circle deco-circle-3"></div>
     </div>
 
-    <div class="suggest-hero-content">
-        <div class="suggest-hero-top">
+    <div class="hero-content">
+        <div class="hero-top">
             <div>
                 <h1>Suggestion Box</h1>
-                <p>Help shape the future of MyTalli</p>
+                <p class="hero-subtitle">Help shape the future of MyTalli</p>
             </div>
             <ul class="hero-nav">
                 <li>
-                    <button class="suggest-new-btn" @onclick="OpenModal">
+                    <button class="hero-action-btn" @onclick="OpenModal">
                         <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
                             <line x1="12" x2="12" y1="5" y2="19" />
                             <line x1="5" x2="19" y1="12" y2="12" />
@@ -42,18 +42,18 @@
             </ul>
         </div>
 
-        <div class="suggest-stats" role="group" aria-label="Suggestion statistics">
-            <div class="suggest-stat">
-                <span class="suggest-stat-num">@TotalIdeas</span>
-                <span class="suggest-stat-label">Ideas</span>
+        <div class="hero-stats suggest-stats" role="group" aria-label="Suggestion statistics">
+            <div class="hero-stat suggest-stat">
+                <span class="hero-stat-num">@TotalIdeas</span>
+                <span class="hero-stat-label suggest-stat-label">Ideas</span>
             </div>
-            <div class="suggest-stat">
-                <span class="suggest-stat-num">@TotalVotes</span>
-                <span class="suggest-stat-label">Votes</span>
+            <div class="hero-stat suggest-stat">
+                <span class="hero-stat-num">@TotalVotes</span>
+                <span class="hero-stat-label suggest-stat-label">Votes</span>
             </div>
-            <div class="suggest-stat">
-                <span class="suggest-stat-num">@YourSuggestions</span>
-                <span class="suggest-stat-label">Yours</span>
+            <div class="hero-stat suggest-stat">
+                <span class="hero-stat-num">@YourSuggestions</span>
+                <span class="hero-stat-label suggest-stat-label">Yours</span>
             </div>
         </div>
     </div>

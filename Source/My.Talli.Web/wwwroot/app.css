@@ -16,8 +16,29 @@ html, body { -webkit-font-smoothing: antialiased; color: #1a1a2e; font-family: '
 /* Focus Indicators */
 :focus-visible { outline: 3px solid #6c5ce7; outline-offset: 2px; }
 
-/* Hero Nav (shared across all page heroes) */
+/* Hero (shared across all page heroes) */
+.hero { position: relative; }
+.hero-bg { height: calc(100% + 60px); left: 0; overflow: hidden; pointer-events: none; position: absolute; right: 0; top: 0; }
+.hero-bg svg { display: block; height: 100%; min-height: 280px; width: 100%; }
+.hero-content { position: relative; z-index: 2; }
+.hero-top { align-items: center; display: flex; justify-content: space-between; }
+.hero h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin: 0 0 4px; }
+.hero .hero-subtitle { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin: 0; }
 .hero-nav { align-items: center; display: flex; gap: 12px; list-style: none; margin: 0; padding: 0; }
+.deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
+.deco-circle-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
+.deco-circle-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
+.deco-circle-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
+.hero-stats { display: flex; gap: 24px; margin-bottom: 20px; }
+.hero-stat { text-align: center; }
+.hero-stat-num { font-size: 22px; font-weight: 700; }
+.hero-stat:nth-child(1) .hero-stat-num { color: #a78bfa; }
+.hero-stat:nth-child(3) .hero-stat-num { color: #fff; }
+.hero-stat-label { color: rgba(255, 255, 255, 0.6); font-size: 12px; margin-left: 6px; }
+.hero-action-btn { align-items: center; background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px; color: #fff; cursor: pointer; display: flex; font-family: inherit; font-size: 14px; font-weight: 600; gap: 8px; padding: 10px 22px; transition: background 0.15s ease; }
+.hero-action-btn:hover { background: rgba(255, 255, 255, 0.28); }
+.hero-action-btn svg { height: 16px; width: 16px; }
+@media (max-width: 641px) { .hero-top { flex-direction: column; gap: 12px; } .hero-stats { gap: 16px; } }
 
 /* Visually Hidden (screen reader only) */
 .sr-only { border: 0; clip: rect(0,0,0,0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; width: 1px; }
