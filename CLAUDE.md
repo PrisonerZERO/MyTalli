@@ -1195,6 +1195,7 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
 - **Admin page is the reference implementation** for new sidebar pages. Match its SVG (`viewBox="0 0 1000 600"`, swoosh path, gradient fill), hero-bg (`height: calc(100% + 60px)`), and SVG CSS (`min-height: 280px`) exactly. Pages with hero stats use `margin: -32px -40px 0` and `padding: 24px 40px 40px`; pages without stats use `margin: -32px -40px 60px` and `padding: 24px 40px 48px`.
 - **Hero stat numbers** use colorized `nth-child` styling: 1st stat → lavender `#a78bfa`, 2nd stat → contextual color (green `#2ecc71` for money/success, gold `#f5c842` for counts), 3rd stat → white `#fff`. Font size is `22px` on all pages — keep this consistent. Labels are `rgba(255, 255, 255, 0.6)` at `12px`.
+- **Hero stat labels display inline to the right of the number**, never below it. Use `margin-left: 6px` on the label (or flex with `gap`) — never `flex-direction: column` on the stat container.
 - **Never use CSS `background: linear-gradient(...)` on the hero section.** The SVG gradient provides the purple — this is what creates the curved swoosh edge instead of a flat block.
 
 ### Modal Behavior
@@ -1213,7 +1214,7 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 ### Sample Data for Gated Features
 
 - **Never show a lock gate for paid features.** Always show the page with sample data + a CTA banner at the top (same pattern as the Dashboard).
-- **Dataset classes** — all faked/sample data lives in static classes in `Models/SampleData/` named `{Feature}Dataset` (e.g., `DashboardDataset`, `ManualEntryDataset`). Each class returns typed collections or values via static methods.
+- **Dataset classes** — all faked/sample data lives in static classes in `Models/SampleData/` named `{Feature}Dataset` (e.g., `DashboardDataset`, `GoalsDataset`, `ManualEntryDataset`). Each class returns typed collections or values via static methods.
 - **`IsSampleData` flag** — on the ViewModel, controls the banner visibility. When `true`: CTA banner shown, "New Entry" / action buttons hidden, edit/delete hidden, grid fully interactive (sort, paginate, density).
 - **The page doesn't know or care** whether data is real or sample — it renders the same grid either way.
 - **Grid preferences** still save for sample data viewers — their density/sort/page size choices persist.

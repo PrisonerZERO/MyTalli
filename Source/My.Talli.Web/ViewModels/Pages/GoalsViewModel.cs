@@ -1,8 +1,14 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Data.Interfaces;
+using Domain.Framework;
+using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Models;
+
+using ENTITIES = Domain.Entities;
+using MODELS = Domain.Models;
 
 /// <summary>View Model</summary>
 public class GoalsViewModel : ComponentBase
@@ -12,6 +18,11 @@ public class GoalsViewModel : ComponentBase
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
+	[Inject]
+	private ICurrentUserService CurrentUserService { get; set; } = default!;
+
+	[Inject]
+	private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
 
 	#endregion
 
@@ -23,10 +34,11 @@ public class GoalsViewModel : ComponentBase
 
 	public bool IsLoading { get; private set; } = true;
 
+	public bool IsSampleData { get; private set; }
+
 	public int OnTrackCount => Goals.Count(g => g.Status is "On track" or "Ahead");
 
-	public string TotalEarned => Goals.Max(g => g.Earned).ToString("C0");
-
+	public string TotalEarned => Goals.Any() ? Goals.Max(g => g.Earned).ToString("C0") : "$0";
 
 	#endregion
 
@@ -39,52 +51,37 @@ public class GoalsViewModel : ComponentBase
 
 		if (principal.Identity?.IsAuthenticated != true)
 		{
+			IsSampleData = true;
+			Goals = GoalsDataset.GetGoals();
 			IsLoading = false;
 			return;
 		}
 
-		// Sample data — will be replaced with real goal queries
-		Goals = GetSampleGoals();
+		var userIdClaim = principal.FindFirst("UserId")?.Value;
+		if (userIdClaim is null || !long.TryParse(userIdClaim, out var userId))
+		{
+			IsSampleData = true;
+			Goals = GoalsDataset.GetGoals();
+			IsLoading = false;
+			return;
+		}
+
+		CurrentUserService.Set(userId, string.Empty);
+
+		// Check for data sources: modules (ProductId >= 3) or platforms (not yet implemented)
+		var moduleSubscriptions = await SubscriptionAdapter.FindAsync(s =>
+			s.UserId == userId &&
+			s.ProductId >= 3 &&
+			(s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling));
+
+		var hasModules = moduleSubscriptions.Any();
+		var hasPlatforms = false; // Stub — no platform integrations yet
+
+		IsSampleData = !hasModules && !hasPlatforms;
+
+		// Load goals (sample data for now — real Goal entity not yet built)
+		Goals = GoalsDataset.GetGoals();
 		IsLoading = false;
-	}
-
-
-	#endregion
-
-	#region <Methods>
-
-	private static List<GoalItem> GetSampleGoals()
-	{
-		return
-		[
-			new GoalItem
-			{
-				DaysRemaining = 12,
-				Earned = 1847m,
-				Label = "Monthly Target",
-				Name = "March Revenue",
-				Status = "On track",
-				Target = 2700m,
-			},
-			new GoalItem
-			{
-				DaysRemaining = 280,
-				Earned = 5547m,
-				Label = "Yearly Target",
-				Name = "2026 Revenue",
-				Status = "Ahead",
-				Target = 25000m,
-			},
-			new GoalItem
-			{
-				DaysRemaining = 12,
-				Earned = 982m,
-				Label = "Platform Goal",
-				Name = "Stripe Revenue",
-				Status = "Behind",
-				Target = 2000m,
-			},
-		];
 	}
 
 	#endregion

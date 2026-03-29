@@ -1,11 +1,5 @@
 /* ─── SWOOSH HERO ─── */
-.dash-hero { margin: -32px -40px 32px; padding: 24px 40px 48px; position: relative; }
-.dash-hero-bg { height: calc(100% + 60px); left: 0; overflow: hidden; pointer-events: none; position: absolute; right: 0; top: 0; }
-.dash-hero-bg svg { display: block; height: 100%; min-height: 280px; width: 100%; }
-.deco-circle { background: rgba(255, 255, 255, 0.07); border-radius: 50%; position: absolute; }
-.deco-circle-1 { height: 260px; right: 10%; top: -40px; width: 260px; }
-.deco-circle-2 { height: 180px; left: 15%; top: 120px; width: 180px; }
-.deco-circle-3 { bottom: 40px; height: 220px; right: 25%; width: 220px; }
+.dash-hero { margin: -32px -40px 60px; padding: 24px 40px 48px; }
 
 /* ─── SAMPLE DATA BANNER ─── */
 .sample-banner { align-items: center; background: linear-gradient(135deg, #f0edff 0%, #e8e4ff 100%); border: 1px solid #e0dce8; border-left: 4px solid #6c5ce7; border-radius: 10px; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 24px; padding: 14px 20px; }
@@ -26,11 +20,8 @@
 .known-issue-info svg { color: #6c5ce7; }
 
 /* ─── TOP BAR ─── */
-.top-bar { align-items: flex-start; display: flex; justify-content: space-between; position: relative; z-index: 2; }
-.greeting h1 { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
-.greeting p { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; }
-.period-pills { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; display: flex; gap: 2px; padding: 4px; }
-.pill { background: transparent; border: none; border-radius: 8px; color: rgba(255, 255, 255, 0.6); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 8px 16px; transition: all 0.15s ease; }
+.period-pills { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 7px; display: flex; gap: 2px; padding: 3px; }
+.pill { background: transparent; border: none; border-radius: 5px; color: rgba(255, 255, 255, 0.6); cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 500; padding: 4px 10px; transition: all 0.15s ease; }
 .pill:hover { color: #fff; }
 .pill.active { background: #fff; color: #6c5ce7; font-weight: 600; }
 
@@ -136,5 +127,5 @@
     .sample-banner { flex-direction: column; gap: 12px; text-align: center; }
     .sample-banner-content { flex-direction: column; gap: 8px; }
     .summary-row { grid-template-columns: 1fr; }
-    .top-bar { flex-direction: column; gap: 16px; }
+    .top-bar { gap: 16px; }
 }
