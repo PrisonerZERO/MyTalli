@@ -1,5 +1,5 @@
 /* ─── SWOOSH HERO ─── */
-.goals-hero { margin: -32px -40px 0; padding: 24px 40px 40px; }
+.goals-hero { margin: -32px -40px 10px; padding: 24px 40px 40px; }
 .hero-stat:nth-child(2) .hero-stat-num { color: #2ecc71; }
 
 /* ─── LOADING ─── */

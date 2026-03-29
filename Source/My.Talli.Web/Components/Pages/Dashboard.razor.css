@@ -1,5 +1,5 @@
 /* ─── SWOOSH HERO ─── */
-.dash-hero { margin: -32px -40px 32px; padding: 24px 40px 48px; }
+.dash-hero { margin: -32px -40px 60px; padding: 24px 40px 48px; }
 
 /* ─── SAMPLE DATA BANNER ─── */
 .sample-banner { align-items: center; background: linear-gradient(135deg, #f0edff 0%, #e8e4ff 100%); border: 1px solid #e0dce8; border-left: 4px solid #6c5ce7; border-radius: 10px; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 24px; padding: 14px 20px; }

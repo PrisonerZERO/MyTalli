@@ -1,5 +1,5 @@
 /* ─── SWOOSH HERO ─── */
-.suggest-hero { margin: -32px -40px 0; padding: 24px 40px 40px; }
+.suggest-hero { margin: -32px -40px 10px; padding: 24px 40px 40px; }
 .suggest-stats { gap: 28px; }
 .suggest-stat { align-items: center; display: flex; gap: 8px; text-align: left; }
 .suggest-stat-label { font-size: 13px; margin-left: 0; }
