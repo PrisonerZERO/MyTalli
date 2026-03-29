@@ -1195,6 +1195,7 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
 - **Admin page is the reference implementation** for new sidebar pages. Match its SVG (`viewBox="0 0 1000 600"`, swoosh path, gradient fill), hero-bg (`height: calc(100% + 60px)`), and SVG CSS (`min-height: 280px`) exactly. Pages with hero stats use `margin: -32px -40px 0` and `padding: 24px 40px 40px`; pages without stats use `margin: -32px -40px 60px` and `padding: 24px 40px 48px`.
 - **Hero stat numbers** use colorized `nth-child` styling: 1st stat → lavender `#a78bfa`, 2nd stat → contextual color (green `#2ecc71` for money/success, gold `#f5c842` for counts), 3rd stat → white `#fff`. Font size is `22px` on all pages — keep this consistent. Labels are `rgba(255, 255, 255, 0.6)` at `12px`.
+- **Hero stat labels display inline to the right of the number**, never below it. Use `margin-left: 6px` on the label (or flex with `gap`) — never `flex-direction: column` on the stat container.
 - **Never use CSS `background: linear-gradient(...)` on the hero section.** The SVG gradient provides the purple — this is what creates the curved swoosh edge instead of a flat block.
 
 ### Modal Behavior

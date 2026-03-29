@@ -17,12 +17,12 @@
 .manual-new-btn:hover { background: #5a4bd1; }
 .manual-new-btn svg { height: 12px; width: 12px; }
 .manual-stats { display: flex; gap: 32px; margin-bottom: 20px; }
-.manual-stat { display: flex; flex-direction: column; }
+.manual-stat { text-align: center; }
 .manual-stat-num { font-size: 22px; font-weight: 700; }
 .manual-stat:nth-child(1) .manual-stat-num { color: #a78bfa; }
 .manual-stat:nth-child(2) .manual-stat-num { color: #2ecc71; }
 .manual-stat:nth-child(3) .manual-stat-num { color: #fff; }
-.manual-stat-label { color: rgba(255, 255, 255, 0.65); font-size: 12px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+.manual-stat-label { color: rgba(255, 255, 255, 0.6); font-size: 12px; margin-left: 6px; }
 
 /* Animation */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
