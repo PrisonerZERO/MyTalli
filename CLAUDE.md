@@ -1113,6 +1113,8 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - **Rate limits:** ~10 QPS, ~10,000 QPD (sliding window). Receipts endpoint may enforce 1 req/s/shop.
 - **Approval:** **Commercial access required** for 4+ shops (~20+ day review). Apply early — approved at Etsy's sole discretion.
 - **Caveat:** Refresh token expires in 90 days — if a user doesn't visit MyTalli for 3 months, their connection breaks and they must re-authorize.
+- **Developer account:** Registered under `hello@mytalli.com` at [developers.etsy.com](https://developers.etsy.com/). App name: `mytalli`. Keystring (client ID): `nqbjy0nj18t8o0d1yudbzr5t`.
+- **Test shop:** `MyTalliTestShop` — shop creation paused at the payment setup step. Waiting for LLC approval → EIN → business bank account before completing setup.
 
 ### Gumroad
 
@@ -1583,6 +1585,16 @@ public AppleSignInHandler(
 
 - **WAVE contrast errors (28):** Mostly false positives from nav links (`rgba(255,255,255,0.85)`) over the purple hero gradient — WAVE sees them against the white `<body>` background. A few real failures exist on platform brand colors (Shopify `#96bf48`, Gumroad `#ff90e8`, Etsy `#f56400` on `#f8f7fc`), but these are intentional brand colors kept as-is.
 - **WAVE alert (1):** Skipped heading level — the `<h3>` inside the dashboard mockup jumps from `<h1>`. Harmless because the mockup is marked `role="img"` with a descriptive `aria-label`.
+
+## Etsy Setup TODO
+
+- [x] **Developer Account** — registered under `hello@mytalli.com` at [developers.etsy.com](https://developers.etsy.com/)
+- [x] **App Registration** — app name `mytalli`, Seller Tools, commercial, read sales data. Keystring: `nqbjy0nj18t8o0d1yudbzr5t`. Status: Pending Personal Approval.
+- [ ] **API Key Approval** — waiting for Etsy to approve the personal access key (check back on developer dashboard periodically — no notification on denial)
+- [x] **Test Shop (started)** — `MyTalliTestShop` created through shop preferences and naming steps. Paused at payment setup — requires business bank account.
+- [ ] **Test Shop (complete)** — finish shop setup after LLC approval → EIN → business bank account. Remaining steps: payment info, billing info, shop security.
+- [ ] **API Keys to Config** — add Keystring and Shared Secret to `appsettings.Development.json` (`Etsy:ClientId`, `Etsy:ClientSecret`)
+- [ ] **Commercial Access** — apply for commercial access (4+ shops) before public launch (~20-day review)
 
 ## Stripe Setup TODO
 
