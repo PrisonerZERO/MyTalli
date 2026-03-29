@@ -26,16 +26,25 @@ public class ContainerRegistry : ServiceRegistry
 
 		For<IEntityMapper<MODELS.Billing, ENTITIES.Billing>>().Use<BillingMapper>();
 		For<IEntityMapper<MODELS.BillingStripe, ENTITIES.BillingStripe>>().Use<BillingStripeMapper>();
+		For<IEntityMapper<MODELS.Expense, ENTITIES.Expense>>().Use<ExpenseMapper>();
+		For<IEntityMapper<MODELS.Goal, ENTITIES.Goal>>().Use<GoalMapper>();
+		For<IEntityMapper<MODELS.GoalType, ENTITIES.GoalType>>().Use<GoalTypeMapper>();
 		For<IEntityMapper<MODELS.Order, ENTITIES.Order>>().Use<OrderMapper>();
 		For<IEntityMapper<MODELS.OrderItem, ENTITIES.OrderItem>>().Use<OrderItemMapper>();
+		For<IEntityMapper<MODELS.Payout, ENTITIES.Payout>>().Use<PayoutMapper>();
 		For<IEntityMapper<MODELS.Product, ENTITIES.Product>>().Use<ProductMapper>();
 		For<IEntityMapper<MODELS.ProductType, ENTITIES.ProductType>>().Use<ProductTypeMapper>();
+		For<IEntityMapper<MODELS.PlatformConnection, ENTITIES.PlatformConnection>>().Use<PlatformConnectionMapper>();
 		For<IEntityMapper<MODELS.ProductVendor, ENTITIES.ProductVendor>>().Use<ProductVendorMapper>();
 		For<IEntityMapper<MODELS.Revenue, ENTITIES.Revenue>>().Use<RevenueMapper>();
+		For<IEntityMapper<MODELS.RevenueEtsy, ENTITIES.RevenueEtsy>>().Use<RevenueEtsyMapper>();
+		For<IEntityMapper<MODELS.RevenueGumroad, ENTITIES.RevenueGumroad>>().Use<RevenueGumroadMapper>();
 		For<IEntityMapper<MODELS.RevenueManual, ENTITIES.RevenueManual>>().Use<RevenueManualMapper>();
+		For<IEntityMapper<MODELS.RevenueStripe, ENTITIES.RevenueStripe>>().Use<RevenueStripeMapper>();
 		For<IEntityMapper<MODELS.Subscription, ENTITIES.Subscription>>().Use<SubscriptionMapper>();
 		For<IEntityMapper<MODELS.SubscriptionStripe, ENTITIES.SubscriptionStripe>>().Use<SubscriptionStripeMapper>();
 		For<IEntityMapper<MODELS.Suggestion, ENTITIES.Suggestion>>().Use<SuggestionMapper>();
+		For<IEntityMapper<MODELS.SyncQueue, ENTITIES.SyncQueue>>().Use<SyncQueueMapper>();
 		For<IEntityMapper<MODELS.SuggestionVote, ENTITIES.SuggestionVote>>().Use<SuggestionVoteMapper>();
 		For<IEntityMapper<MODELS.User, ENTITIES.User>>().Use<UserMapper>();
 		For<IEntityMapper<MODELS.UserAuthenticationApple, ENTITIES.UserAuthenticationApple>>().Use<UserAuthenticationAppleMapper>();

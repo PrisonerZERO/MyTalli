@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using My.Talli.Domain.Data.EntityFramework;
 
@@ -11,9 +12,11 @@ using My.Talli.Domain.Data.EntityFramework;
 namespace My.Talli.Domain.Data.EntityFramework.Migrations
 {
     [DbContext(typeof(TalliDbContext))]
-    partial class TalliDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260329202943_AddPlatformAndGoalTables")]
+    partial class AddPlatformAndGoalTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -183,92 +186,6 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasName("PK_BillingStripe");
 
                     b.ToTable("BillingStripe", "commerce");
-                });
-
-            modelBuilder.Entity("My.Talli.Domain.Entities.Expense", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(0);
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnOrder(2);
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnOrder(3);
-
-                    b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(11);
-
-                    b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(12);
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)")
-                        .HasColumnOrder(4);
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnOrder(5);
-
-                    b.Property<DateTime>("ExpenseDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(6);
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnOrder(9);
-
-                    b.Property<bool>("IsVisible")
-                        .HasColumnType("bit")
-                        .HasColumnOrder(10);
-
-                    b.Property<string>("Platform")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnOrder(7);
-
-                    b.Property<string>("PlatformTransactionId")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnOrder(8);
-
-                    b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(13);
-
-                    b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(14);
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1);
-
-                    b.HasKey("Id")
-                        .HasName("PK_Expense");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("IX_Expense_UserId");
-
-                    b.HasIndex("Platform", "ExpenseDate")
-                        .HasDatabaseName("IX_Expense_Platform_ExpenseDate");
-
-                    b.ToTable("Expense", "app");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.Goal", b =>
@@ -505,95 +422,6 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasDatabaseName("IX_OrderItem_ProductId");
 
                     b.ToTable("OrderItem", "commerce");
-                });
-
-            modelBuilder.Entity("My.Talli.Domain.Entities.Payout", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(0);
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnOrder(2);
-
-                    b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(11);
-
-                    b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(12);
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)")
-                        .HasColumnOrder(3);
-
-                    b.Property<DateTime?>("ExpectedArrivalDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(4);
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnOrder(9);
-
-                    b.Property<bool>("IsVisible")
-                        .HasColumnType("bit")
-                        .HasColumnOrder(10);
-
-                    b.Property<DateTime>("PayoutDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(5);
-
-                    b.Property<string>("Platform")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnOrder(6);
-
-                    b.Property<string>("PlatformPayoutId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnOrder(7);
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasColumnOrder(8);
-
-                    b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(13);
-
-                    b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(14);
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1);
-
-                    b.HasKey("Id")
-                        .HasName("PK_Payout");
-
-                    b.HasIndex("PlatformPayoutId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_Payout_PlatformPayoutId");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("IX_Payout_UserId");
-
-                    b.HasIndex("Platform", "PayoutDate")
-                        .HasDatabaseName("IX_Payout_Platform_PayoutDate");
-
-                    b.ToTable("Payout", "app");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.PlatformConnection", b =>
@@ -1915,18 +1743,6 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("Billing");
                 });
 
-            modelBuilder.Entity("My.Talli.Domain.Entities.Expense", b =>
-                {
-                    b.HasOne("My.Talli.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Expense_User");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("My.Talli.Domain.Entities.Goal", b =>
                 {
                     b.HasOne("My.Talli.Domain.Entities.GoalType", "GoalType")
@@ -1979,18 +1795,6 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("My.Talli.Domain.Entities.Payout", b =>
-                {
-                    b.HasOne("My.Talli.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Payout_User");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.PlatformConnection", b =>

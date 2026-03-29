@@ -88,23 +88,59 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application features & revenue | Milestone (legacy), Revenue, RevenueManual, Suggestion, SuggestionVote |
+| `app` | Application features & revenue | Expense, Goal, GoalType, Milestone (legacy), Payout, PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, Suggestion, SuggestionVote, SyncQueue |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
 ### Schema: `app`
 
+**`app.Expense`** — platform fees not tied to a specific sale (listing fees, ad fees, subscription fees, etc.)
+- `Id` (PK), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Category` (string 50 — ListingFee, AdFee, SubscriptionFee, ProcessingFee, ShippingLabel, Other), `Currency` (string 3), `Description` (string 500), `ExpenseDate` (datetime), `Platform` (string 50), `PlatformTransactionId` (nullable string 255 — dedup key)
+- Composite index on `(Platform, ExpenseDate)` for dashboard queries
+- Index: `IX_Expense_UserId`
+- Design: Parallel to Revenue — both queried by dashboard, no FK between them. `Revenue.FeeAmount` = per-sale fees; `Expense.Amount` = standalone platform fees.
+
+**`app.Goal`** — user revenue goals (1:N from User, 1:N from GoalType)
+- `Id` (PK), `UserId` (FK → auth.User), `GoalTypeId` (FK → GoalType), `EndDate` (nullable datetime), `Platform` (nullable string 50 — optional filter for platform-specific goals), `StartDate` (datetime), `Status` (string 20), `TargetAmount` (decimal 18,2)
+- Indexes: `IX_Goal_UserId`, `IX_Goal_GoalTypeId`
+- Goals query `app.Revenue` via `SUM(NetAmount) WHERE date range + optional platform` — no direct FK to Revenue
+
+**`app.GoalType`** — lookup table for goal categories (seed data)
+- `Id` (PK), `Name` (string 100)
+- Seeded values: Monthly Revenue Target, Yearly Revenue Target, Platform Monthly Target, Growth Rate Target
+
 **`app.Milestone`** — (legacy) waitlist progress tracker milestones. The table still exists in the database but all app code references (entity, model, mapper, configuration, framework constants) have been removed. The data remains for historical reference.
 - `Id` (PK), `Description`, `MilestoneGroup` (Beta, FullLaunch), `SortOrder` (display order within group), `Status` (Complete, InProgress, Upcoming), `Title`
 - `MilestoneStatuses.cs` and `MilestoneGroups.cs` (formerly in `Domain/Framework/`) have been removed.
+
+**`app.PlatformConnection`** — OAuth tokens and platform account linking (one row per user per connected platform)
+- `Id` (PK), `UserId` (FK → auth.User), `AccessToken` (nvarchar max), `ConnectionStatus` (string 50 — active, expired, revoked), `Platform` (string 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `PlatformAccountId` (string 255), `RefreshToken` (nullable, nvarchar max), `TokenExpiryDateTime` (nullable datetime)
+- Unique constraint on `(UserId, Platform)` — one connection per user per platform
+- Index: `IX_PlatformConnection_UserId`
+
+**`app.Payout`** — platform disbursements to user's bank account
+- `Id` (PK), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Currency` (string 3), `ExpectedArrivalDate` (nullable datetime), `PayoutDate` (datetime), `Platform` (string 50), `PlatformPayoutId` (string 255 — dedup key), `Status` (string 20 — Pending, InTransit, Paid, Failed, Cancelled)
+- Composite index on `(Platform, PayoutDate)` for dashboard queries
+- Unique index on `PlatformPayoutId` for dedup
+- Index: `IX_Payout_UserId`
+- Design: No FK to Revenue — one payout covers many sales (batched). Enables cash flow view: earned vs received vs pending.
 
 **`app.Revenue`** — normalized revenue record from all platforms (API-sourced and manual entry)
 - `Id` (PK), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
 - Composite index on `(Platform, TransactionDate)` for dashboard queries
 - Design: Goals and dashboard analytics query **only** this normalized table. Platform-specific tables exist for drill-down detail.
 
+**`app.RevenueEtsy`** — Etsy-specific revenue detail (1-to-1 with Revenue, shared PK)
+- `RevenueId` (PK/FK → Revenue, C# property: `Id`), `AdjustedFees` (nullable decimal 18,2), `AdjustedGross` (nullable decimal 18,2), `AdjustedNet` (nullable decimal 18,2), `ListingId` (long), `ReceiptId` (long), `ShopCurrency` (string 3)
+
+**`app.RevenueGumroad`** — Gumroad-specific revenue detail (1-to-1 with Revenue, shared PK)
+- `RevenueId` (PK/FK → Revenue, C# property: `Id`), `DiscoverFee` (nullable decimal 18,2), `LicenseKey` (nullable string 500), `SaleId` (string 255)
+
 **`app.RevenueManual`** — Manual Entry detail (1-to-1 with Revenue, shared PK)
 - `RevenueId` (PK/FK → Revenue, C# property: `Id`), `Category` (Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other), `Notes` (nullable), `Quantity` (int, default 1)
+
+**`app.RevenueStripe`** — Stripe-specific revenue detail (1-to-1 with Revenue, shared PK)
+- `RevenueId` (PK/FK → Revenue, C# property: `Id`), `BalanceTransactionId` (string 255), `ExchangeRate` (nullable decimal 18,6), `PaymentMethod` (string 50), `RiskScore` (nullable int)
 
 **`app.Suggestion`** — user-submitted feature requests and feedback
 - `Id` (PK), `UserId` (FK → auth.User), `AdminNote` (nullable, max 500 — admin-visible note on the card), `Category` (max 50 — Feature, Integration, Export, UI / UX), `Description` (max 2000), `Status` (max 20 — New, UnderReview, InProgress, Planned, Completed, Declined), `Title` (max 200)
@@ -113,6 +149,12 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 **`app.SuggestionVote`** — user votes on suggestions (junction: User ↔ Suggestion)
 - `Id` (PK), `UserId` (FK → auth.User), `SuggestionId` (FK → Suggestion)
 - Unique constraint on `(UserId, SuggestionId)` prevents duplicate votes
+
+**`app.SyncQueue`** — background sync job work list (one row per user per connected platform)
+- `Id` (PK), `UserId` (FK → auth.User), `Platform` (string, max 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `Status` (string, max 20 — Pending, InProgress, Completed, Failed), `NextSyncDateTime` (when this row is next eligible for processing), `LastSyncDateTime` (nullable — null until first successful sync), `LastErrorMessage` (nullable, max 2000 — most recent failure reason), `ConsecutiveFailures` (int, default 0 — drives exponential backoff), `IsEnabled` (bool, default true — user can pause syncing)
+- Unique constraint on `(UserId, Platform)` prevents duplicate queue entries
+- Index on `(NextSyncDateTime, Status)` for sync job polling query
+- Users can pause sync (`IsEnabled = false`) but cannot disconnect — connected platforms permanently occupy a plan slot
 
 ### Schema: `auth`
 
@@ -276,7 +318,8 @@ My.Talli/
 │   │   └── SKILL.md
 │   ├── MyTalli_CostingPlan.html    # Infrastructure cost projections & optimization strategies
 │   ├── MyTalli_PlatformCapabilities.html # Platform API capabilities, data richness & integration roadmap
-│   └── MyTalli_ScalingPlan.html    # Scaling strategy as user base grows (tiers, triggers, capacity)
+│   ├── MyTalli_ScalingPlan.html    # Scaling strategy as user base grows (tiers, triggers, capacity)
+│   └── PlatformApiDataShapes.html  # Platform API data shapes, normalized schema, ERD with SyncQueue
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
 │   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
 │   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
@@ -1088,9 +1131,38 @@ Templates embedded from `Domain/.resources/emails/` get resource names like:
 
 ## Platform API Notes
 
-Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data. Full comparison document: `documentation/MyTalli_PlatformCapabilities.html`.
+Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data. Full comparison document: `documentation/MyTalli_PlatformCapabilities.html`. Data shapes, normalized schema, and ERD: `documentation/PlatformApiDataShapes.html`.
 
 **Integration priority:** Stripe → Gumroad → Etsy → Shopify → PayPal (based on data richness, complexity, and approval timelines).
+
+### Revenue Sync Architecture
+
+Platform API rate limits are **application-level** — they apply to MyTalli's API keys, not per-user. If hundreds of users connect the same platform, every API call counts against one shared limit. Hitting platform APIs on every page load would exhaust rate limits almost immediately at scale.
+
+**Solution: Local Cache + Periodic Sync**
+
+1. **Dashboard reads are local only.** When a user visits the dashboard (or any revenue-displaying page), all data comes from `app.Revenue` in our database. No external API calls are made during page loads.
+2. **Background sync job runs once per hour.** A scheduled process iterates through all users with connected platforms, pulls their latest transactions from each platform's API, and upserts into `app.Revenue`. The job controls its own pace — adding delays between users and between platforms to stay within each platform's rate limits.
+
+This means:
+- Users always see data instantly (local DB read)
+- Rate limits are manageable (one controlled background process, not N concurrent users)
+- The sync job can spread work across the full hour, throttle per-platform, and retry failures without affecting the user experience
+
+**`app.Revenue` is the single source of truth for the dashboard.** Both API-sourced data (from the sync job) and manual entries flow into this same normalized table. The `Platform` column distinguishes the source ("Stripe", "Etsy", "Manual", etc.) and `PlatformTransactionId` prevents duplicate inserts during re-syncs.
+
+**`app.SyncQueue`** — the sync job's work list. One row per user per connected platform.
+
+- `Id` (PK), `UserId` (FK → auth.User), `Platform` (string — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `Status` (Pending, InProgress, Completed, Failed), `LastSyncDateTime` (nullable — null until first successful sync), `NextSyncDateTime` (when this row is next eligible for processing), `LastErrorMessage` (nullable — most recent failure reason), `ConsecutiveFailures` (int, default 0 — for exponential backoff), `IsEnabled` (bool, default true — user can pause syncing)
+- Unique constraint on `(UserId, Platform)` — one queue entry per user per platform
+- Index on `(NextSyncDateTime, Status)` — the sync job queries "give me rows where `NextSyncDateTime <= now AND Status = Pending AND IsEnabled = true`", ordered by `NextSyncDateTime` ASC (oldest first)
+- **Row lifecycle:** Created when a user connects a platform. `NextSyncDateTime` set to now (immediate first sync). After each sync: `LastSyncDateTime` = now, `NextSyncDateTime` = now + 1 hour, `Status` = Pending, `ConsecutiveFailures` = 0. On failure: `ConsecutiveFailures` incremented, `NextSyncDateTime` pushed out with exponential backoff, `LastErrorMessage` updated.
+- **Backoff strategy:** On failure, `NextSyncDateTime` = now + (base interval × 2^ConsecutiveFailures), capped at a max delay (e.g., 24 hours). This prevents hammering a platform that's down or rate-limiting us.
+- **Sync pause:** Users can toggle `IsEnabled` off to pause syncing for a connected platform. The platform remains connected and still counts against the plan limit.
+- **No disconnect.** Once a platform is connected, it cannot be disconnected. This prevents Free tier users from gaming the platform limit by rotating connections — connect one platform, sync it, disconnect, connect another. A connected platform permanently occupies a plan slot.
+- **Pre-connection warning.** Before completing a platform connection, the user must be shown a confirmation dialog explaining that this connection is permanent and will occupy a plan slot. The user must explicitly confirm before the OAuth flow begins.
+
+**Sync completion notification:** When a sync completes for a user, the app notifies them in real time via the Blazor SignalR circuit. If the user is currently on the dashboard (or any revenue-displaying page), they see a non-intrusive toast or banner (e.g., "Stripe data updated just now") so they know fresh data is available. The page can then refresh its data from `app.Revenue` without a full page reload. If the user is not online, no notification is needed — they'll see the latest data on their next visit. Failed syncs do not notify the user (the backoff mechanism handles retries silently); persistent failures surface on the Platforms page as a connection status indicator.
 
 ### Stripe
 
@@ -1113,6 +1185,8 @@ Integration with each revenue platform uses OAuth so users grant MyTalli read-on
 - **Rate limits:** ~10 QPS, ~10,000 QPD (sliding window). Receipts endpoint may enforce 1 req/s/shop.
 - **Approval:** **Commercial access required** for 4+ shops (~20+ day review). Apply early — approved at Etsy's sole discretion.
 - **Caveat:** Refresh token expires in 90 days — if a user doesn't visit MyTalli for 3 months, their connection breaks and they must re-authorize.
+- **Developer account:** Registered under `hello@mytalli.com` at [developers.etsy.com](https://developers.etsy.com/). App name: `mytalli`. Keystring (client ID): `nqbjy0nj18t8o0d1yudbzr5t`.
+- **Test shop:** `MyTalliTestShop` — shop creation paused at the payment setup step. Waiting for LLC approval → EIN → business bank account before completing setup.
 
 ### Gumroad
 
@@ -1583,6 +1657,16 @@ public AppleSignInHandler(
 
 - **WAVE contrast errors (28):** Mostly false positives from nav links (`rgba(255,255,255,0.85)`) over the purple hero gradient — WAVE sees them against the white `<body>` background. A few real failures exist on platform brand colors (Shopify `#96bf48`, Gumroad `#ff90e8`, Etsy `#f56400` on `#f8f7fc`), but these are intentional brand colors kept as-is.
 - **WAVE alert (1):** Skipped heading level — the `<h3>` inside the dashboard mockup jumps from `<h1>`. Harmless because the mockup is marked `role="img"` with a descriptive `aria-label`.
+
+## Etsy Setup TODO
+
+- [x] **Developer Account** — registered under `hello@mytalli.com` at [developers.etsy.com](https://developers.etsy.com/)
+- [x] **App Registration** — app name `mytalli`, Seller Tools, commercial, read sales data. Keystring: `nqbjy0nj18t8o0d1yudbzr5t`. Status: Pending Personal Approval.
+- [ ] **API Key Approval** — waiting for Etsy to approve the personal access key (check back on developer dashboard periodically — no notification on denial)
+- [x] **Test Shop (started)** — `MyTalliTestShop` created through shop preferences and naming steps. Paused at payment setup — requires business bank account.
+- [ ] **Test Shop (complete)** — finish shop setup after LLC approval → EIN → business bank account. Remaining steps: payment info, billing info, shop security.
+- [ ] **API Keys to Config** — add Keystring and Shared Secret to `appsettings.Development.json` (`Etsy:ClientId`, `Etsy:ClientSecret`)
+- [ ] **Commercial Access** — apply for commercial access (4+ shops) before public launch (~20-day review)
 
 ## Stripe Setup TODO
 

@@ -159,6 +159,8 @@
                 <a href="#erd-etsy"><span class="num">9</span> ERD — Etsy API Data Model</a>
                 <a href="#erd-gumroad"><span class="num">10</span> ERD — Gumroad API Data Model</a>
                 <a href="#erd-mytalli"><span class="num">11</span> ERD — Proposed MyTalli Database</a>
+                <a href="#expense-design"><span class="num">12</span> Expense Table Design</a>
+                <a href="#payout-design"><span class="num">13</span> Payout Table Design</a>
             </div>
         </div>
     </div>
@@ -1459,7 +1461,7 @@
         <p>How all platform data funnels into MyTalli's <code>app</code> schema. The <strong>normalized layer</strong> (Revenue, Expense) is what Goals and the Dashboard query. Platform-specific tables preserve raw data for drill-down.</p>
 
         <div class="erd">
-            <svg viewBox="0 0 1060 780" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+            <svg viewBox="0 0 1060 860" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
                 <defs>
                     <marker id="m-arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
                         <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
@@ -1476,9 +1478,9 @@
                 <rect x="20" y="10" width="230" height="120" rx="12" fill="#f0edff" opacity="0.4"/>
                 <text x="40" y="34" font-size="11" font-weight="600" fill="#6c5ce7" opacity="0.7">auth SCHEMA (existing)</text>
 
-                <!-- Background: Platform Connections -->
-                <rect x="270" y="10" width="250" height="120" rx="12" fill="#e3f2fd" opacity="0.25"/>
-                <text x="290" y="34" font-size="11" font-weight="600" fill="#1565c0" opacity="0.7">PLATFORM CONNECTIONS</text>
+                <!-- Background: Platform Connections & Sync -->
+                <rect x="270" y="10" width="510" height="120" rx="12" fill="#e3f2fd" opacity="0.25"/>
+                <text x="290" y="34" font-size="11" font-weight="600" fill="#1565c0" opacity="0.7">PLATFORM CONNECTIONS &amp; SYNC</text>
 
                 <!-- Background: Normalized layer -->
                 <rect x="20" y="150" width="500" height="200" rx="12" fill="#e8f5e9" opacity="0.25"/>
@@ -1503,6 +1505,11 @@
                 <text x="400" y="72" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.PlatformConnection</text>
                 <text x="400" y="88" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">OAuth tokens · account ID · status</text>
 
+                <!-- app.SyncQueue -->
+                <rect x="540" y="48" rx="8" width="200" height="56" fill="#1565c0" filter="url(#m-shadow)"/>
+                <text x="640" y="72" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.SyncQueue</text>
+                <text x="640" y="88" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">userId · platform · status · next/last sync</text>
+
                 <!-- app.Revenue -->
                 <rect x="50" y="200" rx="8" width="220" height="64" fill="#27ae60" filter="url(#m-shadow)"/>
                 <text x="160" y="226" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">app.Revenue</text>
@@ -1510,14 +1517,10 @@
                 <text x="160" y="256" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">platform · description</text>
 
                 <!-- app.Expense -->
-                <rect x="300" y="200" rx="8" width="200" height="64" fill="#fff" stroke="#27ae60" stroke-width="2" filter="url(#m-shadow)"/>
-                <text x="400" y="226" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a2e">app.Expense</text>
-                <text x="400" y="244" text-anchor="middle" font-size="10" fill="#a09cae">amount · type · currency · date</text>
-                <text x="400" y="256" text-anchor="middle" font-size="10" fill="#a09cae">platform · description</text>
-
-                <!-- TBD note on Expense -->
-                <rect x="380" y="272" rx="4" width="60" height="18" fill="#f5c842" opacity="0.4"/>
-                <text x="410" y="285" text-anchor="middle" font-size="9" font-weight="600" fill="#e65100">TBD</text>
+                <rect x="300" y="200" rx="8" width="200" height="64" fill="#27ae60" filter="url(#m-shadow)"/>
+                <text x="400" y="226" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">app.Expense</text>
+                <text x="400" y="244" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">amount · type · currency · date</text>
+                <text x="400" y="256" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">platform · description</text>
 
                 <!-- app.RevenueStripe -->
                 <rect x="580" y="195" rx="8" width="190" height="56" fill="#fff" stroke="#635bff" stroke-width="2" filter="url(#m-shadow)"/>
@@ -1550,10 +1553,10 @@
                 <text x="675" y="388" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a2e">app.RevenueManual</text>
                 <text x="675" y="406" text-anchor="middle" font-size="10" fill="#a09cae">category · notes</text>
 
-                <!-- Payout (future) -->
-                <rect x="580" y="450" rx="8" width="190" height="44" fill="#faf9ff" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="6,4"/>
-                <text x="675" y="470" text-anchor="middle" font-size="12" font-weight="500" fill="#a09cae">app.Payout</text>
-                <text x="675" y="486" text-anchor="middle" font-size="10" fill="#ccc">future — tracks disbursements</text>
+                <!-- app.Payout -->
+                <rect x="580" y="450" rx="8" width="190" height="56" fill="#27ae60" filter="url(#m-shadow)"/>
+                <text x="675" y="473" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.Payout</text>
+                <text x="675" y="491" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">amount · currency · date · platform</text>
 
                 <!-- app.GoalType -->
                 <rect x="50" y="510" rx="8" width="180" height="56" fill="#7b1fa2" filter="url(#m-shadow)"/>
@@ -1602,6 +1605,10 @@
                 <path d="M 50 90 L 30 90 L 30 545 L 280 545" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
                 <text x="35" y="340" font-size="10" fill="#a09cae" transform="rotate(-90, 35, 340)">1:N</text>
 
+                <!-- User → SyncQueue -->
+                <path d="M 220 65 L 260 65 L 260 50 L 540 50 L 540 75" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="480" y="44" font-size="10" fill="#a09cae">1:N</text>
+
                 <!-- PlatformConnection → Revenue -->
                 <path d="M 400 104 L 400 130 L 200 130 L 200 200" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
 
@@ -1620,6 +1627,13 @@
                 <!-- Revenue → RevenueManual (1:1) -->
                 <path d="M 270 255 L 520 255 L 520 393 L 580 393" fill="none" stroke="#6c5ce7" stroke-width="1.5" marker-end="url(#m-arrow)"/>
                 <text x="545" y="386" font-size="10" fill="#6c5ce7">1:1</text>
+
+                <!-- User → Payout -->
+                <path d="M 50 80 L 20 80 L 20 478 L 580 478" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
+                <text x="300" y="472" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- User → Expense -->
+                <!-- (already exists above) -->
 
                 <!-- GoalType → Goal -->
                 <line x1="230" y1="538" x2="280" y2="538" stroke="#a09cae" stroke-width="1.5" marker-end="url(#m-arrow)"/>
@@ -1657,17 +1671,41 @@
 <span class="comment">-- How data flows through the system:</span>
 
 <span class="string">User connects Stripe</span> → app.PlatformConnection (OAuth tokens, account ID)
+                        → app.SyncQueue (UserId + "Stripe", NextSyncDateTime = now)
+                        ↓
+<span class="string">Sync job polls queue</span> → app.SyncQueue WHERE NextSyncDateTime &lt;= now AND Status = Pending
                         ↓
 <span class="string">Sync job pulls data</span>  → Stripe API: GET /v1/balance_transactions
                         ↓
 <span class="string">Ingestion normalizes</span> → app.Revenue (gross, fee, net, currency, date, "Stripe")
                         → app.RevenueStripe (balance_txn_id, risk_score, payment_method)
+                        → app.SyncQueue (LastSyncDateTime = now, NextSyncDateTime = now + 1hr)
+                        ↓
+<span class="string">User notified</span>        → SignalR toast: "Stripe data updated just now" (if online)
                         ↓
 <span class="string">Dashboard queries</span>    → SELECT SUM(NetAmount) FROM app.Revenue WHERE ...
                         ↓
 <span class="string">Goals engine checks</span>  → app.Goal.TargetAmount vs. current SUM from Revenue
                         ↓
 <span class="string">Drill-down detail</span>   → JOIN app.RevenueStripe for platform-specific info
+
+<span class="comment">-- Expense flow (platform fees not tied to a specific sale):</span>
+
+<span class="string">Sync job pulls fees</span>  → Etsy API: GET /v3/application/shops/{id}/payment/account/ledger-entries
+                        → PayPal API: GET /v1/reporting/transactions (filter by T-code)
+                        ↓
+<span class="string">Ingestion normalizes</span> → app.Expense (amount, type, currency, date, platform)
+                        ↓
+<span class="string">Dashboard queries</span>    → Revenue minus Expenses = net profit view
+
+<span class="comment">-- Payout flow (platform disbursements to user's bank):</span>
+
+<span class="string">Sync job pulls payouts</span> → Stripe API: GET /v1/payouts
+                         → Etsy API: ledger entries with type "deposit"
+                         ↓
+<span class="string">Ingestion normalizes</span>  → app.Payout (amount, currency, date, platform, status)
+                         ↓
+<span class="string">Dashboard queries</span>     → Cash flow view: when money actually hit the bank
 
 <span class="comment">-- Manual Entry flow (no OAuth, no sync — user enters directly):</span>
 
@@ -1677,6 +1715,258 @@
 <span class="string">Dashboard queries</span>    → Same normalized query — manual entries are indistinguishable
 <span class="string">Goals engine checks</span>  → Manual revenue counts toward all goals (total + platform-filtered)
         </div>
+    </div>
+
+    <div class="section" id="expense-design">
+        <h2>12. Expense Table Design</h2>
+        <p>Platform fees that are <strong>not tied to a specific sale</strong>. Revenue already captures per-transaction fees in <code>FeeAmount</code> — Expense captures the rest: listing fees, ad fees, subscription fees, and other platform charges that reduce profit but aren't deducted from a sale.</p>
+
+        <div class="erd">
+            <svg viewBox="0 0 820 340" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+                <defs>
+                    <marker id="ex-arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
+                    </marker>
+                    <filter id="ex-shadow" x="-4%" y="-4%" width="108%" height="116%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#6c5ce7" flood-opacity="0.12"/>
+                    </filter>
+                </defs>
+
+                <!-- Background -->
+                <rect x="20" y="10" width="780" height="320" rx="12" fill="#e8f5e9" opacity="0.2"/>
+                <text x="40" y="34" font-size="11" font-weight="600" fill="#27ae60" opacity="0.7">NORMALIZED FINANCIAL LAYER</text>
+
+                <!-- auth.User -->
+                <rect x="50" y="60" rx="8" width="160" height="50" fill="#6c5ce7" filter="url(#ex-shadow)"/>
+                <text x="130" y="82" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">auth.User</text>
+                <text x="130" y="98" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">identity</text>
+
+                <!-- app.Revenue -->
+                <rect x="300" y="50" rx="8" width="200" height="70" fill="#27ae60" filter="url(#ex-shadow)"/>
+                <text x="400" y="75" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.Revenue</text>
+                <text x="400" y="93" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">gross · fee · net · date</text>
+                <text x="400" y="107" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">per-sale income</text>
+
+                <!-- app.Expense -->
+                <rect x="300" y="160" rx="8" width="200" height="70" fill="#27ae60" filter="url(#ex-shadow)"/>
+                <text x="400" y="185" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.Expense</text>
+                <text x="400" y="203" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">amount · category · date</text>
+                <text x="400" y="217" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">non-sale platform costs</text>
+
+                <!-- Dashboard profit box -->
+                <rect x="580" y="100" rx="8" width="200" height="80" fill="#fff" stroke="#27ae60" stroke-width="1.5"/>
+                <text x="680" y="125" text-anchor="middle" font-size="11" font-weight="600" fill="#27ae60">Dashboard Profit</text>
+                <text x="680" y="145" text-anchor="middle" font-size="10" fill="#555">SUM(Revenue.NetAmount)</text>
+                <text x="680" y="160" text-anchor="middle" font-size="10" fill="#555">− SUM(Expense.Amount)</text>
+                <text x="680" y="175" text-anchor="middle" font-size="10" fill="#e74c3c">= True Net Profit</text>
+
+                <!-- Category examples -->
+                <rect x="50" y="170" rx="6" width="160" height="24" fill="#e8f5e9" stroke="#27ae60" stroke-width="1"/>
+                <text x="130" y="187" text-anchor="middle" font-size="9" font-weight="500" fill="#1a1a2e">ListingFee · AdFee</text>
+                <rect x="50" y="200" rx="6" width="160" height="24" fill="#e8f5e9" stroke="#27ae60" stroke-width="1"/>
+                <text x="130" y="217" text-anchor="middle" font-size="9" font-weight="500" fill="#1a1a2e">SubscriptionFee · ShippingLabel</text>
+                <rect x="50" y="230" rx="6" width="160" height="24" fill="#e8f5e9" stroke="#27ae60" stroke-width="1"/>
+                <text x="130" y="247" text-anchor="middle" font-size="9" font-weight="500" fill="#1a1a2e">ProcessingFee · Other</text>
+
+                <!-- Distinction note -->
+                <rect x="300" y="260" rx="8" width="480" height="50" fill="#fff3e0" stroke="#f5c842" stroke-width="1"/>
+                <text x="540" y="280" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">Revenue.FeeAmount = per-sale fee (deducted from gross → net)</text>
+                <text x="540" y="296" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">Expense.Amount = standalone platform fee (no sale attached)</text>
+
+                <!-- Lines -->
+                <!-- User → Revenue -->
+                <line x1="210" y1="80" x2="300" y2="80" stroke="#a09cae" stroke-width="1.5" marker-end="url(#ex-arrow)"/>
+                <text x="250" y="74" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- User → Expense -->
+                <path d="M 130 110 L 130 195 L 300 195" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#ex-arrow)"/>
+                <text x="140" y="155" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- Revenue → Dashboard -->
+                <line x1="500" y1="85" x2="580" y2="125" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ex-arrow)"/>
+
+                <!-- Expense → Dashboard -->
+                <line x1="500" y1="195" x2="580" y2="155" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ex-arrow)"/>
+
+                <!-- Category label → Expense -->
+                <line x1="210" y1="210" x2="300" y2="200" stroke="#27ae60" stroke-width="1" stroke-dasharray="4,3"/>
+            </svg>
+            <div class="erd-label">Expense sits alongside Revenue in the normalized layer — parallel tables, no FK between them</div>
+        </div>
+
+        <h3>Why a Separate Table?</h3>
+        <ul>
+            <li><strong>Not revenue.</strong> Expenses aren't sales — they don't belong in <code>app.Revenue</code>, which is strictly income.</li>
+            <li><strong>Different sources.</strong> Etsy charges listing fees (per item listed), ad fees (Etsy Ads), and payment processing minimums. These show up in ledger entries, not in receipt/transaction data.</li>
+            <li><strong>Profit calculation.</strong> Dashboard profit = <code>SUM(Revenue.NetAmount) - SUM(Expense.Amount)</code>. Without Expense, the dashboard overstates earnings.</li>
+            <li><strong>Not all platforms have them.</strong> Stripe has no non-sale fees (everything is per-transaction). Gumroad's only fee is the flat 10% on sales. Etsy and Shopify are fee-heavy. The table handles all cases uniformly.</li>
+        </ul>
+
+        <h3>Table: <code>app.Expense</code></h3>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+            <tr><td>Id</td><td>PK (bigint, identity)</td><td></td></tr>
+            <tr><td>UserId</td><td>FK → auth.User</td><td>1:N — who incurred the expense</td></tr>
+            <tr><td>Amount</td><td>decimal(18,2)</td><td>Always positive — the cost</td></tr>
+            <tr><td>Category</td><td>nvarchar(50)</td><td>ListingFee, AdFee, SubscriptionFee, ProcessingFee, ShippingLabel, Other</td></tr>
+            <tr><td>Currency</td><td>nvarchar(3)</td><td>ISO currency code</td></tr>
+            <tr><td>Description</td><td>nvarchar(500)</td><td>Platform-provided or user-entered description</td></tr>
+            <tr><td>ExpenseDate</td><td>datetime2</td><td>When the expense occurred</td></tr>
+            <tr><td>Platform</td><td>nvarchar(50)</td><td>"Stripe", "Etsy", "Gumroad", "Shopify", "Manual"</td></tr>
+            <tr><td>PlatformTransactionId</td><td>nvarchar(255), nullable</td><td>Dedup key — platform's ID for this charge (null for manual)</td></tr>
+        </table>
+
+        <div class="callout callout-tip">
+            <strong>Composite index:</strong> <code>(Platform, ExpenseDate)</code> — mirrors Revenue's index for consistent dashboard query patterns. Also <code>IX_Expense_UserId</code> for per-user lookups.
+        </div>
+
+        <h3>Expense Categories by Platform</h3>
+        <table>
+            <tr><th>Category</th><th>Etsy</th><th>Shopify</th><th>Stripe</th><th>Gumroad</th><th>PayPal</th></tr>
+            <tr><td>ListingFee</td><td>$0.20/listing</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>AdFee</td><td>Etsy Ads CPC</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>SubscriptionFee</td><td>Etsy Plus $10/mo</td><td>Basic $39/mo+</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>ProcessingFee</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Monthly minimums</td></tr>
+            <tr><td>ShippingLabel</td><td>Label purchases</td><td>Label purchases</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>Other</td><td colspan="5">Catch-all for unclassified platform charges</td></tr>
+        </table>
+
+        <h3>Data Flow</h3>
+        <p>Expenses are ingested by the same sync job that pulls revenue. For Etsy, the ledger entries API returns both sales and fees — the sync job classifies each entry and routes it to <code>Revenue</code> or <code>Expense</code> accordingly. For manual expenses, users enter them directly (future feature on a dedicated page or within Manual Entry).</p>
+
+        <h3>Relationship to Revenue</h3>
+        <p>Expense has <strong>no FK to Revenue</strong>. They are parallel normalized tables — both queried by the dashboard, both filtered by platform and date range, but they represent opposite sides of the ledger. <code>Revenue.FeeAmount</code> handles per-sale fees (deducted from gross to get net). <code>Expense</code> handles standalone fees that exist outside of any sale.</p>
+    </div>
+
+    <div class="section" id="payout-design">
+        <h2>13. Payout Table Design</h2>
+        <p>Tracks when platforms actually <strong>send money to the user's bank account</strong>. Revenue tells you "a sale happened." Payout tells you "money arrived." The gap between the two is the platform's hold period — Stripe batches daily, Etsy holds for 3-5 business days, PayPal can hold for weeks.</p>
+
+        <div class="erd">
+            <svg viewBox="0 0 820 380" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+                <defs>
+                    <marker id="po-arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
+                    </marker>
+                    <filter id="po-shadow" x="-4%" y="-4%" width="108%" height="116%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#6c5ce7" flood-opacity="0.12"/>
+                    </filter>
+                </defs>
+
+                <!-- Background -->
+                <rect x="20" y="10" width="780" height="360" rx="12" fill="#e3f2fd" opacity="0.2"/>
+                <text x="40" y="34" font-size="11" font-weight="600" fill="#1565c0" opacity="0.7">CASH FLOW LAYER</text>
+
+                <!-- auth.User -->
+                <rect x="50" y="60" rx="8" width="160" height="50" fill="#6c5ce7" filter="url(#po-shadow)"/>
+                <text x="130" y="82" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">auth.User</text>
+                <text x="130" y="98" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">identity</text>
+
+                <!-- app.Revenue -->
+                <rect x="300" y="50" rx="8" width="200" height="70" fill="#27ae60" filter="url(#po-shadow)"/>
+                <text x="400" y="75" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.Revenue</text>
+                <text x="400" y="93" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">sale happened</text>
+                <text x="400" y="107" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">earned but not yet received</text>
+
+                <!-- app.Payout -->
+                <rect x="300" y="170" rx="8" width="200" height="70" fill="#1565c0" filter="url(#po-shadow)"/>
+                <text x="400" y="195" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">app.Payout</text>
+                <text x="400" y="213" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">money hit your bank</text>
+                <text x="400" y="227" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">amount · date · status</text>
+
+                <!-- Cash flow widget -->
+                <rect x="580" y="90" rx="8" width="200" height="120" fill="#fff" stroke="#1565c0" stroke-width="1.5"/>
+                <text x="680" y="115" text-anchor="middle" font-size="11" font-weight="600" fill="#1565c0">Cash Flow View</text>
+                <text x="680" y="138" text-anchor="middle" font-size="10" fill="#27ae60">Earned: $5,200</text>
+                <text x="680" y="155" text-anchor="middle" font-size="10" fill="#1565c0">Received: $4,100</text>
+                <text x="680" y="172" text-anchor="middle" font-size="10" fill="#f5c842">Pending: $1,100</text>
+                <text x="680" y="198" text-anchor="middle" font-size="9" fill="#a09cae">Next payout: Stripe $800 (Mar 31)</text>
+
+                <!-- Status badges -->
+                <rect x="50" y="175" rx="6" width="100" height="22" fill="#e8f5e9" stroke="#27ae60" stroke-width="1"/>
+                <text x="100" y="190" text-anchor="middle" font-size="9" font-weight="600" fill="#27ae60">Paid</text>
+                <rect x="50" y="203" rx="6" width="100" height="22" fill="#e3f2fd" stroke="#1565c0" stroke-width="1"/>
+                <text x="100" y="218" text-anchor="middle" font-size="9" font-weight="600" fill="#1565c0">InTransit</text>
+                <rect x="50" y="231" rx="6" width="100" height="22" fill="#fff3e0" stroke="#f5c842" stroke-width="1"/>
+                <text x="100" y="246" text-anchor="middle" font-size="9" font-weight="600" fill="#e65100">Pending</text>
+                <rect x="50" y="259" rx="6" width="100" height="22" fill="#fce4ec" stroke="#e74c3c" stroke-width="1"/>
+                <text x="100" y="274" text-anchor="middle" font-size="9" font-weight="600" fill="#e74c3c">Failed</text>
+
+                <!-- Timeline note -->
+                <rect x="300" y="275" rx="8" width="480" height="70" fill="#fff3e0" stroke="#f5c842" stroke-width="1"/>
+                <text x="540" y="295" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">Revenue ≠ Payout — timing gap varies by platform</text>
+                <text x="540" y="312" text-anchor="middle" font-size="10" fill="#555">Stripe: T+2 days · Etsy: 3–5 business days · Gumroad: bi-weekly</text>
+                <text x="540" y="329" text-anchor="middle" font-size="10" fill="#555">One payout covers many sales (batched). No direct FK to Revenue.</text>
+
+                <!-- Lines -->
+                <!-- User → Revenue -->
+                <line x1="210" y1="80" x2="300" y2="80" stroke="#a09cae" stroke-width="1.5" marker-end="url(#po-arrow)"/>
+                <text x="250" y="74" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- User → Payout -->
+                <path d="M 130 110 L 130 205 L 300 205" fill="none" stroke="#a09cae" stroke-width="1.5" marker-end="url(#po-arrow)"/>
+                <text x="140" y="160" font-size="10" fill="#a09cae">1:N</text>
+
+                <!-- Revenue → Cash Flow -->
+                <line x1="500" y1="85" x2="580" y2="120" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#po-arrow)"/>
+
+                <!-- Payout → Cash Flow -->
+                <line x1="500" y1="200" x2="580" y2="170" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#po-arrow)"/>
+
+                <!-- Status label → Payout -->
+                <line x1="150" y1="220" x2="300" y2="210" stroke="#1565c0" stroke-width="1" stroke-dasharray="4,3"/>
+            </svg>
+            <div class="erd-label">Payout tracks when money actually arrives — the gap between Revenue and Payout is the platform's hold period</div>
+        </div>
+
+        <h3>Why a Separate Table?</h3>
+        <ul>
+            <li><strong>Cash flow visibility.</strong> A creator might have $5,000 in Revenue this month but only $3,200 in Payouts — the rest is still in transit. Without Payout, the dashboard shows earned revenue but not actual cash in hand.</li>
+            <li><strong>Multi-platform timing.</strong> Stripe pays out daily, Etsy weekly, Gumroad bi-weekly. Users need to see when money from each platform will actually arrive.</li>
+            <li><strong>Reconciliation.</strong> Users can compare Revenue vs Payout to spot discrepancies — holds, reserves, frozen funds, failed payouts.</li>
+            <li><strong>Not a 1:1 with Revenue.</strong> One payout typically covers many sales (Stripe batches all daily sales into one payout). There's no clean FK from Payout to Revenue — it's a date-range relationship.</li>
+        </ul>
+
+        <h3>Table: <code>app.Payout</code></h3>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+            <tr><td>Id</td><td>PK (bigint, identity)</td><td></td></tr>
+            <tr><td>UserId</td><td>FK → auth.User</td><td>1:N — who received the payout</td></tr>
+            <tr><td>Amount</td><td>decimal(18,2)</td><td>Net amount disbursed</td></tr>
+            <tr><td>Currency</td><td>nvarchar(3)</td><td>ISO currency code</td></tr>
+            <tr><td>ExpectedArrivalDate</td><td>datetime2, nullable</td><td>When the platform estimates funds will arrive</td></tr>
+            <tr><td>PayoutDate</td><td>datetime2</td><td>When the platform initiated the payout</td></tr>
+            <tr><td>Platform</td><td>nvarchar(50)</td><td>"Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"</td></tr>
+            <tr><td>PlatformPayoutId</td><td>nvarchar(255)</td><td>Dedup key — platform's payout ID (e.g., Stripe <code>po_xxx</code>)</td></tr>
+            <tr><td>Status</td><td>nvarchar(20)</td><td>Pending, InTransit, Paid, Failed, Cancelled</td></tr>
+        </table>
+
+        <div class="callout callout-tip">
+            <strong>Composite index:</strong> <code>(Platform, PayoutDate)</code> — consistent with Revenue and Expense index patterns. Also <code>IX_Payout_UserId</code> and a unique index on <code>PlatformPayoutId</code> for dedup.
+        </div>
+
+        <h3>Payout Data by Platform</h3>
+        <table>
+            <tr><th>Platform</th><th>API Source</th><th>Frequency</th><th>ID Format</th></tr>
+            <tr><td>Stripe</td><td><code>GET /v1/payouts</code></td><td>Daily (T+2 standard)</td><td><code>po_xxx</code></td></tr>
+            <tr><td>Etsy</td><td>Ledger entries (type: deposit)</td><td>Weekly (Mon-Fri, 3-5 day hold)</td><td>Ledger entry ID</td></tr>
+            <tr><td>Gumroad</td><td>No payout API — manual or webhook</td><td>Bi-weekly (1st &amp; 16th)</td><td>N/A</td></tr>
+            <tr><td>PayPal</td><td>Transaction Search (T-code filter)</td><td>Varies (instant to 3-5 days)</td><td>Transaction ID</td></tr>
+            <tr><td>Shopify</td><td><code>shopifyPayments.payouts</code> (GraphQL)</td><td>Varies by plan</td><td>Payout ID</td></tr>
+        </table>
+
+        <h3>Payout Statuses</h3>
+        <table>
+            <tr><th>Status</th><th>Meaning</th></tr>
+            <tr><td>Pending</td><td>Platform has scheduled the payout but hasn't initiated transfer</td></tr>
+            <tr><td>InTransit</td><td>Transfer initiated, funds moving to bank</td></tr>
+            <tr><td>Paid</td><td>Funds have arrived in user's bank account</td></tr>
+            <tr><td>Failed</td><td>Transfer failed (bad bank details, insufficient platform balance)</td></tr>
+            <tr><td>Cancelled</td><td>Payout was cancelled before transfer (platform hold, fraud review)</td></tr>
+        </table>
+
+        <h3>Dashboard Use</h3>
+        <p>The Payout table enables a <strong>cash flow view</strong> on the dashboard: "This month you earned $5,200 (Revenue) and received $4,100 (Payouts) — $1,100 is pending." Users can filter by platform to see which payouts are in transit and when to expect them. The <code>ExpectedArrivalDate</code> column powers a "money coming soon" widget.</p>
     </div>
 
 </div>
