@@ -43,6 +43,8 @@ public class TalliDbContext : DbContext
 
     public DbSet<Suggestion> Suggestions { get; set; } = null!;
 
+    public DbSet<SyncQueue> SyncQueues { get; set; } = null!;
+
     public DbSet<SuggestionVote> SuggestionVotes { get; set; } = null!;
 
     public DbSet<User> Users { get; set; } = null!;

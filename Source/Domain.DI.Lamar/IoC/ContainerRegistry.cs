@@ -36,6 +36,7 @@ public class ContainerRegistry : ServiceRegistry
 		For<IEntityMapper<MODELS.Subscription, ENTITIES.Subscription>>().Use<SubscriptionMapper>();
 		For<IEntityMapper<MODELS.SubscriptionStripe, ENTITIES.SubscriptionStripe>>().Use<SubscriptionStripeMapper>();
 		For<IEntityMapper<MODELS.Suggestion, ENTITIES.Suggestion>>().Use<SuggestionMapper>();
+		For<IEntityMapper<MODELS.SyncQueue, ENTITIES.SyncQueue>>().Use<SyncQueueMapper>();
 		For<IEntityMapper<MODELS.SuggestionVote, ENTITIES.SuggestionVote>>().Use<SuggestionVoteMapper>();
 		For<IEntityMapper<MODELS.User, ENTITIES.User>>().Use<UserMapper>();
 		For<IEntityMapper<MODELS.UserAuthenticationApple, ENTITIES.UserAuthenticationApple>>().Use<UserAuthenticationAppleMapper>();
