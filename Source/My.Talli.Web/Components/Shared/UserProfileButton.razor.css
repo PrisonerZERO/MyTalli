@@ -15,4 +15,4 @@
 .profile-item ::deep svg { flex-shrink: 0; height: 18px; width: 18px; }
 .profile-sign-out { border-top: 1px solid #f0edff; color: #e74c3c; margin-top: 0; }
 .profile-sign-out:hover { background: rgba(231, 76, 60, 0.06); color: #c0392b; }
-
+@media (max-width: 641px) { .profile-dropdown { left: 50%; right: auto; transform: translateX(-50%); } }
