@@ -700,7 +700,8 @@ My.Talli/
         ├── wwwroot/
         │   ├── app.css
         │   ├── js/
-        │   │   └── landing.js    # Landing page scroll & nav interactivity
+        │   │   ├── landing.js      # Landing page scroll & nav interactivity
+        │   │   └── mobile-menu.js  # Mobile hamburger menu toggle (CSS class-based, no Blazor interactivity)
         │   └── lib/bootstrap/
         ├── appsettings.json
         └── appsettings.Development.json
@@ -1301,6 +1302,15 @@ This means:
 - **Simplify, don't remove** — pages that are visible on mobile should render a simplified "keyhole" view, not the full desktop layout. Example: Goals on mobile shows progress bars and numbers, not the full goal editor.
 - **Decide per page** — each page's mobile treatment is determined when building that page, not planned upfront. The content will make the right answer obvious.
 
+### Mobile Navigation
+
+- **Breakpoint:** `max-width: 640.98px` — all mobile-specific styles live behind this media query in `MainLayout.razor.css`
+- **Hamburger button** — `.mobile-hamburger` in `MainLayout.razor`, fixed position top-left (`left: 16px; top: 16px`), hidden on desktop (`display: none`). Toggles the sidebar open/closed.
+- **Sidebar slide-in** — on mobile, `.sidebar` is `position: fixed; transform: translateX(-100%)`. Adding `.mobile-open` class slides it in (`translateX(0)`) with a `box-shadow` and `0.25s ease` transition.
+- **Backdrop** — `.mobile-backdrop` is always in the DOM, hidden by default. Adding `.active` class shows a semi-transparent overlay (`rgba(0, 0, 0, 0.4)`, `z-index: 999`).
+- **JavaScript toggle** — `wwwroot/js/mobile-menu.js` handles all toggle logic via event delegation on `document`. Uses CSS class manipulation (`.mobile-open` on sidebar, `.active` on backdrop), not Blazor `@onclick`, because `MainLayout` renders statically (layout components don't inherit page render modes). Clicking the backdrop or any `.nav-link` inside the sidebar closes the menu.
+- **Hero padding** — `.hero-top` gets `padding-left: 48px` on mobile (in `app.css`) to clear the fixed hamburger button so hero titles don't overlap.
+
 ### Sidebar Navigation Pages
 
 | Page | Route | Purpose | Mobile |
@@ -1696,7 +1706,7 @@ Upcoming features:
 
 - [x] **Admin Page** — role-based admin section (`/admin`) with email management: resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, bulk-send Welcome emails to selected or all users. Visible only to `Admin` role via conditional NavMenu link. Uses `vAuthenticatedUser` view (keyless entity) for user list with emails. ViewModel redirects non-admins to `/dashboard`; API endpoints enforce Admin role via `.RequireAuthorization()`.
 - [x] **Admin Email Resend** — admin ability to resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, plus bulk-send Welcome emails to selected or all users. Implemented as part of the Admin page (`/admin`). API endpoints: `POST /api/admin/email/resend`, `POST /api/admin/email/bulk-welcome`, `POST /api/admin/email/bulk-welcome-all`. Commands: `SendSubscriptionConfirmationEmailCommand` (validates active subscription exists), `SendWeeklySummaryEmailCommand` (uses sample data). Fail-silent on individual errors during bulk sends.
-- [x] **Manual Entry Module** — `app.Revenue` (base normalized revenue table) and `app.RevenueManual` (1-to-1 manual entry detail, includes `Quantity` column). Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with data grid (sortable columns, user-selectable pagination 10/25/50, row density toggle compact/comfortable/spacious). Entry form uses Unit Price × Quantity = Gross auto-calculation. Grid preferences (density, page size, sort) persist in `UserPreferences` JSON under `gridPreferences["manualEntry.entryGrid"]`. Non-subscribers see sample data (`ManualEntryDataset`) with CTA banner instead of a lock gate. Delete uses `ConfirmDialog` component. "New Entry" button in grid toolbar. Empty state renders inside grid tbody. Categories: Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other.
+- [x] **Manual Entry Module** — `app.Revenue` (base normalized revenue table) and `app.RevenueManual` (1-to-1 manual entry detail, includes `Quantity` column). Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with data grid (sortable columns, user-selectable pagination 10/25/50, row density toggle compact/comfortable/spacious). Grid columns: Date, Description, Category, Qty, Price (unit price), Fees, Net, Actions. **Quick-entry row** pinned at top of `<tbody>` for fast new entries — type description + price, hit Enter, row resets and refocuses. **Inline editing** for existing rows — click Edit, row cells become inputs, Enter to save, Escape to cancel. Notes toggle via icon button expands a sub-row below the editing row. No modal. `New*` fields serve quick-entry, `Edit*` fields serve inline edit (separate state). Grid preferences (density, page size, sort) persist in `UserPreferences` JSON under `gridPreferences["manualEntry.entryGrid"]`. Non-subscribers see sample data (`ManualEntryDataset`) with CTA banner instead of a lock gate. Delete uses `ConfirmDialog` component. Empty state renders inside grid tbody. Categories: Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other.
 - [x] **My Plan Page** — consolidated plan and module management at `/my-plan`. Replaces the old `/subscription` and `/upgrade` pages (both deleted). Free users see inline pricing cards (Free vs Pro with monthly/yearly toggle). Pro users see their plan card with billing actions (Manage Billing, Change Plan, Cancel). Module owners see per-module cards with billing/cancel. Available modules listed at the bottom. Sidebar upgrade card shows "Pro Plan" for subscribers, "Upgrade to Pro" for free users, with a single "My Plan" button.
 - [ ] **Module Checkout Flow** — extend `/api/billing/create-checkout-session` to handle module product IDs (currently only handles `plan=monthly|yearly` for Pro). Needed for "Add Module" button on My Plan page.
 - [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.
