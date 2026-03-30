@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Navigation Pattern Wireframes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #0f0f1a; color: #e8e6f0; }
+
+/* ── Header ── */
+.page-header { background: linear-gradient(135deg, #1a1a2e 0%, #242440 100%); border-bottom: 1px solid #2a2745; padding: 40px 48px 32px; }
+.page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.page-header h1 span { color: #a78bfa; }
+.page-header p { color: #a09cae; font-size: 15px; line-height: 1.6; max-width: 720px; }
+
+/* ── Pattern Selector ── */
+.pattern-nav { background: #1a1a2e; border-bottom: 1px solid #2a2745; display: flex; gap: 0; padding: 0 48px; position: sticky; top: 0; z-index: 100; }
+.pattern-tab { background: none; border: none; border-bottom: 3px solid transparent; color: #a09cae; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; padding: 16px 24px; transition: all 0.2s; }
+.pattern-tab:hover { color: #e8e6f0; }
+.pattern-tab.active { border-bottom-color: #7c6cf7; color: #e8e6f0; }
+
+/* ── Pattern Sections ── */
+.pattern-section { display: none; padding: 40px 48px 60px; }
+.pattern-section.active { display: block; }
+.pattern-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.pattern-subtitle { color: #7c6cf7; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
+.pattern-desc { color: #a09cae; font-size: 14px; line-height: 1.7; margin-bottom: 32px; max-width: 640px; }
+
+/* ── Wireframe Container ── */
+.wireframe { background: #1a1a2e; border: 1px solid #2a2745; border-radius: 12px; display: flex; height: 580px; overflow: hidden; }
+
+/* ── Sidebar (shared) ── */
+.wf-sidebar { background: #1e1c30; border-right: 1px solid #2a2745; display: flex; flex-direction: column; flex-shrink: 0; padding: 20px 14px; width: 200px; }
+.wf-logo { color: #e8e6f0; font-size: 16px; font-weight: 700; margin-bottom: 24px; padding: 0 8px; }
+.wf-logo span { color: #a78bfa; }
+.wf-nav-item { align-items: center; border-radius: 8px; color: #a09cae; cursor: default; display: flex; font-size: 12.5px; font-weight: 500; gap: 10px; padding: 9px 10px; transition: all 0.15s; }
+.wf-nav-item:hover { background: rgba(124, 108, 247, 0.06); color: #e8e6f0; }
+.wf-nav-item.active { background: #2a2154; color: #e8e6f0; }
+.wf-nav-item .dot { border-radius: 50%; flex-shrink: 0; height: 8px; width: 8px; }
+.wf-nav-item .icon { align-items: center; background: #2a2745; border-radius: 6px; display: flex; flex-shrink: 0; height: 24px; justify-content: center; width: 24px; }
+.wf-nav-item .icon svg { height: 14px; opacity: 0.6; width: 14px; }
+.wf-nav-item.active .icon { background: #362d6b; }
+.wf-nav-item.active .icon svg { opacity: 1; }
+.wf-nav-group-label { color: #5c5977; font-size: 10px; font-weight: 600; letter-spacing: 0.8px; margin: 16px 0 6px; padding: 0 10px; text-transform: uppercase; }
+.wf-nav-divider { background: #2a2745; height: 1px; margin: 10px 8px; }
+.wf-nav-spacer { flex: 1; }
+.wf-nav-sub { padding-left: 20px; }
+.wf-nav-sub .wf-nav-item { font-size: 11.5px; padding: 7px 10px; }
+.wf-nav-collapse { align-items: center; display: flex; justify-content: space-between; }
+.wf-nav-collapse .arrow { color: #5c5977; font-size: 10px; }
+.wf-platform-dot { border-radius: 50%; flex-shrink: 0; height: 6px; width: 6px; }
+
+/* ── Content Area (shared) ── */
+.wf-content { display: flex; flex: 1; flex-direction: column; overflow: hidden; }
+.wf-hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); flex-shrink: 0; padding: 24px 28px 20px; position: relative; }
+.wf-hero h2 { color: #fff; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.wf-hero p { color: rgba(255, 255, 255, 0.7); font-size: 12px; }
+.wf-hero-stats { display: flex; gap: 32px; margin-top: 16px; }
+.wf-hero-stat .num { font-size: 18px; font-weight: 700; }
+.wf-hero-stat .label { color: rgba(255, 255, 255, 0.6); font-size: 10px; margin-left: 6px; }
+.wf-hero-stat:nth-child(1) .num { color: #a78bfa; }
+.wf-hero-stat:nth-child(2) .num { color: #2ecc71; }
+.wf-hero-stat:nth-child(3) .num { color: #fff; }
+
+/* ── Tabs (in content) ── */
+.wf-tabs { background: #1a1a2e; border-bottom: 1px solid #2a2745; display: flex; flex-shrink: 0; gap: 0; padding: 0 28px; }
+.wf-tab { border-bottom: 2px solid transparent; color: #7a7790; cursor: default; font-size: 12px; font-weight: 600; padding: 12px 16px; }
+.wf-tab.active { border-bottom-color: #7c6cf7; color: #e8e6f0; }
+
+/* ── Cards ── */
+.wf-cards { display: flex; flex-shrink: 0; gap: 12px; padding: 20px 28px 0; }
+.wf-card { background: #242440; border: 1px solid #2a2745; border-radius: 10px; flex: 1; padding: 14px 16px; }
+.wf-card .card-label { color: #7a7790; font-size: 10px; font-weight: 500; margin-bottom: 4px; }
+.wf-card .card-value { font-size: 18px; font-weight: 700; }
+.wf-card .card-change { font-size: 10px; margin-top: 4px; }
+.wf-card .card-change.up { color: #2ecc71; }
+.wf-card .card-change.down { color: #e74c3c; }
+
+/* ── Grid/Table ── */
+.wf-grid-area { flex: 1; overflow: hidden; padding: 16px 28px; }
+.wf-grid { background: #242440; border: 1px solid #2a2745; border-radius: 10px; height: 100%; overflow: hidden; }
+.wf-grid-header { align-items: center; border-bottom: 1px solid #2a2745; display: flex; font-size: 10px; padding: 10px 16px; }
+.wf-grid-header span { color: #7a7790; flex: 1; font-weight: 600; }
+.wf-grid-header .col-platform { flex: 0.7; }
+.wf-grid-header .col-date { flex: 0.8; }
+.wf-grid-header .col-desc { flex: 1.5; }
+.wf-grid-header .col-amount { flex: 0.7; text-align: right; }
+.wf-grid-header .col-fees { flex: 0.6; text-align: right; }
+.wf-grid-header .col-net { flex: 0.7; text-align: right; }
+.wf-grid-row { align-items: center; border-bottom: 1px solid #1e1c30; display: flex; font-size: 11px; padding: 10px 16px; }
+.wf-grid-row span { color: #a09cae; flex: 1; }
+.wf-grid-row .col-platform { align-items: center; display: flex; flex: 0.7; gap: 6px; }
+.wf-grid-row .col-date { color: #7a7790; flex: 0.8; }
+.wf-grid-row .col-desc { color: #e8e6f0; flex: 1.5; font-weight: 500; }
+.wf-grid-row .col-amount { flex: 0.7; text-align: right; }
+.wf-grid-row .col-fees { color: #e74c3c; flex: 0.6; text-align: right; }
+.wf-grid-row .col-net { color: #2ecc71; flex: 0.7; font-weight: 600; text-align: right; }
+.wf-filter-bar { align-items: center; background: #1e1c30; border-bottom: 1px solid #2a2745; display: flex; gap: 8px; padding: 10px 16px; }
+.wf-filter-pill { background: #2a2745; border: 1px solid #2a2745; border-radius: 6px; color: #a09cae; cursor: default; font-size: 10px; font-weight: 500; padding: 5px 12px; }
+.wf-filter-pill.active { background: #2a2154; border-color: #7c6cf7; color: #e8e6f0; }
+.wf-filter-label { color: #5c5977; font-size: 10px; font-weight: 600; margin-right: 4px; }
+
+/* ── Chart placeholder ── */
+.wf-chart { align-items: center; background: #242440; border: 1px solid #2a2745; border-radius: 10px; display: flex; height: 140px; justify-content: center; }
+.wf-chart-label { color: #5c5977; font-size: 11px; }
+
+/* ── Platform Section Dashboard ── */
+.wf-section-dash { display: flex; flex: 1; flex-direction: column; gap: 12px; overflow: hidden; padding: 16px 28px; }
+.wf-two-col { display: flex; flex: 1; gap: 12px; min-height: 0; }
+.wf-two-col > * { flex: 1; }
+
+/* ── Pros/Cons ── */
+.pros-cons { display: flex; gap: 24px; margin-top: 32px; }
+.pros, .cons { flex: 1; }
+.pros h4, .cons h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.pros h4 { color: #2ecc71; }
+.cons h4 { color: #e74c3c; }
+.pros li, .cons li { color: #a09cae; font-size: 12.5px; line-height: 1.8; list-style: none; padding-left: 16px; position: relative; }
+.pros li::before { color: #2ecc71; content: "+"; font-weight: 700; left: 0; position: absolute; }
+.cons li::before { color: #e74c3c; content: "\2013"; font-weight: 700; left: 0; position: absolute; }
+
+/* ── Annotations ── */
+.annotation { background: #362d6b; border: 1px solid #7c6cf7; border-radius: 8px; color: #e8e6f0; font-size: 11px; line-height: 1.5; margin-top: 20px; padding: 12px 16px; }
+.annotation strong { color: #a78bfa; }
+
+/* ── Platform colors ── */
+.dot-manual { background: #7c6cf7; }
+.dot-stripe { background: #635bff; }
+.dot-etsy { background: #f56400; }
+.dot-gumroad { background: #ff90e8; }
+.dot-paypal { background: #2a7fff; }
+.dot-shopify { background: #96bf48; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div class="page-header">
+    <h1>Navigation Pattern <span>Wireframes</span></h1>
+    <p>Four approaches to organizing revenue, expense, and payout data across multiple platforms plus an aggregate view. Click each tab to explore the pattern.</p>
+</div>
+
+<!-- ════════════════════ TAB NAV ════════════════════ -->
+<div class="pattern-nav">
+    <button class="pattern-tab active" onclick="showPattern('hub')">A. Hub &amp; Spoke</button>
+    <button class="pattern-tab" onclick="showPattern('datatype')">B. Data-Type First</button>
+    <button class="pattern-tab" onclick="showPattern('hybrid')">C. Hybrid</button>
+    <button class="pattern-tab" onclick="showPattern('tabs')">D. Dashboard + Tabs</button>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PATTERN A — HUB & SPOKE
+     ════════════════════════════════════════════════════ -->
+<div id="pattern-hub" class="pattern-section active">
+    <div class="pattern-subtitle">Pattern A</div>
+    <div class="pattern-title">Hub &amp; Spoke</div>
+    <div class="pattern-desc">
+        The Dashboard is the hub — an aggregate view of all platforms. Each connected platform is a spoke with its own detail page containing tabs for Revenue, Expenses, Payouts, and an Overview. The sidebar groups connected platforms under a collapsible "Platforms" section.
+    </div>
+
+    <!-- Wireframe: Aggregate Dashboard -->
+    <div style="margin-bottom: 12px;">
+        <div style="color: #5c5977; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase;">View 1 — Aggregate Dashboard (The Hub)</div>
+    </div>
+    <div class="wireframe" style="margin-bottom: 36px;">
+        <div class="wf-sidebar">
+            <div class="wf-logo">My<span>Talli</span></div>
+            <div class="wf-nav-item active">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+                Dashboard
+            </div>
+            <div class="wf-nav-group-label">Platforms</div>
+            <div class="wf-nav-sub">
+                <div class="wf-nav-item"><div class="platform-dot dot-manual" style="border-radius:50%;height:8px;width:8px;background:#7c6cf7;flex-shrink:0;"></div> Manual Entry</div>
+                <div class="wf-nav-item"><div class="platform-dot" style="border-radius:50%;height:8px;width:8px;background:#635bff;flex-shrink:0;"></div> Stripe</div>
+                <div class="wf-nav-item"><div class="platform-dot" style="border-radius:50%;height:8px;width:8px;background:#f56400;flex-shrink:0;"></div> Etsy</div>
+                <div class="wf-nav-item" style="color:#5c5977;"><div class="platform-dot" style="border-radius:50%;height:8px;width:8px;background:#2a2745;flex-shrink:0;"></div> + Connect</div>
+            </div>
+            <div class="wf-nav-divider"></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                Goals
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                Export
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.2.65.77 1.09 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+                Settings
+            </div>
+        </div>
+        <div class="wf-content">
+            <div class="wf-hero">
+                <h2>Good morning, Robert</h2>
+                <p>Here's your revenue across all platforms</p>
+                <div class="wf-hero-stats">
+                    <div class="wf-hero-stat"><span class="num">$4,283</span><span class="label">Total Revenue</span></div>
+                    <div class="wf-hero-stat"><span class="num">$1,847</span><span class="label">This Month</span></div>
+                    <div class="wf-hero-stat"><span class="num">3</span><span class="label">Platforms</span></div>
+                </div>
+            </div>
+            <div class="wf-cards">
+                <div class="wf-card"><div class="card-label">Total Revenue</div><div class="card-value">$4,283</div><div class="card-change up">+12.3%</div></div>
+                <div class="wf-card"><div class="card-label">Total Expenses</div><div class="card-value">$342</div><div class="card-change down">+8.1%</div></div>
+                <div class="wf-card"><div class="card-label">Net Earnings</div><div class="card-value">$3,941</div><div class="card-change up">+13.7%</div></div>
+                <div class="wf-card"><div class="card-label">Pending Payouts</div><div class="card-value">$620</div><div class="card-change" style="color:#f5c842;">2 pending</div></div>
+            </div>
+            <div class="wf-grid-area">
+                <div class="wf-grid">
+                    <div class="wf-grid-header">
+                        <span class="col-platform">Platform</span>
+                        <span class="col-date">Date</span>
+                        <span class="col-desc">Description</span>
+                        <span class="col-amount">Gross</span>
+                        <span class="col-fees">Fees</span>
+                        <span class="col-net">Net</span>
+                    </div>
+                    <div class="wf-grid-row"><span class="col-platform"><span class="platform-dot dot-stripe" style="border-radius:50;height:6px;width:6px;display:inline-block;border-radius:50%;background:#635bff;"></span> Stripe</span><span class="col-date">Mar 28</span><span class="col-desc">Pro Plan — Monthly</span><span class="col-amount">$12.00</span><span class="col-fees">-$0.65</span><span class="col-net">$11.35</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span class="platform-dot dot-etsy" style="border-radius:50;height:6px;width:6px;display:inline-block;border-radius:50%;background:#f56400;"></span> Etsy</span><span class="col-date">Mar 27</span><span class="col-desc">Handmade Candle Set</span><span class="col-amount">$34.99</span><span class="col-fees">-$2.27</span><span class="col-net">$32.72</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span class="platform-dot dot-manual" style="border-radius:50;height:6px;width:6px;display:inline-block;border-radius:50%;background:#7c6cf7;"></span> Manual</span><span class="col-date">Mar 27</span><span class="col-desc">Freelance Logo Design</span><span class="col-amount">$250.00</span><span class="col-fees">-$0.00</span><span class="col-net">$250.00</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span class="platform-dot dot-stripe" style="border-radius:50;height:6px;width:6px;display:inline-block;border-radius:50%;background:#635bff;"></span> Stripe</span><span class="col-date">Mar 26</span><span class="col-desc">Digital Template Pack</span><span class="col-amount">$19.00</span><span class="col-fees">-$0.85</span><span class="col-net">$18.15</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span class="platform-dot dot-etsy" style="border-radius:50;height:6px;width:6px;display:inline-block;border-radius:50%;background:#f56400;"></span> Etsy</span><span class="col-date">Mar 25</span><span class="col-desc">Custom Pet Portrait</span><span class="col-amount">$75.00</span><span class="col-fees">-$4.88</span><span class="col-net">$70.12</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wireframe: Platform Detail (Spoke) -->
+    <div style="margin-bottom: 12px;">
+        <div style="color: #5c5977; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase;">View 2 — Platform Detail Page (A Spoke — e.g., Etsy)</div>
+    </div>
+    <div class="wireframe">
+        <div class="wf-sidebar">
+            <div class="wf-logo">My<span>Talli</span></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+                Dashboard
+            </div>
+            <div class="wf-nav-group-label">Platforms</div>
+            <div class="wf-nav-sub">
+                <div class="wf-nav-item"><div style="border-radius:50%;height:8px;width:8px;background:#7c6cf7;flex-shrink:0;"></div> Manual Entry</div>
+                <div class="wf-nav-item"><div style="border-radius:50%;height:8px;width:8px;background:#635bff;flex-shrink:0;"></div> Stripe</div>
+                <div class="wf-nav-item active"><div style="border-radius:50%;height:8px;width:8px;background:#f56400;flex-shrink:0;"></div> Etsy</div>
+                <div class="wf-nav-item" style="color:#5c5977;"><div style="border-radius:50%;height:8px;width:8px;background:#2a2745;flex-shrink:0;"></div> + Connect</div>
+            </div>
+            <div class="wf-nav-divider"></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                Goals
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                Export
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+                Settings
+            </div>
+        </div>
+        <div class="wf-content">
+            <div class="wf-hero" style="background: linear-gradient(135deg, #f56400 0%, #ff8534 50%, #f56400 100%);">
+                <h2>Etsy</h2>
+                <p>Last synced 12 minutes ago</p>
+                <div class="wf-hero-stats">
+                    <div class="wf-hero-stat"><span class="num" style="color: #ffe0c2;">$1,847</span><span class="label">Revenue</span></div>
+                    <div class="wf-hero-stat"><span class="num">$142</span><span class="label">Expenses</span></div>
+                    <div class="wf-hero-stat"><span class="num">$1,200</span><span class="label">Last Payout</span></div>
+                </div>
+            </div>
+            <div class="wf-tabs">
+                <div class="wf-tab">Overview</div>
+                <div class="wf-tab active">Revenue</div>
+                <div class="wf-tab">Expenses</div>
+                <div class="wf-tab">Payouts</div>
+            </div>
+            <div class="wf-grid-area">
+                <div class="wf-grid">
+                    <div class="wf-grid-header">
+                        <span class="col-date">Date</span>
+                        <span class="col-desc">Description</span>
+                        <span style="flex:0.6;">Category</span>
+                        <span class="col-amount">Gross</span>
+                        <span class="col-fees">Fees</span>
+                        <span class="col-net">Net</span>
+                    </div>
+                    <div class="wf-grid-row"><span class="col-date">Mar 27</span><span class="col-desc">Handmade Candle Set</span><span style="flex:0.6;">Sale</span><span class="col-amount">$34.99</span><span class="col-fees">-$2.27</span><span class="col-net">$32.72</span></div>
+                    <div class="wf-grid-row"><span class="col-date">Mar 25</span><span class="col-desc">Custom Pet Portrait</span><span style="flex:0.6;">Sale</span><span class="col-amount">$75.00</span><span class="col-fees">-$4.88</span><span class="col-net">$70.12</span></div>
+                    <div class="wf-grid-row"><span class="col-date">Mar 24</span><span class="col-desc">Knit Scarf Bundle</span><span style="flex:0.6;">Sale</span><span class="col-amount">$42.00</span><span class="col-fees">-$2.73</span><span class="col-net">$39.27</span></div>
+                    <div class="wf-grid-row"><span class="col-date">Mar 22</span><span class="col-desc">Vintage Print Set</span><span style="flex:0.6;">Sale</span><span class="col-amount">$28.00</span><span class="col-fees">-$1.82</span><span class="col-net">$26.18</span></div>
+                    <div class="wf-grid-row"><span class="col-date">Mar 20</span><span class="col-desc">Custom Wedding Sign</span><span style="flex:0.6;">Sale</span><span class="col-amount">$120.00</span><span class="col-fees">-$7.80</span><span class="col-net">$112.20</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pros-cons">
+        <div class="pros"><h4>Strengths</h4><ul>
+            <li>Clean sidebar — doesn't grow with data types</li>
+            <li>Each platform is self-contained with its own context</li>
+            <li>Platform hero can use brand colors (Etsy orange, Stripe purple, etc.)</li>
+            <li>Natural mental model: "I want to check my Etsy sales"</li>
+            <li>Scales well — adding a platform = adding a sidebar link</li>
+        </ul></div>
+        <div class="cons"><h4>Weaknesses</h4><ul>
+            <li>Extra click to reach a specific data type on a specific platform</li>
+            <li>"Show me all my expenses" requires going to each platform separately</li>
+            <li>Aggregate dashboard might get heavy trying to show everything</li>
+            <li>User must remember which platform to check for a specific transaction</li>
+        </ul></div>
+    </div>
+
+    <div class="annotation">
+        <strong>Key Idea:</strong> The user thinks in terms of platforms: "How's my Etsy doing?" The dashboard answers "How's everything doing?" Cross-platform queries (all expenses) happen via Export or Dashboard filters.
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PATTERN B — DATA-TYPE FIRST
+     ════════════════════════════════════════════════════ -->
+<div id="pattern-datatype" class="pattern-section">
+    <div class="pattern-subtitle">Pattern B</div>
+    <div class="pattern-title">Data-Type First</div>
+    <div class="pattern-desc">
+        The sidebar organizes by data type — Revenue, Expenses, Payouts. Each page shows data from ALL platforms in one unified grid with platform filter pills. The user thinks "I want to see all my revenue" rather than "I want to see my Etsy revenue."
+    </div>
+
+    <!-- Wireframe: Revenue page (all platforms) -->
+    <div style="margin-bottom: 12px;">
+        <div style="color: #5c5977; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase;">View 1 — Revenue Page (All Platforms)</div>
+    </div>
+    <div class="wireframe" style="margin-bottom: 36px;">
+        <div class="wf-sidebar">
+            <div class="wf-logo">My<span>Talli</span></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+                Dashboard
+            </div>
+            <div class="wf-nav-divider"></div>
+            <div class="wf-nav-item active">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+                Revenue
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/><line x1="4" y1="12" x2="20" y2="12" stroke="#e74c3c" stroke-width="2.5"/></svg></div>
+                Expenses
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+                Payouts
+            </div>
+            <div class="wf-nav-divider"></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                Goals
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                Export
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+                Settings
+            </div>
+            <div class="wf-nav-spacer"></div>
+            <div class="wf-nav-item" style="color:#5c5977;">
+                <div class="icon" style="background:#242440;"><svg viewBox="0 0 24 24" fill="none" stroke="#5c5977" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg></div>
+                Platforms
+            </div>
+        </div>
+        <div class="wf-content">
+            <div class="wf-hero">
+                <h2>Revenue</h2>
+                <p>All platforms combined</p>
+                <div class="wf-hero-stats">
+                    <div class="wf-hero-stat"><span class="num">$4,283</span><span class="label">Total</span></div>
+                    <div class="wf-hero-stat"><span class="num">$1,847</span><span class="label">This Month</span></div>
+                    <div class="wf-hero-stat"><span class="num">147</span><span class="label">Transactions</span></div>
+                </div>
+            </div>
+            <div class="wf-grid-area" style="padding-top:0;">
+                <div class="wf-grid" style="height:100%;">
+                    <div class="wf-filter-bar">
+                        <span class="wf-filter-label">Platform:</span>
+                        <span class="wf-filter-pill active">All</span>
+                        <span class="wf-filter-pill"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#7c6cf7;margin-right:4px;"></span>Manual</span>
+                        <span class="wf-filter-pill"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#635bff;margin-right:4px;"></span>Stripe</span>
+                        <span class="wf-filter-pill"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#f56400;margin-right:4px;"></span>Etsy</span>
+                        <span class="wf-filter-pill"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#ff90e8;margin-right:4px;"></span>Gumroad</span>
+                    </div>
+                    <div class="wf-grid-header">
+                        <span class="col-platform">Platform</span>
+                        <span class="col-date">Date</span>
+                        <span class="col-desc">Description</span>
+                        <span class="col-amount">Gross</span>
+                        <span class="col-fees">Fees</span>
+                        <span class="col-net">Net</span>
+                    </div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#635bff;margin-right:6px;"></span>Stripe</span><span class="col-date">Mar 28</span><span class="col-desc">Pro Plan — Monthly</span><span class="col-amount">$12.00</span><span class="col-fees">-$0.65</span><span class="col-net">$11.35</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#f56400;margin-right:6px;"></span>Etsy</span><span class="col-date">Mar 27</span><span class="col-desc">Handmade Candle Set</span><span class="col-amount">$34.99</span><span class="col-fees">-$2.27</span><span class="col-net">$32.72</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#7c6cf7;margin-right:6px;"></span>Manual</span><span class="col-date">Mar 27</span><span class="col-desc">Freelance Logo Design</span><span class="col-amount">$250.00</span><span class="col-fees">-$0.00</span><span class="col-net">$250.00</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#ff90e8;margin-right:6px;"></span>Gumroad</span><span class="col-date">Mar 26</span><span class="col-desc">UI Kit Download</span><span class="col-amount">$29.00</span><span class="col-fees">-$2.90</span><span class="col-net">$26.10</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#f56400;margin-right:6px;"></span>Etsy</span><span class="col-date">Mar 25</span><span class="col-desc">Custom Pet Portrait</span><span class="col-amount">$75.00</span><span class="col-fees">-$4.88</span><span class="col-net">$70.12</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#635bff;margin-right:6px;"></span>Stripe</span><span class="col-date">Mar 24</span><span class="col-desc">Consulting Session</span><span class="col-amount">$150.00</span><span class="col-fees">-$4.65</span><span class="col-net">$145.35</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wireframe: Expenses page -->
+    <div style="margin-bottom: 12px;">
+        <div style="color: #5c5977; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase;">View 2 — Expenses Page (Filtered to Etsy)</div>
+    </div>
+    <div class="wireframe">
+        <div class="wf-sidebar">
+            <div class="wf-logo">My<span>Talli</span></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+                Dashboard
+            </div>
+            <div class="wf-nav-divider"></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+                Revenue
+            </div>
+            <div class="wf-nav-item active">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/><line x1="4" y1="12" x2="20" y2="12" stroke="#e74c3c" stroke-width="2.5"/></svg></div>
+                Expenses
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+                Payouts
+            </div>
+            <div class="wf-nav-divider"></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                Goals
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                Export
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+                Settings
+            </div>
+            <div class="wf-nav-spacer"></div>
+            <div class="wf-nav-item" style="color:#5c5977;">
+                <div class="icon" style="background:#242440;"><svg viewBox="0 0 24 24" fill="none" stroke="#5c5977" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg></div>
+                Platforms
+            </div>
+        </div>
+        <div class="wf-content">
+            <div class="wf-hero">
+                <h2>Expenses</h2>
+                <p>Platform fees, ad spend, and operating costs</p>
+                <div class="wf-hero-stats">
+                    <div class="wf-hero-stat"><span class="num">$342</span><span class="label">Total</span></div>
+                    <div class="wf-hero-stat"><span class="num">$142</span><span class="label">This Month</span></div>
+                    <div class="wf-hero-stat"><span class="num">38</span><span class="label">Charges</span></div>
+                </div>
+            </div>
+            <div class="wf-grid-area" style="padding-top:0;">
+                <div class="wf-grid" style="height:100%;">
+                    <div class="wf-filter-bar">
+                        <span class="wf-filter-label">Platform:</span>
+                        <span class="wf-filter-pill">All</span>
+                        <span class="wf-filter-pill">Manual</span>
+                        <span class="wf-filter-pill">Stripe</span>
+                        <span class="wf-filter-pill active"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#f56400;margin-right:4px;"></span>Etsy</span>
+                        <span class="wf-filter-pill">Gumroad</span>
+                        <span style="flex:1;"></span>
+                        <span class="wf-filter-label">Category:</span>
+                        <span class="wf-filter-pill active">All</span>
+                        <span class="wf-filter-pill">Listing Fee</span>
+                        <span class="wf-filter-pill">Ad Fee</span>
+                    </div>
+                    <div class="wf-grid-header">
+                        <span class="col-date">Date</span>
+                        <span class="col-desc">Description</span>
+                        <span style="flex:0.7;">Category</span>
+                        <span class="col-amount" style="text-align:right;">Amount</span>
+                    </div>
+                    <div class="wf-grid-row"><span class="col-date">Mar 28</span><span class="col-desc">Etsy Ads — Pet Portrait Listing</span><span style="flex:0.7;color:#f5c842;">Ad Fee</span><span class="col-amount" style="text-align:right;color:#e74c3c;">-$8.40</span></div>
+                    <div class="wf-grid-row"><span class="col-date">Mar 27</span><span class="col-desc">Listing renewal — Handmade Candle Set</span><span style="flex:0.7;color:#a78bfa;">Listing Fee</span><span class="col-amount" style="text-align:right;color:#e74c3c;">-$0.20</span></div>
+                    <div class="wf-grid-row"><span class="col-date">Mar 25</span><span class="col-desc">Listing renewal — Custom Pet Portrait</span><span style="flex:0.7;color:#a78bfa;">Listing Fee</span><span class="col-amount" style="text-align:right;color:#e74c3c;">-$0.20</span></div>
+                    <div class="wf-grid-row"><span class="col-date">Mar 24</span><span class="col-desc">Etsy Ads — Knit Scarf Bundle</span><span style="flex:0.7;color:#f5c842;">Ad Fee</span><span class="col-amount" style="text-align:right;color:#e74c3c;">-$5.10</span></div>
+                    <div class="wf-grid-row"><span class="col-date">Mar 22</span><span class="col-desc">Listing renewal — Vintage Print Set</span><span style="flex:0.7;color:#a78bfa;">Listing Fee</span><span class="col-amount" style="text-align:right;color:#e74c3c;">-$0.20</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pros-cons">
+        <div class="pros"><h4>Strengths</h4><ul>
+            <li>"Show me all my revenue" is one click — the primary use case</li>
+            <li>Easy to compare revenue across platforms side-by-side</li>
+            <li>Filter pills make platform drill-down fast without page navigation</li>
+            <li>Fewer sidebar items — clean and predictable</li>
+            <li>Matches how tax prep works (all revenue, all expenses, all deductions)</li>
+        </ul></div>
+        <div class="cons"><h4>Weaknesses</h4><ul>
+            <li>Loses the "how's my Etsy doing?" holistic platform view</li>
+            <li>No platform-specific context (sync status, connection health)</li>
+            <li>Platform-specific fields (Etsy listing ID, Stripe payment method) don't fit a unified grid</li>
+            <li>Manual Entry needs special treatment (quick-entry row, inline edit) that other platforms don't</li>
+        </ul></div>
+    </div>
+
+    <div class="annotation">
+        <strong>Key Idea:</strong> The user thinks in terms of money types: "How much did I make? How much did I spend? How much was paid out?" Platforms are just a filter dimension, not a navigation destination.
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PATTERN C — HYBRID
+     ════════════════════════════════════════════════════ -->
+<div id="pattern-hybrid" class="pattern-section">
+    <div class="pattern-subtitle">Pattern C</div>
+    <div class="pattern-title">Hybrid</div>
+    <div class="pattern-desc">
+        Best of both worlds. The sidebar has top-level data type pages (Revenue, Expenses, Payouts) for cross-platform views AND a collapsible Platforms section for per-platform deep dives. Two entry points to the same data — one by type, one by platform.
+    </div>
+
+    <div style="margin-bottom: 12px;">
+        <div style="color: #5c5977; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase;">The Full Sidebar — Both Entry Points</div>
+    </div>
+    <div class="wireframe">
+        <div class="wf-sidebar" style="width:220px;">
+            <div class="wf-logo">My<span>Talli</span></div>
+            <div class="wf-nav-item active">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+                Dashboard
+            </div>
+            <div class="wf-nav-group-label">Money</div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+                Revenue
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+                Expenses
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+                Payouts
+            </div>
+            <div class="wf-nav-group-label" style="display:flex;justify-content:space-between;align-items:center;">Platforms <span style="color:#7a7790;font-size:9px;">3 connected</span></div>
+            <div class="wf-nav-sub">
+                <div class="wf-nav-item"><div style="border-radius:50%;height:8px;width:8px;background:#7c6cf7;flex-shrink:0;"></div> Manual Entry</div>
+                <div class="wf-nav-item"><div style="border-radius:50%;height:8px;width:8px;background:#635bff;flex-shrink:0;"></div> Stripe</div>
+                <div class="wf-nav-item"><div style="border-radius:50%;height:8px;width:8px;background:#f56400;flex-shrink:0;"></div> Etsy</div>
+                <div class="wf-nav-item" style="color:#5c5977;"><div style="border-radius:50%;height:8px;width:8px;background:#2a2745;flex-shrink:0;"></div> + Connect</div>
+            </div>
+            <div class="wf-nav-divider"></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                Goals
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                Export
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+                Settings
+            </div>
+        </div>
+        <div class="wf-content">
+            <div class="wf-hero">
+                <h2>Good morning, Robert</h2>
+                <p>Here's your revenue across all platforms</p>
+                <div class="wf-hero-stats">
+                    <div class="wf-hero-stat"><span class="num">$4,283</span><span class="label">Total Revenue</span></div>
+                    <div class="wf-hero-stat"><span class="num">$1,847</span><span class="label">This Month</span></div>
+                    <div class="wf-hero-stat"><span class="num">3</span><span class="label">Platforms</span></div>
+                </div>
+            </div>
+            <div class="wf-cards">
+                <div class="wf-card"><div class="card-label">Total Revenue</div><div class="card-value">$4,283</div><div class="card-change up">+12.3%</div></div>
+                <div class="wf-card"><div class="card-label">Total Expenses</div><div class="card-value">$342</div><div class="card-change down">+8.1%</div></div>
+                <div class="wf-card"><div class="card-label">Net Earnings</div><div class="card-value">$3,941</div><div class="card-change up">+13.7%</div></div>
+                <div class="wf-card"><div class="card-label">Pending Payouts</div><div class="card-value">$620</div><div class="card-change" style="color:#f5c842;">2 pending</div></div>
+            </div>
+            <div class="wf-grid-area">
+                <div style="display:flex;gap:12px;height:100%;">
+                    <div class="wf-chart" style="flex:1.5;height:100%;"><span class="wf-chart-label">Revenue Over Time Chart</span></div>
+                    <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+                        <div class="wf-chart" style="flex:1;"><span class="wf-chart-label">Platform Breakdown</span></div>
+                        <div class="wf-chart" style="flex:1;"><span class="wf-chart-label">Goal Progress</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pros-cons">
+        <div class="pros"><h4>Strengths</h4><ul>
+            <li>Two mental models supported: "all my revenue" AND "how's my Etsy?"</li>
+            <li>Power users get cross-platform views; casual users browse by platform</li>
+            <li>Platform section grows dynamically as platforms connect</li>
+            <li>Dashboard stays focused on the aggregate — detail lives elsewhere</li>
+        </ul></div>
+        <div class="cons"><h4>Weaknesses</h4><ul>
+            <li>Most sidebar items of any pattern — potentially overwhelming</li>
+            <li>Same data accessible two ways could confuse: "Where did I see that transaction?"</li>
+            <li>Risk of building/maintaining two grid views for the same data</li>
+            <li>Sidebar gets long when 5+ platforms are connected</li>
+        </ul></div>
+    </div>
+
+    <div class="annotation">
+        <strong>Key Idea:</strong> Maximum flexibility at the cost of a busier sidebar. The "Money" section answers data-type questions, the "Platforms" section answers platform-health questions. Works best if the two views have genuinely different content — not just the same grid with a preset filter.
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PATTERN D — DASHBOARD + TABS ONLY
+     ════════════════════════════════════════════════════ -->
+<div id="pattern-tabs" class="pattern-section">
+    <div class="pattern-subtitle">Pattern D</div>
+    <div class="pattern-title">Dashboard + Tabs Only</div>
+    <div class="pattern-desc">
+        The most minimal navigation. The Dashboard IS the app. Everything lives on one page with tabs for Revenue, Expenses, Payouts, and Cashflow. Platform filtering within each tab. No separate pages for data types or platforms.
+    </div>
+
+    <div style="margin-bottom: 12px;">
+        <div style="color: #5c5977; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase;">The Single Dashboard — Revenue Tab Active</div>
+    </div>
+    <div class="wireframe" style="height: 620px;">
+        <div class="wf-sidebar" style="width:180px;">
+            <div class="wf-logo">My<span>Talli</span></div>
+            <div class="wf-nav-item active">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+                Dashboard
+            </div>
+            <div class="wf-nav-divider"></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg></div>
+                Platforms
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                Goals
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                Export
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></div>
+                Suggestions
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+                Settings
+            </div>
+        </div>
+        <div class="wf-content">
+            <div class="wf-hero">
+                <h2>Good morning, Robert</h2>
+                <p>Here's how your side hustle is doing</p>
+            </div>
+            <div class="wf-cards" style="margin-top:-4px;">
+                <div class="wf-card"><div class="card-label">Revenue</div><div class="card-value" style="color:#2ecc71;">$4,283</div><div class="card-change up">+12.3%</div></div>
+                <div class="wf-card"><div class="card-label">Expenses</div><div class="card-value" style="color:#e74c3c;">$342</div><div class="card-change down">+8.1%</div></div>
+                <div class="wf-card"><div class="card-label">Net</div><div class="card-value">$3,941</div><div class="card-change up">+13.7%</div></div>
+                <div class="wf-card"><div class="card-label">Payouts</div><div class="card-value">$3,200</div><div class="card-change" style="color:#f5c842;">$620 pending</div></div>
+            </div>
+            <div class="wf-tabs">
+                <div class="wf-tab active">Revenue</div>
+                <div class="wf-tab">Expenses</div>
+                <div class="wf-tab">Payouts</div>
+                <div class="wf-tab">Cashflow</div>
+            </div>
+            <div class="wf-grid-area" style="padding-top:0;">
+                <div class="wf-grid" style="height:100%;">
+                    <div class="wf-filter-bar">
+                        <span class="wf-filter-label">Platform:</span>
+                        <span class="wf-filter-pill active">All</span>
+                        <span class="wf-filter-pill">Manual</span>
+                        <span class="wf-filter-pill">Stripe</span>
+                        <span class="wf-filter-pill">Etsy</span>
+                        <span class="wf-filter-pill">Gumroad</span>
+                        <span style="flex:1;"></span>
+                        <span class="wf-filter-label">Period:</span>
+                        <span class="wf-filter-pill">7D</span>
+                        <span class="wf-filter-pill active">30D</span>
+                        <span class="wf-filter-pill">90D</span>
+                        <span class="wf-filter-pill">12M</span>
+                    </div>
+                    <div class="wf-grid-header">
+                        <span class="col-platform">Platform</span>
+                        <span class="col-date">Date</span>
+                        <span class="col-desc">Description</span>
+                        <span class="col-amount">Gross</span>
+                        <span class="col-fees">Fees</span>
+                        <span class="col-net">Net</span>
+                    </div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#635bff;margin-right:6px;"></span>Stripe</span><span class="col-date">Mar 28</span><span class="col-desc">Pro Plan — Monthly</span><span class="col-amount">$12.00</span><span class="col-fees">-$0.65</span><span class="col-net">$11.35</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#f56400;margin-right:6px;"></span>Etsy</span><span class="col-date">Mar 27</span><span class="col-desc">Handmade Candle Set</span><span class="col-amount">$34.99</span><span class="col-fees">-$2.27</span><span class="col-net">$32.72</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#7c6cf7;margin-right:6px;"></span>Manual</span><span class="col-date">Mar 27</span><span class="col-desc">Freelance Logo Design</span><span class="col-amount">$250.00</span><span class="col-fees">-$0.00</span><span class="col-net">$250.00</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#ff90e8;margin-right:6px;"></span>Gumroad</span><span class="col-date">Mar 26</span><span class="col-desc">UI Kit Download</span><span class="col-amount">$29.00</span><span class="col-fees">-$2.90</span><span class="col-net">$26.10</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#f56400;margin-right:6px;"></span>Etsy</span><span class="col-date">Mar 25</span><span class="col-desc">Custom Pet Portrait</span><span class="col-amount">$75.00</span><span class="col-fees">-$4.88</span><span class="col-net">$70.12</span></div>
+                    <div class="wf-grid-row"><span class="col-platform"><span style="display:inline-block;height:6px;width:6px;border-radius:50%;background:#635bff;margin-right:6px;"></span>Stripe</span><span class="col-date">Mar 24</span><span class="col-desc">Consulting Session</span><span class="col-amount">$150.00</span><span class="col-fees">-$4.65</span><span class="col-net">$145.35</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pros-cons">
+        <div class="pros"><h4>Strengths</h4><ul>
+            <li>Simplest possible navigation — fewest sidebar items</li>
+            <li>Everything in one place — no hunting through pages</li>
+            <li>Tabs + filters give full power without page navigation</li>
+            <li>Fastest to build — one page, not many</li>
+            <li>Matches "glanceable dashboard" mental model for side-hustle creators</li>
+        </ul></div>
+        <div class="cons"><h4>Weaknesses</h4><ul>
+            <li>Dashboard gets very heavy — KPI cards + chart + tabs + grid + filters</li>
+            <li>No room for platform-specific features (Etsy listing details, Stripe payment methods)</li>
+            <li>Manual Entry's quick-entry row doesn't fit the shared Revenue tab</li>
+            <li>Page performance risk — loading all data types on one page</li>
+            <li>URL/deep-linking is harder — can't share "my Etsy expenses" as a link</li>
+        </ul></div>
+    </div>
+
+    <div class="annotation">
+        <strong>Key Idea:</strong> The ultimate simplification. Great for the "glance at my numbers" use case, but struggles when users need to drill into platform-specific detail or enter data manually. Works best if MyTalli stays a read-only dashboard without data entry features.
+    </div>
+</div>
+
+<script>
+function showPattern(id) {
+    document.querySelectorAll('.pattern-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.pattern-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('pattern-' + id).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>
