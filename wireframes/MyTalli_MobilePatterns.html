@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Mobile Data Wireframes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #0f0f1a; color: #e8e6f0; }
+
+/* ── Header ── */
+.page-header { background: linear-gradient(135deg, #1a1a2e 0%, #242440 100%); border-bottom: 1px solid #2a2745; padding: 40px 48px 32px; }
+.page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.page-header h1 span { color: #a78bfa; }
+.page-header p { color: #a09cae; font-size: 15px; line-height: 1.6; max-width: 720px; }
+
+/* ── Tab Nav ── */
+.pattern-nav { background: #1a1a2e; border-bottom: 1px solid #2a2745; display: flex; gap: 0; padding: 0 48px; position: sticky; top: 0; z-index: 100; }
+.pattern-tab { background: none; border: none; border-bottom: 3px solid transparent; color: #a09cae; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; padding: 16px 24px; transition: all 0.2s; }
+.pattern-tab:hover { color: #e8e6f0; }
+.pattern-tab.active { border-bottom-color: #7c6cf7; color: #e8e6f0; }
+
+/* ── Sections ── */
+.pattern-section { display: none; padding: 40px 48px 60px; }
+.pattern-section.active { display: block; }
+.pattern-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.pattern-subtitle { color: #7c6cf7; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
+.pattern-desc { color: #a09cae; font-size: 14px; line-height: 1.7; margin-bottom: 32px; max-width: 640px; }
+
+/* ── Phone Frame ── */
+.phone-row { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
+.phone-wrapper { display: flex; flex-direction: column; align-items: center; }
+.phone-label { color: #7a7790; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+.phone { background: #1a1a2e; border: 2px solid #2a2745; border-radius: 32px; height: 720px; overflow: hidden; position: relative; width: 360px; }
+.phone-notch { background: #0f0f1a; border-radius: 0 0 16px 16px; height: 28px; left: 50%; margin-left: -60px; position: absolute; top: 0; width: 120px; z-index: 10; }
+.phone-screen { display: flex; flex-direction: column; height: 100%; overflow-y: auto; padding-top: 28px; }
+
+/* ── Mobile Hero ── */
+.m-hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); flex-shrink: 0; padding: 20px 20px 16px 48px; position: relative; }
+.m-hamburger { align-items: center; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; height: 32px; justify-content: center; left: 12px; position: absolute; top: 8px; width: 32px; }
+.m-hamburger span { background: #fff; border-radius: 1px; display: block; height: 2px; width: 16px; }
+.m-hamburger span:nth-child(2) { margin: 3px 0; }
+.m-hero h2 { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.m-hero p { color: rgba(255,255,255,0.65); font-size: 11px; }
+.m-hero-stats { display: flex; gap: 20px; margin-top: 12px; }
+.m-hero-stat .num { color: #fff; font-size: 15px; font-weight: 700; }
+.m-hero-stat .label { color: rgba(255,255,255,0.55); font-size: 9px; margin-left: 4px; }
+.m-hero-stat:nth-child(1) .num { color: #ddd6ff; }
+.m-hero-stat:nth-child(2) .num { color: #2ecc71; }
+
+/* ── Mobile Tabs ── */
+.m-tabs { background: #1a1a2e; border-bottom: 1px solid #2a2745; display: flex; flex-shrink: 0; overflow-x: auto; }
+.m-tab { border-bottom: 2px solid transparent; color: #5c5977; flex-shrink: 0; font-size: 11px; font-weight: 600; padding: 10px 14px; white-space: nowrap; }
+.m-tab.active { border-bottom-color: #7c6cf7; color: #e8e6f0; }
+
+/* ── Mobile Filter Pills ── */
+.m-filters { background: #1e1c30; border-bottom: 1px solid #2a2745; display: flex; flex-shrink: 0; gap: 6px; overflow-x: auto; padding: 8px 16px; }
+.m-pill { background: #2a2745; border: 1px solid #2a2745; border-radius: 6px; color: #7a7790; flex-shrink: 0; font-size: 10px; font-weight: 500; padding: 4px 10px; }
+.m-pill.active { background: #2a2154; border-color: #7c6cf7; color: #e8e6f0; }
+
+/* ── Mobile Cards ── */
+.m-cards { display: grid; flex-shrink: 0; gap: 8px; grid-template-columns: 1fr 1fr; padding: 12px 16px; }
+.m-card { background: #242440; border: 1px solid #2a2745; border-radius: 10px; padding: 12px 14px; }
+.m-card .card-label { color: #7a7790; font-size: 9px; font-weight: 500; margin-bottom: 2px; }
+.m-card .card-value { font-size: 16px; font-weight: 700; }
+.m-card .card-change { font-size: 9px; margin-top: 2px; }
+.m-card .card-change.up { color: #2ecc71; }
+.m-card .card-change.down { color: #e74c3c; }
+
+/* ── Mobile Grid (scrollable) ── */
+.m-grid-wrap { flex: 1; overflow-x: auto; overflow-y: auto; padding: 12px 16px; }
+.m-grid { background: #242440; border: 1px solid #2a2745; border-radius: 10px; min-width: 580px; overflow: hidden; }
+.m-grid-header { border-bottom: 1px solid #2a2745; display: flex; font-size: 9px; padding: 8px 12px; }
+.m-grid-header span { color: #5c5977; flex: 1; font-weight: 600; }
+.m-grid-row { border-bottom: 1px solid #1e1c30; display: flex; font-size: 10px; padding: 9px 12px; }
+.m-grid-row span { color: #a09cae; flex: 1; }
+.m-grid-row .col-desc { color: #e8e6f0; font-weight: 500; }
+.m-grid-row .col-net { color: #2ecc71; font-weight: 600; text-align: right; }
+.m-grid-row .col-fees { color: #e74c3c; text-align: right; }
+.m-grid-row .col-amount { text-align: right; }
+.m-grid-header .col-amount, .m-grid-header .col-fees, .m-grid-header .col-net { text-align: right; }
+.m-scroll-hint { color: #5c5977; font-size: 10px; padding: 8px 16px; text-align: center; }
+
+/* ── Mobile "Too Big" Message ── */
+.m-bigscreen-msg { align-items: center; display: flex; flex: 1; flex-direction: column; justify-content: center; padding: 40px 32px; text-align: center; }
+.m-bigscreen-msg .msg-icon { align-items: center; background: #2a2154; border-radius: 20px; display: flex; height: 72px; justify-content: center; margin-bottom: 20px; width: 72px; }
+.m-bigscreen-msg .msg-icon svg { height: 36px; width: 36px; }
+.m-bigscreen-msg h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.m-bigscreen-msg p { color: #7a7790; font-size: 13px; line-height: 1.6; max-width: 260px; }
+.m-bigscreen-msg .msg-btn { background: #7c6cf7; border: none; border-radius: 10px; color: #fff; cursor: default; font-family: inherit; font-size: 13px; font-weight: 600; margin-top: 20px; padding: 12px 28px; }
+
+/* ── Mobile Keyhole Cards (stacked) ── */
+.m-keyhole-cards { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; }
+.m-kh-card { background: #242440; border: 1px solid #2a2745; border-radius: 12px; padding: 16px; }
+.m-kh-card .kh-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 10px; }
+.m-kh-card .kh-title { color: #7a7790; font-size: 10px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+.m-kh-card .kh-badge { background: #1a3a2a; border-radius: 6px; color: #2ecc71; font-size: 10px; font-weight: 600; padding: 3px 8px; }
+.m-kh-card .kh-badge.down { background: #3a1a1e; color: #e74c3c; }
+.m-kh-card .kh-badge.neutral { background: #2a2154; color: #a78bfa; }
+.m-kh-card .kh-value { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+.m-kh-card .kh-sub { color: #5c5977; font-size: 11px; }
+
+/* ── Mini Chart ── */
+.m-mini-chart { align-items: flex-end; display: flex; gap: 3px; height: 40px; margin-top: 10px; }
+.m-mini-bar { background: linear-gradient(to top, #6c5ce7, #8b5cf6); border-radius: 3px 3px 0 0; flex: 1; min-width: 0; }
+
+/* ── Platform Breakdown (mobile) ── */
+.m-platform-row { align-items: center; display: flex; gap: 10px; padding: 8px 0; }
+.m-platform-row .plat-dot { border-radius: 50%; flex-shrink: 0; height: 8px; width: 8px; }
+.m-platform-row .plat-name { color: #a09cae; flex: 1; font-size: 12px; font-weight: 500; }
+.m-platform-row .plat-amount { color: #e8e6f0; font-size: 12px; font-weight: 600; }
+.m-platform-row .plat-bar-wrap { background: #1e1c30; border-radius: 3px; flex: 1.5; height: 6px; overflow: hidden; }
+.m-platform-row .plat-bar { border-radius: 3px; height: 100%; }
+
+/* ── Desktop CTA link ── */
+.m-desktop-cta { align-items: center; background: #1e1c30; border-radius: 10px; display: flex; gap: 8px; justify-content: center; margin: 0 16px 16px; padding: 12px; }
+.m-desktop-cta span { color: #7a7790; font-size: 11px; }
+.m-desktop-cta .cta-link { color: #7c6cf7; font-size: 11px; font-weight: 600; }
+
+/* ── Bottom Nav (mobile) ── */
+.m-bottom-nav { background: #1e1c30; border-top: 1px solid #2a2745; display: flex; flex-shrink: 0; padding: 8px 0 12px; }
+.m-bottom-nav-item { align-items: center; color: #5c5977; display: flex; flex: 1; flex-direction: column; font-size: 9px; font-weight: 500; gap: 4px; }
+.m-bottom-nav-item.active { color: #a78bfa; }
+.m-bottom-nav-item svg { height: 20px; width: 20px; }
+
+/* ── Pros/Cons ── */
+.pros-cons { display: flex; gap: 24px; margin-top: 32px; }
+.pros, .cons { flex: 1; }
+.pros h4, .cons h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.pros h4 { color: #2ecc71; }
+.cons h4 { color: #e74c3c; }
+.pros li, .cons li { color: #a09cae; font-size: 12.5px; line-height: 1.8; list-style: none; padding-left: 16px; position: relative; }
+.pros li::before { color: #2ecc71; content: "+"; font-weight: 700; left: 0; position: absolute; }
+.cons li::before { color: #e74c3c; content: "\2013"; font-weight: 700; left: 0; position: absolute; }
+
+/* ── Annotation ── */
+.annotation { background: #362d6b; border: 1px solid #7c6cf7; border-radius: 8px; color: #e8e6f0; font-size: 11px; line-height: 1.5; margin-top: 20px; padding: 12px 16px; }
+.annotation strong { color: #a78bfa; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div class="page-header">
+    <h1>Mobile Data <span>Wireframes</span></h1>
+    <p>Three approaches to handling data-heavy screens (grids, tables, filters) on mobile devices. All based on the "Dashboard + Tabs" navigation pattern. Click each tab to compare.</p>
+</div>
+
+<!-- ════════════════════ TAB NAV ════════════════════ -->
+<div class="pattern-nav">
+    <button class="pattern-tab active" onclick="showPattern('full')">A. Full Grid (Scroll)</button>
+    <button class="pattern-tab" onclick="showPattern('block')">B. Desktop Message</button>
+    <button class="pattern-tab" onclick="showPattern('keyhole')">C. Keyhole View</button>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     MOBILE A — FULL GRID (HORIZONTAL SCROLL)
+     ════════════════════════════════════════════════════ -->
+<div id="pattern-full" class="pattern-section active">
+    <div class="pattern-subtitle">Mobile Treatment A</div>
+    <div class="pattern-title">Full Grid — Horizontal Scroll</div>
+    <div class="pattern-desc">
+        Everything from desktop is available on mobile. The grid scrolls horizontally. Tabs, filters, cards — all present. The user gets full access but must scroll in two directions to see everything.
+    </div>
+
+    <div class="phone-row">
+        <div class="phone-wrapper">
+            <div class="phone-label">Revenue Tab — Full Grid</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero">
+                        <div class="m-hamburger"><span></span><span></span><span></span></div>
+                        <h2>Good morning, Robert</h2>
+                        <p>Here's how your side hustle is doing</p>
+                    </div>
+                    <div class="m-cards">
+                        <div class="m-card"><div class="card-label">Revenue</div><div class="card-value" style="color:#2ecc71;">$4,283</div><div class="card-change up">+12.3%</div></div>
+                        <div class="m-card"><div class="card-label">Expenses</div><div class="card-value" style="color:#e74c3c;">$342</div><div class="card-change down">+8.1%</div></div>
+                        <div class="m-card"><div class="card-label">Net</div><div class="card-value">$3,941</div><div class="card-change up">+13.7%</div></div>
+                        <div class="m-card"><div class="card-label">Payouts</div><div class="card-value">$3,200</div><div class="card-change" style="color:#f5c842;">$620 pend.</div></div>
+                    </div>
+                    <div class="m-tabs">
+                        <div class="m-tab active">Revenue</div>
+                        <div class="m-tab">Expenses</div>
+                        <div class="m-tab">Payouts</div>
+                        <div class="m-tab">Cashflow</div>
+                    </div>
+                    <div class="m-filters">
+                        <span class="m-pill active">All</span>
+                        <span class="m-pill">Manual</span>
+                        <span class="m-pill">Stripe</span>
+                        <span class="m-pill">Etsy</span>
+                        <span class="m-pill">Gumroad</span>
+                    </div>
+                    <div class="m-scroll-hint" style="color:#f5c842;">Scroll right to see all columns &rarr;</div>
+                    <div class="m-grid-wrap">
+                        <div class="m-grid">
+                            <div class="m-grid-header">
+                                <span style="flex:0.7;">Platform</span>
+                                <span style="flex:0.7;">Date</span>
+                                <span style="flex:1.4;" class="col-desc">Description</span>
+                                <span style="flex:0.7;" class="col-amount">Gross</span>
+                                <span style="flex:0.6;" class="col-fees">Fees</span>
+                                <span style="flex:0.7;" class="col-net">Net</span>
+                            </div>
+                            <div class="m-grid-row"><span style="flex:0.7;"><span style="display:inline-block;height:5px;width:5px;border-radius:50%;background:#635bff;margin-right:4px;"></span>Stripe</span><span style="flex:0.7;color:#5c5977;">Mar 28</span><span style="flex:1.4;" class="col-desc">Pro Plan — Monthly</span><span style="flex:0.7;" class="col-amount">$12.00</span><span style="flex:0.6;" class="col-fees">-$0.65</span><span style="flex:0.7;" class="col-net">$11.35</span></div>
+                            <div class="m-grid-row"><span style="flex:0.7;"><span style="display:inline-block;height:5px;width:5px;border-radius:50%;background:#f56400;margin-right:4px;"></span>Etsy</span><span style="flex:0.7;color:#5c5977;">Mar 27</span><span style="flex:1.4;" class="col-desc">Handmade Candle Set</span><span style="flex:0.7;" class="col-amount">$34.99</span><span style="flex:0.6;" class="col-fees">-$2.27</span><span style="flex:0.7;" class="col-net">$32.72</span></div>
+                            <div class="m-grid-row"><span style="flex:0.7;"><span style="display:inline-block;height:5px;width:5px;border-radius:50%;background:#7c6cf7;margin-right:4px;"></span>Manual</span><span style="flex:0.7;color:#5c5977;">Mar 27</span><span style="flex:1.4;" class="col-desc">Freelance Logo Design</span><span style="flex:0.7;" class="col-amount">$250.00</span><span style="flex:0.6;" class="col-fees">-$0.00</span><span style="flex:0.7;" class="col-net">$250.00</span></div>
+                            <div class="m-grid-row"><span style="flex:0.7;"><span style="display:inline-block;height:5px;width:5px;border-radius:50%;background:#ff90e8;margin-right:4px;"></span>Gumroad</span><span style="flex:0.7;color:#5c5977;">Mar 26</span><span style="flex:1.4;" class="col-desc">UI Kit Download</span><span style="flex:0.7;" class="col-amount">$29.00</span><span style="flex:0.6;" class="col-fees">-$2.90</span><span style="flex:0.7;" class="col-net">$26.10</span></div>
+                            <div class="m-grid-row"><span style="flex:0.7;"><span style="display:inline-block;height:5px;width:5px;border-radius:50%;background:#f56400;margin-right:4px;"></span>Etsy</span><span style="flex:0.7;color:#5c5977;">Mar 25</span><span style="flex:1.4;" class="col-desc">Custom Pet Portrait</span><span style="flex:0.7;" class="col-amount">$75.00</span><span style="flex:0.6;" class="col-fees">-$4.88</span><span style="flex:0.7;" class="col-net">$70.12</span></div>
+                        </div>
+                    </div>
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phone-wrapper">
+            <div class="phone-label">What scrolling right looks like</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero">
+                        <div class="m-hamburger"><span></span><span></span><span></span></div>
+                        <h2>Good morning, Robert</h2>
+                        <p>Here's how your side hustle is doing</p>
+                    </div>
+                    <div class="m-cards">
+                        <div class="m-card"><div class="card-label">Revenue</div><div class="card-value" style="color:#2ecc71;">$4,283</div><div class="card-change up">+12.3%</div></div>
+                        <div class="m-card"><div class="card-label">Expenses</div><div class="card-value" style="color:#e74c3c;">$342</div><div class="card-change down">+8.1%</div></div>
+                        <div class="m-card"><div class="card-label">Net</div><div class="card-value">$3,941</div><div class="card-change up">+13.7%</div></div>
+                        <div class="m-card"><div class="card-label">Payouts</div><div class="card-value">$3,200</div><div class="card-change" style="color:#f5c842;">$620 pend.</div></div>
+                    </div>
+                    <div class="m-tabs">
+                        <div class="m-tab active">Revenue</div>
+                        <div class="m-tab">Expenses</div>
+                        <div class="m-tab">Payouts</div>
+                        <div class="m-tab">Cashflow</div>
+                    </div>
+                    <div class="m-filters">
+                        <span class="m-pill active">All</span>
+                        <span class="m-pill">Manual</span>
+                        <span class="m-pill">Stripe</span>
+                        <span class="m-pill">Etsy</span>
+                        <span class="m-pill">Gumroad</span>
+                    </div>
+                    <!-- Simulating a scrolled-right state -->
+                    <div class="m-grid-wrap">
+                        <div class="m-grid" style="min-width: 580px; transform: translateX(-200px);">
+                            <div class="m-grid-header">
+                                <span style="flex:0.7;">Platform</span>
+                                <span style="flex:0.7;">Date</span>
+                                <span style="flex:1.4;">Description</span>
+                                <span style="flex:0.7;text-align:right;">Gross</span>
+                                <span style="flex:0.6;text-align:right;">Fees</span>
+                                <span style="flex:0.7;text-align:right;">Net</span>
+                            </div>
+                            <div class="m-grid-row"><span style="flex:0.7;">Stripe</span><span style="flex:0.7;color:#5c5977;">Mar 28</span><span style="flex:1.4;color:#e8e6f0;font-weight:500;">Pro Plan — Monthly</span><span style="flex:0.7;text-align:right;">$12.00</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$0.65</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$11.35</span></div>
+                            <div class="m-grid-row"><span style="flex:0.7;">Etsy</span><span style="flex:0.7;color:#5c5977;">Mar 27</span><span style="flex:1.4;color:#e8e6f0;font-weight:500;">Handmade Candle Set</span><span style="flex:0.7;text-align:right;">$34.99</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$2.27</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$32.72</span></div>
+                            <div class="m-grid-row"><span style="flex:0.7;">Manual</span><span style="flex:0.7;color:#5c5977;">Mar 27</span><span style="flex:1.4;color:#e8e6f0;font-weight:500;">Freelance Logo Design</span><span style="flex:0.7;text-align:right;">$250.00</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$0.00</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$250.00</span></div>
+                        </div>
+                    </div>
+                    <div style="background:#3a1a1e;border-radius:8px;color:#e74c3c;font-size:10px;margin:8px 16px;padding:8px 12px;text-align:center;">You've lost context — Platform column is off-screen</div>
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pros-cons">
+        <div class="pros"><h4>Strengths</h4><ul>
+            <li>Full data access — nothing hidden</li>
+            <li>Same code as desktop, just responsive</li>
+            <li>Power users on tablets get a usable experience</li>
+        </ul></div>
+        <div class="cons"><h4>Weaknesses</h4><ul>
+            <li>Two-axis scrolling is a terrible mobile UX</li>
+            <li>Lose row context when scrolled right (platform/date off-screen)</li>
+            <li>Tabs + filters + grid + cards = a LOT of vertical stacking</li>
+            <li>Touch targets are too small for reliable tapping</li>
+            <li>Nobody actually reads a 6-column grid on a phone</li>
+        </ul></div>
+    </div>
+
+    <div class="annotation">
+        <strong>Verdict:</strong> Technically complete but practically unusable. This is what happens when you "just make it responsive" without thinking about the use case. Users will pinch-zoom, scroll sideways, lose their place, and close the app.
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     MOBILE B — DESKTOP MESSAGE
+     ════════════════════════════════════════════════════ -->
+<div id="pattern-block" class="pattern-section">
+    <div class="pattern-subtitle">Mobile Treatment B</div>
+    <div class="pattern-title">Desktop Message</div>
+    <div class="pattern-desc">
+        Show the summary cards (quick glance numbers) but replace the grid/tabs area with a friendly message directing users to desktop for the full experience. Not a block — you still see your numbers. Just an honest acknowledgment that tables don't work on phones.
+    </div>
+
+    <div class="phone-row">
+        <div class="phone-wrapper">
+            <div class="phone-label">Dashboard — Summary + Desktop CTA</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero">
+                        <div class="m-hamburger"><span></span><span></span><span></span></div>
+                        <h2>Good morning, Robert</h2>
+                        <p>Here's how your side hustle is doing</p>
+                        <div class="m-hero-stats">
+                            <div class="m-hero-stat"><span class="num" style="color:#ddd6ff;">$4,283</span><span class="label">Revenue</span></div>
+                            <div class="m-hero-stat"><span class="num">$1,847</span><span class="label">This Mo.</span></div>
+                            <div class="m-hero-stat"><span class="num" style="color:#fff;">3</span><span class="label">Platforms</span></div>
+                        </div>
+                    </div>
+                    <div class="m-cards">
+                        <div class="m-card"><div class="card-label">Revenue</div><div class="card-value" style="color:#2ecc71;">$4,283</div><div class="card-change up">+12.3%</div></div>
+                        <div class="m-card"><div class="card-label">Expenses</div><div class="card-value" style="color:#e74c3c;">$342</div><div class="card-change down">+8.1%</div></div>
+                        <div class="m-card"><div class="card-label">Net</div><div class="card-value">$3,941</div><div class="card-change up">+13.7%</div></div>
+                        <div class="m-card"><div class="card-label">Payouts</div><div class="card-value">$3,200</div><div class="card-change" style="color:#f5c842;">$620 pend.</div></div>
+                    </div>
+                    <div class="m-bigscreen-msg">
+                        <div class="msg-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
+                        <h3>Better on a bigger screen</h3>
+                        <p>Your detailed revenue tables, charts, and reports are designed for desktop. Your numbers above are always up to date.</p>
+                        <div class="msg-btn">Open on Desktop</div>
+                    </div>
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pros-cons">
+        <div class="pros"><h4>Strengths</h4><ul>
+            <li>Honest and respectful — doesn't pretend tables work on phones</li>
+            <li>Summary cards still provide the "glance" value</li>
+            <li>Zero development cost for mobile grid optimization</li>
+            <li>Clean, branded experience — not a broken layout</li>
+        </ul></div>
+        <div class="cons"><h4>Weaknesses</h4><ul>
+            <li>Feels like a dead end — "I can see my numbers but can't do anything"</li>
+            <li>"Open on Desktop" button does nothing useful on a phone</li>
+            <li>Users might think the app is broken or half-built</li>
+            <li>No way to search for a specific recent transaction on mobile</li>
+        </ul></div>
+    </div>
+
+    <div class="annotation">
+        <strong>Verdict:</strong> Better than a broken grid, but leaves value on the table. The user opened the app for a reason — they probably want more than just four numbers. Feels like a v0.1 mobile experience.
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     MOBILE C — KEYHOLE VIEW
+     ════════════════════════════════════════════════════ -->
+<div id="pattern-keyhole" class="pattern-section">
+    <div class="pattern-subtitle">Mobile Treatment C</div>
+    <div class="pattern-title">Keyhole View</div>
+    <div class="pattern-desc">
+        Purpose-built mobile layout. No grids — instead, stacked summary cards with mini charts, platform breakdown bars, and a "recent activity" feed (single-column, card-based). The user gets meaningful data in a phone-native format. Full tables live on desktop.
+    </div>
+
+    <div class="phone-row">
+        <div class="phone-wrapper">
+            <div class="phone-label">Dashboard — Keyhole Summary</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero">
+                        <div class="m-hamburger"><span></span><span></span><span></span></div>
+                        <h2>Good morning, Robert</h2>
+                        <p>Here's how your side hustle is doing</p>
+                    </div>
+
+                    <div class="m-keyhole-cards">
+                        <!-- Revenue Card -->
+                        <div class="m-kh-card">
+                            <div class="kh-header">
+                                <span class="kh-title">Revenue</span>
+                                <span class="kh-badge">+12.3%</span>
+                            </div>
+                            <div class="kh-value" style="color:#2ecc71;">$4,283</div>
+                            <div class="kh-sub">$1,847 this month</div>
+                            <div class="m-mini-chart">
+                                <div class="m-mini-bar" style="height:45%;"></div>
+                                <div class="m-mini-bar" style="height:55%;"></div>
+                                <div class="m-mini-bar" style="height:40%;"></div>
+                                <div class="m-mini-bar" style="height:65%;"></div>
+                                <div class="m-mini-bar" style="height:50%;"></div>
+                                <div class="m-mini-bar" style="height:70%;"></div>
+                                <div class="m-mini-bar" style="height:60%;"></div>
+                                <div class="m-mini-bar" style="height:80%;"></div>
+                                <div class="m-mini-bar" style="height:75%;"></div>
+                                <div class="m-mini-bar" style="height:85%;"></div>
+                                <div class="m-mini-bar" style="height:90%;"></div>
+                                <div class="m-mini-bar" style="height:100%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Expenses Card -->
+                        <div class="m-kh-card">
+                            <div class="kh-header">
+                                <span class="kh-title">Expenses</span>
+                                <span class="kh-badge down">+8.1%</span>
+                            </div>
+                            <div class="kh-value" style="color:#e74c3c;">$342</div>
+                            <div class="kh-sub">$142 this month</div>
+                        </div>
+
+                        <!-- Net Earnings Card -->
+                        <div class="m-kh-card">
+                            <div class="kh-header">
+                                <span class="kh-title">Net Earnings</span>
+                                <span class="kh-badge">+13.7%</span>
+                            </div>
+                            <div class="kh-value">$3,941</div>
+                            <div class="kh-sub">Revenue minus expenses &amp; fees</div>
+                        </div>
+
+                        <!-- Platform Breakdown Card -->
+                        <div class="m-kh-card">
+                            <div class="kh-header">
+                                <span class="kh-title">By Platform</span>
+                                <span class="kh-badge neutral">3 connected</span>
+                            </div>
+                            <div style="margin-top:4px;">
+                                <div class="m-platform-row">
+                                    <div class="plat-dot" style="background:#f56400;"></div>
+                                    <span class="plat-name">Etsy</span>
+                                    <div class="plat-bar-wrap"><div class="plat-bar" style="width:52%;background:#f56400;"></div></div>
+                                    <span class="plat-amount">$2,228</span>
+                                </div>
+                                <div class="m-platform-row">
+                                    <div class="plat-dot" style="background:#635bff;"></div>
+                                    <span class="plat-name">Stripe</span>
+                                    <div class="plat-bar-wrap"><div class="plat-bar" style="width:35%;background:#635bff;"></div></div>
+                                    <span class="plat-amount">$1,505</span>
+                                </div>
+                                <div class="m-platform-row">
+                                    <div class="plat-dot" style="background:#7c6cf7;"></div>
+                                    <span class="plat-name">Manual</span>
+                                    <div class="plat-bar-wrap"><div class="plat-bar" style="width:13%;background:#7c6cf7;"></div></div>
+                                    <span class="plat-amount">$550</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payouts Card -->
+                        <div class="m-kh-card">
+                            <div class="kh-header">
+                                <span class="kh-title">Payouts</span>
+                                <span class="kh-badge" style="background:#2a2745;color:#f5c842;">2 pending</span>
+                            </div>
+                            <div class="kh-value">$3,200</div>
+                            <div class="kh-sub">$620 pending arrival</div>
+                        </div>
+                    </div>
+
+                    <div class="m-desktop-cta">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#5c5977" stroke-width="1.5" style="height:16px;width:16px;flex-shrink:0;"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <span>Full tables &amp; reports</span>
+                        <span class="cta-link">View on desktop &rarr;</span>
+                    </div>
+
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phone-wrapper">
+            <div class="phone-label">Recent Activity Feed (scroll down)</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero" style="padding-top:16px;padding-bottom:12px;">
+                        <div class="m-hamburger"><span></span><span></span><span></span></div>
+                        <h2 style="font-size:14px;">Recent Activity</h2>
+                        <p>Last 7 days across all platforms</p>
+                    </div>
+
+                    <div class="m-keyhole-cards" style="gap:2px;">
+                        <!-- Transaction cards — single column, card-based, no grid -->
+                        <div style="background:#242440;border:1px solid #2a2745;border-radius:10px;padding:14px 16px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="height:8px;width:8px;border-radius:50%;background:#635bff;"></div>
+                                    <span style="font-size:11px;color:#a09cae;">Stripe</span>
+                                </div>
+                                <span style="font-size:10px;color:#5c5977;">Mar 28</span>
+                            </div>
+                            <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Pro Plan — Monthly</div>
+                            <div style="display:flex;justify-content:space-between;font-size:12px;">
+                                <span style="color:#7a7790;">$12.00 gross</span>
+                                <span style="color:#2ecc71;font-weight:600;">$11.35 net</span>
+                            </div>
+                        </div>
+
+                        <div style="background:#242440;border:1px solid #2a2745;border-radius:10px;padding:14px 16px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="height:8px;width:8px;border-radius:50%;background:#f56400;"></div>
+                                    <span style="font-size:11px;color:#a09cae;">Etsy</span>
+                                </div>
+                                <span style="font-size:10px;color:#5c5977;">Mar 27</span>
+                            </div>
+                            <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Handmade Candle Set</div>
+                            <div style="display:flex;justify-content:space-between;font-size:12px;">
+                                <span style="color:#7a7790;">$34.99 gross</span>
+                                <span style="color:#2ecc71;font-weight:600;">$32.72 net</span>
+                            </div>
+                        </div>
+
+                        <div style="background:#242440;border:1px solid #2a2745;border-radius:10px;padding:14px 16px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="height:8px;width:8px;border-radius:50%;background:#7c6cf7;"></div>
+                                    <span style="font-size:11px;color:#a09cae;">Manual</span>
+                                </div>
+                                <span style="font-size:10px;color:#5c5977;">Mar 27</span>
+                            </div>
+                            <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Freelance Logo Design</div>
+                            <div style="display:flex;justify-content:space-between;font-size:12px;">
+                                <span style="color:#7a7790;">$250.00 gross</span>
+                                <span style="color:#2ecc71;font-weight:600;">$250.00 net</span>
+                            </div>
+                        </div>
+
+                        <div style="background:#242440;border:1px solid #2a2745;border-radius:10px;padding:14px 16px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="height:8px;width:8px;border-radius:50%;background:#ff90e8;"></div>
+                                    <span style="font-size:11px;color:#a09cae;">Gumroad</span>
+                                </div>
+                                <span style="font-size:10px;color:#5c5977;">Mar 26</span>
+                            </div>
+                            <div style="font-size:13px;font-weight:600;margin-bottom:2px;">UI Kit Download</div>
+                            <div style="display:flex;justify-content:space-between;font-size:12px;">
+                                <span style="color:#7a7790;">$29.00 gross</span>
+                                <span style="color:#2ecc71;font-weight:600;">$26.10 net</span>
+                            </div>
+                        </div>
+
+                        <div style="background:#242440;border:1px solid #2a2745;border-radius:10px;padding:14px 16px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="height:8px;width:8px;border-radius:50%;background:#f56400;"></div>
+                                    <span style="font-size:11px;color:#a09cae;">Etsy</span>
+                                </div>
+                                <span style="font-size:10px;color:#5c5977;">Mar 25</span>
+                            </div>
+                            <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Custom Pet Portrait</div>
+                            <div style="display:flex;justify-content:space-between;font-size:12px;">
+                                <span style="color:#7a7790;">$75.00 gross</span>
+                                <span style="color:#2ecc71;font-weight:600;">$70.12 net</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pros-cons">
+        <div class="pros"><h4>Strengths</h4><ul>
+            <li>Purpose-built for phones — not a squeezed desktop layout</li>
+            <li>Summary cards + mini charts answer the "how am I doing?" question instantly</li>
+            <li>Platform breakdown bars give relative context at a glance</li>
+            <li>Recent activity feed is a natural phone pattern (like a bank app)</li>
+            <li>Scrolls vertically only — native mobile feel</li>
+            <li>Subtle desktop CTA for full tables — not a roadblock, just a nudge</li>
+        </ul></div>
+        <div class="cons"><h4>Weaknesses</h4><ul>
+            <li>More work to build — separate mobile layout, not just CSS tweaks</li>
+            <li>Can't search or filter transactions on mobile</li>
+            <li>No expense or payout detail on mobile (only revenue activity feed)</li>
+            <li>Users who want full data on mobile will be frustrated</li>
+        </ul></div>
+    </div>
+
+    <div class="annotation">
+        <strong>Verdict:</strong> This is the "Keyhole Data" philosophy brought to life. The phone shows you your numbers through a keyhole — enough to know what's going on, not enough to do accounting. The desktop is where you sit down and work. This matches how side-hustle creators actually use their phones: quick check between other things, not a deep dive into transaction details.
+    </div>
+</div>
+
+<script>
+function showPattern(id) {
+    document.querySelectorAll('.pattern-section').forEach(function(s) { s.classList.remove('active'); });
+    document.querySelectorAll('.pattern-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.getElementById('pattern-' + id).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>
