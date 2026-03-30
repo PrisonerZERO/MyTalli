@@ -38,7 +38,7 @@ html, body { -webkit-font-smoothing: antialiased; color: #1a1a2e; font-family: '
 .hero-action-btn { align-items: center; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 7px; color: rgba(255, 255, 255, 0.85); cursor: pointer; display: flex; font-family: inherit; font-size: 12px; font-weight: 500; gap: 5px; padding: 5px 12px; transition: background 0.15s ease; }
 .hero-action-btn:hover { background: rgba(255, 255, 255, 0.22); }
 .hero-action-btn svg { height: 12px; width: 12px; }
-@media (max-width: 641px) { .hero-top { flex-direction: column; gap: 12px; } .hero-stats { gap: 16px; justify-content: center; } }
+@media (max-width: 641px) { .hero-top { flex-direction: column; gap: 12px; padding-left: 48px; } .hero-stats { gap: 16px; justify-content: center; } }
 
 /* Visually Hidden (screen reader only) */
 .sr-only { border: 0; clip: rect(0,0,0,0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; width: 1px; }
