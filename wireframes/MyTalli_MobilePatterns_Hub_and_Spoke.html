@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Mobile Wireframes: Hub &amp; Spoke</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #0f0f1a; color: #e8e6f0; }
+
+/* ── Header ── */
+.page-header { background: linear-gradient(135deg, #1a1a2e 0%, #242440 100%); border-bottom: 1px solid #2a2745; padding: 40px 48px 32px; }
+.page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.page-header h1 span { color: #a78bfa; }
+.page-header p { color: #a09cae; font-size: 15px; line-height: 1.6; max-width: 720px; }
+
+/* ── Tab Nav ── */
+.pattern-nav { background: #1a1a2e; border-bottom: 1px solid #2a2745; display: flex; gap: 0; padding: 0 48px; position: sticky; top: 0; z-index: 100; }
+.pattern-tab { background: none; border: none; border-bottom: 3px solid transparent; color: #a09cae; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; padding: 16px 24px; transition: all 0.2s; }
+.pattern-tab:hover { color: #e8e6f0; }
+.pattern-tab.active { border-bottom-color: #7c6cf7; color: #e8e6f0; }
+
+/* ── Sections ── */
+.pattern-section { display: none; padding: 40px 48px 60px; }
+.pattern-section.active { display: block; }
+.pattern-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.pattern-subtitle { color: #7c6cf7; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
+.pattern-desc { color: #a09cae; font-size: 14px; line-height: 1.7; margin-bottom: 32px; max-width: 640px; }
+
+/* ── Phone Frame ── */
+.phone-row { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
+.phone-wrapper { display: flex; flex-direction: column; align-items: center; }
+.phone-label { color: #7a7790; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+.phone { background: #1a1a2e; border: 2px solid #2a2745; border-radius: 32px; height: 720px; overflow: hidden; position: relative; width: 360px; }
+.phone-notch { background: #0f0f1a; border-radius: 0 0 16px 16px; height: 28px; left: 50%; margin-left: -60px; position: absolute; top: 0; width: 120px; z-index: 10; }
+.phone-screen { display: flex; flex-direction: column; height: 100%; overflow-y: auto; padding-top: 28px; }
+
+/* ── Mobile Hero ── */
+.m-hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); flex-shrink: 0; padding: 20px 20px 16px 48px; position: relative; }
+.m-hero.etsy { background: linear-gradient(135deg, #f56400 0%, #ff8534 50%, #f56400 100%); }
+.m-hero.stripe { background: linear-gradient(135deg, #635bff 0%, #7b73ff 50%, #635bff 100%); }
+.m-hamburger { align-items: center; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; height: 32px; justify-content: center; left: 12px; position: absolute; top: 8px; width: 32px; }
+.m-hamburger span { background: #fff; border-radius: 1px; display: block; height: 2px; width: 16px; }
+.m-hamburger span:nth-child(2) { margin: 3px 0; }
+.m-back-btn { align-items: center; background: rgba(255,255,255,0.15); border-radius: 8px; color: #fff; display: flex; font-size: 11px; font-weight: 600; gap: 4px; left: 12px; padding: 6px 10px; position: absolute; top: 8px; }
+.m-back-btn svg { height: 14px; width: 14px; }
+.m-hero h2 { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.m-hero p { color: rgba(255,255,255,0.65); font-size: 11px; }
+.m-hero-stats { display: flex; gap: 20px; margin-top: 12px; }
+.m-hero-stat .num { color: #fff; font-size: 15px; font-weight: 700; }
+.m-hero-stat .label { color: rgba(255,255,255,0.55); font-size: 9px; margin-left: 4px; }
+.m-hero-stat:nth-child(1) .num { color: rgba(255,255,255,0.9); }
+.m-hero-stat:nth-child(2) .num { color: #2ecc71; }
+
+/* ── Mobile Tabs ── */
+.m-tabs { background: #1a1a2e; border-bottom: 1px solid #2a2745; display: flex; flex-shrink: 0; overflow-x: auto; }
+.m-tab { border-bottom: 2px solid transparent; color: #5c5977; flex-shrink: 0; font-size: 11px; font-weight: 600; padding: 10px 14px; white-space: nowrap; }
+.m-tab.active { border-bottom-color: #7c6cf7; color: #e8e6f0; }
+.m-tab.active.etsy { border-bottom-color: #f56400; }
+
+/* ── Mobile Filter Pills ── */
+.m-filters { background: #1e1c30; border-bottom: 1px solid #2a2745; display: flex; flex-shrink: 0; gap: 6px; overflow-x: auto; padding: 8px 16px; }
+.m-pill { background: #2a2745; border: 1px solid #2a2745; border-radius: 6px; color: #7a7790; flex-shrink: 0; font-size: 10px; font-weight: 500; padding: 4px 10px; }
+.m-pill.active { background: #2a2154; border-color: #7c6cf7; color: #e8e6f0; }
+
+/* ── Mobile Cards ── */
+.m-cards { display: grid; flex-shrink: 0; gap: 8px; grid-template-columns: 1fr 1fr; padding: 12px 16px; }
+.m-card { background: #242440; border: 1px solid #2a2745; border-radius: 10px; padding: 12px 14px; }
+.m-card .card-label { color: #7a7790; font-size: 9px; font-weight: 500; margin-bottom: 2px; }
+.m-card .card-value { font-size: 16px; font-weight: 700; }
+.m-card .card-change { font-size: 9px; margin-top: 2px; }
+.m-card .card-change.up { color: #2ecc71; }
+.m-card .card-change.down { color: #e74c3c; }
+
+/* ── Mobile Grid (scrollable) ── */
+.m-grid-wrap { flex: 1; overflow-x: auto; overflow-y: auto; padding: 12px 16px; }
+.m-grid { background: #242440; border: 1px solid #2a2745; border-radius: 10px; min-width: 520px; overflow: hidden; }
+.m-grid-header { border-bottom: 1px solid #2a2745; display: flex; font-size: 9px; padding: 8px 12px; }
+.m-grid-header span { color: #5c5977; flex: 1; font-weight: 600; }
+.m-grid-row { border-bottom: 1px solid #1e1c30; display: flex; font-size: 10px; padding: 9px 12px; }
+.m-grid-row span { color: #a09cae; flex: 1; }
+.m-scroll-hint { color: #f5c842; font-size: 10px; padding: 8px 16px; text-align: center; }
+
+/* ── Mobile "Better on Desktop" Message ── */
+.m-bigscreen-msg { align-items: center; display: flex; flex: 1; flex-direction: column; justify-content: center; padding: 40px 32px; text-align: center; }
+.m-bigscreen-msg .msg-icon { align-items: center; background: #2a2154; border-radius: 20px; display: flex; height: 72px; justify-content: center; margin-bottom: 20px; width: 72px; }
+.m-bigscreen-msg .msg-icon svg { height: 36px; width: 36px; }
+.m-bigscreen-msg h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.m-bigscreen-msg p { color: #7a7790; font-size: 13px; line-height: 1.6; max-width: 260px; }
+.m-bigscreen-msg .msg-btn { background: #7c6cf7; border: none; border-radius: 10px; color: #fff; cursor: default; font-family: inherit; font-size: 13px; font-weight: 600; margin-top: 20px; padding: 12px 28px; }
+
+/* ── Keyhole Cards ── */
+.m-keyhole-cards { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; }
+.m-kh-card { background: #242440; border: 1px solid #2a2745; border-radius: 12px; padding: 16px; }
+.m-kh-card .kh-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 10px; }
+.m-kh-card .kh-title { color: #7a7790; font-size: 10px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+.m-kh-card .kh-badge { background: #1a3a2a; border-radius: 6px; color: #2ecc71; font-size: 10px; font-weight: 600; padding: 3px 8px; }
+.m-kh-card .kh-badge.down { background: #3a1a1e; color: #e74c3c; }
+.m-kh-card .kh-badge.neutral { background: #2a2154; color: #a78bfa; }
+.m-kh-card .kh-value { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+.m-kh-card .kh-sub { color: #5c5977; font-size: 11px; }
+
+/* ── Mini Chart ── */
+.m-mini-chart { align-items: flex-end; display: flex; gap: 3px; height: 40px; margin-top: 10px; }
+.m-mini-bar { border-radius: 3px 3px 0 0; flex: 1; min-width: 0; }
+.m-mini-bar.purple { background: linear-gradient(to top, #6c5ce7, #8b5cf6); }
+.m-mini-bar.etsy { background: linear-gradient(to top, #f56400, #ff8534); }
+
+/* ── Platform Breakdown ── */
+.m-platform-row { align-items: center; display: flex; gap: 10px; padding: 8px 0; }
+.m-platform-row .plat-dot { border-radius: 50%; flex-shrink: 0; height: 8px; width: 8px; }
+.m-platform-row .plat-name { color: #a09cae; flex: 1; font-size: 12px; font-weight: 500; }
+.m-platform-row .plat-amount { color: #e8e6f0; font-size: 12px; font-weight: 600; }
+.m-platform-row .plat-bar-wrap { background: #1e1c30; border-radius: 3px; flex: 1.5; height: 6px; overflow: hidden; }
+.m-platform-row .plat-bar { border-radius: 3px; height: 100%; }
+
+/* ── Platform Cards (Hub nav) ── */
+.m-platform-card { align-items: center; background: #242440; border: 1px solid #2a2745; border-radius: 12px; display: flex; gap: 14px; padding: 14px 16px; }
+.m-platform-card .plat-icon { align-items: center; border-radius: 10px; display: flex; flex-shrink: 0; height: 40px; justify-content: center; width: 40px; }
+.m-platform-card .plat-info { flex: 1; }
+.m-platform-card .plat-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.m-platform-card .plat-sub { color: #7a7790; font-size: 10px; }
+.m-platform-card .plat-amount { font-size: 14px; font-weight: 700; text-align: right; }
+.m-platform-card .plat-amount-sub { color: #7a7790; font-size: 9px; text-align: right; }
+.m-platform-card .plat-arrow { color: #5c5977; font-size: 16px; margin-left: 4px; }
+
+/* ── Desktop CTA ── */
+.m-desktop-cta { align-items: center; background: #1e1c30; border-radius: 10px; display: flex; gap: 8px; justify-content: center; margin: 0 16px 16px; padding: 12px; }
+.m-desktop-cta span { color: #7a7790; font-size: 11px; }
+.m-desktop-cta .cta-link { color: #7c6cf7; font-size: 11px; font-weight: 600; }
+
+/* ── Bottom Nav ── */
+.m-bottom-nav { background: #1e1c30; border-top: 1px solid #2a2745; display: flex; flex-shrink: 0; padding: 8px 0 12px; }
+.m-bottom-nav-item { align-items: center; color: #5c5977; display: flex; flex: 1; flex-direction: column; font-size: 9px; font-weight: 500; gap: 4px; }
+.m-bottom-nav-item.active { color: #a78bfa; }
+.m-bottom-nav-item svg { height: 20px; width: 20px; }
+
+/* ── Transaction Card ── */
+.txn-card { background: #242440; border: 1px solid #2a2745; border-radius: 10px; padding: 14px 16px; }
+.txn-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 6px; }
+.txn-platform { align-items: center; display: flex; gap: 8px; }
+.txn-platform .dot { border-radius: 50%; height: 8px; width: 8px; }
+.txn-platform span { color: #a09cae; font-size: 11px; }
+.txn-date { color: #5c5977; font-size: 10px; }
+.txn-desc { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.txn-amounts { display: flex; font-size: 12px; justify-content: space-between; }
+.txn-gross { color: #7a7790; }
+.txn-net { color: #2ecc71; font-weight: 600; }
+
+/* ── Pros/Cons ── */
+.pros-cons { display: flex; gap: 24px; margin-top: 32px; }
+.pros, .cons { flex: 1; }
+.pros h4, .cons h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.pros h4 { color: #2ecc71; }
+.cons h4 { color: #e74c3c; }
+.pros li, .cons li { color: #a09cae; font-size: 12.5px; line-height: 1.8; list-style: none; padding-left: 16px; position: relative; }
+.pros li::before { color: #2ecc71; content: "+"; font-weight: 700; left: 0; position: absolute; }
+.cons li::before { color: #e74c3c; content: "\2013"; font-weight: 700; left: 0; position: absolute; }
+
+/* ── Annotation ── */
+.annotation { background: #362d6b; border: 1px solid #7c6cf7; border-radius: 8px; color: #e8e6f0; font-size: 11px; line-height: 1.5; margin-top: 20px; padding: 12px 16px; }
+.annotation strong { color: #a78bfa; }
+
+/* ── Section divider ── */
+.view-label { color: #5c5977; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; margin-top: 36px; text-transform: uppercase; }
+.view-label:first-of-type { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div class="page-header">
+    <h1>Mobile Data <span>— Hub &amp; Spoke</span></h1>
+    <p>Three mobile treatments for the Hub &amp; Spoke pattern. The hub (aggregate dashboard) and each spoke (platform detail) need their own mobile story. Click each tab to compare.</p>
+</div>
+
+<!-- ════════════════════ TAB NAV ════════════════════ -->
+<div class="pattern-nav">
+    <button class="pattern-tab active" onclick="showPattern('full')">A. Full Grid (Scroll)</button>
+    <button class="pattern-tab" onclick="showPattern('block')">B. Desktop Message</button>
+    <button class="pattern-tab" onclick="showPattern('keyhole')">C. Keyhole View</button>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     MOBILE A — FULL GRID (HORIZONTAL SCROLL)
+     ════════════════════════════════════════════════════ -->
+<div id="pattern-full" class="pattern-section active">
+    <div class="pattern-subtitle">Mobile Treatment A</div>
+    <div class="pattern-title">Full Grid — Horizontal Scroll</div>
+    <div class="pattern-desc">
+        Both the hub and spoke pages show their full grids on mobile. The hub has the aggregate grid, and tapping a platform navigates to the spoke where another full grid lives with tabs for Revenue/Expenses/Payouts. Everything scrolls horizontally.
+    </div>
+
+    <div class="phone-row">
+        <!-- Hub: Aggregate Dashboard -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Hub — Aggregate Dashboard</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero">
+                        <div class="m-hamburger"><span></span><span></span><span></span></div>
+                        <h2>Good morning, Robert</h2>
+                        <p>Revenue across all platforms</p>
+                        <div class="m-hero-stats">
+                            <div class="m-hero-stat"><span class="num" style="color:#ddd6ff;">$4,283</span><span class="label">Revenue</span></div>
+                            <div class="m-hero-stat"><span class="num">$1,847</span><span class="label">This Mo.</span></div>
+                            <div class="m-hero-stat"><span class="num" style="color:#fff;">3</span><span class="label">Platforms</span></div>
+                        </div>
+                    </div>
+                    <div class="m-cards">
+                        <div class="m-card"><div class="card-label">Revenue</div><div class="card-value" style="color:#2ecc71;">$4,283</div><div class="card-change up">+12.3%</div></div>
+                        <div class="m-card"><div class="card-label">Expenses</div><div class="card-value" style="color:#e74c3c;">$342</div><div class="card-change down">+8.1%</div></div>
+                        <div class="m-card"><div class="card-label">Net</div><div class="card-value">$3,941</div><div class="card-change up">+13.7%</div></div>
+                        <div class="m-card"><div class="card-label">Payouts</div><div class="card-value">$3,200</div><div class="card-change" style="color:#f5c842;">$620 pend.</div></div>
+                    </div>
+                    <div class="m-scroll-hint">Scroll right to see all columns &rarr;</div>
+                    <div class="m-grid-wrap">
+                        <div class="m-grid">
+                            <div class="m-grid-header">
+                                <span style="flex:0.7;">Platform</span>
+                                <span style="flex:0.7;">Date</span>
+                                <span style="flex:1.4;">Description</span>
+                                <span style="flex:0.7;text-align:right;">Gross</span>
+                                <span style="flex:0.6;text-align:right;">Fees</span>
+                                <span style="flex:0.7;text-align:right;">Net</span>
+                            </div>
+                            <div class="m-grid-row"><span style="flex:0.7;"><span style="display:inline-block;height:5px;width:5px;border-radius:50%;background:#635bff;margin-right:4px;"></span>Stripe</span><span style="flex:0.7;color:#5c5977;">Mar 28</span><span style="flex:1.4;color:#e8e6f0;font-weight:500;">Pro Plan — Monthly</span><span style="flex:0.7;text-align:right;">$12.00</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$0.65</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$11.35</span></div>
+                            <div class="m-grid-row"><span style="flex:0.7;"><span style="display:inline-block;height:5px;width:5px;border-radius:50%;background:#f56400;margin-right:4px;"></span>Etsy</span><span style="flex:0.7;color:#5c5977;">Mar 27</span><span style="flex:1.4;color:#e8e6f0;font-weight:500;">Candle Set</span><span style="flex:0.7;text-align:right;">$34.99</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$2.27</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$32.72</span></div>
+                            <div class="m-grid-row"><span style="flex:0.7;"><span style="display:inline-block;height:5px;width:5px;border-radius:50%;background:#7c6cf7;margin-right:4px;"></span>Manual</span><span style="flex:0.7;color:#5c5977;">Mar 27</span><span style="flex:1.4;color:#e8e6f0;font-weight:500;">Logo Design</span><span style="flex:0.7;text-align:right;">$250.00</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$0.00</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$250.00</span></div>
+                            <div class="m-grid-row"><span style="flex:0.7;"><span style="display:inline-block;height:5px;width:5px;border-radius:50%;background:#ff90e8;margin-right:4px;"></span>Gumroad</span><span style="flex:0.7;color:#5c5977;">Mar 26</span><span style="flex:1.4;color:#e8e6f0;font-weight:500;">UI Kit</span><span style="flex:0.7;text-align:right;">$29.00</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$2.90</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$26.10</span></div>
+                        </div>
+                    </div>
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spoke: Etsy Detail (Revenue tab) -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Spoke — Etsy Revenue Tab</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero etsy">
+                        <div class="m-back-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                            Back
+                        </div>
+                        <h2 style="padding-top:4px;">Etsy</h2>
+                        <p>Last synced 12 min ago</p>
+                        <div class="m-hero-stats">
+                            <div class="m-hero-stat"><span class="num" style="color:#ffe0c2;">$1,847</span><span class="label">Revenue</span></div>
+                            <div class="m-hero-stat"><span class="num">$142</span><span class="label">Expenses</span></div>
+                            <div class="m-hero-stat"><span class="num" style="color:#fff;">$1,200</span><span class="label">Payout</span></div>
+                        </div>
+                    </div>
+                    <div class="m-tabs">
+                        <div class="m-tab">Overview</div>
+                        <div class="m-tab active etsy">Revenue</div>
+                        <div class="m-tab">Expenses</div>
+                        <div class="m-tab">Payouts</div>
+                    </div>
+                    <div class="m-scroll-hint">Scroll right to see all columns &rarr;</div>
+                    <div class="m-grid-wrap">
+                        <div class="m-grid">
+                            <div class="m-grid-header">
+                                <span style="flex:0.8;">Date</span>
+                                <span style="flex:1.5;">Description</span>
+                                <span style="flex:0.7;text-align:right;">Gross</span>
+                                <span style="flex:0.6;text-align:right;">Fees</span>
+                                <span style="flex:0.7;text-align:right;">Net</span>
+                            </div>
+                            <div class="m-grid-row"><span style="flex:0.8;color:#5c5977;">Mar 27</span><span style="flex:1.5;color:#e8e6f0;font-weight:500;">Handmade Candle Set</span><span style="flex:0.7;text-align:right;">$34.99</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$2.27</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$32.72</span></div>
+                            <div class="m-grid-row"><span style="flex:0.8;color:#5c5977;">Mar 25</span><span style="flex:1.5;color:#e8e6f0;font-weight:500;">Custom Pet Portrait</span><span style="flex:0.7;text-align:right;">$75.00</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$4.88</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$70.12</span></div>
+                            <div class="m-grid-row"><span style="flex:0.8;color:#5c5977;">Mar 24</span><span style="flex:1.5;color:#e8e6f0;font-weight:500;">Knit Scarf Bundle</span><span style="flex:0.7;text-align:right;">$42.00</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$2.73</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$39.27</span></div>
+                            <div class="m-grid-row"><span style="flex:0.8;color:#5c5977;">Mar 22</span><span style="flex:1.5;color:#e8e6f0;font-weight:500;">Vintage Print Set</span><span style="flex:0.7;text-align:right;">$28.00</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$1.82</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$26.18</span></div>
+                            <div class="m-grid-row"><span style="flex:0.8;color:#5c5977;">Mar 20</span><span style="flex:1.5;color:#e8e6f0;font-weight:500;">Custom Wedding Sign</span><span style="flex:0.7;text-align:right;">$120.00</span><span style="flex:0.6;text-align:right;color:#e74c3c;">-$7.80</span><span style="flex:0.7;text-align:right;color:#2ecc71;font-weight:600;">$112.20</span></div>
+                        </div>
+                    </div>
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pros-cons">
+        <div class="pros"><h4>Strengths</h4><ul>
+            <li>Full data on both hub and spoke — nothing hidden</li>
+            <li>Spoke page removes the Platform column (already known), slightly narrower grid</li>
+            <li>Back button navigation between hub and spoke feels natural on mobile</li>
+        </ul></div>
+        <div class="cons"><h4>Weaknesses</h4><ul>
+            <li>Two pages of horizontal-scroll grids — double the pain</li>
+            <li>Hub grid + spoke grid = the user is scrolling sideways on every screen</li>
+            <li>Spoke tabs (Overview/Revenue/Expenses/Payouts) add more complexity to a small screen</li>
+            <li>Touch targets too small, context lost when scrolling</li>
+        </ul></div>
+    </div>
+
+    <div class="annotation">
+        <strong>Verdict:</strong> Hub &amp; Spoke makes the full-grid problem worse, not better. Now there are two levels of horizontally-scrolling tables instead of one. The spoke's extra tabs just add more tiny tap targets.
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     MOBILE B — DESKTOP MESSAGE
+     ════════════════════════════════════════════════════ -->
+<div id="pattern-block" class="pattern-section">
+    <div class="pattern-subtitle">Mobile Treatment B</div>
+    <div class="pattern-title">Desktop Message</div>
+    <div class="pattern-desc">
+        The hub shows summary cards with a desktop CTA below. Spoke pages show the platform's summary stats in the hero and the same "better on desktop" message. The user can still navigate between platforms to glance at numbers, but detail lives on desktop.
+    </div>
+
+    <div class="phone-row">
+        <!-- Hub -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Hub — Aggregate Dashboard</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero">
+                        <div class="m-hamburger"><span></span><span></span><span></span></div>
+                        <h2>Good morning, Robert</h2>
+                        <p>Revenue across all platforms</p>
+                        <div class="m-hero-stats">
+                            <div class="m-hero-stat"><span class="num" style="color:#ddd6ff;">$4,283</span><span class="label">Revenue</span></div>
+                            <div class="m-hero-stat"><span class="num">$1,847</span><span class="label">This Mo.</span></div>
+                            <div class="m-hero-stat"><span class="num" style="color:#fff;">3</span><span class="label">Platforms</span></div>
+                        </div>
+                    </div>
+                    <div class="m-cards">
+                        <div class="m-card"><div class="card-label">Revenue</div><div class="card-value" style="color:#2ecc71;">$4,283</div><div class="card-change up">+12.3%</div></div>
+                        <div class="m-card"><div class="card-label">Expenses</div><div class="card-value" style="color:#e74c3c;">$342</div><div class="card-change down">+8.1%</div></div>
+                        <div class="m-card"><div class="card-label">Net</div><div class="card-value">$3,941</div><div class="card-change up">+13.7%</div></div>
+                        <div class="m-card"><div class="card-label">Payouts</div><div class="card-value">$3,200</div><div class="card-change" style="color:#f5c842;">$620 pend.</div></div>
+                    </div>
+
+                    <!-- Platform quick-nav cards -->
+                    <div style="padding:4px 16px 0;"><span style="color:#5c5977;font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Your Platforms</span></div>
+                    <div class="m-keyhole-cards" style="padding-top:8px;gap:8px;">
+                        <div class="m-platform-card">
+                            <div class="plat-icon" style="background:rgba(245,100,0,0.15);"><span style="color:#f56400;font-size:18px;font-weight:700;">E</span></div>
+                            <div class="plat-info"><div class="plat-name">Etsy</div><div class="plat-sub">Synced 12 min ago</div></div>
+                            <div><div class="plat-amount" style="color:#2ecc71;">$1,847</div><div class="plat-amount-sub">this month</div></div>
+                            <span class="plat-arrow">&rsaquo;</span>
+                        </div>
+                        <div class="m-platform-card">
+                            <div class="plat-icon" style="background:rgba(99,91,255,0.15);"><span style="color:#635bff;font-size:18px;font-weight:700;">S</span></div>
+                            <div class="plat-info"><div class="plat-name">Stripe</div><div class="plat-sub">Synced 8 min ago</div></div>
+                            <div><div class="plat-amount" style="color:#2ecc71;">$1,505</div><div class="plat-amount-sub">this month</div></div>
+                            <span class="plat-arrow">&rsaquo;</span>
+                        </div>
+                        <div class="m-platform-card">
+                            <div class="plat-icon" style="background:rgba(124,108,247,0.15);"><span style="color:#7c6cf7;font-size:18px;font-weight:700;">M</span></div>
+                            <div class="plat-info"><div class="plat-name">Manual Entry</div><div class="plat-sub">3 entries this week</div></div>
+                            <div><div class="plat-amount" style="color:#2ecc71;">$550</div><div class="plat-amount-sub">this month</div></div>
+                            <span class="plat-arrow">&rsaquo;</span>
+                        </div>
+                    </div>
+
+                    <div class="m-desktop-cta">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#5c5977" stroke-width="1.5" style="height:16px;width:16px;flex-shrink:0;"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <span>Full tables &amp; reports</span>
+                        <span class="cta-link">View on desktop &rarr;</span>
+                    </div>
+
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spoke: Etsy -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Spoke — Etsy Summary</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero etsy">
+                        <div class="m-back-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                            Back
+                        </div>
+                        <h2 style="padding-top:4px;">Etsy</h2>
+                        <p>Last synced 12 min ago</p>
+                        <div class="m-hero-stats">
+                            <div class="m-hero-stat"><span class="num" style="color:#ffe0c2;">$1,847</span><span class="label">Revenue</span></div>
+                            <div class="m-hero-stat"><span class="num">$142</span><span class="label">Expenses</span></div>
+                            <div class="m-hero-stat"><span class="num" style="color:#fff;">$1,200</span><span class="label">Payout</span></div>
+                        </div>
+                    </div>
+                    <div class="m-cards">
+                        <div class="m-card"><div class="card-label">This Month</div><div class="card-value" style="color:#2ecc71;">$847</div><div class="card-change up">+18.2%</div></div>
+                        <div class="m-card"><div class="card-label">Fees Paid</div><div class="card-value" style="color:#e74c3c;">$55</div><div class="card-change down">6.5% rate</div></div>
+                        <div class="m-card"><div class="card-label">Avg. Sale</div><div class="card-value">$42.50</div><div class="card-change up">+$3.20</div></div>
+                        <div class="m-card"><div class="card-label">Orders</div><div class="card-value">20</div><div class="card-change up">+4 vs last mo.</div></div>
+                    </div>
+
+                    <div class="m-bigscreen-msg" style="padding:32px;">
+                        <div class="msg-icon" style="background:rgba(245,100,0,0.15);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#f56400" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
+                        <h3>Etsy details on desktop</h3>
+                        <p>Revenue tables, expense breakdowns, and payout history are designed for a larger screen.</p>
+                        <div class="msg-btn" style="background:#f56400;">Open on Desktop</div>
+                    </div>
+
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pros-cons">
+        <div class="pros"><h4>Strengths</h4><ul>
+            <li>Hub shows platform cards — tappable navigation to each spoke</li>
+            <li>Spoke shows platform-specific summary stats (Avg. Sale, Orders) before the desktop CTA</li>
+            <li>Platform-branded hero on spoke (Etsy orange) gives strong visual identity</li>
+            <li>More content than Dashboard+Tabs version — platform cards add navigable value</li>
+        </ul></div>
+        <div class="cons"><h4>Weaknesses</h4><ul>
+            <li>Navigating to a spoke just to see a desktop message feels like a dead end</li>
+            <li>"I tapped Etsy and all I got was 4 numbers and a button that doesn't help"</li>
+            <li>Two levels of dead-end — hub dead end AND spoke dead end</li>
+        </ul></div>
+    </div>
+
+    <div class="annotation">
+        <strong>Verdict:</strong> The platform nav cards on the hub are a nice touch — they give Hub &amp; Spoke a reason to exist on mobile. But the spoke pages feel hollow. Users navigate deeper expecting more detail and find less.
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     MOBILE C — KEYHOLE VIEW
+     ════════════════════════════════════════════════════ -->
+<div id="pattern-keyhole" class="pattern-section">
+    <div class="pattern-subtitle">Mobile Treatment C</div>
+    <div class="pattern-title">Keyhole View</div>
+    <div class="pattern-desc">
+        Purpose-built for both hub and spoke. The hub shows aggregate keyhole cards + platform nav. Each spoke shows platform-specific keyhole cards + a recent activity feed for that platform. No grids anywhere — just phone-native cards and lists.
+    </div>
+
+    <div class="phone-row">
+        <!-- Hub: Aggregate Keyhole -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Hub — Aggregate Keyhole</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero">
+                        <div class="m-hamburger"><span></span><span></span><span></span></div>
+                        <h2>Good morning, Robert</h2>
+                        <p>Here's how your side hustle is doing</p>
+                    </div>
+
+                    <div class="m-keyhole-cards">
+                        <!-- Revenue -->
+                        <div class="m-kh-card">
+                            <div class="kh-header">
+                                <span class="kh-title">Revenue</span>
+                                <span class="kh-badge">+12.3%</span>
+                            </div>
+                            <div class="kh-value" style="color:#2ecc71;">$4,283</div>
+                            <div class="kh-sub">$1,847 this month</div>
+                            <div class="m-mini-chart">
+                                <div class="m-mini-bar purple" style="height:45%;"></div>
+                                <div class="m-mini-bar purple" style="height:55%;"></div>
+                                <div class="m-mini-bar purple" style="height:40%;"></div>
+                                <div class="m-mini-bar purple" style="height:65%;"></div>
+                                <div class="m-mini-bar purple" style="height:50%;"></div>
+                                <div class="m-mini-bar purple" style="height:70%;"></div>
+                                <div class="m-mini-bar purple" style="height:60%;"></div>
+                                <div class="m-mini-bar purple" style="height:80%;"></div>
+                                <div class="m-mini-bar purple" style="height:75%;"></div>
+                                <div class="m-mini-bar purple" style="height:85%;"></div>
+                                <div class="m-mini-bar purple" style="height:90%;"></div>
+                                <div class="m-mini-bar purple" style="height:100%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Net / Expenses row -->
+                        <div style="display:flex;gap:10px;">
+                            <div class="m-kh-card" style="flex:1;">
+                                <div class="kh-header"><span class="kh-title">Net</span><span class="kh-badge">+13.7%</span></div>
+                                <div class="kh-value" style="font-size:22px;">$3,941</div>
+                            </div>
+                            <div class="m-kh-card" style="flex:1;">
+                                <div class="kh-header"><span class="kh-title">Expenses</span><span class="kh-badge down">+8.1%</span></div>
+                                <div class="kh-value" style="font-size:22px;color:#e74c3c;">$342</div>
+                            </div>
+                        </div>
+
+                        <!-- Platform Nav -->
+                        <div style="padding:4px 0 0;"><span style="color:#5c5977;font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Your Platforms</span></div>
+                        <div class="m-platform-card">
+                            <div class="plat-icon" style="background:rgba(245,100,0,0.15);"><span style="color:#f56400;font-size:18px;font-weight:700;">E</span></div>
+                            <div class="plat-info"><div class="plat-name">Etsy</div><div class="plat-sub">20 orders this month</div></div>
+                            <div><div class="plat-amount" style="color:#2ecc71;">$1,847</div><div class="plat-amount-sub">this month</div></div>
+                            <span class="plat-arrow">&rsaquo;</span>
+                        </div>
+                        <div class="m-platform-card">
+                            <div class="plat-icon" style="background:rgba(99,91,255,0.15);"><span style="color:#635bff;font-size:18px;font-weight:700;">S</span></div>
+                            <div class="plat-info"><div class="plat-name">Stripe</div><div class="plat-sub">14 transactions</div></div>
+                            <div><div class="plat-amount" style="color:#2ecc71;">$1,505</div><div class="plat-amount-sub">this month</div></div>
+                            <span class="plat-arrow">&rsaquo;</span>
+                        </div>
+                        <div class="m-platform-card">
+                            <div class="plat-icon" style="background:rgba(124,108,247,0.15);"><span style="color:#7c6cf7;font-size:18px;font-weight:700;">M</span></div>
+                            <div class="plat-info"><div class="plat-name">Manual Entry</div><div class="plat-sub">3 entries this week</div></div>
+                            <div><div class="plat-amount" style="color:#2ecc71;">$550</div><div class="plat-amount-sub">this month</div></div>
+                            <span class="plat-arrow">&rsaquo;</span>
+                        </div>
+                    </div>
+
+                    <div class="m-desktop-cta">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#5c5977" stroke-width="1.5" style="height:16px;width:16px;flex-shrink:0;"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <span>Full tables &amp; reports</span>
+                        <span class="cta-link">View on desktop &rarr;</span>
+                    </div>
+
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spoke: Etsy Keyhole -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Spoke — Etsy Keyhole</div>
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="m-hero etsy">
+                        <div class="m-back-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                            Back
+                        </div>
+                        <h2 style="padding-top:4px;">Etsy</h2>
+                        <p>Last synced 12 min ago</p>
+                        <div class="m-hero-stats">
+                            <div class="m-hero-stat"><span class="num" style="color:#ffe0c2;">$1,847</span><span class="label">Revenue</span></div>
+                            <div class="m-hero-stat"><span class="num">$142</span><span class="label">Expenses</span></div>
+                            <div class="m-hero-stat"><span class="num" style="color:#fff;">$1,200</span><span class="label">Payout</span></div>
+                        </div>
+                    </div>
+
+                    <div class="m-keyhole-cards">
+                        <!-- Revenue card with Etsy mini chart -->
+                        <div class="m-kh-card">
+                            <div class="kh-header">
+                                <span class="kh-title">Revenue</span>
+                                <span class="kh-badge">+18.2%</span>
+                            </div>
+                            <div class="kh-value" style="color:#2ecc71;">$1,847</div>
+                            <div class="kh-sub">$847 this month &middot; 20 orders</div>
+                            <div class="m-mini-chart">
+                                <div class="m-mini-bar etsy" style="height:30%;"></div>
+                                <div class="m-mini-bar etsy" style="height:50%;"></div>
+                                <div class="m-mini-bar etsy" style="height:35%;"></div>
+                                <div class="m-mini-bar etsy" style="height:60%;"></div>
+                                <div class="m-mini-bar etsy" style="height:45%;"></div>
+                                <div class="m-mini-bar etsy" style="height:75%;"></div>
+                                <div class="m-mini-bar etsy" style="height:55%;"></div>
+                                <div class="m-mini-bar etsy" style="height:85%;"></div>
+                                <div class="m-mini-bar etsy" style="height:70%;"></div>
+                                <div class="m-mini-bar etsy" style="height:80%;"></div>
+                                <div class="m-mini-bar etsy" style="height:95%;"></div>
+                                <div class="m-mini-bar etsy" style="height:100%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Expenses + Avg. Sale row -->
+                        <div style="display:flex;gap:10px;">
+                            <div class="m-kh-card" style="flex:1;">
+                                <div class="kh-header"><span class="kh-title">Expenses</span></div>
+                                <div class="kh-value" style="font-size:22px;color:#e74c3c;">$142</div>
+                                <div class="kh-sub">6.5% fee rate</div>
+                            </div>
+                            <div class="m-kh-card" style="flex:1;">
+                                <div class="kh-header"><span class="kh-title">Avg. Sale</span><span class="kh-badge">+$3.20</span></div>
+                                <div class="kh-value" style="font-size:22px;">$42.50</div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity heading -->
+                        <div style="padding:4px 0 0;"><span style="color:#5c5977;font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Recent Sales</span></div>
+
+                        <!-- Transaction cards -->
+                        <div class="txn-card">
+                            <div class="txn-header">
+                                <span class="txn-date">Mar 27</span>
+                            </div>
+                            <div class="txn-desc">Handmade Candle Set</div>
+                            <div class="txn-amounts"><span class="txn-gross">$34.99 gross &middot; $2.27 fees</span><span class="txn-net">$32.72</span></div>
+                        </div>
+                        <div class="txn-card">
+                            <div class="txn-header">
+                                <span class="txn-date">Mar 25</span>
+                            </div>
+                            <div class="txn-desc">Custom Pet Portrait</div>
+                            <div class="txn-amounts"><span class="txn-gross">$75.00 gross &middot; $4.88 fees</span><span class="txn-net">$70.12</span></div>
+                        </div>
+                        <div class="txn-card">
+                            <div class="txn-header">
+                                <span class="txn-date">Mar 24</span>
+                            </div>
+                            <div class="txn-desc">Knit Scarf Bundle</div>
+                            <div class="txn-amounts"><span class="txn-gross">$42.00 gross &middot; $2.73 fees</span><span class="txn-net">$39.27</span></div>
+                        </div>
+                        <div class="txn-card">
+                            <div class="txn-header">
+                                <span class="txn-date">Mar 22</span>
+                            </div>
+                            <div class="txn-desc">Vintage Print Set</div>
+                            <div class="txn-amounts"><span class="txn-gross">$28.00 gross &middot; $1.82 fees</span><span class="txn-net">$26.18</span></div>
+                        </div>
+                    </div>
+
+                    <div class="m-desktop-cta">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#5c5977" stroke-width="1.5" style="height:16px;width:16px;flex-shrink:0;"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <span>Full Etsy tables</span>
+                        <span class="cta-link">View on desktop &rarr;</span>
+                    </div>
+
+                    <div class="m-bottom-nav">
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                        <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pros-cons">
+        <div class="pros"><h4>Strengths</h4><ul>
+            <li>Hub &amp; Spoke shines here — tapping a platform reveals a richer, platform-specific keyhole</li>
+            <li>Spoke has context the Dashboard+Tabs version can't: Etsy-specific stats (Avg. Sale, Orders, fee rate)</li>
+            <li>Recent Sales feed on the spoke is platform-filtered — no "which platform?" confusion</li>
+            <li>Mini charts use platform brand colors (Etsy orange bars) — reinforces where you are</li>
+            <li>Navigating deeper actually rewards the user with more detail, not a dead end</li>
+            <li>Hub platform cards double as a quick health check — see all platforms' monthly numbers at a glance</li>
+        </ul></div>
+        <div class="cons"><h4>Weaknesses</h4><ul>
+            <li>Most development effort — hub keyhole + spoke keyhole per platform</li>
+            <li>No cross-platform recent activity feed (hub only shows summary, not transactions)</li>
+            <li>Spoke doesn't differentiate Revenue/Expenses/Payouts — just "Recent Sales"</li>
+        </ul></div>
+    </div>
+
+    <div class="annotation">
+        <strong>Key Insight:</strong> Hub &amp; Spoke + Keyhole is the strongest mobile combination. The spoke pages give Hub &amp; Spoke a reason to exist on phones — each platform gets its own branded, focused mobile view with platform-specific stats and a filtered activity feed. Dashboard+Tabs' keyhole can only show aggregate data; Hub &amp; Spoke's keyhole can show <em>platform-specific</em> data, which is exactly what "how's my Etsy doing?" users want on their phone.
+    </div>
+</div>
+
+<script>
+function showPattern(id) {
+    document.querySelectorAll('.pattern-section').forEach(function(s) { s.classList.remove('active'); });
+    document.querySelectorAll('.pattern-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.getElementById('pattern-' + id).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

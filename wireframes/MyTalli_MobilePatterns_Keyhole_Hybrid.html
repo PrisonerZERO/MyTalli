@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Mobile: Keyhole Hybrid</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #0f0f1a; color: #e8e6f0; }
+
+/* ── Header ── */
+.page-header { background: linear-gradient(135deg, #1a1a2e 0%, #242440 100%); border-bottom: 1px solid #2a2745; padding: 40px 48px 32px; }
+.page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.page-header h1 span { color: #a78bfa; }
+.page-header p { color: #a09cae; font-size: 15px; line-height: 1.6; max-width: 720px; }
+.page-header .tag { background: #2a2154; border-radius: 6px; color: #a78bfa; display: inline-block; font-size: 11px; font-weight: 600; margin-bottom: 12px; padding: 4px 10px; }
+
+/* ── Phone Frame ── */
+.phone-row { display: flex; gap: 48px; justify-content: center; flex-wrap: wrap; padding: 40px 48px 60px; }
+.phone-wrapper { display: flex; flex-direction: column; align-items: center; }
+.phone-label { color: #7a7790; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+.phone { background: #1a1a2e; border: 2px solid #2a2745; border-radius: 32px; height: 812px; overflow: hidden; position: relative; width: 375px; }
+.phone-notch { background: #0f0f1a; border-radius: 0 0 16px 16px; height: 28px; left: 50%; margin-left: -60px; position: absolute; top: 0; width: 120px; z-index: 10; }
+.phone-screen { display: flex; flex-direction: column; height: 100%; overflow-y: auto; padding-top: 28px; }
+
+/* ── Mobile Hero ── */
+.m-hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); flex-shrink: 0; padding: 20px 20px 16px 48px; position: relative; }
+.m-hero.etsy { background: linear-gradient(135deg, #f56400 0%, #ff8534 50%, #f56400 100%); }
+.m-hero.stripe { background: linear-gradient(135deg, #635bff 0%, #7b73ff 50%, #635bff 100%); }
+.m-hero.manual { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); }
+.m-hamburger { align-items: center; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; height: 32px; justify-content: center; left: 12px; position: absolute; top: 8px; width: 32px; }
+.m-hamburger span { background: #fff; border-radius: 1px; display: block; height: 2px; width: 16px; }
+.m-hamburger span:nth-child(2) { margin: 3px 0; }
+.m-back-btn { align-items: center; background: rgba(255,255,255,0.15); border-radius: 8px; color: #fff; display: flex; font-size: 11px; font-weight: 600; gap: 4px; left: 12px; padding: 6px 10px; position: absolute; top: 8px; }
+.m-back-btn svg { height: 14px; width: 14px; }
+.m-hero h2 { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.m-hero p { color: rgba(255,255,255,0.65); font-size: 11px; }
+
+/* ── Keyhole Cards ── */
+.m-section { padding: 12px 16px 0; }
+.m-section-label { color: #5c5977; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
+.m-kh-card { background: #242440; border: 1px solid #2a2745; border-radius: 12px; margin-bottom: 10px; padding: 16px; }
+.kh-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 10px; }
+.kh-title { color: #7a7790; font-size: 10px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+.kh-badge { background: #1a3a2a; border-radius: 6px; color: #2ecc71; font-size: 10px; font-weight: 600; padding: 3px 8px; }
+.kh-badge.down { background: #3a1a1e; color: #e74c3c; }
+.kh-badge.neutral { background: #2a2154; color: #a78bfa; }
+.kh-badge.warn { background: #2a2745; color: #f5c842; }
+.kh-value { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+.kh-sub { color: #5c5977; font-size: 11px; }
+.kh-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.kh-row .m-kh-card { flex: 1; margin-bottom: 0; }
+.kh-row .kh-value { font-size: 22px; }
+
+/* ── Mini Chart ── */
+.m-mini-chart { align-items: flex-end; display: flex; gap: 3px; height: 40px; margin-top: 10px; }
+.m-mini-bar { border-radius: 3px 3px 0 0; flex: 1; min-width: 0; }
+.m-mini-bar.purple { background: linear-gradient(to top, #6c5ce7, #8b5cf6); }
+.m-mini-bar.etsy { background: linear-gradient(to top, #f56400, #ff8534); }
+.m-mini-bar.stripe { background: linear-gradient(to top, #635bff, #7b73ff); }
+
+/* ── Platform Nav Cards ── */
+.m-platform-card { align-items: center; background: #242440; border: 1px solid #2a2745; border-radius: 12px; display: flex; gap: 14px; margin-bottom: 8px; padding: 14px 16px; }
+.plat-icon { align-items: center; border-radius: 10px; display: flex; flex-shrink: 0; height: 40px; justify-content: center; width: 40px; }
+.plat-info { flex: 1; }
+.plat-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.plat-sub { color: #7a7790; font-size: 10px; }
+.plat-amount { color: #2ecc71; font-size: 14px; font-weight: 700; text-align: right; }
+.plat-amount-sub { color: #7a7790; font-size: 9px; text-align: right; }
+.plat-arrow { color: #5c5977; font-size: 16px; margin-left: 4px; }
+
+/* ── Transaction Cards ── */
+.txn-card { background: #242440; border: 1px solid #2a2745; border-radius: 10px; margin-bottom: 8px; padding: 14px 16px; }
+.txn-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 6px; }
+.txn-platform { align-items: center; display: flex; gap: 8px; }
+.txn-platform .dot { border-radius: 50%; flex-shrink: 0; height: 8px; width: 8px; }
+.txn-platform span { color: #a09cae; font-size: 11px; }
+.txn-date { color: #5c5977; font-size: 10px; }
+.txn-desc { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.txn-amounts { display: flex; font-size: 12px; justify-content: space-between; }
+.txn-gross { color: #7a7790; }
+.txn-net { color: #2ecc71; font-weight: 600; }
+
+/* ── Desktop CTA ── */
+.m-desktop-cta { align-items: center; background: #1e1c30; border: 1px solid #2a2745; border-radius: 12px; display: flex; flex-direction: column; gap: 6px; margin: 8px 16px 16px; padding: 16px; text-align: center; }
+.m-desktop-cta .cta-icon { align-items: center; background: #2a2154; border-radius: 12px; display: flex; height: 40px; justify-content: center; margin-bottom: 4px; width: 40px; }
+.m-desktop-cta .cta-icon svg { height: 20px; width: 20px; }
+.m-desktop-cta .cta-title { color: #e8e6f0; font-size: 13px; font-weight: 600; }
+.m-desktop-cta .cta-sub { color: #5c5977; font-size: 11px; line-height: 1.5; }
+.m-desktop-cta.etsy .cta-icon { background: rgba(245,100,0,0.15); }
+.m-desktop-cta.etsy .cta-icon svg { stroke: #f56400; }
+
+/* ── Platform Breakdown Bars ── */
+.m-plat-bar-row { align-items: center; display: flex; gap: 10px; padding: 7px 0; }
+.m-plat-bar-row .bar-dot { border-radius: 50%; flex-shrink: 0; height: 8px; width: 8px; }
+.m-plat-bar-row .bar-name { color: #a09cae; flex: 0 0 60px; font-size: 11px; font-weight: 500; }
+.m-plat-bar-row .bar-wrap { background: #1e1c30; border-radius: 3px; flex: 1; height: 6px; overflow: hidden; }
+.m-plat-bar-row .bar-fill { border-radius: 3px; height: 100%; }
+.m-plat-bar-row .bar-amount { color: #e8e6f0; flex: 0 0 55px; font-size: 11px; font-weight: 600; text-align: right; }
+
+/* ── Bottom Nav ── */
+.m-bottom-nav { background: #1e1c30; border-top: 1px solid #2a2745; display: flex; flex-shrink: 0; margin-top: auto; padding: 8px 0 12px; }
+.m-bottom-nav-item { align-items: center; color: #5c5977; display: flex; flex: 1; flex-direction: column; font-size: 9px; font-weight: 500; gap: 4px; }
+.m-bottom-nav-item.active { color: #a78bfa; }
+.m-bottom-nav-item svg { height: 20px; width: 20px; }
+
+/* ── Annotation ── */
+.annotation-row { display: flex; gap: 24px; padding: 0 48px 60px; }
+.annotation { background: #362d6b; border: 1px solid #7c6cf7; border-radius: 8px; color: #e8e6f0; flex: 1; font-size: 11px; line-height: 1.5; padding: 14px 16px; }
+.annotation strong { color: #a78bfa; }
+.annotation h4 { color: #a78bfa; font-size: 12px; margin-bottom: 6px; }
+.annotation ul { margin-top: 6px; padding-left: 16px; }
+.annotation li { color: #a09cae; margin-bottom: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div class="page-header">
+    <div class="tag">Recommended Pattern</div>
+    <h1>Keyhole <span>Hybrid</span></h1>
+    <p>The best of Desktop Message + Keyhole View. Graphs and summary cards at the top, the 5 most recent records as phone-native cards, and a clear "details on desktop" boundary at the bottom. Hub &amp; Spoke navigation pattern.</p>
+</div>
+
+<!-- ════════════════════ PHONE WIREFRAMES ════════════════════ -->
+<div class="phone-row">
+
+    <!-- ──────────────────────────────────
+         HUB — AGGREGATE DASHBOARD
+         ────────────────────────────────── -->
+    <div class="phone-wrapper">
+        <div class="phone-label">Hub — Aggregate Dashboard</div>
+        <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+                <div class="m-hero">
+                    <div class="m-hamburger"><span></span><span></span><span></span></div>
+                    <h2>Good morning, Robert</h2>
+                    <p>Here's how your side hustle is doing</p>
+                </div>
+
+                <!-- ── Graphs / Summary ── -->
+                <div class="m-section">
+                    <div class="m-kh-card">
+                        <div class="kh-header">
+                            <span class="kh-title">Revenue</span>
+                            <span class="kh-badge">+12.3%</span>
+                        </div>
+                        <div class="kh-value" style="color:#2ecc71;">$4,283</div>
+                        <div class="kh-sub">$1,847 this month &middot; all platforms</div>
+                        <div class="m-mini-chart">
+                            <div class="m-mini-bar purple" style="height:45%;"></div>
+                            <div class="m-mini-bar purple" style="height:55%;"></div>
+                            <div class="m-mini-bar purple" style="height:40%;"></div>
+                            <div class="m-mini-bar purple" style="height:65%;"></div>
+                            <div class="m-mini-bar purple" style="height:50%;"></div>
+                            <div class="m-mini-bar purple" style="height:70%;"></div>
+                            <div class="m-mini-bar purple" style="height:60%;"></div>
+                            <div class="m-mini-bar purple" style="height:80%;"></div>
+                            <div class="m-mini-bar purple" style="height:75%;"></div>
+                            <div class="m-mini-bar purple" style="height:85%;"></div>
+                            <div class="m-mini-bar purple" style="height:90%;"></div>
+                            <div class="m-mini-bar purple" style="height:100%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="kh-row">
+                        <div class="m-kh-card">
+                            <div class="kh-header"><span class="kh-title">Net</span><span class="kh-badge">+13.7%</span></div>
+                            <div class="kh-value">$3,941</div>
+                        </div>
+                        <div class="m-kh-card">
+                            <div class="kh-header"><span class="kh-title">Expenses</span><span class="kh-badge down">+8.1%</span></div>
+                            <div class="kh-value" style="color:#e74c3c;">$342</div>
+                        </div>
+                    </div>
+
+                    <!-- Platform breakdown -->
+                    <div class="m-kh-card">
+                        <div class="kh-header">
+                            <span class="kh-title">By Platform</span>
+                            <span class="kh-badge neutral">3 connected</span>
+                        </div>
+                        <div class="m-plat-bar-row">
+                            <div class="bar-dot" style="background:#f56400;"></div>
+                            <span class="bar-name">Etsy</span>
+                            <div class="bar-wrap"><div class="bar-fill" style="width:52%;background:#f56400;"></div></div>
+                            <span class="bar-amount">$2,228</span>
+                        </div>
+                        <div class="m-plat-bar-row">
+                            <div class="bar-dot" style="background:#635bff;"></div>
+                            <span class="bar-name">Stripe</span>
+                            <div class="bar-wrap"><div class="bar-fill" style="width:35%;background:#635bff;"></div></div>
+                            <span class="bar-amount">$1,505</span>
+                        </div>
+                        <div class="m-plat-bar-row">
+                            <div class="bar-dot" style="background:#7c6cf7;"></div>
+                            <span class="bar-name">Manual</span>
+                            <div class="bar-wrap"><div class="bar-fill" style="width:13%;background:#7c6cf7;"></div></div>
+                            <span class="bar-amount">$550</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Your Platforms (tappable) ── -->
+                <div class="m-section">
+                    <div class="m-section-label">Your Platforms</div>
+                    <div class="m-platform-card">
+                        <div class="plat-icon" style="background:rgba(245,100,0,0.15);"><span style="color:#f56400;font-size:18px;font-weight:700;">E</span></div>
+                        <div class="plat-info"><div class="plat-name">Etsy</div><div class="plat-sub">20 orders this month</div></div>
+                        <div><div class="plat-amount">$2,228</div><div class="plat-amount-sub">all time</div></div>
+                        <span class="plat-arrow">&rsaquo;</span>
+                    </div>
+                    <div class="m-platform-card">
+                        <div class="plat-icon" style="background:rgba(99,91,255,0.15);"><span style="color:#635bff;font-size:18px;font-weight:700;">S</span></div>
+                        <div class="plat-info"><div class="plat-name">Stripe</div><div class="plat-sub">14 transactions</div></div>
+                        <div><div class="plat-amount">$1,505</div><div class="plat-amount-sub">all time</div></div>
+                        <span class="plat-arrow">&rsaquo;</span>
+                    </div>
+                    <div class="m-platform-card">
+                        <div class="plat-icon" style="background:rgba(124,108,247,0.15);"><span style="color:#7c6cf7;font-size:18px;font-weight:700;">M</span></div>
+                        <div class="plat-info"><div class="plat-name">Manual Entry</div><div class="plat-sub">3 entries this week</div></div>
+                        <div><div class="plat-amount">$550</div><div class="plat-amount-sub">all time</div></div>
+                        <span class="plat-arrow">&rsaquo;</span>
+                    </div>
+                </div>
+
+                <!-- ── Recent 5 (all platforms) ── -->
+                <div class="m-section">
+                    <div class="m-section-label">Recent Activity</div>
+                    <div class="txn-card">
+                        <div class="txn-header"><div class="txn-platform"><div class="dot" style="background:#635bff;"></div><span>Stripe</span></div><span class="txn-date">Mar 28</span></div>
+                        <div class="txn-desc">Pro Plan — Monthly</div>
+                        <div class="txn-amounts"><span class="txn-gross">$12.00 gross &middot; $0.65 fees</span><span class="txn-net">$11.35</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><div class="txn-platform"><div class="dot" style="background:#f56400;"></div><span>Etsy</span></div><span class="txn-date">Mar 27</span></div>
+                        <div class="txn-desc">Handmade Candle Set</div>
+                        <div class="txn-amounts"><span class="txn-gross">$34.99 gross &middot; $2.27 fees</span><span class="txn-net">$32.72</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><div class="txn-platform"><div class="dot" style="background:#7c6cf7;"></div><span>Manual</span></div><span class="txn-date">Mar 27</span></div>
+                        <div class="txn-desc">Freelance Logo Design</div>
+                        <div class="txn-amounts"><span class="txn-gross">$250.00 gross &middot; no fees</span><span class="txn-net">$250.00</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><div class="txn-platform"><div class="dot" style="background:#ff90e8;"></div><span>Gumroad</span></div><span class="txn-date">Mar 26</span></div>
+                        <div class="txn-desc">UI Kit Download</div>
+                        <div class="txn-amounts"><span class="txn-gross">$29.00 gross &middot; $2.90 fees</span><span class="txn-net">$26.10</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><div class="txn-platform"><div class="dot" style="background:#f56400;"></div><span>Etsy</span></div><span class="txn-date">Mar 25</span></div>
+                        <div class="txn-desc">Custom Pet Portrait</div>
+                        <div class="txn-amounts"><span class="txn-gross">$75.00 gross &middot; $4.88 fees</span><span class="txn-net">$70.12</span></div>
+                    </div>
+                </div>
+
+                <!-- ── Desktop CTA ── -->
+                <div class="m-desktop-cta">
+                    <div class="cta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                    <span class="cta-title">Full tables, charts &amp; reports</span>
+                    <span class="cta-sub">Open MyTalli on desktop for detailed grids, filtering, sorting, and export.</span>
+                </div>
+
+                <!-- ── Bottom Nav ── -->
+                <div class="m-bottom-nav">
+                    <div class="m-bottom-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ──────────────────────────────────
+         SPOKE — ETSY
+         ────────────────────────────────── -->
+    <div class="phone-wrapper">
+        <div class="phone-label">Spoke — Etsy</div>
+        <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+                <div class="m-hero etsy">
+                    <div class="m-back-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                        Back
+                    </div>
+                    <h2 style="padding-top:4px;">Etsy</h2>
+                    <p>Last synced 12 min ago</p>
+                </div>
+
+                <!-- ── Graphs / Summary ── -->
+                <div class="m-section">
+                    <div class="m-kh-card">
+                        <div class="kh-header">
+                            <span class="kh-title">Revenue</span>
+                            <span class="kh-badge">+18.2%</span>
+                        </div>
+                        <div class="kh-value" style="color:#2ecc71;">$2,228</div>
+                        <div class="kh-sub">$847 this month &middot; 20 orders</div>
+                        <div class="m-mini-chart">
+                            <div class="m-mini-bar etsy" style="height:30%;"></div>
+                            <div class="m-mini-bar etsy" style="height:50%;"></div>
+                            <div class="m-mini-bar etsy" style="height:35%;"></div>
+                            <div class="m-mini-bar etsy" style="height:60%;"></div>
+                            <div class="m-mini-bar etsy" style="height:45%;"></div>
+                            <div class="m-mini-bar etsy" style="height:75%;"></div>
+                            <div class="m-mini-bar etsy" style="height:55%;"></div>
+                            <div class="m-mini-bar etsy" style="height:85%;"></div>
+                            <div class="m-mini-bar etsy" style="height:70%;"></div>
+                            <div class="m-mini-bar etsy" style="height:80%;"></div>
+                            <div class="m-mini-bar etsy" style="height:95%;"></div>
+                            <div class="m-mini-bar etsy" style="height:100%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="kh-row">
+                        <div class="m-kh-card">
+                            <div class="kh-header"><span class="kh-title">Expenses</span><span class="kh-badge down">$142</span></div>
+                            <div class="kh-value" style="color:#e74c3c;">6.5%</div>
+                            <div class="kh-sub">fee rate</div>
+                        </div>
+                        <div class="m-kh-card">
+                            <div class="kh-header"><span class="kh-title">Avg. Sale</span><span class="kh-badge">+$3.20</span></div>
+                            <div class="kh-value">$42.50</div>
+                        </div>
+                    </div>
+
+                    <div class="kh-row">
+                        <div class="m-kh-card">
+                            <div class="kh-header"><span class="kh-title">Last Payout</span></div>
+                            <div class="kh-value" style="font-size:20px;">$1,200</div>
+                            <div class="kh-sub">Mar 15 &middot; Paid</div>
+                        </div>
+                        <div class="m-kh-card">
+                            <div class="kh-header"><span class="kh-title">Pending</span><span class="kh-badge warn">incoming</span></div>
+                            <div class="kh-value" style="font-size:20px;color:#f5c842;">$320</div>
+                            <div class="kh-sub">Est. Mar 31</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Recent 5 (Etsy only) ── -->
+                <div class="m-section">
+                    <div class="m-section-label">Recent Sales</div>
+                    <div class="txn-card">
+                        <div class="txn-header"><span class="txn-date">Mar 27</span></div>
+                        <div class="txn-desc">Handmade Candle Set</div>
+                        <div class="txn-amounts"><span class="txn-gross">$34.99 gross &middot; $2.27 fees</span><span class="txn-net">$32.72</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><span class="txn-date">Mar 25</span></div>
+                        <div class="txn-desc">Custom Pet Portrait</div>
+                        <div class="txn-amounts"><span class="txn-gross">$75.00 gross &middot; $4.88 fees</span><span class="txn-net">$70.12</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><span class="txn-date">Mar 24</span></div>
+                        <div class="txn-desc">Knit Scarf Bundle</div>
+                        <div class="txn-amounts"><span class="txn-gross">$42.00 gross &middot; $2.73 fees</span><span class="txn-net">$39.27</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><span class="txn-date">Mar 22</span></div>
+                        <div class="txn-desc">Vintage Print Set</div>
+                        <div class="txn-amounts"><span class="txn-gross">$28.00 gross &middot; $1.82 fees</span><span class="txn-net">$26.18</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><span class="txn-date">Mar 20</span></div>
+                        <div class="txn-desc">Custom Wedding Sign</div>
+                        <div class="txn-amounts"><span class="txn-gross">$120.00 gross &middot; $7.80 fees</span><span class="txn-net">$112.20</span></div>
+                    </div>
+                </div>
+
+                <!-- ── Desktop CTA ── -->
+                <div class="m-desktop-cta etsy">
+                    <div class="cta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f56400" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                    <span class="cta-title">Full Etsy details on desktop</span>
+                    <span class="cta-sub">Revenue tables, expense breakdowns, payout history, and listing-level data.</span>
+                </div>
+
+                <!-- ── Bottom Nav ── -->
+                <div class="m-bottom-nav">
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ──────────────────────────────────
+         SPOKE — STRIPE
+         ────────────────────────────────── -->
+    <div class="phone-wrapper">
+        <div class="phone-label">Spoke — Stripe</div>
+        <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+                <div class="m-hero stripe">
+                    <div class="m-back-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                        Back
+                    </div>
+                    <h2 style="padding-top:4px;">Stripe</h2>
+                    <p>Last synced 8 min ago</p>
+                </div>
+
+                <!-- ── Graphs / Summary ── -->
+                <div class="m-section">
+                    <div class="m-kh-card">
+                        <div class="kh-header">
+                            <span class="kh-title">Revenue</span>
+                            <span class="kh-badge">+9.4%</span>
+                        </div>
+                        <div class="kh-value" style="color:#2ecc71;">$1,505</div>
+                        <div class="kh-sub">$680 this month &middot; 14 transactions</div>
+                        <div class="m-mini-chart">
+                            <div class="m-mini-bar stripe" style="height:55%;"></div>
+                            <div class="m-mini-bar stripe" style="height:40%;"></div>
+                            <div class="m-mini-bar stripe" style="height:60%;"></div>
+                            <div class="m-mini-bar stripe" style="height:50%;"></div>
+                            <div class="m-mini-bar stripe" style="height:70%;"></div>
+                            <div class="m-mini-bar stripe" style="height:65%;"></div>
+                            <div class="m-mini-bar stripe" style="height:75%;"></div>
+                            <div class="m-mini-bar stripe" style="height:80%;"></div>
+                            <div class="m-mini-bar stripe" style="height:70%;"></div>
+                            <div class="m-mini-bar stripe" style="height:90%;"></div>
+                            <div class="m-mini-bar stripe" style="height:85%;"></div>
+                            <div class="m-mini-bar stripe" style="height:100%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="kh-row">
+                        <div class="m-kh-card">
+                            <div class="kh-header"><span class="kh-title">Fees</span></div>
+                            <div class="kh-value" style="color:#e74c3c;">$44</div>
+                            <div class="kh-sub">2.9% + 30c avg.</div>
+                        </div>
+                        <div class="m-kh-card">
+                            <div class="kh-header"><span class="kh-title">Avg. Txn</span><span class="kh-badge">+$8.50</span></div>
+                            <div class="kh-value">$107</div>
+                        </div>
+                    </div>
+
+                    <div class="kh-row">
+                        <div class="m-kh-card">
+                            <div class="kh-header"><span class="kh-title">Last Payout</span></div>
+                            <div class="kh-value" style="font-size:20px;">$890</div>
+                            <div class="kh-sub">Mar 22 &middot; Paid</div>
+                        </div>
+                        <div class="m-kh-card">
+                            <div class="kh-header"><span class="kh-title">Pending</span><span class="kh-badge warn">in transit</span></div>
+                            <div class="kh-value" style="font-size:20px;color:#f5c842;">$300</div>
+                            <div class="kh-sub">Est. Apr 1</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Recent 5 (Stripe only) ── -->
+                <div class="m-section">
+                    <div class="m-section-label">Recent Transactions</div>
+                    <div class="txn-card">
+                        <div class="txn-header"><span class="txn-date">Mar 28</span></div>
+                        <div class="txn-desc">Pro Plan — Monthly</div>
+                        <div class="txn-amounts"><span class="txn-gross">$12.00 gross &middot; $0.65 fees</span><span class="txn-net">$11.35</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><span class="txn-date">Mar 26</span></div>
+                        <div class="txn-desc">Digital Template Pack</div>
+                        <div class="txn-amounts"><span class="txn-gross">$19.00 gross &middot; $0.85 fees</span><span class="txn-net">$18.15</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><span class="txn-date">Mar 24</span></div>
+                        <div class="txn-desc">Consulting Session</div>
+                        <div class="txn-amounts"><span class="txn-gross">$150.00 gross &middot; $4.65 fees</span><span class="txn-net">$145.35</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><span class="txn-date">Mar 21</span></div>
+                        <div class="txn-desc">Course Access — Lifetime</div>
+                        <div class="txn-amounts"><span class="txn-gross">$299.00 gross &middot; $8.97 fees</span><span class="txn-net">$290.03</span></div>
+                    </div>
+                    <div class="txn-card">
+                        <div class="txn-header"><span class="txn-date">Mar 19</span></div>
+                        <div class="txn-desc">Logo Design Package</div>
+                        <div class="txn-amounts"><span class="txn-gross">$200.00 gross &middot; $6.10 fees</span><span class="txn-net">$193.90</span></div>
+                    </div>
+                </div>
+
+                <!-- ── Desktop CTA ── -->
+                <div class="m-desktop-cta">
+                    <div class="cta-icon" style="background:rgba(99,91,255,0.15);"><svg viewBox="0 0 24 24" fill="none" stroke="#635bff" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                    <span class="cta-title">Full Stripe details on desktop</span>
+                    <span class="cta-sub">Payment methods, balance transactions, dispute tracking, and payout schedules.</span>
+                </div>
+
+                <!-- ── Bottom Nav ── -->
+                <div class="m-bottom-nav">
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Goals</div>
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Suggest</div>
+                    <div class="m-bottom-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════ ANNOTATIONS ════════════════════ -->
+<div class="annotation-row">
+    <div class="annotation">
+        <h4>The Formula</h4>
+        <ul>
+            <li>Summary cards with mini charts (the "how am I doing?" answer)</li>
+            <li>Platform-specific stats on spokes (Avg. Sale, fee rate, payout status)</li>
+            <li>5 most recent records as phone-native cards (the "what happened?" answer)</li>
+            <li>Clear desktop CTA at the bottom (the honest boundary)</li>
+        </ul>
+    </div>
+    <div class="annotation">
+        <h4>Hub vs Spoke Differences</h4>
+        <ul>
+            <li><strong>Hub</strong> shows platform breakdown bars + platform nav cards + cross-platform recent activity (with platform dots)</li>
+            <li><strong>Spoke</strong> shows platform-specific stats (avg. sale, fee rate, payout info) + filtered recent activity (no platform dots needed — you already know where you are)</li>
+            <li><strong>Both</strong> have the same structure: graphs &rarr; 5 cards &rarr; desktop CTA</li>
+        </ul>
+    </div>
+    <div class="annotation">
+        <h4>Why This Works</h4>
+        <ul>
+            <li>The 5-card cap sets a clear expectation — this isn't a paginated list</li>
+            <li>Each spoke feels distinct (Etsy orange charts, Stripe purple charts, platform-specific stat labels)</li>
+            <li>Scrolls vertically only — no horizontal surprises</li>
+            <li>Desktop CTA is helpful, not blocking — you've already seen useful data above it</li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>
