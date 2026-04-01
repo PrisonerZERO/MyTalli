@@ -15,6 +15,7 @@ public class GoalsViewModel : ComponentBase
 {
 	#region <Variables>
 
+	private List<MODELS.Revenue> _cachedRevenues = [];
 	private long? _userId;
 
 	[CascadingParameter]
@@ -58,6 +59,24 @@ public class GoalsViewModel : ComponentBase
 	public DateTime FormStartDate { get; set; } = DateTime.Today;
 
 	public decimal FormTargetAmount { get; set; }
+
+	public decimal FormMatchingRevenue
+	{
+		get
+		{
+			var matching = _cachedRevenues.Where(r => r.TransactionDate >= FormStartDate);
+
+			if (FormEndDate.HasValue)
+				matching = matching.Where(r => r.TransactionDate <= FormEndDate.Value);
+
+			if (!string.IsNullOrEmpty(FormPlatform))
+				matching = matching.Where(r => r.Platform == FormPlatform);
+
+			return matching.Sum(r => r.NetAmount);
+		}
+	}
+
+	public bool FormHasMatchingRevenue => FormMatchingRevenue > 0;
 
 	public List<GoalItem> Goals { get; private set; } = [];
 
@@ -122,9 +141,10 @@ public class GoalsViewModel : ComponentBase
 
 		if (HasModuleAccess)
 		{
-			// Load available platforms from revenue data
+			// Load and cache revenue data
 			var allRevenues = await RevenueAdapter.FindAsync(r => r.UserId == userId);
-			AvailablePlatforms = allRevenues
+			_cachedRevenues = allRevenues.ToList();
+			AvailablePlatforms = _cachedRevenues
 				.Select(r => r.Platform)
 				.Where(p => !string.IsNullOrEmpty(p))
 				.Distinct()
@@ -278,8 +298,10 @@ public class GoalsViewModel : ComponentBase
 	private async Task LoadGoalsAsync()
 	{
 		var goals = await GoalAdapter.FindAsync(g => g.UserId == _userId!.Value);
+
+		// Refresh cached revenues
 		var allRevenues = await RevenueAdapter.FindAsync(r => r.UserId == _userId!.Value);
-		var revenueList = allRevenues.ToList();
+		_cachedRevenues = allRevenues.ToList();
 
 		var goalTypeLookup = GoalTypes.ToDictionary(gt => gt.Id, gt => gt.Name);
 		var today = DateTime.Today;
@@ -287,7 +309,7 @@ public class GoalsViewModel : ComponentBase
 		Goals = goals.Select(goal =>
 		{
 			// Compute earned from revenue
-			var matchingRevenues = revenueList
+			var matchingRevenues = _cachedRevenues
 				.Where(r => r.TransactionDate >= goal.StartDate);
 
 			if (goal.EndDate.HasValue)

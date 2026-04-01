@@ -297,11 +297,11 @@ public class DashboardViewModel : ComponentBase
 	{
 		var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 		var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+		var today = DateTime.Today;
 
-		// Find active monthly revenue target (GoalTypeId = 1) covering this month
+		// Find any active goal covering this month
 		var goals = await GoalAdapter.FindAsync(g =>
 			g.UserId == _userId!.Value &&
-			g.GoalTypeId == 1 &&
 			g.StartDate <= monthEnd &&
 			(g.EndDate == null || g.EndDate >= monthStart));
 
@@ -319,17 +319,31 @@ public class DashboardViewModel : ComponentBase
 			return;
 		}
 
+		// Compute earned from revenue using the goal's date range + platform filter
+		var allRevenues = await RevenueAdapter.FindAsync(r => r.UserId == _userId!.Value);
+		var matchingRevenues = allRevenues.Where(r => r.TransactionDate >= goal.StartDate);
+
+		if (goal.EndDate.HasValue)
+			matchingRevenues = matchingRevenues.Where(r => r.TransactionDate <= goal.EndDate.Value);
+
+		if (!string.IsNullOrEmpty(goal.Platform))
+			matchingRevenues = matchingRevenues.Where(r => r.Platform == goal.Platform);
+
+		var earned = matchingRevenues.Sum(r => r.NetAmount);
+
 		HasGoal = true;
 		GoalTargetAmount = goal.TargetAmount;
-		GoalCurrentAmount = ThisMonthRevenue;
+		GoalCurrentAmount = earned;
 		GoalPercentage = GoalTargetAmount > 0 ? Math.Min(100, (int)(GoalCurrentAmount / GoalTargetAmount * 100)) : 0;
 		MonthlyGoalPercentage = GoalPercentage;
-		DaysRemaining = Math.Max(0, (monthEnd - DateTime.Today).Days);
+
+		var effectiveEnd = goal.EndDate ?? monthEnd;
+		DaysRemaining = Math.Max(0, (effectiveEnd - today).Days);
 
 		// On track = projected pace meets target
-		var daysElapsed = Math.Max(1, (DateTime.Today - monthStart).Days + 1);
-		var daysInMonth = DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month);
-		var projectedAmount = GoalCurrentAmount / daysElapsed * daysInMonth;
+		var daysElapsed = Math.Max(1, (today - goal.StartDate).Days + 1);
+		var totalDays = Math.Max(1, (effectiveEnd - goal.StartDate).Days + 1);
+		var projectedAmount = GoalCurrentAmount / daysElapsed * totalDays;
 		GoalOnTrack = projectedAmount >= GoalTargetAmount;
 	}
 
