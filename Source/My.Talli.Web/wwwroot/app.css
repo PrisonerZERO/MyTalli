@@ -22,7 +22,7 @@ html, body { -webkit-font-smoothing: antialiased; color: var(--text-primary); fo
 :focus-visible { outline: 3px solid var(--purple-primary); outline-offset: 2px; }
 
 /* Hero (shared across all page heroes) */
-.hero { position: relative; }
+.hero { position: relative; z-index: 10; }
 .hero-bg { height: calc(100% + 60px); left: 0; overflow: hidden; pointer-events: none; position: absolute; right: 0; top: 0; }
 .hero-bg svg { display: block; height: 100%; min-height: 280px; width: 100%; }
 .hero-content { position: relative; z-index: 2; }
