@@ -1,5 +1,5 @@
 /* Hero */
-.manual-hero { margin: -32px -40px 10px; padding: 24px 40px 40px; }
+.manual-hero { margin: -32px -40px 0; padding: 24px 40px 120px; }
 .manual-hero .deco-circle-1 { height: 220px; right: 8%; top: -60px; width: 220px; }
 .manual-hero .deco-circle-2 { height: 160px; left: 20%; top: 80px; width: 160px; }
 .manual-hero .deco-circle-3 { bottom: 20px; height: 180px; right: 30%; width: 180px; }
@@ -145,9 +145,49 @@
 .manual-page-btn:disabled { color: var(--text-disabled); cursor: default; }
 .manual-page-btn svg { height: 16px; width: 16px; }
 
+/* Overview tab */
+.manual-overview { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+.overview-cards { display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); }
+.overview-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.overview-card-label { color: var(--text-muted); font-size: 12px; font-weight: 600; letter-spacing: 0.3px; margin-bottom: 6px; text-transform: uppercase; }
+.overview-card-value { font-size: 24px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.overview-card-value.revenue { color: var(--success); }
+.overview-card-value.expense { color: var(--danger); }
+.overview-card-value.payout { color: var(--purple-primary); }
+.overview-card-sub { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+.overview-section-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; }
+.overview-section-card h3 { color: var(--text-primary); font-size: 16px; font-weight: 700; margin: 0 0 16px; }
+.overview-bar-row { align-items: center; display: flex; gap: 12px; margin-bottom: 12px; }
+.overview-bar-row:last-child { margin-bottom: 0; }
+.overview-bar-row .manual-cat-tag { min-width: 100px; text-align: center; }
+.overview-bar-track { background: var(--border-divider); border-radius: 4px; flex: 1; height: 8px; }
+.overview-bar-fill { background: var(--purple-primary); border-radius: 4px; height: 100%; transition: width 0.3s ease; }
+.overview-bar-amount { color: var(--text-primary); font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600; min-width: 60px; text-align: right; }
+.overview-bar-pct { color: var(--text-muted); font-size: 12px; min-width: 36px; text-align: right; }
+
+/* Overview recent activity table */
+.overview-activity-table { border-collapse: collapse; width: 100%; }
+.overview-activity-table th { border-bottom: 2px solid var(--border); color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; padding: 8px 12px; text-align: left; text-transform: uppercase; }
+.overview-th-right { text-align: right !important; }
+.overview-activity-table td { border-bottom: 1px solid var(--border-divider); color: var(--text-secondary); font-size: 13px; padding: 10px 12px; }
+.overview-td-date { color: var(--text-muted); white-space: nowrap; }
+.overview-td-amount { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.overview-td-amount.revenue { color: var(--success); font-weight: 600; }
+.overview-td-amount.expense { color: var(--danger); font-weight: 600; }
+
+/* Payout status badges */
+.payout-status { border-radius: 20px; font-size: 11px; font-weight: 600; padding: 3px 12px; white-space: nowrap; }
+.payout-paid { background: var(--success-bg); color: var(--success); }
+.payout-transit { background: var(--warning-bg); color: var(--warning-icon); }
+.payout-pending { background: var(--purple-soft); color: var(--purple-primary); }
+.payout-failed { background: var(--danger-bg); color: var(--danger); }
+.payout-cancelled { background: var(--cat-other-bg); color: var(--cat-other-color); }
+
 /* Responsive */
+@media (max-width: 1024px) { .overview-cards { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 640px) {
     .manual-hero { margin: -24px -20px 24px; padding: 20px 20px 100px; }
     .manual-pagination { flex-direction: column; gap: 10px; }
     .manual-table-scroll { overflow-x: auto; }
+    .overview-cards { grid-template-columns: 1fr; }
 }

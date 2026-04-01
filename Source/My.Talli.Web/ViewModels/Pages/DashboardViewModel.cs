@@ -33,6 +33,8 @@ public class DashboardViewModel : ComponentBase
 
     public string ActivePeriod { get; private set; } = "30D";
 
+    public string ActiveTab { get; private set; } = "overview";
+
     public string ChartCurrentAreaPath { get; private set; } = string.Empty;
 
     public string ChartCurrentLinePath { get; private set; } = string.Empty;
@@ -46,6 +48,8 @@ public class DashboardViewModel : ComponentBase
     public double CircleStrokeDashoffset => CircleStrokeDasharray * (1 - GoalPercentage / 100.0);
 
     public int DaysRemaining { get; private set; } = 12;
+
+    public List<ExpenseItem> Expenses { get; private set; } = [];
 
     public decimal GoalCurrentAmount { get; private set; } = 1847m;
 
@@ -64,6 +68,10 @@ public class DashboardViewModel : ComponentBase
     public bool ShowKnownIssue { get; private set; }
 
     public int MonthlyGoalPercentage { get; private set; } = 68;
+
+    public string PageTitle => ActiveTab == "overview" ? "Dashboard" : $"Dashboard — {ActiveTab[0].ToString().ToUpper()}{ActiveTab[1..]}";
+
+    public List<PayoutItem> Payouts { get; private set; } = [];
 
     public List<string> Periods { get; } = ["7D", "30D", "90D", "12M"];
 
@@ -106,6 +114,11 @@ public class DashboardViewModel : ComponentBase
         StateHasChanged();
     }
 
+    public void SelectTab(string tab)
+    {
+        ActiveTab = tab;
+    }
+
     private void LoadKnownIssue()
     {
         var settings = KnownIssueOptions.Value;
@@ -146,6 +159,8 @@ public class DashboardViewModel : ComponentBase
         ChartPreviousAreaPath = ChartPreviousLinePath + " L796,200 L40,200 Z";
         Platforms = DashboardDataset.GetPlatforms();
         RecentTransactions = DashboardDataset.GetRecentTransactions();
+        Expenses = ExpenseDataset.GetDashboardExpenses();
+        Payouts = PayoutDataset.GetDashboardPayouts();
     }
 
 

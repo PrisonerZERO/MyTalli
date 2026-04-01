@@ -2,7 +2,7 @@
 @inherits My.Talli.Web.ViewModels.Pages.ManualEntryViewModel
 @rendermode InteractiveServer
 
-<PageTitle>Manual Entry — MyTalli</PageTitle>
+<PageTitle>@PageTitle — MyTalli</PageTitle>
 
 <!-- Swoosh hero -->
 <section class="hero manual-hero" aria-label="Manual entry overview">
@@ -53,6 +53,14 @@
     </div>
 </section>
 
+<!-- Spoke tabs -->
+<nav class="spoke-tabs" role="tablist" aria-label="Manual entry sections">
+    <button class="spoke-tab @(ActiveTab == "overview" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "overview")" @onclick='() => SelectTab("overview")'>Overview</button>
+    <button class="spoke-tab @(ActiveTab == "revenue" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "revenue")" @onclick='() => SelectTab("revenue")'>Revenue</button>
+    <button class="spoke-tab @(ActiveTab == "expenses" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "expenses")" @onclick='() => SelectTab("expenses")'>Expenses</button>
+    <button class="spoke-tab @(ActiveTab == "payouts" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "payouts")" @onclick='() => SelectTab("payouts")'>Payouts</button>
+</nav>
+
 @if (IsSampleData)
 {
     <!-- Sample data banner -->
@@ -67,8 +75,87 @@
     </div>
 }
 
-<!-- Entry grid -->
-    <div class="manual-table-wrap animate-in delay-2">
+@* ── OVERVIEW TAB ── *@
+@if (ActiveTab == "overview")
+{
+    <div class="manual-overview animate-in delay-2" role="tabpanel" aria-label="Overview">
+        <div class="overview-cards">
+            <div class="overview-card">
+                <div class="overview-card-label">Total Revenue</div>
+                <div class="overview-card-value revenue">@TotalGross.ToString("C0")</div>
+                <div class="overview-card-sub">@TotalEntries entries</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-card-label">Total Expenses</div>
+                <div class="overview-card-value expense">@TotalExpenses.ToString("C0")</div>
+                <div class="overview-card-sub">@Expenses.Count items</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-card-label">Net Profit</div>
+                <div class="overview-card-value @(TotalNetProfit >= 0 ? "revenue" : "expense")">@TotalNetProfit.ToString("C0")</div>
+                <div class="overview-card-sub">revenue minus expenses</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-card-label">Total Payouts</div>
+                <div class="overview-card-value payout">@TotalPayouts.ToString("C0")</div>
+                <div class="overview-card-sub">@Payouts.Count disbursements</div>
+            </div>
+        </div>
+
+        <!-- Top categories breakdown -->
+        <div class="overview-section-card">
+            <h3>Revenue by Category</h3>
+            @foreach (var group in Entries.GroupBy(e => e.Category).OrderByDescending(g => g.Sum(e => e.GrossAmount)).Take(5))
+            {
+                var pct = TotalGross > 0 ? (int)(group.Sum(e => e.GrossAmount) / TotalGross * 100) : 0;
+                <div class="overview-bar-row">
+                    <span class="manual-cat-tag @group.First().CategoryCss">@group.Key</span>
+                    <div class="overview-bar-track">
+                        <div class="overview-bar-fill" style="width:@(pct)%"></div>
+                    </div>
+                    <span class="overview-bar-amount">@group.Sum(e => e.GrossAmount).ToString("C0")</span>
+                    <span class="overview-bar-pct">@(pct)%</span>
+                </div>
+            }
+        </div>
+
+        <!-- Recent activity -->
+        <div class="overview-section-card">
+            <h3>Recent Activity</h3>
+            <table class="overview-activity-table">
+                <thead>
+                    <tr><th>Date</th><th>Description</th><th>Type</th><th class="overview-th-right">Amount</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Entries.OrderByDescending(e => e.TransactionDate).Take(5))
+                    {
+                        <tr>
+                            <td class="overview-td-date">@entry.TransactionDateLabel</td>
+                            <td>@entry.Description</td>
+                            <td><span class="manual-cat-tag @entry.CategoryCss">@entry.Category</span></td>
+                            <td class="overview-td-amount revenue">@entry.NetAmount.ToString("C2")</td>
+                        </tr>
+                    }
+                    @foreach (var expense in Expenses.OrderByDescending(e => e.ExpenseDate).Take(3))
+                    {
+                        <tr>
+                            <td class="overview-td-date">@expense.ExpenseDateLabel</td>
+                            <td>@expense.Description</td>
+                            <td><span class="manual-cat-tag @expense.CategoryCss">@expense.Category</span></td>
+                            <td class="overview-td-amount expense">-@expense.Amount.ToString("C2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@* ── REVENUE TAB ── *@
+@if (ActiveTab == "revenue")
+{
+    <!-- Entry grid -->
+    <div class="manual-table-wrap animate-in delay-2" role="tabpanel" aria-label="Revenue">
         <div class="manual-table-scroll">
             <table class="manual-table @DensityCss" aria-label="Manual revenue entries">
                 <thead>
@@ -252,6 +339,65 @@
         </div>
         }
     </div>
+}
+
+@* ── EXPENSES TAB ── *@
+@if (ActiveTab == "expenses")
+{
+    <div class="manual-table-wrap animate-in delay-2" role="tabpanel" aria-label="Expenses">
+        <div class="manual-table-scroll">
+            <table class="manual-table @DensityCss" aria-label="Manual expenses">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th class="manual-th-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var expense in Expenses.OrderByDescending(e => e.ExpenseDate))
+                    {
+                        <tr>
+                            <td class="manual-td-date">@expense.ExpenseDateLabel</td>
+                            <td class="manual-td-desc">@expense.Description</td>
+                            <td><span class="manual-cat-tag @expense.CategoryCss">@expense.Category</span></td>
+                            <td class="manual-td-money fee">-@expense.Amount.ToString("C2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@* ── PAYOUTS TAB ── *@
+@if (ActiveTab == "payouts")
+{
+    <div class="manual-table-wrap animate-in delay-2" role="tabpanel" aria-label="Payouts">
+        <div class="manual-table-scroll">
+            <table class="manual-table @DensityCss" aria-label="Manual payouts">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th class="manual-th-right">Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var payout in Payouts.OrderByDescending(p => p.PayoutDate))
+                    {
+                        <tr>
+                            <td class="manual-td-date">@payout.PayoutDateLabel</td>
+                            <td class="manual-td-money net">@payout.Amount.ToString("C2")</td>
+                            <td><span class="payout-status @payout.StatusCss">@payout.Status</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
 
 <!-- Delete confirmation -->
 <ConfirmDialog Visible="DeletingId.HasValue" ConfirmStyle="danger" OnConfirm="ConfirmDeleteAsync" OnCancel="CancelDelete">

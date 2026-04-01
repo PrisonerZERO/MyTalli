@@ -44,6 +44,8 @@ public class ManualEntryViewModel : ComponentBase
 
 	#region <Properties>
 
+	public string ActiveTab { get; private set; } = "revenue";
+
 	public List<string> Categories { get; private set; } =
 	[
 		"Sale",
@@ -82,6 +84,8 @@ public class ManualEntryViewModel : ComponentBase
 
 	public List<ManualEntryItem> Entries { get; private set; } = [];
 
+	public List<ExpenseItem> Expenses { get; private set; } = [];
+
 	public bool HasModuleAccess { get; private set; }
 
 	public bool IsSampleData { get; private set; }
@@ -103,6 +107,8 @@ public class ManualEntryViewModel : ComponentBase
 
 	public decimal NewUnitPrice { get; set; }
 
+	public string PageTitle => ActiveTab == "revenue" ? "Manual Entry" : $"Manual Entry — {ActiveTab[0].ToString().ToUpper()}{ActiveTab[1..]}";
+
 	public List<ManualEntryItem> PagedEntries => GetSortedEntries()
 		.Skip((CurrentPage - 1) * PageSize)
 		.Take(PageSize)
@@ -112,6 +118,8 @@ public class ManualEntryViewModel : ComponentBase
 
 	public int[] PageSizeOptions { get; } = [10, 25, 50];
 
+	public List<PayoutItem> Payouts { get; private set; } = [];
+
 	public bool ShowEditNotes { get; private set; }
 
 	public string SortColumn { get; private set; } = "TransactionDate";
@@ -120,9 +128,15 @@ public class ManualEntryViewModel : ComponentBase
 
 	public int TotalEntries => Entries.Count;
 
+	public decimal TotalExpenses => Expenses.Sum(e => e.Amount);
+
 	public decimal TotalGross => Entries.Sum(e => e.GrossAmount);
 
 	public decimal TotalNet => Entries.Sum(e => e.NetAmount);
+
+	public decimal TotalNetProfit => TotalNet - TotalExpenses;
+
+	public decimal TotalPayouts => Payouts.Sum(p => p.Amount);
 
 	public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)Entries.Count / PageSize));
 
@@ -181,6 +195,10 @@ public class ManualEntryViewModel : ComponentBase
 			IsSampleData = true;
 			Entries = ManualEntryDataset.GetEntries();
 		}
+
+		// Expenses and Payouts always sample for now
+		Expenses = ExpenseDataset.GetManualExpenses();
+		Payouts = PayoutDataset.GetManualPayouts();
 	}
 
 	#endregion
@@ -305,6 +323,11 @@ public class ManualEntryViewModel : ComponentBase
 		EditingId = null;
 		ShowEditNotes = false;
 		await LoadEntriesAsync();
+	}
+
+	public void SelectTab(string tab)
+	{
+		ActiveTab = tab;
 	}
 
 	public async Task SetDensity(string density)
