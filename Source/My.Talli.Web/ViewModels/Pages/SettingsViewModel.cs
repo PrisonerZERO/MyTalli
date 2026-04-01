@@ -6,6 +6,7 @@ using Domain.Models;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 using Services.Identity;
 using System.Security.Claims;
 
@@ -23,6 +24,9 @@ public class SettingsViewModel : ComponentBase
     private ICurrentUserService CurrentUserService { get; set; } = default!;
 
     [Inject]
+    private IJSRuntime JsRuntime { get; set; } = default!;
+
+    [Inject]
     private UserPreferencesJsonSerializer PreferencesSerializer { get; set; } = default!;
 
     [Inject]
@@ -37,6 +41,8 @@ public class SettingsViewModel : ComponentBase
     #endregion
 
     #region <Properties>
+
+    public string DarkMode { get; set; } = "system";
 
     public string DisplayName { get; set; } = string.Empty;
 
@@ -88,6 +94,7 @@ public class SettingsViewModel : ComponentBase
         LastName = user.LastName;
 
         var preferences = PreferencesSerializer.Deserialize(user.UserPreferences);
+        DarkMode = preferences.DarkMode;
         FunGreetings = preferences.FunGreetings;
         SubscriptionConfirmationEmail = preferences.EmailPreferences.SubscriptionConfirmationEmail;
         UnsubscribeAll = preferences.EmailPreferences.UnsubscribeAll;
@@ -104,6 +111,14 @@ public class SettingsViewModel : ComponentBase
     public void OnFieldChanged()
     {
         IsSaved = false;
+    }
+
+    public async Task SetThemeAsync(string mode)
+    {
+        DarkMode = mode;
+        IsSaved = false;
+        await JsRuntime.InvokeVoidAsync("themeManager.apply", mode);
+        await JsRuntime.InvokeVoidAsync("eval", $"document.documentElement.setAttribute('data-theme-mode', '{mode}')");
     }
 
     public async Task SaveSettingsAsync()
@@ -129,6 +144,7 @@ public class SettingsViewModel : ComponentBase
         user.LastName = LastName;
 
         var preferences = PreferencesSerializer.Deserialize(user.UserPreferences);
+        preferences.DarkMode = DarkMode;
         preferences.FunGreetings = FunGreetings;
         preferences.EmailPreferences.SubscriptionConfirmationEmail = SubscriptionConfirmationEmail;
         preferences.EmailPreferences.UnsubscribeAll = UnsubscribeAll;

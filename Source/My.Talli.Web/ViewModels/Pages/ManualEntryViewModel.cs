@@ -6,6 +6,7 @@ using Domain.Framework;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Web;
 using Models;
 
 using ENTITIES = Domain.Entities;
@@ -60,7 +61,24 @@ public class ManualEntryViewModel : ComponentBase
 
 	public long? DeletingId { get; private set; }
 
+	// Inline edit fields
+	public string EditCategory { get; set; } = "Sale";
+
+	public string EditCurrency { get; set; } = "USD";
+
+	public string EditDescription { get; set; } = string.Empty;
+
+	public decimal EditFeeAmount { get; set; }
+
 	public long? EditingId { get; private set; }
+
+	public string EditNotes { get; set; } = string.Empty;
+
+	public int EditQuantity { get; set; } = 1;
+
+	public DateTime EditTransactionDate { get; set; } = DateTime.Today;
+
+	public decimal EditUnitPrice { get; set; }
 
 	public List<ManualEntryItem> Entries { get; private set; } = [];
 
@@ -68,8 +86,7 @@ public class ManualEntryViewModel : ComponentBase
 
 	public bool IsSampleData { get; private set; }
 
-	public string ModalTitle => EditingId.HasValue ? "Edit Entry" : "New Entry";
-
+	// Quick-entry fields
 	public string NewCategory { get; set; } = "Sale";
 
 	public string NewCurrency { get; set; } = "USD";
@@ -95,7 +112,7 @@ public class ManualEntryViewModel : ComponentBase
 
 	public int[] PageSizeOptions { get; } = [10, 25, 50];
 
-	public bool ShowEntryModal { get; private set; }
+	public bool ShowEditNotes { get; private set; }
 
 	public string SortColumn { get; private set; } = "TransactionDate";
 
@@ -108,6 +125,8 @@ public class ManualEntryViewModel : ComponentBase
 	public decimal TotalNet => Entries.Sum(e => e.NetAmount);
 
 	public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)Entries.Count / PageSize));
+
+	protected ElementReference QuickEntryDescriptionRef;
 
 	#endregion
 
@@ -147,6 +166,9 @@ public class ManualEntryViewModel : ComponentBase
 				PageSize = gridPrefs.PageSize;
 				SortColumn = string.IsNullOrEmpty(gridPrefs.SortColumn) ? "TransactionDate" : gridPrefs.SortColumn;
 				SortDescending = gridPrefs.SortDescending;
+
+				// Migrate old column name
+				if (SortColumn == "GrossAmount") SortColumn = "UnitPrice";
 			}
 		}
 
@@ -165,21 +187,21 @@ public class ManualEntryViewModel : ComponentBase
 
 	#region <Methods>
 
+	public void CancelDelete()
+	{
+		DeletingId = null;
+	}
+
+	public void CancelEdit()
+	{
+		EditingId = null;
+		ShowEditNotes = false;
+	}
+
 	public async Task ChangePageSize()
 	{
 		CurrentPage = 1;
 		await SaveGridPreferencesAsync();
-	}
-
-	public void CloseModal()
-	{
-		ShowEntryModal = false;
-		EditingId = null;
-	}
-
-	public void CancelDelete()
-	{
-		DeletingId = null;
 	}
 
 	public async Task ConfirmDeleteAsync()
@@ -211,26 +233,6 @@ public class ManualEntryViewModel : ComponentBase
 
 	public string DensityCss => $"density-{Density}";
 
-	public async Task EditEntryAsync(long revenueId)
-	{
-		var revenue = await RevenueAdapter.GetByIdAsync(revenueId);
-		if (revenue is null) return;
-
-		var manualEntries = await RevenueManualAdapter.FindAsync(m => m.Id == revenueId);
-		var manual = manualEntries.FirstOrDefault();
-
-		EditingId = revenueId;
-		NewDescription = revenue.Description;
-		NewFeeAmount = revenue.FeeAmount;
-		NewCurrency = revenue.Currency;
-		NewTransactionDate = revenue.TransactionDate;
-		NewCategory = manual?.Category ?? "Other";
-		NewNotes = manual?.Notes ?? string.Empty;
-		NewQuantity = manual?.Quantity ?? 1;
-		NewUnitPrice = NewQuantity > 0 ? revenue.GrossAmount / NewQuantity : revenue.GrossAmount;
-		ShowEntryModal = true;
-	}
-
 	public string GetSortIndicator(string column) => SortColumn == column ? (SortDescending ? "▼" : "▲") : "";
 
 	public void GoToPage(int page)
@@ -238,18 +240,71 @@ public class ManualEntryViewModel : ComponentBase
 		CurrentPage = Math.Clamp(page, 1, TotalPages);
 	}
 
-	public void OpenModal()
+	public async Task HandleEditKeyDown(KeyboardEventArgs e)
 	{
+		if (e.Key == "Enter")
+			await SaveEditAsync();
+		else if (e.Key == "Escape")
+			CancelEdit();
+	}
+
+	public async Task HandleQuickEntryKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key == "Enter")
+			await QuickAddAsync();
+	}
+
+	public async Task QuickAddAsync()
+	{
+		var grossAmount = NewUnitPrice * NewQuantity;
+		if (_userId is null || string.IsNullOrWhiteSpace(NewDescription) || grossAmount <= 0)
+			return;
+
+		var revenue = ToNewRevenue(grossAmount);
+		revenue = await RevenueAdapter.InsertAsync(revenue);
+
+		var manual = ToNewRevenueManual(revenue.Id);
+		await RevenueManualAdapter.InsertAsync(manual);
+
+		ResetQuickEntry();
+		await LoadEntriesAsync();
+
+		try { await QuickEntryDescriptionRef.FocusAsync(); } catch { /* element may not be rendered yet */ }
+	}
+
+	public async Task SaveEditAsync()
+	{
+		if (EditingId is null || _userId is null) return;
+
+		var grossAmount = EditUnitPrice * EditQuantity;
+		if (string.IsNullOrWhiteSpace(EditDescription) || grossAmount <= 0)
+			return;
+
+		var revenue = await RevenueAdapter.GetByIdAsync(EditingId.Value);
+		if (revenue is null) return;
+
+		revenue.Currency = EditCurrency;
+		revenue.Description = EditDescription;
+		revenue.FeeAmount = EditFeeAmount;
+		revenue.GrossAmount = grossAmount;
+		revenue.NetAmount = grossAmount - EditFeeAmount;
+		revenue.TransactionDate = EditTransactionDate;
+		await RevenueAdapter.UpdateAsync(revenue);
+
+		var manualEntries = await RevenueManualAdapter.FindAsync(m => m.Id == EditingId.Value);
+		var manual = manualEntries.FirstOrDefault();
+
+		if (manual is not null)
+		{
+			manual.Category = EditCategory;
+			manual.Notes = string.IsNullOrWhiteSpace(EditNotes) ? null : EditNotes;
+			manual.Quantity = EditQuantity;
+			await RevenueManualAdapter.UpdateAsync(manual);
+		}
+
 		EditingId = null;
-		NewCategory = "Sale";
-		NewCurrency = "USD";
-		NewDescription = string.Empty;
-		NewFeeAmount = 0;
-		NewNotes = string.Empty;
-		NewQuantity = 1;
-		NewTransactionDate = DateTime.Today;
-		NewUnitPrice = 0;
-		ShowEntryModal = true;
+		ShowEditNotes = false;
+		await LoadEntriesAsync();
 	}
 
 	public async Task SetDensity(string density)
@@ -274,50 +329,42 @@ public class ManualEntryViewModel : ComponentBase
 		await SaveGridPreferencesAsync();
 	}
 
-	public async Task SubmitEntryAsync()
+	public void StartEdit(long entryId)
 	{
-		var grossAmount = NewUnitPrice * NewQuantity;
-		if (_userId is null || string.IsNullOrWhiteSpace(NewDescription) || grossAmount <= 0)
-			return;
+		var entry = Entries.FirstOrDefault(e => e.Id == entryId);
+		if (entry is null) return;
 
-		if (EditingId.HasValue)
+		EditingId = entryId;
+		EditCategory = entry.Category;
+		EditCurrency = entry.Currency;
+		EditDescription = entry.Description;
+		EditFeeAmount = entry.FeeAmount;
+		EditNotes = entry.Notes ?? string.Empty;
+		EditQuantity = entry.Quantity;
+		EditTransactionDate = entry.TransactionDate;
+		EditUnitPrice = entry.UnitPrice;
+		ShowEditNotes = !string.IsNullOrWhiteSpace(entry.Notes);
+	}
+
+	public void ToggleEditNotes()
+	{
+		ShowEditNotes = !ShowEditNotes;
+	}
+
+	private IEnumerable<ManualEntryItem> GetSortedEntries()
+	{
+		IEnumerable<ManualEntryItem> sorted = SortColumn switch
 		{
-			// Update existing
-			var revenue = await RevenueAdapter.GetByIdAsync(EditingId.Value);
-			if (revenue is null) return;
+			"Description" => SortDescending ? Entries.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase) : Entries.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase),
+			"Category" => SortDescending ? Entries.OrderByDescending(e => e.Category) : Entries.OrderBy(e => e.Category),
+			"Quantity" => SortDescending ? Entries.OrderByDescending(e => e.Quantity) : Entries.OrderBy(e => e.Quantity),
+			"UnitPrice" => SortDescending ? Entries.OrderByDescending(e => e.UnitPrice) : Entries.OrderBy(e => e.UnitPrice),
+			"FeeAmount" => SortDescending ? Entries.OrderByDescending(e => e.FeeAmount) : Entries.OrderBy(e => e.FeeAmount),
+			"NetAmount" => SortDescending ? Entries.OrderByDescending(e => e.NetAmount) : Entries.OrderBy(e => e.NetAmount),
+			_ => SortDescending ? Entries.OrderByDescending(e => e.TransactionDate) : Entries.OrderBy(e => e.TransactionDate),
+		};
 
-			revenue.Currency = NewCurrency;
-			revenue.Description = NewDescription;
-			revenue.FeeAmount = NewFeeAmount;
-			revenue.GrossAmount = grossAmount;
-			revenue.NetAmount = grossAmount - NewFeeAmount;
-			revenue.TransactionDate = NewTransactionDate;
-			await RevenueAdapter.UpdateAsync(revenue);
-
-			var manualEntries = await RevenueManualAdapter.FindAsync(m => m.Id == EditingId.Value);
-			var manual = manualEntries.FirstOrDefault();
-
-			if (manual is not null)
-			{
-				manual.Category = NewCategory;
-				manual.Notes = string.IsNullOrWhiteSpace(NewNotes) ? null : NewNotes;
-				manual.Quantity = NewQuantity;
-				await RevenueManualAdapter.UpdateAsync(manual);
-			}
-		}
-		else
-		{
-			// Insert new
-			var revenue = ToNewRevenue(grossAmount);
-			revenue = await RevenueAdapter.InsertAsync(revenue);
-
-			var manual = ToNewRevenueManual(revenue.Id);
-			await RevenueManualAdapter.InsertAsync(manual);
-		}
-
-		ShowEntryModal = false;
-		EditingId = null;
-		await LoadEntriesAsync();
+		return sorted;
 	}
 
 	private async Task LoadEntriesAsync()
@@ -332,6 +379,18 @@ public class ManualEntryViewModel : ComponentBase
 			.ToList();
 
 		CurrentPage = 1;
+	}
+
+	private void ResetQuickEntry()
+	{
+		NewCategory = "Sale";
+		NewCurrency = "USD";
+		NewDescription = string.Empty;
+		NewFeeAmount = 0;
+		NewNotes = string.Empty;
+		NewQuantity = 1;
+		NewTransactionDate = DateTime.Today;
+		NewUnitPrice = 0;
 	}
 
 	private async Task SaveGridPreferencesAsync()
@@ -353,22 +412,6 @@ public class ManualEntryViewModel : ComponentBase
 
 		user.UserPreferences = PreferencesSerializer.Serialize(preferences);
 		await UserAdapter.UpdateAsync(user);
-	}
-
-	private IEnumerable<ManualEntryItem> GetSortedEntries()
-	{
-		IEnumerable<ManualEntryItem> sorted = SortColumn switch
-		{
-			"Description" => SortDescending ? Entries.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase) : Entries.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase),
-			"Category" => SortDescending ? Entries.OrderByDescending(e => e.Category) : Entries.OrderBy(e => e.Category),
-			"Quantity" => SortDescending ? Entries.OrderByDescending(e => e.Quantity) : Entries.OrderBy(e => e.Quantity),
-			"GrossAmount" => SortDescending ? Entries.OrderByDescending(e => e.GrossAmount) : Entries.OrderBy(e => e.GrossAmount),
-			"FeeAmount" => SortDescending ? Entries.OrderByDescending(e => e.FeeAmount) : Entries.OrderBy(e => e.FeeAmount),
-			"NetAmount" => SortDescending ? Entries.OrderByDescending(e => e.NetAmount) : Entries.OrderBy(e => e.NetAmount),
-			_ => SortDescending ? Entries.OrderByDescending(e => e.TransactionDate) : Entries.OrderBy(e => e.TransactionDate),
-		};
-
-		return sorted;
 	}
 
 	private ManualEntryItem ToEntryItem(MODELS.Revenue revenue, MODELS.RevenueManual? manual)

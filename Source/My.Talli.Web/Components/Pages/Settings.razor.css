@@ -3,52 +3,59 @@
 .settings-hero .deco-circle-3 { bottom: auto; top: 60px; }
 
 /* ─── LOADING ─── */
-.settings-loading { color: #999; font-size: 15px; padding: 60px 0; text-align: center; }
+.settings-loading { color: var(--text-muted); font-size: 15px; padding: 60px 0; text-align: center; }
 
 /* ─── BODY ─── */
 .settings-body { margin: 0 auto; max-width: 640px; }
 
 /* ─── SECTIONS ─── */
 .settings-section { margin-bottom: 28px; }
-.settings-section-title { color: #999; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+.settings-section-title { color: var(--text-muted); font-size: 12px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
 
 /* ─── CARDS ─── */
-.settings-card { background: #fff; border: 1px solid #eee; border-radius: 14px; padding: 8px 0; }
+.settings-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 8px 0; }
 
 /* ─── FORM FIELDS ─── */
 .settings-field { padding: 12px 20px; }
 .settings-field-row { display: flex; gap: 0; }
 .settings-field-row .settings-field { flex: 1; }
-.settings-label { color: #1a1a2e; display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-.settings-input { background: #f8f7fc; border: 1px solid #e0dce8; border-radius: 8px; color: #1a1a2e; font-family: inherit; font-size: 14px; outline: none; padding: 10px 14px; transition: border-color 0.15s ease; width: 100%; }
-.settings-input:focus { border-color: #6c5ce7; box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1); }
-.settings-input::placeholder { color: #bbb; }
+.settings-label { color: var(--text-primary); display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.settings-input { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; font-size: 14px; outline: none; padding: 10px 14px; transition: border-color 0.15s ease; width: 100%; }
+.settings-input:focus { border-color: var(--purple-primary); box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1); }
+.settings-input::placeholder { color: var(--text-placeholder); }
 
 /* ─── TOGGLE ROWS ─── */
 .settings-toggle-row { align-items: center; display: flex; justify-content: space-between; padding: 16px 20px; transition: opacity 0.2s; }
 .settings-toggle-info { display: flex; flex-direction: column; gap: 2px; }
-.settings-toggle-label { color: #1a1a2e; font-size: 15px; font-weight: 600; }
-.settings-toggle-hint { color: #999; font-size: 13px; }
-.settings-divider { border: none; border-top: 1px solid #f0edff; margin: 0 20px; }
+.settings-toggle-label { color: var(--text-primary); font-size: 15px; font-weight: 600; }
+.settings-toggle-hint { color: var(--text-muted); font-size: 13px; }
+.settings-divider { border: none; border-top: 1px solid var(--border-divider); margin: 0 20px; }
 .settings-disabled { opacity: 0.4; pointer-events: none; }
 
 /* ─── TOGGLE SWITCH ─── */
 .settings-switch { cursor: pointer; display: inline-block; height: 28px; position: relative; width: 50px; }
 .settings-switch input { height: 0; opacity: 0; width: 0; }
-.settings-slider { background: #e0dce8; border-radius: 28px; bottom: 0; left: 0; position: absolute; right: 0; top: 0; transition: background 0.2s; }
+.settings-slider { background: var(--border); border-radius: 28px; bottom: 0; left: 0; position: absolute; right: 0; top: 0; transition: background 0.2s; }
 .settings-slider::before { background: #fff; border-radius: 50%; bottom: 3px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); content: ""; height: 22px; left: 3px; position: absolute; transition: transform 0.2s; width: 22px; }
-.settings-switch input:checked + .settings-slider { background: #6c5ce7; }
-.settings-switch input:checked + .settings-slider-danger { background: #e74c3c; }
+.settings-switch input:checked + .settings-slider { background: var(--purple-primary); }
+.settings-switch input:checked + .settings-slider-danger { background: var(--danger); }
 .settings-switch input:checked + .settings-slider::before { transform: translateX(22px); }
-.settings-switch input:focus-visible + .settings-slider { outline: 3px solid #6c5ce7; outline-offset: 2px; }
+.settings-switch input:focus-visible + .settings-slider { outline: 3px solid var(--purple-primary); outline-offset: 2px; }
 .settings-switch input:disabled + .settings-slider { cursor: not-allowed; opacity: 0.5; }
+
+/* ─── THEME SELECTOR ─── */
+.settings-theme-pills { display: flex; gap: 2px; }
+.settings-theme-pill { align-items: center; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); cursor: pointer; display: flex; font-family: inherit; font-size: 13px; font-weight: 500; gap: 6px; padding: 8px 16px; transition: all 0.15s ease; }
+.settings-theme-pill:hover { border-color: var(--purple-primary); color: var(--text-primary); }
+.settings-theme-pill.active { background: var(--purple-soft); border-color: var(--purple-primary); color: var(--purple-primary); font-weight: 600; }
+.settings-theme-pill svg { height: 16px; width: 16px; }
 
 /* ─── SAVE ─── */
 .settings-actions { margin: 0 auto; max-width: 640px; padding-bottom: 40px; }
-.settings-save { background: #6c5ce7; border: none; border-radius: 10px; color: #fff; cursor: pointer; display: block; font-family: inherit; font-size: 15px; font-weight: 600; padding: 14px 32px; transition: background 0.2s; width: 100%; }
-.settings-save:hover { background: #5a4bd1; }
+.settings-save { background: var(--purple-primary); border: none; border-radius: 10px; color: #fff; cursor: pointer; display: block; font-family: inherit; font-size: 15px; font-weight: 600; padding: 14px 32px; transition: background 0.2s; width: 100%; }
+.settings-save:hover { background: var(--purple-hover); }
 .settings-save:disabled { cursor: not-allowed; opacity: 0.6; }
-.settings-success { align-items: center; color: #27ae60; display: flex; font-size: 14px; font-weight: 600; gap: 6px; justify-content: center; margin: 16px 0 0; }
+.settings-success { align-items: center; color: var(--success); display: flex; font-size: 14px; font-weight: 600; gap: 6px; justify-content: center; margin: 16px 0 0; }
 .settings-success svg { height: 18px; width: 18px; }
 
 /* ─── RESPONSIVE ─── */

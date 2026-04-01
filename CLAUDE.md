@@ -164,6 +164,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - **UserPreferences** stores user-configurable app settings as JSON. This avoids contorting the User table with individual columns as settings grow over time. Serialized/deserialized by `UserPreferencesJsonSerializer` in `Domain/Components/JsonSerializers/User/`. Current structure:
   ```json
   {
+    "darkMode": "system",
     "emailPreferences": {
       "unsubscribeAll": false,
       "subscriptionConfirmationEmail": true,
@@ -181,6 +182,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
   }
   ```
   - Models: `UserPreferences` (root) → `EmailPreferences` (nested) + `GridPreference` (dictionary), all in `Domain/Models/`
+  - **DarkMode** — `string` with values `"system"` (default), `"light"`, `"dark"`. Controls the app's color theme for authenticated pages only. `"system"` follows the OS `prefers-color-scheme` setting. Stored in `UserPreferences`, applied via `theme.js` on page load.
   - **GridPreferences** — `Dictionary<string, GridPreference>` keyed by `page.control` name. Each grid/widget saves its own density, page size, sort column, and sort direction. Keys use dot notation: `"manualEntry.entryGrid"`, `"dashboard.revenueGrid"`, etc. Future widget types (charts, filters) will get their own typed dictionaries.
   - `unsubscribeAll` is a master kill switch — if `true`, no emails are sent regardless of individual settings
   - Individual toggles default to `true` (opt-out model). Adding a new email type = new `bool` property with `true` default.
@@ -351,7 +353,11 @@ My.Talli/
 │   ├── MyTalli_Email_WeeklySummary.html # Weekly summary email wireframe
 │   ├── MyTalli_SuggestionBoxConcepts.html # Suggestion box design concepts (A/B/C)
 │   ├── MyTalli_SuggestionCardConcepts.html # Suggestion card layout concepts (admin notes, status tags)
-│   └── MyTalli_WaitlistConcepts.html # Waitlist page design concepts (A/B/C)
+│   ├── MyTalli_WaitlistConcepts.html # Waitlist page design concepts (A/B/C)
+│   ├── MyTalli_MobilePatterns_Dashboard_plus_Tabs.html # Mobile wireframes for Dashboard+Tabs nav pattern (3 treatments)
+│   ├── MyTalli_MobilePatterns_Hub_and_Spoke.html # Mobile wireframes for Hub & Spoke nav pattern (3 treatments)
+│   ├── MyTalli_MobilePatterns_Keyhole_Hybrid.html # Mobile wireframe — chosen pattern (Hub & Spoke + Keyhole Hybrid)
+│   └── MyTalli_NavigationPatterns.html # Navigation IA wireframes — 4 patterns for grid/data organization
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
@@ -700,7 +706,9 @@ My.Talli/
         ├── wwwroot/
         │   ├── app.css
         │   ├── js/
-        │   │   └── landing.js    # Landing page scroll & nav interactivity
+        │   │   ├── landing.js      # Landing page scroll & nav interactivity
+        │   │   ├── mobile-menu.js  # Mobile hamburger menu toggle (CSS class-based, no Blazor interactivity)
+        │   │   └── theme.js        # Dark mode — applies data-theme attribute, listens for OS preference changes
         │   └── lib/bootstrap/
         ├── appsettings.json
         └── appsettings.Development.json
@@ -756,7 +764,16 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 
 Swoosh visual: purple gradient SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7`) with 3 decorative circles (`rgba(255,255,255,0.07)`). All `MainLayout` pages use the same SVG swoosh pattern — `viewBox="0 0 1000 600"` with path `M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z` filled by a per-page `linearGradient`. The hero-bg uses `height: calc(100% + 60px)` to extend the swoosh below the hero content. Pages with hero stats (ManualEntry, Platforms, Goals, Suggestions) use `margin: -32px -40px 0` and `padding: 24px 40px 40px`; pages without stats use `48px` bottom padding.
 - **Font:** DM Sans (Google Fonts) — weights 400, 500, 600, 700
-- **Theme approach:** Purple-tinted surfaces in both modes (no neutral grays in dark mode)
+- **Theme approach:** Purple-tinted surfaces in both modes (no neutral grays in dark mode). CSS custom properties (`:root` for light, `[data-theme="dark"]` for dark) defined in `app.css`. All authenticated page CSS files use `var(--token)` references instead of hardcoded hex values.
+
+### Dark Mode
+
+- **Scope:** Authenticated pages only (MainLayout). Landing Page, Sign-In, Error, and Unsubscribe stay light-mode only.
+- **Default:** `"system"` — follows OS `prefers-color-scheme`. User can override to `"light"` or `"dark"` in Settings → Personalization → Theme.
+- **Storage:** `UserPreferences.DarkMode` (string: `"system"` | `"light"` | `"dark"`), persisted in `auth.User.UserPreferences` JSON column.
+- **Application flow:** `theme.js` defines `themeManager.apply(mode)` which sets `data-theme` attribute on `<html>`. `NavMenuViewModel.OnAfterRenderAsync` reads the user's saved preference and calls `themeManager.apply()` via JS interop. The Settings page calls it immediately on pill click for instant preview.
+- **CSS architecture:** `:root` defines light tokens. `[data-theme="dark"]` overrides with dark tokens. All `MainLayout`-scoped CSS files (`MainLayout.razor.css`, `NavMenu.razor.css`, all page `.razor.css` files, shared component `.razor.css` files) reference tokens via `var(--token-name)`. Landing page CSS files remain hardcoded (light-only).
+- **System mode listener:** `theme.js` listens for `prefers-color-scheme` media query changes. When `data-theme-mode="system"` is set on `<html>`, OS theme changes apply in real time.
 
 ### Brand Colors (Light Mode)
 
@@ -1301,6 +1318,15 @@ This means:
 - **Simplify, don't remove** — pages that are visible on mobile should render a simplified "keyhole" view, not the full desktop layout. Example: Goals on mobile shows progress bars and numbers, not the full goal editor.
 - **Decide per page** — each page's mobile treatment is determined when building that page, not planned upfront. The content will make the right answer obvious.
 
+### Mobile Navigation
+
+- **Breakpoint:** `max-width: 640.98px` — all mobile-specific styles live behind this media query in `MainLayout.razor.css`
+- **Hamburger button** — `.mobile-hamburger` in `MainLayout.razor`, fixed position top-left (`left: 16px; top: 16px`), hidden on desktop (`display: none`). Toggles the sidebar open/closed.
+- **Sidebar slide-in** — on mobile, `.sidebar` is `position: fixed; transform: translateX(-100%)`. Adding `.mobile-open` class slides it in (`translateX(0)`) with a `box-shadow` and `0.25s ease` transition.
+- **Backdrop** — `.mobile-backdrop` is always in the DOM, hidden by default. Adding `.active` class shows a semi-transparent overlay (`rgba(0, 0, 0, 0.4)`, `z-index: 999`).
+- **JavaScript toggle** — `wwwroot/js/mobile-menu.js` handles all toggle logic via event delegation on `document`. Uses CSS class manipulation (`.mobile-open` on sidebar, `.active` on backdrop), not Blazor `@onclick`, because `MainLayout` renders statically (layout components don't inherit page render modes). Clicking the backdrop or any `.nav-link` inside the sidebar closes the menu.
+- **Hero padding** — `.hero-top` gets `padding-left: 48px` on mobile (in `app.css`) to clear the fixed hamburger button so hero titles don't overlap.
+
 ### Sidebar Navigation Pages
 
 | Page | Route | Purpose | Mobile |
@@ -1311,7 +1337,7 @@ This means:
 | **Goals** | `/goals` | Set and track monthly/yearly revenue targets | Yes (simplified) |
 | **Export** | `/export` | CSV export for tax prep / bookkeeping | Hidden |
 | **Suggestions** | `/suggestions` | User feedback and feature requests (vote, edit own) | Yes |
-| **Settings** | `/settings` | Account preferences, email settings, linked providers | Hidden |
+| **Settings** | `/settings` | Account preferences, email settings, theme (dark mode), linked providers | Hidden |
 | **Admin** | `/admin` | Email resend, bulk welcome send, user list (Admin role only) | Hidden |
 
 ### Sample Data for New Users
@@ -1696,7 +1722,8 @@ Upcoming features:
 
 - [x] **Admin Page** — role-based admin section (`/admin`) with email management: resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, bulk-send Welcome emails to selected or all users. Visible only to `Admin` role via conditional NavMenu link. Uses `vAuthenticatedUser` view (keyless entity) for user list with emails. ViewModel redirects non-admins to `/dashboard`; API endpoints enforce Admin role via `.RequireAuthorization()`.
 - [x] **Admin Email Resend** — admin ability to resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, plus bulk-send Welcome emails to selected or all users. Implemented as part of the Admin page (`/admin`). API endpoints: `POST /api/admin/email/resend`, `POST /api/admin/email/bulk-welcome`, `POST /api/admin/email/bulk-welcome-all`. Commands: `SendSubscriptionConfirmationEmailCommand` (validates active subscription exists), `SendWeeklySummaryEmailCommand` (uses sample data). Fail-silent on individual errors during bulk sends.
-- [x] **Manual Entry Module** — `app.Revenue` (base normalized revenue table) and `app.RevenueManual` (1-to-1 manual entry detail, includes `Quantity` column). Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with data grid (sortable columns, user-selectable pagination 10/25/50, row density toggle compact/comfortable/spacious). Entry form uses Unit Price × Quantity = Gross auto-calculation. Grid preferences (density, page size, sort) persist in `UserPreferences` JSON under `gridPreferences["manualEntry.entryGrid"]`. Non-subscribers see sample data (`ManualEntryDataset`) with CTA banner instead of a lock gate. Delete uses `ConfirmDialog` component. "New Entry" button in grid toolbar. Empty state renders inside grid tbody. Categories: Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other.
+- [x] **Manual Entry Module** — `app.Revenue` (base normalized revenue table) and `app.RevenueManual` (1-to-1 manual entry detail, includes `Quantity` column). Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with data grid (sortable columns, user-selectable pagination 10/25/50, row density toggle compact/comfortable/spacious). Grid columns: Date, Description, Category, Qty, Price (unit price), Fees, Net, Actions. **Quick-entry row** pinned at top of `<tbody>` for fast new entries — type description + price, hit Enter, row resets and refocuses. **Inline editing** for existing rows — click Edit, row cells become inputs, Enter to save, Escape to cancel. Notes toggle via icon button expands a sub-row below the editing row. No modal. `New*` fields serve quick-entry, `Edit*` fields serve inline edit (separate state). Grid preferences (density, page size, sort) persist in `UserPreferences` JSON under `gridPreferences["manualEntry.entryGrid"]`. Non-subscribers see sample data (`ManualEntryDataset`) with CTA banner instead of a lock gate. Delete uses `ConfirmDialog` component. Empty state renders inside grid tbody. Categories: Sale, Service, Freelance, Consulting, Digital Product, Physical Product, Other.
 - [x] **My Plan Page** — consolidated plan and module management at `/my-plan`. Replaces the old `/subscription` and `/upgrade` pages (both deleted). Free users see inline pricing cards (Free vs Pro with monthly/yearly toggle). Pro users see their plan card with billing actions (Manage Billing, Change Plan, Cancel). Module owners see per-module cards with billing/cancel. Available modules listed at the bottom. Sidebar upgrade card shows "Pro Plan" for subscribers, "Upgrade to Pro" for free users, with a single "My Plan" button.
+- [ ] **Navigation & Data Architecture** — organizing grids, graphs, and reports across platforms (Manual Entry, Stripe, Etsy, Gumroad, PayPal, Shopify) plus an aggregate view. Each platform needs Revenue, Expenses, Payouts, and Cashflow sections. Four navigation patterns wireframed in `wireframes/MyTalli_NavigationPatterns.html`: (A) Hub & Spoke, (B) Data-Type First, (C) Hybrid, (D) Dashboard + Tabs. Three mobile treatments wireframed per pattern in `wireframes/MyTalli_MobilePatterns_Hub_and_Spoke.html` and `wireframes/MyTalli_MobilePatterns_Dashboard_plus_Tabs.html`. **Decision: Hub & Spoke** — aggregate dashboard is the hub, each connected platform is a spoke with its own detail page containing tabs for Overview/Revenue/Expenses/Payouts. Sidebar shows Dashboard, then a Platforms group listing connected platforms. **Mobile Decision: Keyhole Hybrid** (wireframe: `wireframes/MyTalli_MobilePatterns_Keyhole_Hybrid.html`) — combines Desktop Message + Keyhole View. Formula: summary cards with mini charts at top, platform-specific stats on spokes (avg. sale, fee rate, payout status), 5 most recent records as phone-native transaction cards (not grid rows), and a "details on desktop" CTA at the bottom. Hub shows cross-platform activity (with platform color dots); spokes show platform-filtered activity (no dots needed). The 5-card cap sets a clear boundary — this is a preview, not a portal. **Constraint:** regardless of pattern chosen, all page heroes must remain branded with the purple gradient swoosh (see "Page Hero Branding" rule). Platform-specific pages may tint the gradient with platform brand colors (e.g., Etsy orange) but must keep the swoosh shape and decorative circles.
 - [ ] **Module Checkout Flow** — extend `/api/billing/create-checkout-session` to handle module product IDs (currently only handles `plan=monthly|yearly` for Pro). Needed for "Add Module" button on My Plan page.
 - [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.

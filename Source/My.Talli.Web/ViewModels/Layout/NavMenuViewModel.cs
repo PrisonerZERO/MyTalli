@@ -1,9 +1,11 @@
 namespace My.Talli.Web.ViewModels.Layout;
 
+using Domain.Components.JsonSerializers;
 using Domain.Framework;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 using Services.Identity;
 using System.Security.Claims;
 
@@ -19,10 +21,21 @@ public class NavMenuViewModel : ComponentBase
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
 	[Inject]
+	private IJSRuntime JsRuntime { get; set; } = default!;
+
+	[Inject]
+	private UserPreferencesJsonSerializer PreferencesSerializer { get; set; } = default!;
+
+	[Inject]
 	private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
 
 	[Inject]
+	private RepositoryAdapterAsync<MODELS.User, ENTITIES.User> UserAdapter { get; set; } = default!;
+
+	[Inject]
 	private UserDisplayCache UserDisplayCache { get; set; } = default!;
+
+	private long? _userId;
 
 	#endregion
 
@@ -72,8 +85,34 @@ public class NavMenuViewModel : ComponentBase
 			.FirstOrDefault();
 
 		IsProSubscriber = proSub is not null;
+
+		_userId = userId;
 	}
 
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && _userId.HasValue)
+			await ApplyThemeAsync(_userId.Value);
+	}
+
+
+	#endregion
+
+	#region <Methods>
+
+	private async Task ApplyThemeAsync(long userId)
+	{
+		var user = await UserAdapter.GetByIdAsync(userId);
+
+		if (user is null)
+			return;
+
+		var preferences = PreferencesSerializer.Deserialize(user.UserPreferences);
+		var mode = preferences.DarkMode ?? "system";
+
+		await JsRuntime.InvokeVoidAsync("themeManager.apply", mode);
+		await JsRuntime.InvokeVoidAsync("eval", $"document.documentElement.setAttribute('data-theme-mode', '{mode}')");
+	}
 
 	#endregion
 }
