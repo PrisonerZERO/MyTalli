@@ -78,8 +78,15 @@
 .goal-amounts { color: var(--text-primary); font-size: 15px; font-weight: 600; margin-top: 20px; text-align: center; }
 .goal-amounts span { color: var(--text-muted); font-weight: 400; }
 .goal-target { color: var(--text-muted); font-size: 13px; margin-top: 4px; text-align: center; }
-.goal-status { align-items: center; background: var(--success-bg); border-radius: 8px; color: var(--success); display: inline-flex; font-size: 13px; font-weight: 500; gap: 6px; margin-top: 16px; padding: 8px 16px; }
+.goal-status { align-items: center; border-radius: 8px; display: inline-flex; font-size: 13px; font-weight: 500; gap: 6px; margin-top: 16px; padding: 8px 16px; }
 .goal-status svg { flex-shrink: 0; height: 14px; width: 14px; }
+.goal-on-track { background: var(--success-bg); color: var(--success); }
+.goal-behind { background: var(--warning-bg); color: var(--warning-icon); }
+.goal-empty { color: var(--text-muted); gap: 8px; padding: 24px 0; }
+.goal-empty svg { color: var(--purple-lavender); opacity: 0.5; }
+.goal-empty p { font-size: 14px; margin: 4px 0 0; }
+.goal-set-link { color: var(--purple-primary); font-size: 13px; font-weight: 500; text-decoration: none; transition: color 0.15s ease; }
+.goal-set-link:hover { color: var(--purple-hover); }
 
 /* ─── RECENT TRANSACTIONS ─── */
 .transactions-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 28px; }

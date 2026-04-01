@@ -33,7 +33,7 @@
                     @foreach (var period in Periods)
                     {
                         <button aria-label="Filter by @period" class="pill @(period == ActivePeriod ? "active" : "")"
-                                @onclick="() => SelectPeriod(period)">
+                                @onclick="async () => await SelectPeriod(period)">
                             @period
                         </button>
                     }
@@ -77,9 +77,9 @@
                 <line x1="12" x2="12" y1="8" y2="12" />
                 <line x1="12" x2="12.01" y1="16" y2="16" />
             </svg>
-            <span>You're viewing <strong>sample data</strong>. Connect a platform to see your real revenue.</span>
+            <span>You're viewing <strong>sample data</strong>. Connect a platform or activate Manual Entry to see your real revenue.</span>
         </div>
-        <a class="sample-banner-cta" href="platforms">Connect a platform</a>
+        <a class="sample-banner-cta" href="my-plan">Get started</a>
     </div>
 }
 
@@ -120,11 +120,19 @@
         </div>
         <div class="summary-card">
             <div class="card-label">Monthly Goal</div>
-            <div class="card-value">@(MonthlyGoalPercentage)%</div>
-            <div class="mini-progress">
-                <div class="mini-progress-fill" style="width:@(MonthlyGoalPercentage)%"></div>
-            </div>
-            <div class="goal-label">@GoalCurrentAmount.ToString("C0") of @GoalTargetAmount.ToString("C0")</div>
+            @if (HasGoal)
+            {
+                <div class="card-value">@(MonthlyGoalPercentage)%</div>
+                <div class="mini-progress">
+                    <div class="mini-progress-fill" style="width:@(MonthlyGoalPercentage)%"></div>
+                </div>
+                <div class="goal-label">@GoalCurrentAmount.ToString("C0") of @GoalTargetAmount.ToString("C0")</div>
+            }
+            else
+            {
+                <div class="card-value">&mdash;</div>
+                <a class="goal-set-link" href="goals">Set a goal &rarr;</a>
+            }
         </div>
     </div>
 
@@ -213,34 +221,60 @@
         <!-- Revenue Goal -->
         <div class="section-card">
             <h3>Revenue Goal</h3>
-            <div class="goal-center">
-                <div class="circle-progress">
-                    <svg viewBox="0 0 140 140">
-                        <defs>
-                            <linearGradient id="goalGrad" x1="0" x2="1" y1="0" y2="1">
-                                <stop offset="0%" stop-color="#6c5ce7" />
-                                <stop offset="100%" stop-color="#8b5cf6" />
-                            </linearGradient>
-                        </defs>
-                        <circle class="circle-bg" cx="70" cy="70" r="58" />
-                        <circle class="circle-fill" cx="70" cy="70" r="58"
-                                style="stroke-dasharray:@CircleStrokeDasharray; stroke-dashoffset:@CircleStrokeDashoffset" />
-                    </svg>
-                    <div class="circle-text">
-                        <span class="circle-pct">@(GoalPercentage)%</span>
-                        <span class="circle-sub">completed</span>
+            @if (HasGoal)
+            {
+                <div class="goal-center">
+                    <div class="circle-progress">
+                        <svg viewBox="0 0 140 140">
+                            <defs>
+                                <linearGradient id="goalGrad" x1="0" x2="1" y1="0" y2="1">
+                                    <stop offset="0%" stop-color="#6c5ce7" />
+                                    <stop offset="100%" stop-color="#8b5cf6" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="circle-bg" cx="70" cy="70" r="58" />
+                            <circle class="circle-fill" cx="70" cy="70" r="58"
+                                    style="stroke-dasharray:@CircleStrokeDasharray; stroke-dashoffset:@CircleStrokeDashoffset" />
+                        </svg>
+                        <div class="circle-text">
+                            <span class="circle-pct">@(GoalPercentage)%</span>
+                            <span class="circle-sub">completed</span>
+                        </div>
+                    </div>
+                    <div class="goal-amounts">@GoalCurrentAmount.ToString("C0") <span>/ @GoalTargetAmount.ToString("C0")</span></div>
+                    <div class="goal-target">Monthly Target</div>
+                    <div class="goal-status @(GoalOnTrack ? "goal-on-track" : "goal-behind")">
+                        @if (GoalOnTrack)
+                        {
+                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                                <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                            <span>On track &mdash; @DaysRemaining days left</span>
+                        }
+                        else
+                        {
+                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" x2="12" y1="8" y2="12" />
+                                <line x1="12" x2="12.01" y1="16" y2="16" />
+                            </svg>
+                            <span>Behind pace &mdash; @DaysRemaining days left</span>
+                        }
                     </div>
                 </div>
-                <div class="goal-amounts">@GoalCurrentAmount.ToString("C0") <span>/ @GoalTargetAmount.ToString("C0")</span></div>
-                <div class="goal-target">Monthly Target</div>
-                <div class="goal-status">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                        <polyline points="22 4 12 14.01 9 11.01" />
+            }
+            else
+            {
+                <div class="goal-center goal-empty">
+                    <svg aria-hidden="true" fill="none" height="48" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="48">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 6v6l4 2" />
                     </svg>
-                    On track &mdash; @DaysRemaining days left
+                    <p>No monthly goal set yet.</p>
+                    <a class="goal-set-link" href="goals">Set a goal &rarr;</a>
                 </div>
-            </div>
+            }
         </div>
     </div>
 
