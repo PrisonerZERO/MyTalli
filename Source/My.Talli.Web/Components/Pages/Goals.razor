@@ -42,7 +42,7 @@
                 @if (!IsSampleData)
                 {
                     <li>
-                        <button class="hero-action-btn" aria-label="Create a new goal">
+                        <button class="hero-action-btn" @onclick="OpenAddForm" aria-label="Create a new goal">
                             <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
                                 <line x1="12" x2="12" y1="5" y2="19" />
                                 <line x1="5" x2="19" y1="12" y2="12" />
@@ -104,52 +104,162 @@ else
     <div class="goals-grid animate-in delay-2">
         @foreach (var goal in Goals)
         {
-            <article class="goals-card" aria-label="@goal.Name goal, @goal.Percentage percent complete">
-                <div class="goals-card-top">
-                    <!-- Circle progress -->
-                    <div class="goals-circle-wrap" aria-hidden="true">
-                        <svg viewBox="0 0 140 140">
-                            <circle class="goals-circle-bg" cx="70" cy="70" r="54" />
-                            <circle class="goals-circle-fill" cx="70" cy="70" r="54"
-                                    style="stroke-dasharray: 339.3; stroke-dashoffset: @((339.3 * (100 - Math.Min(goal.Percentage, 100)) / 100).ToString("F1"));" />
-                        </svg>
-                        <div class="goals-circle-inner">
-                            <span class="goals-circle-pct">@goal.Percentage%</span>
+            @if (!IsSampleData && goal.Id == EditingGoalId)
+            {
+                @* ── Inline edit form card ── *@
+                <article class="goals-card goals-form-card" aria-label="Editing @goal.Name goal">
+                    <div class="goals-form-body">
+                        <div class="goals-form-group">
+                            <label class="goals-form-label">Goal Type</label>
+                            <select class="goals-form-select" @bind="FormGoalTypeId">
+                                @foreach (var gt in GoalTypes)
+                                {
+                                    <option value="@gt.Id">@gt.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="goals-form-group">
+                            <label class="goals-form-label">Platform</label>
+                            <select class="goals-form-select" @bind="FormPlatform">
+                                <option value="">All Platforms</option>
+                                @foreach (var platform in AvailablePlatforms)
+                                {
+                                    <option value="@platform">@platform</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="goals-form-group">
+                            <label class="goals-form-label">Target Amount</label>
+                            <input class="goals-form-input" type="number" step="0.01" min="0" placeholder="0.00" @bind="FormTargetAmount" />
+                        </div>
+                        <div class="goals-form-row">
+                            <div class="goals-form-group goals-form-half">
+                                <label class="goals-form-label">Start Date</label>
+                                <input class="goals-form-input" type="date" @bind="FormStartDate" />
+                            </div>
+                            <div class="goals-form-group goals-form-half">
+                                <label class="goals-form-label">End Date</label>
+                                <input class="goals-form-input" type="date" @bind="FormEndDate" />
+                            </div>
                         </div>
                     </div>
+                    <div class="goals-card-bottom goals-form-actions">
+                        <button class="goals-cancel-btn" @onclick="CancelForm">Cancel</button>
+                        <button class="goals-save-btn" @onclick="SaveAsync" disabled="@(FormTargetAmount <= 0)">Save</button>
+                    </div>
+                </article>
+            }
+            else
+            {
+                @* ── Display card ── *@
+                <article class="goals-card" aria-label="@goal.Name goal, @goal.Percentage percent complete">
+                    <div class="goals-card-top">
+                        <!-- Circle progress -->
+                        <div class="goals-circle-wrap" aria-hidden="true">
+                            <svg viewBox="0 0 140 140">
+                                <circle class="goals-circle-bg" cx="70" cy="70" r="54" />
+                                <circle class="goals-circle-fill" cx="70" cy="70" r="54"
+                                        style="stroke-dasharray: 339.3; stroke-dashoffset: @((339.3 * (100 - Math.Min(goal.Percentage, 100)) / 100).ToString("F1"));" />
+                            </svg>
+                            <div class="goals-circle-inner">
+                                <span class="goals-circle-pct">@goal.Percentage%</span>
+                            </div>
+                        </div>
 
-                    <!-- Goal info -->
-                    <div class="goals-card-info">
-                        <div class="goals-card-label">@goal.Label</div>
-                        <div class="goals-card-name">@goal.Name</div>
-                        <div class="goals-card-amounts">@goal.Earned.ToString("C0") <span>/ @goal.Target.ToString("C0")</span></div>
-                        <div class="goals-card-badge-wrap">
-                            <span class="goals-badge @goal.StatusCss">@goal.Status</span>
+                        <!-- Goal info -->
+                        <div class="goals-card-info">
+                            <div class="goals-card-label">@goal.Label</div>
+                            <div class="goals-card-name">@goal.Name</div>
+                            <div class="goals-card-amounts">@goal.Earned.ToString("C0") <span>/ @goal.Target.ToString("C0")</span></div>
+                            <div class="goals-card-badge-wrap">
+                                <span class="goals-badge @goal.StatusCss">@goal.Status</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="goals-card-bottom">
-                    <div class="goals-card-days"><strong>@goal.DaysRemaining</strong> days remaining</div>
-                    @if (!IsSampleData)
-                    {
-                        <button class="goals-edit-btn" aria-label="Edit @goal.Name goal">Edit &rarr;</button>
-                    }
-                </div>
-            </article>
+                    <div class="goals-card-bottom">
+                        <div class="goals-card-days"><strong>@goal.DaysRemaining</strong> days remaining</div>
+                        @if (!IsSampleData)
+                        {
+                            <div class="goals-card-actions">
+                                <button class="goals-delete-btn" @onclick="() => DeleteGoal(goal.Id)" aria-label="Delete @goal.Name goal">Delete</button>
+                                <button class="goals-edit-btn" @onclick="() => StartEdit(goal.Id)" aria-label="Edit @goal.Name goal">Edit &rarr;</button>
+                            </div>
+                        }
+                    </div>
+                </article>
+            }
         }
 
         @if (!IsSampleData)
         {
-            <!-- Add new goal card -->
-            <div class="goals-add-card" role="button" tabindex="0" aria-label="Add a new goal">
-                <div class="goals-add-icon" aria-hidden="true">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <line x1="12" x2="12" y1="5" y2="19" />
-                        <line x1="5" x2="19" y1="12" y2="12" />
-                    </svg>
+            @if (ShowAddForm)
+            {
+                @* ── Inline add form card ── *@
+                <article class="goals-card goals-form-card" aria-label="Add a new goal">
+                    <div class="goals-form-body">
+                        <div class="goals-form-group">
+                            <label class="goals-form-label">Goal Type</label>
+                            <select class="goals-form-select" @bind="FormGoalTypeId">
+                                @foreach (var gt in GoalTypes)
+                                {
+                                    <option value="@gt.Id">@gt.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="goals-form-group">
+                            <label class="goals-form-label">Platform</label>
+                            <select class="goals-form-select" @bind="FormPlatform">
+                                <option value="">All Platforms</option>
+                                @foreach (var platform in AvailablePlatforms)
+                                {
+                                    <option value="@platform">@platform</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="goals-form-group">
+                            <label class="goals-form-label">Target Amount</label>
+                            <input class="goals-form-input" type="number" step="0.01" min="0" placeholder="0.00" @bind="FormTargetAmount" />
+                        </div>
+                        <div class="goals-form-row">
+                            <div class="goals-form-group goals-form-half">
+                                <label class="goals-form-label">Start Date</label>
+                                <input class="goals-form-input" type="date" @bind="FormStartDate" />
+                            </div>
+                            <div class="goals-form-group goals-form-half">
+                                <label class="goals-form-label">End Date</label>
+                                <input class="goals-form-input" type="date" @bind="FormEndDate" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="goals-card-bottom goals-form-actions">
+                        <button class="goals-cancel-btn" @onclick="CancelForm">Cancel</button>
+                        <button class="goals-save-btn" @onclick="SaveAsync" disabled="@(FormTargetAmount <= 0)">Save</button>
+                    </div>
+                </article>
+            }
+            else
+            {
+                @* ── Add new goal card ── *@
+                <div class="goals-add-card" role="button" tabindex="0" @onclick="OpenAddForm" aria-label="Add a new goal">
+                    <div class="goals-add-icon" aria-hidden="true">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <line x1="12" x2="12" y1="5" y2="19" />
+                            <line x1="5" x2="19" y1="12" y2="12" />
+                        </svg>
+                    </div>
+                    <div class="goals-add-text">Add a new goal</div>
                 </div>
-                <div class="goals-add-text">Add a new goal</div>
-            </div>
+            }
         }
     </div>
 }
+
+<!-- Delete confirmation -->
+<ConfirmDialog Visible="DeletingGoalId.HasValue" ConfirmStyle="danger" OnConfirm="ConfirmDeleteAsync" OnCancel="CancelDelete">
+    <svg aria-hidden="true" fill="none" height="40" stroke="#e74c3c" stroke-linecap="round" stroke-width="1.5" viewBox="0 0 24 24" width="40">
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+    <h2>Delete Goal?</h2>
+    <p>Are you sure you want to delete <strong>@DeletingGoalDescription</strong>? This cannot be undone.</p>
+</ConfirmDialog>

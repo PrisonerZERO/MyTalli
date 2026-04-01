@@ -114,7 +114,10 @@
             <div class="platform-dots">
                 @foreach (var platform in Platforms)
                 {
-                    <div aria-label="@platform.Name" class="platform-dot" role="img" style="background:@platform.Color" title="@platform.Name"></div>
+                    <div class="platform-dot-item">
+                        <div aria-hidden="true" class="platform-dot" style="background:@platform.Color"></div>
+                        <span class="platform-dot-label">@platform.Name</span>
+                    </div>
                 }
             </div>
         </div>
@@ -127,6 +130,7 @@
                     <div class="mini-progress-fill" style="width:@(MonthlyGoalPercentage)%"></div>
                 </div>
                 <div class="goal-label">@GoalCurrentAmount.ToString("C0") of @GoalTargetAmount.ToString("C0")</div>
+                <a class="goal-set-link" href="goals">View goals &rarr;</a>
             }
             else
             {
@@ -262,6 +266,7 @@
                             <span>Behind pace &mdash; @DaysRemaining days left</span>
                         }
                     </div>
+                    <a class="goal-set-link" href="goals">View goals &rarr;</a>
                 </div>
             }
             else

@@ -7,32 +7,48 @@ public static class GoalsDataset
 
 	public static List<GoalItem> GetGoals()
 	{
+		var now = DateTime.Now;
+		var monthStart = new DateTime(now.Year, now.Month, 1);
+		var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+		var yearStart = new DateTime(now.Year, 1, 1);
+		var yearEnd = new DateTime(now.Year, 12, 31);
+
 		return
 		[
 			new GoalItem
 			{
-				DaysRemaining = 12,
+				DaysRemaining = Math.Max(0, (monthEnd - now.Date).Days),
 				Earned = 1847m,
+				EndDate = monthEnd,
+				GoalTypeId = 1,
 				Label = "Monthly Target",
-				Name = "March Revenue",
+				Name = $"{now:MMMM} Revenue",
+				StartDate = monthStart,
 				Status = "On track",
 				Target = 2700m,
 			},
 			new GoalItem
 			{
-				DaysRemaining = 280,
+				DaysRemaining = Math.Max(0, (yearEnd - now.Date).Days),
 				Earned = 5547m,
+				EndDate = yearEnd,
+				GoalTypeId = 2,
 				Label = "Yearly Target",
-				Name = "2026 Revenue",
+				Name = $"{now.Year} Revenue",
+				StartDate = yearStart,
 				Status = "Ahead",
 				Target = 25000m,
 			},
 			new GoalItem
 			{
-				DaysRemaining = 12,
+				DaysRemaining = Math.Max(0, (monthEnd - now.Date).Days),
 				Earned = 982m,
+				EndDate = monthEnd,
+				GoalTypeId = 3,
 				Label = "Platform Goal",
 				Name = "Stripe Revenue",
+				Platform = "Stripe",
+				StartDate = monthStart,
 				Status = "Behind",
 				Target = 2000m,
 			},
