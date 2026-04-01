@@ -1,5 +1,5 @@
 /* ─── SWOOSH HERO ─── */
-.dash-hero { margin: -32px -40px 60px; padding: 24px 40px 48px; }
+.dash-hero { margin: -32px -40px 0; padding: 24px 40px 120px; }
 
 /* ─── SAMPLE DATA BANNER ─── */
 .sample-banner { align-items: center; background: linear-gradient(135deg, var(--purple-soft) 0%, var(--purple-soft-alt) 100%); border: 1px solid var(--border); border-left: 4px solid var(--purple-primary); border-radius: 10px; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 24px; padding: 14px 20px; }
@@ -78,8 +78,15 @@
 .goal-amounts { color: var(--text-primary); font-size: 15px; font-weight: 600; margin-top: 20px; text-align: center; }
 .goal-amounts span { color: var(--text-muted); font-weight: 400; }
 .goal-target { color: var(--text-muted); font-size: 13px; margin-top: 4px; text-align: center; }
-.goal-status { align-items: center; background: var(--success-bg); border-radius: 8px; color: var(--success); display: inline-flex; font-size: 13px; font-weight: 500; gap: 6px; margin-top: 16px; padding: 8px 16px; }
+.goal-status { align-items: center; border-radius: 8px; display: inline-flex; font-size: 13px; font-weight: 500; gap: 6px; margin-top: 16px; padding: 8px 16px; }
 .goal-status svg { flex-shrink: 0; height: 14px; width: 14px; }
+.goal-on-track { background: var(--success-bg); color: var(--success); }
+.goal-behind { background: var(--warning-bg); color: var(--warning-icon); }
+.goal-empty { color: var(--text-muted); gap: 8px; padding: 24px 0; }
+.goal-empty svg { color: var(--purple-lavender); opacity: 0.5; }
+.goal-empty p { font-size: 14px; margin: 4px 0 0; }
+.goal-set-link { color: var(--purple-primary); font-size: 13px; font-weight: 500; text-decoration: none; transition: color 0.15s ease; }
+.goal-set-link:hover { color: var(--purple-hover); }
 
 /* ─── RECENT TRANSACTIONS ─── */
 .transactions-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 28px; }
@@ -119,6 +126,23 @@
 @media (max-width: 1024px) {
     .dash-hero { padding-bottom: 80px; }
 }
+
+/* Tab content tables */
+.dash-tab-content { margin-top: 0; }
+.tx-th-right { text-align: right; }
+.tx-td-amount { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.tx-td-amount.revenue { color: var(--success); font-weight: 600; }
+.tx-td-amount.expense { color: var(--danger); font-weight: 600; }
+.tx-td-amount.payout { color: var(--purple-primary); font-weight: 600; }
+.dash-cat-tag { background: var(--purple-soft); border-radius: 20px; color: var(--purple-primary); font-size: 11px; font-weight: 600; padding: 3px 12px; white-space: nowrap; }
+
+/* Payout status badges */
+.payout-status { border-radius: 20px; font-size: 11px; font-weight: 600; padding: 3px 12px; white-space: nowrap; }
+.payout-paid { background: var(--success-bg); color: var(--success); }
+.payout-transit { background: var(--warning-bg); color: var(--warning-icon); }
+.payout-pending { background: var(--purple-soft); color: var(--purple-primary); }
+.payout-failed { background: var(--danger-bg); color: var(--danger); }
+.payout-cancelled { background: var(--cat-other-bg); color: var(--cat-other-color); }
 
 @media (max-width: 641px) {
     .dash-hero { margin: -24px -20px 24px; padding: 20px 20px 100px; }

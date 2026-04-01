@@ -40,6 +40,8 @@ public static class AuthEndpoints
         var name = context.User.Identity?.Name;
         await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
+        context.Response.Cookies.Delete("talli-theme", new CookieOptions { Path = "/" });
+
         var redirect = string.IsNullOrEmpty(name)
             ? "/?signed-out"
             : $"/?signed-out&name={Uri.EscapeDataString(name)}";
