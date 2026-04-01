@@ -50,9 +50,38 @@
 .goals-badge.behind { background: var(--danger-bg); color: var(--danger); }
 .goals-badge.ahead { background: rgba(108, 92, 231, 0.08); color: var(--purple-primary); }
 
-/* ─── EDIT BUTTON ─── */
+/* ─── CARD ACTIONS ─── */
+.goals-card-actions { align-items: center; display: flex; gap: 16px; }
 .goals-edit-btn { background: none; border: none; color: var(--purple-primary); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 4px 0; transition: color 0.15s ease; }
 .goals-edit-btn:hover { color: var(--purple-hover); }
+.goals-delete-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 4px 0; transition: color 0.15s ease; }
+.goals-delete-btn:hover { color: var(--danger); }
+
+/* ─── INLINE FORM CARD ─── */
+.goals-form-card { border-color: var(--purple-primary); }
+.goals-form-body { display: flex; flex-direction: column; gap: 12px; padding: 22px 24px; }
+.goals-form-group { display: flex; flex-direction: column; gap: 4px; }
+.goals-form-half { flex: 1; }
+.goals-form-row { display: flex; gap: 12px; }
+.goals-form-label { color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.goals-form-input { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; font-size: 14px; padding: 8px 12px; width: 100%; }
+.goals-form-input:focus { border-color: var(--purple-primary); outline: none; }
+.goals-form-select { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; font-size: 14px; padding: 8px 12px; width: 100%; }
+.goals-form-select:focus { border-color: var(--purple-primary); outline: none; }
+.goals-form-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.goals-save-btn { background: var(--purple-primary); border: none; border-radius: 8px; color: #fff; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 20px; transition: background 0.15s; }
+.goals-save-btn:hover:not(:disabled) { background: var(--purple-hover); }
+.goals-save-btn:disabled { background: var(--border); color: var(--text-muted); cursor: default; }
+.goals-cancel-btn { background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 8px 16px; transition: all 0.15s; }
+.goals-cancel-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+/* ─── FORM REVENUE PREVIEW ─── */
+.goals-form-preview { align-items: center; border-top: 1px solid var(--border-subtle); color: var(--text-muted); display: flex; font-size: 12px; gap: 6px; padding: 10px 24px; }
+.goals-form-preview svg { flex-shrink: 0; height: 14px; width: 14px; }
+.goals-form-preview strong { color: var(--success); }
+
+/* ─── CARD HINT ─── */
+.goals-card-hint { color: var(--warning-icon); font-size: 11px; margin-top: 6px; }
 
 /* ─── ADD GOAL CARD ─── */
 .goals-add-card { align-items: center; background: var(--bg-card); border: 2px dashed var(--border); border-radius: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 10px; justify-content: center; min-height: 200px; padding: 32px; transition: border-color 0.2s ease; }
@@ -79,4 +108,5 @@
     .sample-banner { flex-direction: column; gap: 12px; text-align: center; }
     .sample-banner-actions { flex-direction: column; }
     .sample-banner-content { flex-direction: column; gap: 8px; }
+    .goals-form-row { flex-direction: column; gap: 12px; }
 }
