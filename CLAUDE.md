@@ -1352,10 +1352,11 @@ This means:
 
 ### Sample Data for New Users
 
-- **New users with no connected platforms** see sample/mock data on the dashboard so they can immediately understand the product's value. An empty dashboard would be a dead end.
-- **Sample data banner** — when sample data is active, a branded banner is shown: "You're viewing **sample data**. Connect a platform to see your real revenue." with a CTA to `/platforms`.
-- **`IsSampleData` flag** — `DashboardViewModel.IsSampleData` controls whether the banner is visible. Set to `true` by default; set to `false` once the user has at least one connected platform.
-- **Once a platform is connected**, sample data disappears entirely and real data takes over. No mixing of sample and real data.
+- **New users with no connected platforms or modules** see sample/mock data on the dashboard so they can immediately understand the product's value. An empty dashboard would be a dead end.
+- **Sample data banner** — when sample data is active, a branded banner is shown: "You're viewing **sample data**. Connect a platform or activate Manual Entry to see your real revenue." with a CTA to `/my-plan`.
+- **`IsSampleData` flag** — `DashboardViewModel.IsSampleData` controls whether the banner is visible. Set to `true` by default; set to `false` once the user has at least one connected platform or an active module subscription (ProductId >= 3, status Active or Cancelling).
+- **Once a platform is connected or a module is activated**, sample data disappears entirely and real data takes over. No mixing of sample and real data. The Dashboard queries `app.Revenue`, `app.Expense`, `app.Payout`, and `app.Goal` for all user data across all platforms. Summary cards, chart SVG paths, platform breakdown, and recent transactions are all computed from real data. Period pills (7D/30D/90D/12M) filter revenue data by date range and reload asynchronously.
+- **Goal card** — queries `app.Goal` for an active Monthly Revenue Target (GoalTypeId = 1) covering the current month. Shows circle progress, projected pace (on track / behind), and days remaining. If no goal exists, shows a "Set a goal" prompt linking to `/goals`.
 
 ### Missing Name Fallback
 
