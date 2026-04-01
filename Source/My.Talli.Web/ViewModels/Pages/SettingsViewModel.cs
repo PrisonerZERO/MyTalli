@@ -118,7 +118,6 @@ public class SettingsViewModel : ComponentBase
         DarkMode = mode;
         IsSaved = false;
         await JsRuntime.InvokeVoidAsync("themeManager.apply", mode);
-        await JsRuntime.InvokeVoidAsync("eval", $"document.documentElement.setAttribute('data-theme-mode', '{mode}')");
     }
 
     public async Task SaveSettingsAsync()

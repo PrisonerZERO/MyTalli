@@ -111,7 +111,6 @@ public class NavMenuViewModel : ComponentBase
 		var mode = preferences.DarkMode ?? "system";
 
 		await JsRuntime.InvokeVoidAsync("themeManager.apply", mode);
-		await JsRuntime.InvokeVoidAsync("eval", $"document.documentElement.setAttribute('data-theme-mode', '{mode}')");
 	}
 
 	#endregion
