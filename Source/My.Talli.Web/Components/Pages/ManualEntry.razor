@@ -273,7 +273,7 @@
                                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                                             </svg>
                                         </button>
-                                        <button class="manual-action-btn danger" aria-label="Delete @entry.Description" disabled="@(EditingId.HasValue)" @onclick="() => DeleteEntryAsync(entry.Id)">
+                                        <button class="manual-action-btn danger" aria-label="Delete @entry.Description" disabled="@(EditingId.HasValue)" @onclick="() => DeleteEntry(entry.Id)">
                                             <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
                                                 <polyline points="3 6 5 6 21 6" />
                                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -349,25 +349,148 @@
             <table class="manual-table @DensityCss" aria-label="Manual expenses">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Category</th>
-                        <th class="manual-th-right">Amount</th>
+                        <th class="manual-th-sort" @onclick='() => SortExpensesBy("ExpenseDate")'>Date <span class="manual-sort-ind" aria-hidden="true">@GetExpenseSortIndicator("ExpenseDate")</span></th>
+                        <th class="manual-th-sort" @onclick='() => SortExpensesBy("Description")'>Description <span class="manual-sort-ind" aria-hidden="true">@GetExpenseSortIndicator("Description")</span></th>
+                        <th class="manual-th-sort" @onclick='() => SortExpensesBy("Category")'>Category <span class="manual-sort-ind" aria-hidden="true">@GetExpenseSortIndicator("Category")</span></th>
+                        <th class="manual-th-sort manual-th-right" @onclick='() => SortExpensesBy("Amount")'>Amount <span class="manual-sort-ind" aria-hidden="true">@GetExpenseSortIndicator("Amount")</span></th>
+                        @if (!IsSampleData)
+                        {
+                            <th class="manual-th-actions"></th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var expense in Expenses.OrderByDescending(e => e.ExpenseDate))
+                    @* Quick-entry row *@
+                    @if (HasModuleAccess)
+                    {
+                        <tr class="qe-row" @onkeydown="HandleExpenseQuickEntryKeyDown" aria-label="Add new expense">
+                            <td><input class="qe-input qe-date" type="date" @bind="NewExpenseDate" /></td>
+                            <td><input class="qe-input qe-desc" type="text" placeholder="Description..." @bind="NewExpenseDescription" @ref="ExpenseQuickEntryDescriptionRef" /></td>
+                            <td>
+                                <select class="qe-select" @bind="NewExpenseCategory">
+                                    @foreach (var cat in ExpenseCategories)
+                                    {
+                                        <option value="@cat">@cat</option>
+                                    }
+                                </select>
+                            </td>
+                            <td><input class="qe-input qe-num" type="number" step="0.01" min="0" placeholder="0.00" @bind="NewExpenseAmount" /></td>
+                            <td>
+                                <button class="qe-add-btn" @onclick="QuickAddExpenseAsync" disabled="@(string.IsNullOrWhiteSpace(NewExpenseDescription) || NewExpenseAmount <= 0)" aria-label="Add expense">
+                                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19" /><line x1="5" x2="19" y1="12" y2="12" /></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var expense in PagedExpenses)
+                    {
+                        @if (expense.Id == ExpenseEditingId)
+                        {
+                            @* Inline edit row *@
+                            <tr class="inline-edit-row" @onkeydown="HandleExpenseEditKeyDown" aria-label="Editing expense">
+                                <td><input class="qe-input qe-date" type="date" @bind="EditExpenseDate" /></td>
+                                <td><input class="qe-input qe-desc" type="text" @bind="EditExpenseDescription" /></td>
+                                <td>
+                                    <select class="qe-select" @bind="EditExpenseCategory">
+                                        @foreach (var cat in ExpenseCategories)
+                                        {
+                                            <option value="@cat">@cat</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td><input class="qe-input qe-num" type="number" step="0.01" min="0" @bind="EditExpenseAmount" /></td>
+                                <td class="manual-td-actions">
+                                    <button class="qe-save-btn" @onclick="SaveEditExpenseAsync" aria-label="Save changes" title="Save">
+                                        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                                    </button>
+                                    <button class="qe-cancel-btn" @onclick="CancelEditExpense" aria-label="Cancel editing" title="Cancel">
+                                        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18" /><line x1="6" x2="18" y1="6" y2="18" /></svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @* Display row *@
+                            <tr>
+                                <td class="manual-td-date">@expense.ExpenseDateLabel</td>
+                                <td class="manual-td-desc">@expense.Description</td>
+                                <td><span class="manual-cat-tag @expense.CategoryCss">@expense.Category</span></td>
+                                <td class="manual-td-money fee">-@expense.Amount.ToString("C2")</td>
+                                @if (!IsSampleData)
+                                {
+                                    <td class="manual-td-actions">
+                                        <button class="manual-action-btn" aria-label="Edit @expense.Description" disabled="@(ExpenseEditingId.HasValue)" @onclick="() => StartEditExpense(expense.Id)">
+                                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                            </svg>
+                                        </button>
+                                        <button class="manual-action-btn danger" aria-label="Delete @expense.Description" disabled="@(ExpenseEditingId.HasValue)" @onclick="() => DeleteExpense(expense.Id)">
+                                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                                                <polyline points="3 6 5 6 21 6" />
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                    @if (!IsSampleData && Expenses.Count == 0)
                     {
                         <tr>
-                            <td class="manual-td-date">@expense.ExpenseDateLabel</td>
-                            <td class="manual-td-desc">@expense.Description</td>
-                            <td><span class="manual-cat-tag @expense.CategoryCss">@expense.Category</span></td>
-                            <td class="manual-td-money fee">-@expense.Amount.ToString("C2")</td>
+                            <td class="manual-td-empty" colspan="5">
+                                <div class="manual-empty-row">
+                                    <svg aria-hidden="true" fill="none" height="36" stroke="#a78bfa" stroke-linecap="round" stroke-width="1.5" viewBox="0 0 24 24" width="36">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
+                                    <h3>No expenses yet</h3>
+                                    <p>Type your first expense in the row above to start tracking your costs.</p>
+                                </div>
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        @if (Expenses.Count > 0)
+        {
+        <div class="manual-pagination">
+            <div class="manual-page-size">
+                <label for="expense-page-select">Show</label>
+                <select class="manual-page-select" id="expense-page-select" @bind="PageSize" @bind:after="ChangePageSize">
+                    @foreach (var size in PageSizeOptions)
+                    {
+                        <option value="@size">@size</option>
+                    }
+                </select>
+                <span>entries</span>
+            </div>
+            <div class="manual-density" role="group" aria-label="Row density">
+                <button class="manual-density-btn @(Density == "compact" ? "active" : "")" aria-pressed="@(Density == "compact")" title="Compact" @onclick='() => SetDensity("compact")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="6" y2="6" /><line x1="2" x2="14" y1="9" y2="9" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                </button>
+                <button class="manual-density-btn @(Density == "comfortable" ? "active" : "")" aria-pressed="@(Density == "comfortable")" title="Comfortable" @onclick='() => SetDensity("comfortable")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="8" y2="8" /><line x1="2" x2="14" y1="13" y2="13" /></svg>
+                </button>
+                <button class="manual-density-btn @(Density == "spacious" ? "active" : "")" aria-pressed="@(Density == "spacious")" title="Spacious" @onclick='() => SetDensity("spacious")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                </button>
+            </div>
+            <span class="manual-page-info">@((ExpenseCurrentPage - 1) * PageSize + 1)–@Math.Min(ExpenseCurrentPage * PageSize, Expenses.Count) of @Expenses.Count</span>
+            <div class="manual-page-nav" role="group" aria-label="Pagination">
+                <button class="manual-page-btn" disabled="@(ExpenseCurrentPage <= 1)" @onclick="() => GoToExpensePage(ExpenseCurrentPage - 1)" aria-label="Previous page">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+                </button>
+                <button class="manual-page-btn" disabled="@(ExpenseCurrentPage >= TotalExpensePages)" @onclick="() => GoToExpensePage(ExpenseCurrentPage + 1)" aria-label="Next page">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
+            </div>
+        </div>
+        }
     </div>
 }
 
@@ -379,27 +502,148 @@
             <table class="manual-table @DensityCss" aria-label="Manual payouts">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th class="manual-th-right">Amount</th>
-                        <th>Status</th>
+                        <th class="manual-th-sort" @onclick='() => SortPayoutsBy("PayoutDate")'>Date <span class="manual-sort-ind" aria-hidden="true">@GetPayoutSortIndicator("PayoutDate")</span></th>
+                        <th class="manual-th-sort manual-th-right" @onclick='() => SortPayoutsBy("Amount")'>Amount <span class="manual-sort-ind" aria-hidden="true">@GetPayoutSortIndicator("Amount")</span></th>
+                        <th class="manual-th-sort" @onclick='() => SortPayoutsBy("Status")'>Status <span class="manual-sort-ind" aria-hidden="true">@GetPayoutSortIndicator("Status")</span></th>
+                        @if (!IsSampleData)
+                        {
+                            <th class="manual-th-actions"></th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var payout in Payouts.OrderByDescending(p => p.PayoutDate))
+                    @* Quick-entry row *@
+                    @if (HasModuleAccess)
+                    {
+                        <tr class="qe-row" @onkeydown="HandlePayoutQuickEntryKeyDown" aria-label="Add new payout">
+                            <td><input class="qe-input qe-date" type="date" @bind="NewPayoutDate" /></td>
+                            <td><input class="qe-input qe-num" type="number" step="0.01" min="0" placeholder="0.00" @bind="NewPayoutAmount" @ref="PayoutQuickEntryAmountRef" /></td>
+                            <td>
+                                <select class="qe-select" @bind="NewPayoutStatus">
+                                    @foreach (var status in PayoutStatuses)
+                                    {
+                                        <option value="@status">@status</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <button class="qe-add-btn" @onclick="QuickAddPayoutAsync" disabled="@(NewPayoutAmount <= 0)" aria-label="Add payout">
+                                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19" /><line x1="5" x2="19" y1="12" y2="12" /></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var payout in PagedPayouts)
+                    {
+                        @if (payout.Id == PayoutEditingId)
+                        {
+                            @* Inline edit row *@
+                            <tr class="inline-edit-row" @onkeydown="HandlePayoutEditKeyDown" aria-label="Editing payout">
+                                <td><input class="qe-input qe-date" type="date" @bind="EditPayoutDate" /></td>
+                                <td><input class="qe-input qe-num" type="number" step="0.01" min="0" @bind="EditPayoutAmount" /></td>
+                                <td>
+                                    <select class="qe-select" @bind="EditPayoutStatus">
+                                        @foreach (var status in PayoutStatuses)
+                                        {
+                                            <option value="@status">@status</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td class="manual-td-actions">
+                                    <button class="qe-save-btn" @onclick="SaveEditPayoutAsync" aria-label="Save changes" title="Save">
+                                        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                                    </button>
+                                    <button class="qe-cancel-btn" @onclick="CancelEditPayout" aria-label="Cancel editing" title="Cancel">
+                                        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18" /><line x1="6" x2="18" y1="6" y2="18" /></svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @* Display row *@
+                            <tr>
+                                <td class="manual-td-date">@payout.PayoutDateLabel</td>
+                                <td class="manual-td-money net">@payout.Amount.ToString("C2")</td>
+                                <td><span class="payout-status @payout.StatusCss">@payout.Status</span></td>
+                                @if (!IsSampleData)
+                                {
+                                    <td class="manual-td-actions">
+                                        <button class="manual-action-btn" aria-label="Edit payout @payout.Amount.ToString("C2")" disabled="@(PayoutEditingId.HasValue)" @onclick="() => StartEditPayout(payout.Id)">
+                                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                            </svg>
+                                        </button>
+                                        <button class="manual-action-btn danger" aria-label="Delete payout @payout.Amount.ToString("C2")" disabled="@(PayoutEditingId.HasValue)" @onclick="() => DeletePayout(payout.Id)">
+                                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24">
+                                                <polyline points="3 6 5 6 21 6" />
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                    @if (!IsSampleData && Payouts.Count == 0)
                     {
                         <tr>
-                            <td class="manual-td-date">@payout.PayoutDateLabel</td>
-                            <td class="manual-td-money net">@payout.Amount.ToString("C2")</td>
-                            <td><span class="payout-status @payout.StatusCss">@payout.Status</span></td>
+                            <td class="manual-td-empty" colspan="4">
+                                <div class="manual-empty-row">
+                                    <svg aria-hidden="true" fill="none" height="36" stroke="#a78bfa" stroke-linecap="round" stroke-width="1.5" viewBox="0 0 24 24" width="36">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
+                                    <h3>No payouts yet</h3>
+                                    <p>Type your first payout in the row above to start tracking your disbursements.</p>
+                                </div>
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        @if (Payouts.Count > 0)
+        {
+        <div class="manual-pagination">
+            <div class="manual-page-size">
+                <label for="payout-page-select">Show</label>
+                <select class="manual-page-select" id="payout-page-select" @bind="PageSize" @bind:after="ChangePageSize">
+                    @foreach (var size in PageSizeOptions)
+                    {
+                        <option value="@size">@size</option>
+                    }
+                </select>
+                <span>entries</span>
+            </div>
+            <div class="manual-density" role="group" aria-label="Row density">
+                <button class="manual-density-btn @(Density == "compact" ? "active" : "")" aria-pressed="@(Density == "compact")" title="Compact" @onclick='() => SetDensity("compact")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="6" y2="6" /><line x1="2" x2="14" y1="9" y2="9" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                </button>
+                <button class="manual-density-btn @(Density == "comfortable" ? "active" : "")" aria-pressed="@(Density == "comfortable")" title="Comfortable" @onclick='() => SetDensity("comfortable")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="8" y2="8" /><line x1="2" x2="14" y1="13" y2="13" /></svg>
+                </button>
+                <button class="manual-density-btn @(Density == "spacious" ? "active" : "")" aria-pressed="@(Density == "spacious")" title="Spacious" @onclick='() => SetDensity("spacious")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                </button>
+            </div>
+            <span class="manual-page-info">@((PayoutCurrentPage - 1) * PageSize + 1)–@Math.Min(PayoutCurrentPage * PageSize, Payouts.Count) of @Payouts.Count</span>
+            <div class="manual-page-nav" role="group" aria-label="Pagination">
+                <button class="manual-page-btn" disabled="@(PayoutCurrentPage <= 1)" @onclick="() => GoToPayoutPage(PayoutCurrentPage - 1)" aria-label="Previous page">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+                </button>
+                <button class="manual-page-btn" disabled="@(PayoutCurrentPage >= TotalPayoutPages)" @onclick="() => GoToPayoutPage(PayoutCurrentPage + 1)" aria-label="Next page">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
+            </div>
+        </div>
+        }
     </div>
 }
 
-<!-- Delete confirmation -->
+<!-- Revenue delete confirmation -->
 <ConfirmDialog Visible="DeletingId.HasValue" ConfirmStyle="danger" OnConfirm="ConfirmDeleteAsync" OnCancel="CancelDelete">
     <svg aria-hidden="true" fill="none" height="40" stroke="#e74c3c" stroke-linecap="round" stroke-width="1.5" viewBox="0 0 24 24" width="40">
         <polyline points="3 6 5 6 21 6" />
@@ -407,4 +651,24 @@
     </svg>
     <h2>Delete Entry?</h2>
     <p>Are you sure you want to delete <strong>@DeletingDescription</strong>? This cannot be undone.</p>
+</ConfirmDialog>
+
+<!-- Expense delete confirmation -->
+<ConfirmDialog Visible="DeletingExpenseId.HasValue" ConfirmStyle="danger" OnConfirm="ConfirmDeleteExpenseAsync" OnCancel="CancelDeleteExpense">
+    <svg aria-hidden="true" fill="none" height="40" stroke="#e74c3c" stroke-linecap="round" stroke-width="1.5" viewBox="0 0 24 24" width="40">
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+    <h2>Delete Expense?</h2>
+    <p>Are you sure you want to delete <strong>@DeletingExpenseDescription</strong>? This cannot be undone.</p>
+</ConfirmDialog>
+
+<!-- Payout delete confirmation -->
+<ConfirmDialog Visible="DeletingPayoutId.HasValue" ConfirmStyle="danger" OnConfirm="ConfirmDeletePayoutAsync" OnCancel="CancelDeletePayout">
+    <svg aria-hidden="true" fill="none" height="40" stroke="#e74c3c" stroke-linecap="round" stroke-width="1.5" viewBox="0 0 24 24" width="40">
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+    <h2>Delete Payout?</h2>
+    <p>Are you sure you want to delete the <strong>@DeletingPayoutDescription</strong> payout? This cannot be undone.</p>
 </ConfirmDialog>
