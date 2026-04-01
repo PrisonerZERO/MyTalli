@@ -125,6 +125,28 @@ body { font-family: 'DM Sans', sans-serif; background: #0f0f1a; color: #e8e6f0; 
 .annotation { background: #362d6b; border: 1px solid #7c6cf7; border-radius: 8px; color: #e8e6f0; font-size: 11px; line-height: 1.5; margin-top: 20px; padding: 12px 16px; }
 .annotation strong { color: #a78bfa; }
 
+/* ── Quick-Entry Row ── */
+.wf-quick-entry { align-items: center; background: #1e1c30; border-bottom: 2px solid #7c6cf7; display: flex; font-size: 10px; gap: 0; padding: 8px 16px; }
+.wf-quick-entry .qe-field { background: #242440; border: 1px solid #2a2745; border-radius: 4px; color: #5c5977; font-size: 9px; margin-right: 6px; padding: 6px 8px; }
+.wf-quick-entry .qe-field.wide { flex: 1.5; }
+.wf-quick-entry .qe-field.med { flex: 0.7; }
+.wf-quick-entry .qe-field.narrow { flex: 0.5; }
+.wf-quick-entry .qe-add { background: #7c6cf7; border: none; border-radius: 4px; color: #fff; font-size: 9px; font-weight: 600; padding: 6px 12px; }
+.wf-grid-row .col-actions { color: #5c5977; flex: 0.5; font-size: 10px; text-align: right; }
+.wf-grid-row .col-actions span { cursor: default; margin-left: 8px; }
+.wf-grid-row .col-actions .edit { color: #7c6cf7; }
+.wf-grid-row .col-actions .del { color: #e74c3c; }
+.wf-grid-row .col-cat { flex: 0.6; }
+.wf-grid-row .col-qty { flex: 0.3; text-align: center; }
+.wf-cat-tag { background: #2a2154; border-radius: 4px; color: #a78bfa; font-size: 9px; font-weight: 500; padding: 2px 6px; }
+.wf-cat-tag.service { background: #1a3a2a; color: #2ecc71; }
+.wf-cat-tag.digital { background: rgba(99,91,255,0.15); color: #635bff; }
+.wf-notes-icon { color: #5c5977; font-size: 12px; margin-right: 4px; }
+
+/* ── Manual Entry annotation ── */
+.wf-me-callout { align-items: flex-start; background: #2a2154; border: 1px solid #7c6cf7; border-radius: 6px; color: #a09cae; display: flex; font-size: 10px; gap: 8px; line-height: 1.5; margin: 8px 28px; padding: 10px 14px; }
+.wf-me-callout strong { color: #a78bfa; }
+
 /* ── Platform colors ── */
 .dot-manual { background: #7c6cf7; }
 .dot-stripe { background: #635bff; }
@@ -296,6 +318,150 @@ body { font-family: 'DM Sans', sans-serif; background: #0f0f1a; color: #e8e6f0; 
         </div>
     </div>
 
+    <!-- Wireframe: Manual Entry Spoke -->
+    <div style="margin-bottom: 12px; margin-top: 36px;">
+        <div style="color: #5c5977; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase;">View 3 — Manual Entry Spoke (The Unique One)</div>
+    </div>
+    <div class="wireframe" style="height: 620px;">
+        <div class="wf-sidebar">
+            <div class="wf-logo">My<span>Talli</span></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+                Dashboard
+            </div>
+            <div class="wf-nav-group-label">Platforms</div>
+            <div class="wf-nav-sub">
+                <div class="wf-nav-item active"><div style="border-radius:50%;height:8px;width:8px;background:#7c6cf7;flex-shrink:0;"></div> Manual Entry</div>
+                <div class="wf-nav-item"><div style="border-radius:50%;height:8px;width:8px;background:#635bff;flex-shrink:0;"></div> Stripe</div>
+                <div class="wf-nav-item"><div style="border-radius:50%;height:8px;width:8px;background:#f56400;flex-shrink:0;"></div> Etsy</div>
+                <div class="wf-nav-item" style="color:#5c5977;"><div style="border-radius:50%;height:8px;width:8px;background:#2a2745;flex-shrink:0;"></div> + Connect</div>
+            </div>
+            <div class="wf-nav-divider"></div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                Goals
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                Export
+            </div>
+            <div class="wf-nav-item">
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a09cae" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+                Settings
+            </div>
+        </div>
+        <div class="wf-content">
+            <div class="wf-hero">
+                <h2>Manual Entry</h2>
+                <p>Record revenue from any source</p>
+                <div class="wf-hero-stats">
+                    <div class="wf-hero-stat"><span class="num">12</span><span class="label">Entries</span></div>
+                    <div class="wf-hero-stat"><span class="num">$1,650</span><span class="label">Gross</span></div>
+                    <div class="wf-hero-stat"><span class="num">$1,580</span><span class="label">Net</span></div>
+                </div>
+            </div>
+            <div class="wf-tabs">
+                <div class="wf-tab active">Revenue</div>
+                <div class="wf-tab">Expenses</div>
+            </div>
+            <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+                <div class="wf-me-callout">
+                    <strong>Unique:</strong> This is the only spoke where the user creates data. The quick-entry row and inline editing don't exist on API platform spokes (Stripe, Etsy, etc.) — those are read-only.
+                </div>
+                <div style="flex:1;overflow:hidden;padding:0 28px 16px;">
+                    <div class="wf-grid" style="height:100%;">
+                        <!-- Quick-entry row -->
+                        <div class="wf-quick-entry">
+                            <div class="qe-field med">Today</div>
+                            <div class="qe-field wide">Description...</div>
+                            <div class="qe-field narrow">Category</div>
+                            <div class="qe-field" style="flex:0.3;">Qty</div>
+                            <div class="qe-field med">$0.00</div>
+                            <div class="qe-field" style="flex:0.5;">$0.00</div>
+                            <div class="qe-add">+ Add</div>
+                        </div>
+                        <!-- Grid header -->
+                        <div class="wf-grid-header">
+                            <span class="col-date">Date</span>
+                            <span class="col-desc">Description</span>
+                            <span style="flex:0.6;">Category</span>
+                            <span style="flex:0.3;text-align:center;">Qty</span>
+                            <span class="col-amount">Price</span>
+                            <span class="col-fees">Fees</span>
+                            <span class="col-net">Net</span>
+                            <span style="flex:0.5;text-align:right;color:#7a7790;font-weight:600;"></span>
+                        </div>
+                        <!-- Data rows with edit/delete -->
+                        <div class="wf-grid-row">
+                            <span class="col-date">Mar 27</span>
+                            <span class="col-desc"><span class="wf-notes-icon">&#9782;</span>Freelance Logo Design</span>
+                            <span class="col-cat"><span class="wf-cat-tag service">Service</span></span>
+                            <span style="flex:0.3;text-align:center;color:#a09cae;">1</span>
+                            <span class="col-amount">$250.00</span>
+                            <span class="col-fees">-$0.00</span>
+                            <span class="col-net">$250.00</span>
+                            <span class="col-actions"><span class="edit">Edit</span><span class="del">Del</span></span>
+                        </div>
+                        <div class="wf-grid-row">
+                            <span class="col-date">Mar 25</span>
+                            <span class="col-desc">Website Consulting</span>
+                            <span class="col-cat"><span class="wf-cat-tag">Consulting</span></span>
+                            <span style="flex:0.3;text-align:center;color:#a09cae;">2</span>
+                            <span class="col-amount">$75.00</span>
+                            <span class="col-fees">-$5.00</span>
+                            <span class="col-net">$145.00</span>
+                            <span class="col-actions"><span class="edit">Edit</span><span class="del">Del</span></span>
+                        </div>
+                        <div class="wf-grid-row">
+                            <span class="col-date">Mar 23</span>
+                            <span class="col-desc"><span class="wf-notes-icon">&#9782;</span>Icon Pack v2</span>
+                            <span class="col-cat"><span class="wf-cat-tag digital">Digital</span></span>
+                            <span style="flex:0.3;text-align:center;color:#a09cae;">1</span>
+                            <span class="col-amount">$15.00</span>
+                            <span class="col-fees">-$0.00</span>
+                            <span class="col-net">$15.00</span>
+                            <span class="col-actions"><span class="edit">Edit</span><span class="del">Del</span></span>
+                        </div>
+                        <div class="wf-grid-row">
+                            <span class="col-date">Mar 20</span>
+                            <span class="col-desc">Custom T-Shirt Order</span>
+                            <span class="col-cat"><span class="wf-cat-tag" style="background:rgba(245,100,0,0.15);color:#f56400;">Physical</span></span>
+                            <span style="flex:0.3;text-align:center;color:#a09cae;">5</span>
+                            <span class="col-amount">$22.00</span>
+                            <span class="col-fees">-$10.00</span>
+                            <span class="col-net">$100.00</span>
+                            <span class="col-actions"><span class="edit">Edit</span><span class="del">Del</span></span>
+                        </div>
+                        <div class="wf-grid-row">
+                            <span class="col-date">Mar 18</span>
+                            <span class="col-desc">Farmers Market Booth</span>
+                            <span class="col-cat"><span class="wf-cat-tag" style="background:rgba(245,200,66,0.15);color:#f5c842;">Sale</span></span>
+                            <span style="flex:0.3;text-align:center;color:#a09cae;">1</span>
+                            <span class="col-amount">$340.00</span>
+                            <span class="col-fees">-$25.00</span>
+                            <span class="col-net">$315.00</span>
+                            <span class="col-actions"><span class="edit">Edit</span><span class="del">Del</span></span>
+                        </div>
+                        <div class="wf-grid-row">
+                            <span class="col-date">Mar 15</span>
+                            <span class="col-desc"><span class="wf-notes-icon">&#9782;</span>Brand Strategy Session</span>
+                            <span class="col-cat"><span class="wf-cat-tag service">Service</span></span>
+                            <span style="flex:0.3;text-align:center;color:#a09cae;">1</span>
+                            <span class="col-amount">$500.00</span>
+                            <span class="col-fees">-$0.00</span>
+                            <span class="col-net">$500.00</span>
+                            <span class="col-actions"><span class="edit">Edit</span><span class="del">Del</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="annotation" style="margin-top:20px;">
+        <strong>Manual Entry is a unique spoke:</strong> It's the only platform where the user writes data (quick-entry row, inline editing, Notes, Categories, Quantity). API platform spokes (Stripe, Etsy, Gumroad, etc.) are read-only — they show synced data with no edit capability. Manual Entry also has an Expenses tab (for recording non-sale costs like supplies, shipping labels) but no Payouts tab (no platform disbursements). The Revenue tab IS the current Manual Entry page, adapted to the spoke layout.
+    </div>
+
     <div class="pros-cons">
         <div class="pros"><h4>Strengths</h4><ul>
             <li>Clean sidebar — doesn't grow with data types</li>
@@ -303,6 +469,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f0f1a; color: #e8e6f0; 
             <li>Platform hero can use brand colors (Etsy orange, Stripe purple, etc.)</li>
             <li>Natural mental model: "I want to check my Etsy sales"</li>
             <li>Scales well — adding a platform = adding a sidebar link</li>
+            <li>Manual Entry gets its own tailored spoke with write capabilities that don't affect other spokes</li>
         </ul></div>
         <div class="cons"><h4>Weaknesses</h4><ul>
             <li>Extra click to reach a specific data type on a specific platform</li>

@@ -1,5 +1,6 @@
 namespace My.Talli.Web.Handlers.Authentication;
 
+using Domain.Components.JsonSerializers;
 using Domain.Framework;
 using Domain.Handlers.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -13,13 +14,18 @@ public class AppleAuthenticationHandler
 
     private readonly AppleSignInHandler _signInHandler;
     private readonly SendWelcomeEmailCommand _sendWelcomeEmail;
+    private readonly UserPreferencesJsonSerializer _preferencesSerializer;
 
     #endregion
 
     #region <Constructors>
 
-    public AppleAuthenticationHandler(AppleSignInHandler signInHandler, SendWelcomeEmailCommand sendWelcomeEmail)
+    public AppleAuthenticationHandler(
+        AppleSignInHandler signInHandler,
+        SendWelcomeEmailCommand sendWelcomeEmail,
+        UserPreferencesJsonSerializer preferencesSerializer)
     {
+        _preferencesSerializer = preferencesSerializer;
         _sendWelcomeEmail = sendWelcomeEmail;
         _signInHandler = signInHandler;
     }
@@ -48,6 +54,10 @@ public class AppleAuthenticationHandler
 
             return user;
         });
+
+        // Theme cookie — so theme.js can apply the correct theme before Blazor starts
+        var preferences = _preferencesSerializer.Deserialize(user.UserPreferences);
+        context.HttpContext.Response.Cookies.Append("talli-theme", preferences.DarkMode ?? "system", new CookieOptions { Path = "/", HttpOnly = false, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
 
         // Email
         if (user.IsNewUser)
