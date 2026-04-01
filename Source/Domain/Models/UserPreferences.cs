@@ -5,6 +5,8 @@ public class UserPreferences
 {
 	#region <Properties>
 
+	public string DarkMode { get; set; } = "system";
+
 	public EmailPreferences EmailPreferences { get; set; } = new();
 
 	public bool FunGreetings { get; set; } = true;

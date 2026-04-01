@@ -164,6 +164,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - **UserPreferences** stores user-configurable app settings as JSON. This avoids contorting the User table with individual columns as settings grow over time. Serialized/deserialized by `UserPreferencesJsonSerializer` in `Domain/Components/JsonSerializers/User/`. Current structure:
   ```json
   {
+    "darkMode": "system",
     "emailPreferences": {
       "unsubscribeAll": false,
       "subscriptionConfirmationEmail": true,
@@ -181,6 +182,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
   }
   ```
   - Models: `UserPreferences` (root) → `EmailPreferences` (nested) + `GridPreference` (dictionary), all in `Domain/Models/`
+  - **DarkMode** — `string` with values `"system"` (default), `"light"`, `"dark"`. Controls the app's color theme for authenticated pages only. `"system"` follows the OS `prefers-color-scheme` setting. Stored in `UserPreferences`, applied via `theme.js` on page load.
   - **GridPreferences** — `Dictionary<string, GridPreference>` keyed by `page.control` name. Each grid/widget saves its own density, page size, sort column, and sort direction. Keys use dot notation: `"manualEntry.entryGrid"`, `"dashboard.revenueGrid"`, etc. Future widget types (charts, filters) will get their own typed dictionaries.
   - `unsubscribeAll` is a master kill switch — if `true`, no emails are sent regardless of individual settings
   - Individual toggles default to `true` (opt-out model). Adding a new email type = new `bool` property with `true` default.
@@ -705,7 +707,8 @@ My.Talli/
         │   ├── app.css
         │   ├── js/
         │   │   ├── landing.js      # Landing page scroll & nav interactivity
-        │   │   └── mobile-menu.js  # Mobile hamburger menu toggle (CSS class-based, no Blazor interactivity)
+        │   │   ├── mobile-menu.js  # Mobile hamburger menu toggle (CSS class-based, no Blazor interactivity)
+        │   │   └── theme.js        # Dark mode — applies data-theme attribute, listens for OS preference changes
         │   └── lib/bootstrap/
         ├── appsettings.json
         └── appsettings.Development.json
@@ -761,7 +764,16 @@ Every page except the Landing Page uses a **purple gradient swoosh** header for 
 
 Swoosh visual: purple gradient SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7`) with 3 decorative circles (`rgba(255,255,255,0.07)`). All `MainLayout` pages use the same SVG swoosh pattern — `viewBox="0 0 1000 600"` with path `M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z` filled by a per-page `linearGradient`. The hero-bg uses `height: calc(100% + 60px)` to extend the swoosh below the hero content. Pages with hero stats (ManualEntry, Platforms, Goals, Suggestions) use `margin: -32px -40px 0` and `padding: 24px 40px 40px`; pages without stats use `48px` bottom padding.
 - **Font:** DM Sans (Google Fonts) — weights 400, 500, 600, 700
-- **Theme approach:** Purple-tinted surfaces in both modes (no neutral grays in dark mode)
+- **Theme approach:** Purple-tinted surfaces in both modes (no neutral grays in dark mode). CSS custom properties (`:root` for light, `[data-theme="dark"]` for dark) defined in `app.css`. All authenticated page CSS files use `var(--token)` references instead of hardcoded hex values.
+
+### Dark Mode
+
+- **Scope:** Authenticated pages only (MainLayout). Landing Page, Sign-In, Error, and Unsubscribe stay light-mode only.
+- **Default:** `"system"` — follows OS `prefers-color-scheme`. User can override to `"light"` or `"dark"` in Settings → Personalization → Theme.
+- **Storage:** `UserPreferences.DarkMode` (string: `"system"` | `"light"` | `"dark"`), persisted in `auth.User.UserPreferences` JSON column.
+- **Application flow:** `theme.js` defines `themeManager.apply(mode)` which sets `data-theme` attribute on `<html>`. `NavMenuViewModel.OnAfterRenderAsync` reads the user's saved preference and calls `themeManager.apply()` via JS interop. The Settings page calls it immediately on pill click for instant preview.
+- **CSS architecture:** `:root` defines light tokens. `[data-theme="dark"]` overrides with dark tokens. All `MainLayout`-scoped CSS files (`MainLayout.razor.css`, `NavMenu.razor.css`, all page `.razor.css` files, shared component `.razor.css` files) reference tokens via `var(--token-name)`. Landing page CSS files remain hardcoded (light-only).
+- **System mode listener:** `theme.js` listens for `prefers-color-scheme` media query changes. When `data-theme-mode="system"` is set on `<html>`, OS theme changes apply in real time.
 
 ### Brand Colors (Light Mode)
 
@@ -1325,7 +1337,7 @@ This means:
 | **Goals** | `/goals` | Set and track monthly/yearly revenue targets | Yes (simplified) |
 | **Export** | `/export` | CSV export for tax prep / bookkeeping | Hidden |
 | **Suggestions** | `/suggestions` | User feedback and feature requests (vote, edit own) | Yes |
-| **Settings** | `/settings` | Account preferences, email settings, linked providers | Hidden |
+| **Settings** | `/settings` | Account preferences, email settings, theme (dark mode), linked providers | Hidden |
 | **Admin** | `/admin` | Email resend, bulk welcome send, user list (Admin role only) | Hidden |
 
 ### Sample Data for New Users
