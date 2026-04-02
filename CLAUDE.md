@@ -1331,7 +1331,7 @@ This means:
 
 - **Two-layer architecture:** `.sidebar` (outer) is a plain flex child of `.page` — no explicit height, stretches naturally to match the full page height via flex `align-items: stretch`. `.sidebar-inner` (inner) is `position: sticky; top: 0; height: 100vh` — locks nav content to the viewport while scrolling.
 - **Why two layers:** The outer div provides the full-height dark background (no gap at the bottom). The inner div provides the viewport-locked sticky behavior. Combining both on one element (the old approach) caused a gap below the sidebar content when the page was taller than the viewport.
-- **Body background:** `html, body` must have `background: var(--bg-page)` in `app.css` so any area outside `.page` respects the theme (light or dark). Without this, the body defaults to white and creates visible gaps in dark mode.
+- **Dark mode body background:** `[data-theme="dark"]` in `app.css` includes `background: #1a1a2e` directly on the selector. Since `data-theme` is set on `<html>`, this makes the HTML element's background dark navy in dark mode — eliminating any white gaps below `.page`. The landing page never gets `data-theme="dark"`, so it's completely unaffected. Do **not** set `background` on `html, body` globally — it would affect the landing page.
 - **No `.nav-spacer`:** The nav links stay top-aligned within `.sidebar-inner` because `.sidebar-nav` has `flex: 1`, absorbing leftover space and pushing the upgrade card + user section to the bottom.
 
 ### Mobile Navigation
