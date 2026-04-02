@@ -167,7 +167,7 @@ public class ManualEntryViewModel : ComponentBase
 
 	public int NewQuantity { get; set; } = 1;
 
-	public DateTime NewTransactionDate { get; set; } = DateTime.Today;
+	public DateTime NewTransactionDate { get; set; } = DateTime.Now;
 
 	public decimal NewUnitPrice { get; set; }
 
@@ -793,7 +793,7 @@ public class ManualEntryViewModel : ComponentBase
 		NewFeeAmount = 0;
 		NewNotes = string.Empty;
 		NewQuantity = 1;
-		NewTransactionDate = DateTime.Today;
+		NewTransactionDate = DateTime.Now;
 		NewUnitPrice = 0;
 	}
 
