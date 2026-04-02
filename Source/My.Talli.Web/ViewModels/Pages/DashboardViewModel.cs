@@ -34,6 +34,9 @@ public class DashboardViewModel : ComponentBase
 	private RepositoryAdapterAsync<MODELS.Expense, ENTITIES.Expense> ExpenseAdapter { get; set; } = default!;
 
 	[Inject]
+	private RepositoryAdapterAsync<MODELS.PlatformConnection, ENTITIES.PlatformConnection> PlatformConnectionAdapter { get; set; } = default!;
+
+	[Inject]
 	private RepositoryAdapterAsync<MODELS.Goal, ENTITIES.Goal> GoalAdapter { get; set; } = default!;
 
 	[Inject]
@@ -380,7 +383,8 @@ public class DashboardViewModel : ComponentBase
 			(s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling));
 
 		var hasModules = moduleSubscriptions.Any();
-		var hasPlatforms = false; // Stub — no platform integrations yet
+		var platformConnections = await PlatformConnectionAdapter.FindAsync(p => p.UserId == userId);
+		var hasPlatforms = platformConnections.Any();
 
 		IsSampleData = !hasModules && !hasPlatforms;
 	}

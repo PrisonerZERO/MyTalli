@@ -35,6 +35,8 @@ public class NavMenuViewModel : ComponentBase
 	[Inject]
 	private UserDisplayCache UserDisplayCache { get; set; } = default!;
 
+	private bool _themeApplied;
+
 	private long? _userId;
 
 	#endregion
@@ -91,8 +93,11 @@ public class NavMenuViewModel : ComponentBase
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender && _userId.HasValue)
+		if (!_themeApplied && _userId.HasValue)
+		{
+			_themeApplied = true;
 			await ApplyThemeAsync(_userId.Value);
+		}
 	}
 
 

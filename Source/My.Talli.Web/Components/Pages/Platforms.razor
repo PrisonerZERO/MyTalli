@@ -61,14 +61,14 @@
 else
 {
     <!-- Connected platforms -->
-    @if (ConnectedPlatforms.Any())
-    {
-        <div class="animate-in delay-2">
-            <div class="plat-section-header">
-                <h2>Connected</h2>
-                <span class="plat-section-count">@ConnectedCount</span>
-            </div>
+    <div class="animate-in delay-2">
+        <div class="plat-section-header">
+            <h2>Connected</h2>
+            <span class="plat-section-count">@ConnectedCount</span>
+        </div>
 
+        @if (ConnectedPlatforms.Any())
+        {
             @foreach (var platform in ConnectedPlatforms)
             {
                 <article class="plat-row" aria-label="@platform.Name platform, connected">
@@ -83,16 +83,23 @@ else
                     </div>
                     <div class="plat-row-center">
                         <div class="plat-row-status">
-                            <span class="plat-status-dot connected" aria-hidden="true"></span>
-                            <span class="plat-status-text">Active</span>
+                            <span class="plat-status-dot @StatusDotClass(platform.ConnectionStatus)" aria-hidden="true"></span>
+                            <span class="plat-status-text">@StatusLabel(platform.ConnectionStatus)</span>
                         </div>
-                        <div class="plat-row-sync">
-                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <polyline points="23 4 23 10 17 10" />
-                                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
-                            </svg>
-                            @platform.LastSyncLabel
-                        </div>
+                        @if (!string.IsNullOrEmpty(platform.LastSyncLabel))
+                        {
+                            <div class="plat-row-sync">
+                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <polyline points="23 4 23 10 17 10" />
+                                    <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+                                </svg>
+                                @platform.LastSyncLabel
+                                @if (platform.SyncStatus == "Failed")
+                                {
+                                    <span class="plat-sync-error" title="@platform.LastErrorMessage" aria-label="Sync error: @platform.LastErrorMessage">!</span>
+                                }
+                            </div>
+                        }
                         <div class="plat-row-data">@platform.TransactionCount transactions</div>
                     </div>
                     <div class="plat-row-actions">
@@ -101,11 +108,21 @@ else
                     </div>
                 </article>
             }
-        </div>
-    }
+        }
+        else
+        {
+            <div class="plat-empty" role="status">
+                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="plat-empty-icon">
+                    <path d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.054a4.5 4.5 0 00-6.364-6.364L4.5 8.25" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <p>No platforms connected yet.</p>
+                <p class="plat-empty-hint">Connect a platform below to start syncing your revenue data.</p>
+            </div>
+        }
+    </div>
 
     <!-- Divider -->
-    @if (ConnectedPlatforms.Any() && AvailablePlatforms.Any())
+    @if (AvailablePlatforms.Any())
     {
         <hr class="plat-divider" aria-hidden="true" />
     }
@@ -151,5 +168,21 @@ else
         "paypal" => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>,
         "shopify" => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
         _ => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>,
+    };
+
+    string StatusDotClass(string status) => status.ToLowerInvariant() switch
+    {
+        "active" => "connected",
+        "expired" => "expired",
+        "revoked" => "revoked",
+        _ => "connected",
+    };
+
+    string StatusLabel(string status) => status.ToLowerInvariant() switch
+    {
+        "active" => "Active",
+        "expired" => "Expired",
+        "revoked" => "Revoked",
+        _ => "Active",
     };
 }
