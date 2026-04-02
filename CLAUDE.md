@@ -1293,7 +1293,7 @@ This means:
 - **Every hub and spoke page** (Dashboard, Manual Entry, and future platform pages) must have a 4-tab bar: **Overview, Revenue, Expenses, Payouts**. This creates a consistent mental model — same structure everywhere, different data scope.
 - **Dashboard** (hub) defaults to the **Overview** tab. **Manual Entry** and platform spokes default to the **Revenue** tab.
 - **Tab bar placement:** Below the hero swoosh, above page content. Uses the shared `.spoke-tabs` class from `app.css`.
-- **Tab bar styling:** Dark navy background (`#1a1a2e`, `#0a0a14` in dark mode), white text, purple `#8b5cf6` underline on active tab. Colors are hardcoded (not CSS variables) to avoid specificity issues with scoped CSS.
+- **Tab bar styling:** Muted purple-charcoal background (`#5c5777`, `#0a0a14` in dark mode), white text, purple `#8b5cf6` underline on active tab. Colors are hardcoded (not CSS variables) to avoid specificity issues with scoped CSS.
 - **Hero padding for tab pages:** Pages with spoke tabs use `120px` bottom hero padding to give the swoosh curve room before the tab bar starts. The hero `margin-bottom` is `0` so the tab bar sits flush below.
 - **ViewModel pattern:** `ActiveTab` (string property, default varies by page), `SelectTab(string tab)` method. Page content wrapped in `@if (ActiveTab == "xxx")` blocks with `role="tabpanel"` and `aria-label`.
 - **`PageTitle`** updates based on active tab (e.g., "Dashboard — Revenue — MyTalli").
