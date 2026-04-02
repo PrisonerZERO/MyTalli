@@ -32,4 +32,4 @@ public static class DashboardDataset
 
 public record PlatformBreakdown(string Name, string Color, decimal Amount, int Percentage);
 
-public record Transaction(string PlatformName, string PlatformColor, string Description, string Date, decimal Amount);
+public record Transaction(string PlatformName, string PlatformColor, string Description, string Date, decimal Amount, DateTime SortDate = default);

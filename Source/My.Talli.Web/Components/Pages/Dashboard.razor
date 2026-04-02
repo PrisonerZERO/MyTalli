@@ -299,7 +299,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var tx in RecentTransactions)
+                @foreach (var tx in RecentTransactions.Take(5))
                 {
                     <tr>
                         <td>
@@ -326,17 +326,17 @@
             <div class="transactions-header">
                 <h3>All Revenue</h3>
             </div>
-            <table class="tx-table">
+            <table class="tx-table @DensityCss">
                 <thead>
                     <tr>
-                        <th>Platform</th>
-                        <th>Description</th>
-                        <th>Date</th>
-                        <th class="tx-th-right">Amount</th>
+                        <th class="dash-th-sort" @onclick='() => RevenueSortBy("Platform")'>Platform <span class="dash-sort-ind" aria-hidden="true">@GetRevenueSortIndicator("Platform")</span></th>
+                        <th class="dash-th-sort" @onclick='() => RevenueSortBy("Description")'>Description <span class="dash-sort-ind" aria-hidden="true">@GetRevenueSortIndicator("Description")</span></th>
+                        <th class="dash-th-sort" @onclick='() => RevenueSortBy("TransactionDate")'>Date <span class="dash-sort-ind" aria-hidden="true">@GetRevenueSortIndicator("TransactionDate")</span></th>
+                        <th class="dash-th-sort tx-th-right" @onclick='() => RevenueSortBy("Amount")'>Amount <span class="dash-sort-ind" aria-hidden="true">@GetRevenueSortIndicator("Amount")</span></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var tx in RecentTransactions)
+                    @foreach (var tx in PagedRevenueTransactions)
                     {
                         <tr>
                             <td>
@@ -353,6 +353,41 @@
                 </tbody>
             </table>
         </div>
+        @if (RecentTransactions.Count > 0)
+        {
+        <div class="dash-pagination">
+            <div class="dash-page-size">
+                <label for="rev-page-select">Show</label>
+                <select class="dash-page-select" id="rev-page-select" @bind="PageSize" @bind:after="ChangePageSize">
+                    @foreach (var size in PageSizeOptions)
+                    {
+                        <option value="@size">@size</option>
+                    }
+                </select>
+                <span>entries</span>
+            </div>
+            <div class="dash-density" role="group" aria-label="Row density">
+                <button class="dash-density-btn @(Density == "compact" ? "active" : "")" aria-pressed="@(Density == "compact")" title="Compact" @onclick='() => SetDensity("compact")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="6" y2="6" /><line x1="2" x2="14" y1="9" y2="9" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                </button>
+                <button class="dash-density-btn @(Density == "comfortable" ? "active" : "")" aria-pressed="@(Density == "comfortable")" title="Comfortable" @onclick='() => SetDensity("comfortable")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="8" y2="8" /><line x1="2" x2="14" y1="13" y2="13" /></svg>
+                </button>
+                <button class="dash-density-btn @(Density == "spacious" ? "active" : "")" aria-pressed="@(Density == "spacious")" title="Spacious" @onclick='() => SetDensity("spacious")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                </button>
+            </div>
+            <span class="dash-page-info">@((RevenueCurrentPage - 1) * PageSize + 1)–@Math.Min(RevenueCurrentPage * PageSize, RecentTransactions.Count) of @RecentTransactions.Count</span>
+            <div class="dash-page-nav" role="group" aria-label="Pagination">
+                <button class="dash-page-btn" disabled="@(RevenueCurrentPage <= 1)" @onclick="() => RevenueGoToPage(RevenueCurrentPage - 1)" aria-label="Previous page">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+                </button>
+                <button class="dash-page-btn" disabled="@(RevenueCurrentPage >= TotalRevenuePages)" @onclick="() => RevenueGoToPage(RevenueCurrentPage + 1)" aria-label="Next page">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
+            </div>
+        </div>
+        }
     </div>
 }
 
@@ -364,18 +399,18 @@
             <div class="transactions-header">
                 <h3>All Expenses</h3>
             </div>
-            <table class="tx-table">
+            <table class="tx-table @DensityCss">
                 <thead>
                     <tr>
-                        <th>Platform</th>
-                        <th>Description</th>
-                        <th>Category</th>
-                        <th>Date</th>
-                        <th class="tx-th-right">Amount</th>
+                        <th class="dash-th-sort" @onclick='() => ExpenseSortBy("Platform")'>Platform <span class="dash-sort-ind" aria-hidden="true">@GetExpenseSortIndicator("Platform")</span></th>
+                        <th class="dash-th-sort" @onclick='() => ExpenseSortBy("Description")'>Description <span class="dash-sort-ind" aria-hidden="true">@GetExpenseSortIndicator("Description")</span></th>
+                        <th class="dash-th-sort" @onclick='() => ExpenseSortBy("Category")'>Category <span class="dash-sort-ind" aria-hidden="true">@GetExpenseSortIndicator("Category")</span></th>
+                        <th class="dash-th-sort" @onclick='() => ExpenseSortBy("ExpenseDate")'>Date <span class="dash-sort-ind" aria-hidden="true">@GetExpenseSortIndicator("ExpenseDate")</span></th>
+                        <th class="dash-th-sort tx-th-right" @onclick='() => ExpenseSortBy("Amount")'>Amount <span class="dash-sort-ind" aria-hidden="true">@GetExpenseSortIndicator("Amount")</span></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var expense in Expenses)
+                    @foreach (var expense in PagedExpenses)
                     {
                         <tr>
                             <td>
@@ -393,6 +428,41 @@
                 </tbody>
             </table>
         </div>
+        @if (Expenses.Count > 0)
+        {
+        <div class="dash-pagination">
+            <div class="dash-page-size">
+                <label for="exp-page-select">Show</label>
+                <select class="dash-page-select" id="exp-page-select" @bind="PageSize" @bind:after="ChangePageSize">
+                    @foreach (var size in PageSizeOptions)
+                    {
+                        <option value="@size">@size</option>
+                    }
+                </select>
+                <span>entries</span>
+            </div>
+            <div class="dash-density" role="group" aria-label="Row density">
+                <button class="dash-density-btn @(Density == "compact" ? "active" : "")" aria-pressed="@(Density == "compact")" title="Compact" @onclick='() => SetDensity("compact")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="6" y2="6" /><line x1="2" x2="14" y1="9" y2="9" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                </button>
+                <button class="dash-density-btn @(Density == "comfortable" ? "active" : "")" aria-pressed="@(Density == "comfortable")" title="Comfortable" @onclick='() => SetDensity("comfortable")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="8" y2="8" /><line x1="2" x2="14" y1="13" y2="13" /></svg>
+                </button>
+                <button class="dash-density-btn @(Density == "spacious" ? "active" : "")" aria-pressed="@(Density == "spacious")" title="Spacious" @onclick='() => SetDensity("spacious")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                </button>
+            </div>
+            <span class="dash-page-info">@((ExpenseCurrentPage - 1) * PageSize + 1)–@Math.Min(ExpenseCurrentPage * PageSize, Expenses.Count) of @Expenses.Count</span>
+            <div class="dash-page-nav" role="group" aria-label="Pagination">
+                <button class="dash-page-btn" disabled="@(ExpenseCurrentPage <= 1)" @onclick="() => ExpenseGoToPage(ExpenseCurrentPage - 1)" aria-label="Previous page">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+                </button>
+                <button class="dash-page-btn" disabled="@(ExpenseCurrentPage >= TotalExpensePages)" @onclick="() => ExpenseGoToPage(ExpenseCurrentPage + 1)" aria-label="Next page">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
+            </div>
+        </div>
+        }
     </div>
 }
 
@@ -404,18 +474,18 @@
             <div class="transactions-header">
                 <h3>All Payouts</h3>
             </div>
-            <table class="tx-table">
+            <table class="tx-table @DensityCss">
                 <thead>
                     <tr>
-                        <th>Platform</th>
-                        <th>Date</th>
-                        <th class="tx-th-right">Amount</th>
-                        <th>Status</th>
-                        <th>Expected Arrival</th>
+                        <th class="dash-th-sort" @onclick='() => PayoutSortBy("Platform")'>Platform <span class="dash-sort-ind" aria-hidden="true">@GetPayoutSortIndicator("Platform")</span></th>
+                        <th class="dash-th-sort" @onclick='() => PayoutSortBy("PayoutDate")'>Date <span class="dash-sort-ind" aria-hidden="true">@GetPayoutSortIndicator("PayoutDate")</span></th>
+                        <th class="dash-th-sort tx-th-right" @onclick='() => PayoutSortBy("Amount")'>Amount <span class="dash-sort-ind" aria-hidden="true">@GetPayoutSortIndicator("Amount")</span></th>
+                        <th class="dash-th-sort" @onclick='() => PayoutSortBy("Status")'>Status <span class="dash-sort-ind" aria-hidden="true">@GetPayoutSortIndicator("Status")</span></th>
+                        <th class="dash-th-sort" @onclick='() => PayoutSortBy("ExpectedArrival")'>Expected Arrival <span class="dash-sort-ind" aria-hidden="true">@GetPayoutSortIndicator("ExpectedArrival")</span></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var payout in Payouts)
+                    @foreach (var payout in PagedPayouts)
                     {
                         <tr>
                             <td>
@@ -433,5 +503,40 @@
                 </tbody>
             </table>
         </div>
+        @if (Payouts.Count > 0)
+        {
+        <div class="dash-pagination">
+            <div class="dash-page-size">
+                <label for="pay-page-select">Show</label>
+                <select class="dash-page-select" id="pay-page-select" @bind="PageSize" @bind:after="ChangePageSize">
+                    @foreach (var size in PageSizeOptions)
+                    {
+                        <option value="@size">@size</option>
+                    }
+                </select>
+                <span>entries</span>
+            </div>
+            <div class="dash-density" role="group" aria-label="Row density">
+                <button class="dash-density-btn @(Density == "compact" ? "active" : "")" aria-pressed="@(Density == "compact")" title="Compact" @onclick='() => SetDensity("compact")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="6" y2="6" /><line x1="2" x2="14" y1="9" y2="9" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                </button>
+                <button class="dash-density-btn @(Density == "comfortable" ? "active" : "")" aria-pressed="@(Density == "comfortable")" title="Comfortable" @onclick='() => SetDensity("comfortable")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="8" y2="8" /><line x1="2" x2="14" y1="13" y2="13" /></svg>
+                </button>
+                <button class="dash-density-btn @(Density == "spacious" ? "active" : "")" aria-pressed="@(Density == "spacious")" title="Spacious" @onclick='() => SetDensity("spacious")'>
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                </button>
+            </div>
+            <span class="dash-page-info">@((PayoutCurrentPage - 1) * PageSize + 1)–@Math.Min(PayoutCurrentPage * PageSize, Payouts.Count) of @Payouts.Count</span>
+            <div class="dash-page-nav" role="group" aria-label="Pagination">
+                <button class="dash-page-btn" disabled="@(PayoutCurrentPage <= 1)" @onclick="() => PayoutGoToPage(PayoutCurrentPage - 1)" aria-label="Previous page">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+                </button>
+                <button class="dash-page-btn" disabled="@(PayoutCurrentPage >= TotalPayoutPages)" @onclick="() => PayoutGoToPage(PayoutCurrentPage + 1)" aria-label="Next page">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
+            </div>
+        </div>
+        }
     </div>
 }
