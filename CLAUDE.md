@@ -1327,6 +1327,13 @@ This means:
 - **Simplify, don't remove** — pages that are visible on mobile should render a simplified "keyhole" view, not the full desktop layout. Example: Goals on mobile shows progress bars and numbers, not the full goal editor.
 - **Decide per page** — each page's mobile treatment is determined when building that page, not planned upfront. The content will make the right answer obvious.
 
+### Sidebar Layout
+
+- **Two-layer architecture:** `.sidebar` (outer) is a plain flex child of `.page` — no explicit height, stretches naturally to match the full page height via flex `align-items: stretch`. `.sidebar-inner` (inner) is `position: sticky; top: 0; height: 100vh` — locks nav content to the viewport while scrolling.
+- **Why two layers:** The outer div provides the full-height dark background (no gap at the bottom). The inner div provides the viewport-locked sticky behavior. Combining both on one element (the old approach) caused a gap below the sidebar content when the page was taller than the viewport.
+- **Dark mode body background:** `[data-theme="dark"]` in `app.css` includes `background: #1a1a2e` directly on the selector. Since `data-theme` is set on `<html>`, this makes the HTML element's background dark navy in dark mode — eliminating any white gaps below `.page`. The landing page never gets `data-theme="dark"`, so it's completely unaffected. Do **not** set `background` on `html, body` globally — it would affect the landing page.
+- **No `.nav-spacer`:** The nav links stay top-aligned within `.sidebar-inner` because `.sidebar-nav` has `flex: 1`, absorbing leftover space and pushing the upgrade card + user section to the bottom.
+
 ### Mobile Navigation
 
 - **Breakpoint:** `max-width: 640.98px` — all mobile-specific styles live behind this media query in `MainLayout.razor.css`

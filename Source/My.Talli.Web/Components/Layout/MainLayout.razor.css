@@ -1,6 +1,6 @@
 .page { background: var(--bg-card); display: flex; min-height: 100vh; }
 main { flex: 1; min-height: 100vh; position: relative; }
-.sidebar { background: var(--bg-card); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; width: 240px; }
+.sidebar { background: var(--bg-card); border-right: 1px solid var(--border-subtle); width: 240px; }
 .content { background: var(--bg-page); min-height: 100%; padding: 32px 40px 48px; }
 .site-footer { align-items: center; background: var(--bg-page); border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; padding: 24px 40px; }
 .site-footer p { color: var(--text-muted); font-size: 12px; margin: 0; }
