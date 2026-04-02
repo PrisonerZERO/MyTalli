@@ -11,7 +11,7 @@ public class Revenue : DefaultEntity
     public bool IsRefunded { get; set; }
     public decimal NetAmount { get; set; }
     public string Platform { get; set; } = string.Empty;
-    public string PlatformTransactionId { get; set; } = string.Empty;
+    public string? PlatformTransactionId { get; set; }
     public DateTime TransactionDate { get; set; }
     public User User { get; set; } = null!;
     public long UserId { get; set; }

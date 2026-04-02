@@ -859,7 +859,6 @@ public class ManualEntryViewModel : ComponentBase
 			Description = NewExpenseDescription,
 			ExpenseDate = NewExpenseDate,
 			Platform = "Manual",
-			PlatformTransactionId = $"manual_{Guid.NewGuid():N}",
 			UserId = _userId!.Value,
 		};
 	}
@@ -888,7 +887,6 @@ public class ManualEntryViewModel : ComponentBase
 			GrossAmount = grossAmount,
 			NetAmount = grossAmount - NewFeeAmount,
 			Platform = "Manual",
-			PlatformTransactionId = $"manual_{Guid.NewGuid():N}",
 			TransactionDate = NewTransactionDate,
 			UserId = _userId!.Value,
 		};
