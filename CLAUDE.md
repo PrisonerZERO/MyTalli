@@ -126,7 +126,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - Design: No FK to Revenue — one payout covers many sales (batched). Enables cash flow view: earned vs received vs pending. Actively used by Manual Entry module for full CRUD.
 
 **`app.Revenue`** — normalized revenue record from all platforms (API-sourced and manual entry)
-- `Id` (PK), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
+- `Id` (PK), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (nullable, unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
 - Composite index on `(Platform, TransactionDate)` for dashboard queries
 - Design: Goals and dashboard analytics query **only** this normalized table. Platform-specific tables exist for drill-down detail.
 

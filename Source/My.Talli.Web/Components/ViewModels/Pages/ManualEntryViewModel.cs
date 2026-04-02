@@ -1,4 +1,4 @@
-namespace My.Talli.Web.ViewModels.Pages;
+namespace My.Talli.Web.Components.ViewModels.Pages;
 
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
@@ -167,7 +167,7 @@ public class ManualEntryViewModel : ComponentBase
 
 	public int NewQuantity { get; set; } = 1;
 
-	public DateTime NewTransactionDate { get; set; } = DateTime.Now;
+	public DateTime NewTransactionDate { get; set; } = DateTime.Today;
 
 	public decimal NewUnitPrice { get; set; }
 
@@ -793,7 +793,7 @@ public class ManualEntryViewModel : ComponentBase
 		NewFeeAmount = 0;
 		NewNotes = string.Empty;
 		NewQuantity = 1;
-		NewTransactionDate = DateTime.Now;
+		NewTransactionDate = DateTime.Today;
 		NewUnitPrice = 0;
 	}
 
@@ -859,6 +859,7 @@ public class ManualEntryViewModel : ComponentBase
 			Description = NewExpenseDescription,
 			ExpenseDate = NewExpenseDate,
 			Platform = "Manual",
+			PlatformTransactionId = $"manual_{Guid.NewGuid():N}",
 			UserId = _userId!.Value,
 		};
 	}
@@ -887,6 +888,7 @@ public class ManualEntryViewModel : ComponentBase
 			GrossAmount = grossAmount,
 			NetAmount = grossAmount - NewFeeAmount,
 			Platform = "Manual",
+			PlatformTransactionId = $"manual_{Guid.NewGuid():N}",
 			TransactionDate = NewTransactionDate,
 			UserId = _userId!.Value,
 		};

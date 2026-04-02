@@ -1,4 +1,4 @@
-namespace My.Talli.Web.ViewModels.Pages;
+namespace My.Talli.Web.Components.ViewModels.Pages;
 
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
@@ -55,9 +55,6 @@ public class DashboardViewModel : ComponentBase
 	private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
 
 	[Inject]
-	private RepositoryAdapterAsync<MODELS.User, ENTITIES.User> UserAdapter { get; set; } = default!;
-
-	[Inject]
 	private UserDisplayCache UserDisplayCache { get; set; } = default!;
 
 	#endregion
@@ -67,10 +64,6 @@ public class DashboardViewModel : ComponentBase
 	public string ActivePeriod { get; private set; } = "30D";
 
 	public string ActiveTab { get; private set; } = "overview";
-
-	public string Density { get; private set; } = "comfortable";
-
-	public string DensityCss => $"density-{Density}";
 
 	public string ChartCurrentAreaPath { get; private set; } = string.Empty;
 
@@ -86,13 +79,7 @@ public class DashboardViewModel : ComponentBase
 
 	public int DaysRemaining { get; private set; } = 12;
 
-	public int ExpenseCurrentPage { get; private set; } = 1;
-
 	public List<ExpenseItem> Expenses { get; private set; } = [];
-
-	public string ExpenseSortColumn { get; private set; } = "ExpenseDate";
-
-	public bool ExpenseSortDescending { get; private set; } = true;
 
 	public decimal GoalCurrentAmount { get; private set; } = 1847m;
 
@@ -114,25 +101,9 @@ public class DashboardViewModel : ComponentBase
 
 	public int MonthlyGoalPercentage { get; private set; } = 68;
 
-	public List<ExpenseItem> PagedExpenses => GetSortedExpenses().Skip((ExpenseCurrentPage - 1) * PageSize).Take(PageSize).ToList();
-
-	public List<PayoutItem> PagedPayouts => GetSortedPayouts().Skip((PayoutCurrentPage - 1) * PageSize).Take(PageSize).ToList();
-
-	public List<Transaction> PagedRevenueTransactions => GetSortedRevenue().Skip((RevenueCurrentPage - 1) * PageSize).Take(PageSize).ToList();
-
-	public int PageSize { get; set; } = 10;
-
-	public int[] PageSizeOptions { get; } = [10, 25, 50];
-
 	public string PageTitle => ActiveTab == "overview" ? "Dashboard" : $"Dashboard — {ActiveTab[0].ToString().ToUpper()}{ActiveTab[1..]}";
 
-	public int PayoutCurrentPage { get; private set; } = 1;
-
 	public List<PayoutItem> Payouts { get; private set; } = [];
-
-	public string PayoutSortColumn { get; private set; } = "PayoutDate";
-
-	public bool PayoutSortDescending { get; private set; } = true;
 
 	public List<string> Periods { get; } = ["7D", "30D", "90D", "12M"];
 
@@ -142,25 +113,13 @@ public class DashboardViewModel : ComponentBase
 
 	public List<Transaction> RecentTransactions { get; private set; } = [];
 
-	public int RevenueCurrentPage { get; private set; } = 1;
-
-	public string RevenueSortColumn { get; private set; } = "TransactionDate";
-
-	public bool RevenueSortDescending { get; private set; } = true;
-
 	public string ThisMonthChange { get; private set; } = "12%";
 
 	public decimal ThisMonthRevenue { get; private set; } = 1847m;
 
 	public decimal TotalRevenue { get; private set; } = 4218m;
 
-	public int TotalExpensePages => Math.Max(1, (int)Math.Ceiling((double)Expenses.Count / PageSize));
-
-	public int TotalPayoutPages => Math.Max(1, (int)Math.Ceiling((double)Payouts.Count / PageSize));
-
 	public string TotalRevenueChange { get; private set; } = "23%";
-
-	public int TotalRevenuePages => Math.Max(1, (int)Math.Ceiling((double)RecentTransactions.Count / PageSize));
 
 	public string UserFirstName { get; private set; } = string.Empty;
 
@@ -196,91 +155,6 @@ public class DashboardViewModel : ComponentBase
 	public void SelectTab(string tab)
 	{
 		ActiveTab = tab;
-	}
-
-	// ── Grid controls ──
-
-	public async Task ChangePageSize()
-	{
-		RevenueCurrentPage = 1;
-		ExpenseCurrentPage = 1;
-		PayoutCurrentPage = 1;
-		await SaveGridPreferencesAsync();
-	}
-
-	public void ExpenseGoToPage(int page)
-	{
-		ExpenseCurrentPage = Math.Clamp(page, 1, TotalExpensePages);
-	}
-
-	public async Task ExpenseSortBy(string column)
-	{
-		if (ExpenseSortColumn == column)
-		{
-			ExpenseSortDescending = !ExpenseSortDescending;
-		}
-		else
-		{
-			ExpenseSortColumn = column;
-			ExpenseSortDescending = column == "ExpenseDate";
-		}
-
-		ExpenseCurrentPage = 1;
-		await SaveGridPreferencesAsync();
-	}
-
-	public string GetExpenseSortIndicator(string column) => ExpenseSortColumn == column ? (ExpenseSortDescending ? "▼" : "▲") : "";
-
-	public string GetPayoutSortIndicator(string column) => PayoutSortColumn == column ? (PayoutSortDescending ? "▼" : "▲") : "";
-
-	public string GetRevenueSortIndicator(string column) => RevenueSortColumn == column ? (RevenueSortDescending ? "▼" : "▲") : "";
-
-	public void PayoutGoToPage(int page)
-	{
-		PayoutCurrentPage = Math.Clamp(page, 1, TotalPayoutPages);
-	}
-
-	public async Task PayoutSortBy(string column)
-	{
-		if (PayoutSortColumn == column)
-		{
-			PayoutSortDescending = !PayoutSortDescending;
-		}
-		else
-		{
-			PayoutSortColumn = column;
-			PayoutSortDescending = column == "PayoutDate";
-		}
-
-		PayoutCurrentPage = 1;
-		await SaveGridPreferencesAsync();
-	}
-
-	public void RevenueGoToPage(int page)
-	{
-		RevenueCurrentPage = Math.Clamp(page, 1, TotalRevenuePages);
-	}
-
-	public async Task RevenueSortBy(string column)
-	{
-		if (RevenueSortColumn == column)
-		{
-			RevenueSortDescending = !RevenueSortDescending;
-		}
-		else
-		{
-			RevenueSortColumn = column;
-			RevenueSortDescending = column == "TransactionDate";
-		}
-
-		RevenueCurrentPage = 1;
-		await SaveGridPreferencesAsync();
-	}
-
-	public async Task SetDensity(string density)
-	{
-		Density = density;
-		await SaveGridPreferencesAsync();
 	}
 
 	// ── Chart helpers ──
@@ -407,8 +281,8 @@ public class DashboardViewModel : ComponentBase
 		ChartPreviousLinePath = BuildChartPath(previousDaily, prevStart, prevEnd, yMax);
 		ChartPreviousAreaPath = ChartPreviousLinePath + " L796,200 L40,200 Z";
 
-		// All transactions (Revenue tab pages through these; Overview shows top 5)
-		RecentTransactions = currentRevenues.OrderByDescending(r => r.TransactionDate).Select(r => new Transaction(r.Platform, GetPlatformColor(r.Platform), r.Description, r.TransactionDate.ToString("MMM d"), r.NetAmount, r.TransactionDate)).ToList();
+		// Recent transactions (last 5)
+		RecentTransactions = allRevenues.OrderByDescending(r => r.TransactionDate).Take(5).Select(r => new Transaction(r.Platform, GetPlatformColor(r.Platform), r.Description, r.TransactionDate.ToString("MMM d"), r.NetAmount)).ToList();
 
 		// Expenses
 		var expenses = await ExpenseAdapter.FindAsync(e => e.UserId == _userId!.Value);
@@ -502,15 +376,6 @@ public class DashboardViewModel : ComponentBase
 		if (preferences.FunGreetings)
 			UserFirstName = UserClaimsHelper.RandomFunGreeting();
 
-		// Load saved grid preferences
-		if (preferences.GridPreferences.TryGetValue("dashboard.revenueGrid", out var gridPrefs))
-		{
-			Density = gridPrefs.Density;
-			PageSize = gridPrefs.PageSize;
-			RevenueSortColumn = string.IsNullOrEmpty(gridPrefs.SortColumn) ? "TransactionDate" : gridPrefs.SortColumn;
-			RevenueSortDescending = gridPrefs.SortDescending;
-		}
-
 		// Check for data sources: modules (ProductId >= 3) or platforms (not yet implemented)
 		var moduleSubscriptions = await SubscriptionAdapter.FindAsync(s =>
 			s.UserId == userId &&
@@ -522,62 +387,6 @@ public class DashboardViewModel : ComponentBase
 		var hasPlatforms = platformConnections.Any();
 
 		IsSampleData = !hasModules && !hasPlatforms;
-	}
-
-	private IEnumerable<ExpenseItem> GetSortedExpenses()
-	{
-		return ExpenseSortColumn switch
-		{
-			"Description" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase) : Expenses.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase),
-			"Category" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Category) : Expenses.OrderBy(e => e.Category),
-			"Amount" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Amount) : Expenses.OrderBy(e => e.Amount),
-			"Platform" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Platform) : Expenses.OrderBy(e => e.Platform),
-			_ => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.ExpenseDate) : Expenses.OrderBy(e => e.ExpenseDate),
-		};
-	}
-
-	private IEnumerable<PayoutItem> GetSortedPayouts()
-	{
-		return PayoutSortColumn switch
-		{
-			"Amount" => PayoutSortDescending ? Payouts.OrderByDescending(p => p.Amount) : Payouts.OrderBy(p => p.Amount),
-			"Status" => PayoutSortDescending ? Payouts.OrderByDescending(p => p.Status) : Payouts.OrderBy(p => p.Status),
-			"Platform" => PayoutSortDescending ? Payouts.OrderByDescending(p => p.Platform) : Payouts.OrderBy(p => p.Platform),
-			"ExpectedArrival" => PayoutSortDescending ? Payouts.OrderByDescending(p => p.ExpectedArrivalDate) : Payouts.OrderBy(p => p.ExpectedArrivalDate),
-			_ => PayoutSortDescending ? Payouts.OrderByDescending(p => p.PayoutDate) : Payouts.OrderBy(p => p.PayoutDate),
-		};
-	}
-
-	private IEnumerable<Transaction> GetSortedRevenue()
-	{
-		return RevenueSortColumn switch
-		{
-			"Description" => RevenueSortDescending ? RecentTransactions.OrderByDescending(t => t.Description, StringComparer.OrdinalIgnoreCase) : RecentTransactions.OrderBy(t => t.Description, StringComparer.OrdinalIgnoreCase),
-			"Amount" => RevenueSortDescending ? RecentTransactions.OrderByDescending(t => t.Amount) : RecentTransactions.OrderBy(t => t.Amount),
-			"Platform" => RevenueSortDescending ? RecentTransactions.OrderByDescending(t => t.PlatformName) : RecentTransactions.OrderBy(t => t.PlatformName),
-			_ => RevenueSortDescending ? RecentTransactions.OrderByDescending(t => t.SortDate) : RecentTransactions.OrderBy(t => t.SortDate),
-		};
-	}
-
-	private async Task SaveGridPreferencesAsync()
-	{
-		if (_userId is null) return;
-
-		var user = await UserAdapter.GetByIdAsync(_userId.Value);
-		if (user is null) return;
-
-		var preferences = PreferencesSerializer.Deserialize(user.UserPreferences);
-
-		preferences.GridPreferences["dashboard.revenueGrid"] = new MODELS.GridPreference
-		{
-			Density = Density,
-			PageSize = PageSize,
-			SortColumn = RevenueSortColumn,
-			SortDescending = RevenueSortDescending,
-		};
-
-		user.UserPreferences = PreferencesSerializer.Serialize(preferences);
-		await UserAdapter.UpdateAsync(user);
 	}
 
 	private ExpenseItem ToExpenseItem(MODELS.Expense expense)

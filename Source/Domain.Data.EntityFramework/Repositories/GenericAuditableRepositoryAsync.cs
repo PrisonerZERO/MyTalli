@@ -122,6 +122,8 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
             DetachTrackedInstance(entity);
             _dbSet.Attach(entity);
             _dbContext.Entry(entity).State = EntityState.Modified;
+            _dbContext.Entry(entity).Property(e => e.CreateByUserId).IsModified = false;
+            _dbContext.Entry(entity).Property(e => e.CreatedOnDateTime).IsModified = false;
             await _dbContext.SaveChangesAsync();
         }
         finally
@@ -142,6 +144,8 @@ public class GenericAuditableRepositoryAsync<TEntity> : GenericRepositoryAsync<T
                 DetachTrackedInstance(entity);
                 _dbSet.Attach(entity);
                 _dbContext.Entry(entity).State = EntityState.Modified;
+                _dbContext.Entry(entity).Property(e => e.CreateByUserId).IsModified = false;
+                _dbContext.Entry(entity).Property(e => e.CreatedOnDateTime).IsModified = false;
             }
 
             await _dbContext.SaveChangesAsync();

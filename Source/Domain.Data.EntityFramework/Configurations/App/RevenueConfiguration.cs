@@ -25,7 +25,7 @@ public class RevenueConfiguration : IEntityTypeConfiguration<Revenue>
         builder.Property(e => e.IsRefunded).HasColumnOrder(7);
         builder.Property(e => e.NetAmount).HasPrecision(18, 2).HasColumnOrder(8);
         builder.Property(e => e.Platform).HasMaxLength(50).IsRequired().HasColumnOrder(9);
-        builder.Property(e => e.PlatformTransactionId).HasMaxLength(255).IsRequired().HasColumnOrder(10);
+        builder.Property(e => e.PlatformTransactionId).HasMaxLength(255).HasColumnOrder(10);
         builder.Property(e => e.TransactionDate).IsRequired().HasColumnOrder(11);
         builder.Property(e => e.IsDeleted).HasColumnOrder(12);
         builder.Property(e => e.IsVisible).HasColumnOrder(13);
