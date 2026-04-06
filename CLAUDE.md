@@ -911,7 +911,8 @@ dotnet run --project Source/My.Talli.Web
 - **EIN:** 41-5332853 (obtained 2026-04-06)
 - **Operating agreement:** Created 2026-04-06 via Northwest Registered Agent (free Texas single-member LLC template)
 - **Business bank account:** Not yet opened — requires EIN letter + Articles of Organization + Operating Agreement (all obtained)
-- **Texas franchise tax report:** Due annually by May 15 (first due May 15, 2027)
+- **Expense tracking:** Google Sheets — "MyTalli - Costs" spreadsheet. Two tabs: **Expenses** (two sections: Monthly Recurring and One-Time, each with its own running total; columns: Date, Vendor, Category, Description, Unit Cost, Qty, Amount, Running Total; categories: Hosting, Legal, Email, SaaS, Marketing, Domain) and **LLC Compliance** (formation document checklist with status/dates, annual compliance items, and not-required items for Texas SaaS).
+- **Texas franchise tax report:** Due annually by May 15 (first due May 15, 2027). **⚠️ REMINDER: File PIR by May 15, 2027** — remind Robert on May 1, 2027. $0 tax if under $2.47M revenue, but the Public Information Report must still be filed.
 - **Documentation:** `documentation/MyTalli_PlatformApprovals.html` — LLC formation details, Etsy/PayPal approval strategy
 
 ### Scaling & Cost Planning
