@@ -932,6 +932,16 @@ dotnet run --project Source/My.Talli.Web
 - **LinkedIn:** [MyTalli company page](https://www.linkedin.com/company/mytalli) — company page under Robert Jordan's personal account. Profile icon: favicon PNG. Description and tagline set.
 - **Social assets folder:** `social-assets/` — contains `linkedin-cover.html` (source for LinkedIn cover banner). X Coming Soon image generated from `wireframes/` or `social-assets/`.
 
+### Azure Billing
+
+- **Billing account:** MyTalli LLC (Microsoft Customer Agreement)
+- **Billing account ID:** `cc6f661a-e800-45a5-85d1-7e7750867151:ca5bc7aa-b684-4864-97ba-93dd80676eec_2019-05-31`
+- **Billing profile:** MyTalli LLC (`POAA-HQE4-BG7-PGB`)
+- **Registration number (EIN):** 41-5332853
+- **Sold-to address:** MyTalli, 5423 Oakhaven Ln, Houston, TX 77091-5011
+- **Payment method:** Personal credit card (switch to LLC business bank account once opened)
+- **Organization name:** "MyTalli" (read-only — requires Azure support ticket to change to "MyTalli LLC")
+
 ### Azure App Service (Blazor Server)
 
 - **App Service Plan:** `mytalli-centralus-asp` (Linux, Standard S1, Central US) — ~$69/mo
