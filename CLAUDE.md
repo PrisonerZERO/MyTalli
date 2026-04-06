@@ -900,16 +900,17 @@ dotnet run --project Source/My.Talli.Web
 ### Business Entity
 
 - **Entity:** MyTalli LLC — single-member LLC, Texas
-- **Formation:** Filed 2026-03-27 via LegalZoom (Basic plan, $301 state filing fee only)
-- **Owner/Organizer/Registered Agent:** Robert Merrill Jordan
+- **Formation:** Filed 2026-03-27 via LegalZoom (Basic plan, $301 state filing fee only). Formed 2026-03-31.
+- **State ID:** 806522234
+- **Owner/Organizer/Registered Agent:** Robert Merrill Jordan (100%)
 - **Management:** Member-managed
 - **Business address:** 5423 Oakhaven Ln, Houston, TX 77091 (home address, on public record)
 - **Industry:** Software
 - **Fiscal year end:** December 31
-- **Status:** Pending Texas Secretary of State approval (5-14 business days from filing)
-- **EIN:** Not yet obtained — apply at [irs.gov/ein](https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online) after Texas approves (free, instant)
-- **Operating agreement:** Not yet created — use a free single-member template after approval
-- **Business bank account:** Not yet opened — requires EIN letter + Articles of Organization
+- **Status:** Approved by Texas Secretary of State (2026-03-31)
+- **EIN:** 41-5332853 (obtained 2026-04-06)
+- **Operating agreement:** Created 2026-04-06 via Northwest Registered Agent (free Texas single-member LLC template)
+- **Business bank account:** Not yet opened — requires EIN letter + Articles of Organization + Operating Agreement (all obtained)
 - **Texas franchise tax report:** Due annually by May 15 (first due May 15, 2027)
 - **Documentation:** `documentation/MyTalli_PlatformApprovals.html` — LLC formation details, Etsy/PayPal approval strategy
 
@@ -1244,6 +1245,7 @@ This means:
 - Trends & month-over-month comparisons
 - CSV export for tax prep / bookkeeping
 - Weekly email summaries (Pro tier)
+- **Product Development Module** — future module for managing product campaigns/efforts. May eventually support collaboration (inviting people into a campaign to handle specific tasks). **Teams are explicitly deferred** — build the module single-user first, then let real usage patterns define what collaboration looks like. The current schema (everything scoped to `UserId`, provider-separation pattern) is friendly to adding `TeamId` later without reworking existing tables.
 
 ## Pricing Model
 
