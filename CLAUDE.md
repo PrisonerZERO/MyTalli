@@ -1160,95 +1160,7 @@ Templates embedded from `Domain/.resources/emails/` get resource names like:
 
 ## Platform API Notes
 
-Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data. Full comparison document: `documentation/MyTalli_PlatformCapabilities.html`. Data shapes, normalized schema, and ERD: `documentation/PlatformApiDataShapes.html`.
-
-**Integration priority:** Stripe → Gumroad → Etsy → Shopify → PayPal (based on data richness, complexity, and approval timelines).
-
-### Revenue Sync Architecture
-
-Platform API rate limits are **application-level** — they apply to MyTalli's API keys, not per-user. If hundreds of users connect the same platform, every API call counts against one shared limit. Hitting platform APIs on every page load would exhaust rate limits almost immediately at scale.
-
-**Solution: Local Cache + Periodic Sync**
-
-1. **Dashboard reads are local only.** When a user visits the dashboard (or any revenue-displaying page), all data comes from `app.Revenue` in our database. No external API calls are made during page loads.
-2. **Background sync job runs once per hour.** A scheduled process iterates through all users with connected platforms, pulls their latest transactions from each platform's API, and upserts into `app.Revenue`. The job controls its own pace — adding delays between users and between platforms to stay within each platform's rate limits.
-
-This means:
-- Users always see data instantly (local DB read)
-- Rate limits are manageable (one controlled background process, not N concurrent users)
-- The sync job can spread work across the full hour, throttle per-platform, and retry failures without affecting the user experience
-
-**`app.Revenue` is the single source of truth for the dashboard.** Both API-sourced data (from the sync job) and manual entries flow into this same normalized table. The `Platform` column distinguishes the source ("Stripe", "Etsy", "Manual", etc.) and `PlatformTransactionId` prevents duplicate inserts during re-syncs.
-
-**`app.SyncQueue`** — the sync job's work list. One row per user per connected platform.
-
-- `Id` (PK), `UserId` (FK → auth.User), `Platform` (string — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `Status` (Pending, InProgress, Completed, Failed), `LastSyncDateTime` (nullable — null until first successful sync), `NextSyncDateTime` (when this row is next eligible for processing), `LastErrorMessage` (nullable — most recent failure reason), `ConsecutiveFailures` (int, default 0 — for exponential backoff), `IsEnabled` (bool, default true — user can pause syncing)
-- Unique constraint on `(UserId, Platform)` — one queue entry per user per platform
-- Index on `(NextSyncDateTime, Status)` — the sync job queries "give me rows where `NextSyncDateTime <= now AND Status = Pending AND IsEnabled = true`", ordered by `NextSyncDateTime` ASC (oldest first)
-- **Row lifecycle:** Created when a user connects a platform. `NextSyncDateTime` set to now (immediate first sync). After each sync: `LastSyncDateTime` = now, `NextSyncDateTime` = now + 1 hour, `Status` = Pending, `ConsecutiveFailures` = 0. On failure: `ConsecutiveFailures` incremented, `NextSyncDateTime` pushed out with exponential backoff, `LastErrorMessage` updated.
-- **Backoff strategy:** On failure, `NextSyncDateTime` = now + (base interval × 2^ConsecutiveFailures), capped at a max delay (e.g., 24 hours). This prevents hammering a platform that's down or rate-limiting us.
-- **Sync pause:** Users can toggle `IsEnabled` off to pause syncing for a connected platform. The platform remains connected and still counts against the plan limit.
-- **No disconnect.** Once a platform is connected, it cannot be disconnected. This prevents Free tier users from gaming the platform limit by rotating connections — connect one platform, sync it, disconnect, connect another. A connected platform permanently occupies a plan slot.
-- **Pre-connection warning.** Before completing a platform connection, the user must be shown a confirmation dialog explaining that this connection is permanent and will occupy a plan slot. The user must explicitly confirm before the OAuth flow begins.
-
-**Sync completion notification:** When a sync completes for a user, the app notifies them in real time via the Blazor SignalR circuit. If the user is currently on the dashboard (or any revenue-displaying page), they see a non-intrusive toast or banner (e.g., "Stripe data updated just now") so they know fresh data is available. The page can then refresh its data from `app.Revenue` without a full page reload. If the user is not online, no notification is needed — they'll see the latest data on their next visit. Failed syncs do not notify the user (the backoff mechanism handles retries silently); persistent failures surface on the Platforms page as a connection status indicator.
-
-### Stripe
-
-- **API:** REST API — [docs.stripe.com/api](https://docs.stripe.com/api)
-- **Auth:** OAuth 2.0 via Stripe Connect (Standard accounts), scope: `read_only`. Access token: 1hr, refresh token: 1yr rolling.
-- **Key endpoints:** Balance Transactions (`/v1/balance_transactions`), Charges, PaymentIntents, Payouts, Refunds
-- **Data richness:** Excellent — gross, net, fee (per-component breakdown), currency, payout schedule, exchange rates
-- **Webhooks:** Full catalog (`charge.succeeded`, `charge.refunded`, `payout.paid`, etc.). Connect webhook endpoint with `account` property per connected account.
-- **Rate limits:** 25 read req/s per endpoint, 100 req/s global (live)
-- **Approval:** None for Connect OAuth. Stripe App Marketplace listing requires ~4 day review.
-- **Caveat:** Stripe is steering new platforms toward Stripe Apps (Marketplace) rather than traditional Connect OAuth. Confirm recommended path with Stripe support before building.
-
-### Etsy
-
-- **API:** Etsy Open API v3 (REST) — [developers.etsy.com](https://developers.etsy.com/)
-- **Auth:** OAuth 2.0 + PKCE (S256), scopes: `transactions_r shops_r`. Access token: 1hr, refresh token: 90 days.
-- **Key endpoints:** Shop Receipts, Transactions, Payments, Ledger Entries (running account balance)
-- **Data richness:** Good — order totals, item prices, shipping, taxes, Etsy fees, refunds, multi-currency
-- **Webhooks:** 4 order events (`order.paid`, `order.canceled`, `order.shipped`, `order.delivered`). Payloads are lightweight (URL only) — require follow-up API call for data.
-- **Rate limits:** ~10 QPS, ~10,000 QPD (sliding window). Receipts endpoint may enforce 1 req/s/shop.
-- **Approval:** **Commercial access required** for 4+ shops (~20+ day review). Apply early — approved at Etsy's sole discretion.
-- **Caveat:** Refresh token expires in 90 days — if a user doesn't visit MyTalli for 3 months, their connection breaks and they must re-authorize.
-- **Developer account:** Registered under `hello@mytalli.com` at [developers.etsy.com](https://developers.etsy.com/). App name: `mytalli`. Keystring (client ID): `nqbjy0nj18t8o0d1yudbzr5t`.
-- **Test shop:** `MyTalliTestShop` — shop creation paused at the payment setup step. Waiting for LLC approval → EIN → business bank account before completing setup.
-
-### Gumroad
-
-- **API:** REST API v2 — [gumroad.com/api](https://gumroad.com/api)
-- **Auth:** OAuth 2.0, scope: `view_sales`. Access tokens **never expire** — simplest auth of all platforms.
-- **Key endpoints:** Sales (`/v2/sales` with date filtering), Products, Subscribers
-- **Data richness:** Basic — sale amount, flat Gumroad fee (10%, no breakdown), product details, refunds, subscriptions
-- **Webhooks:** Ping feature — `sale`, `refund`, `subscription_updated`, `subscription_ended`. HMAC-SHA256 verification.
-- **Rate limits:** Undocumented — implement adaptive backoff
-- **Approval:** None — immediate access
-- **Caveats:** No payout/disbursement API. No net amount (calculate manually). API docs are sparse. Platform stability uncertain (open-sourced, company changes).
-
-### PayPal
-
-- **API:** REST API v1 — [developer.paypal.com/docs/api/transaction-search/v1/](https://developer.paypal.com/docs/api/transaction-search/v1/)
-- **Auth:** OAuth 2.0 Authorization Code via "Log In with PayPal", scopes: `openid` + `reporting/search/read` + `reporting/balances/read`. Access token: ~8hr, refresh token: 180 days.
-- **Key endpoints:** Transaction Search (`/v1/reporting/transactions`, 31-day max range, 500/page, 10K max records), Balance (`/v1/reporting/balances`)
-- **Data richness:** Good — transaction amount, fees, status, timestamp, payer info (not anonymized), multi-currency balances. No net amount field (calculate gross - fees). Payouts via T-code filtering.
-- **Webhooks:** Full catalog (`PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.REFUNDED`, etc.). Up to 10 webhook URLs per app. Retries up to 25 times over 3 days.
-- **Rate limits:** ~50 req/min per IP (dynamic, not formally published)
-- **Approval:** Reporting scopes require PayPal approval (24-72hr). **Third-party access may require Partner program enrollment** — path is unclear. Contact PayPal partner team early.
-- **Caveats:** Transaction data delayed 3-72 hours in Search API — must use webhooks for real-time. 31-day max date range per query (12+ calls for a year). Refresh token expires at 180 days.
-
-### Shopify
-
-- **API:** GraphQL Admin API (required for new apps since April 2025) — [shopify.dev/docs/api/admin-graphql](https://shopify.dev/docs/api/admin-graphql/latest)
-- **Auth:** OAuth 2.0 Authorization Code, scopes: `read_orders` (60 days) + `read_all_orders` (full history, requires approval) + `read_shopify_payments_payouts` + `read_shopify_payments_accounts`. Offline access token: 60min, refresh token: 90 days rolling. **Expiring offline tokens mandatory for new apps April 1, 2026.**
-- **Key endpoints:** Orders (with nested transactions, refunds in single GraphQL query), Shopify Payments Balance/Payouts/Balance Transactions
-- **Data richness:** Good — order totals, subtotals, taxes, shipping, discounts, multi-currency (shop + presentment). **Fee/net data only available for Shopify Payments merchants** — third-party gateway merchants only have gross amounts.
-- **Webhooks:** Full catalog (`orders/paid`, `refunds/create`, `order_transactions/create`, `disputes/create`). HMAC-SHA256 verification. Delivery not guaranteed — retries for 48hr.
-- **Rate limits:** 1,000pt bucket, 50pt/s restore (Standard plans). GraphQL calculated query cost.
-- **Approval:** `read_all_orders` is a protected scope — request in Partner Dashboard. Unlisted public app distribution (no App Store listing required).
-- **Caveats:** Fee data is Shopify Payments only. 60-day order limit without `read_all_orders` approval. GraphQL only (no REST for new apps). Mandatory compliance webhooks (`customers/data_request`, `customers/redact`, `shop/redact`).
+> **Moved to memory:** Platform API details (auth, endpoints, rate limits, webhooks, sync architecture) for all 5 platforms are in the `reference_platform_api_notes.md` memory file. Loaded on demand when working on platform integrations.
 
 ## Planned Features
 
@@ -1716,28 +1628,11 @@ public AppleSignInHandler(
 
 ## Etsy Setup TODO
 
-- [x] **Developer Account** — registered under `hello@mytalli.com` at [developers.etsy.com](https://developers.etsy.com/)
-- [x] **App Registration** — app name `mytalli`, Seller Tools, commercial, read sales data. Keystring: `nqbjy0nj18t8o0d1yudbzr5t`. Status: Pending Personal Approval.
-- [ ] **API Key Approval** — waiting for Etsy to approve the personal access key (check back on developer dashboard periodically — no notification on denial)
-- [x] **Test Shop (started)** — `MyTalliTestShop` created through shop preferences and naming steps. Paused at payment setup — requires business bank account.
-- [ ] **Test Shop (complete)** — finish shop setup after LLC approval → EIN → business bank account. Remaining steps: payment info, billing info, shop security.
-- [ ] **API Keys to Config** — add Keystring and Shared Secret to `appsettings.Development.json` (`Etsy:ClientId`, `Etsy:ClientSecret`)
-- [ ] **Commercial Access** — apply for commercial access (4+ shops) before public launch (~20-day review)
+> **Moved to memory:** `project_etsy_setup.md` — API key approved, test shop & commercial access pending.
 
 ## Stripe Setup TODO
 
-- [x] **Stripe Account** — created sandbox under `robertmerrilljordan@gmail.com`
-- [x] **Branding** — brand color `#6c5ce7`, accent `#8b5cf6`, icon uploaded (favicon PNG)
-- [x] **Business Model** — Platform (not Marketplace)
-- [x] **Payment Integration** — Prebuilt checkout form (Stripe Checkout Sessions)
-- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHVRC4AM5SkTgToKjXCny`. Free tier has no Stripe product (it's just the absence of a subscription). Manual Entry Module: Product ID `prod_UEPfDUVNr9l4kJ`, Price ID `price_1TFwpvRC4AM5SkTgEZMliKrz` ($3/mo). Module price IDs are configured in `Stripe:Modules` (key = DB product ID, value = Stripe price ID).
-- [x] **Webhook Endpoint** — using Stripe CLI local listener (`stripe listen --forward-to https://localhost:7012/api/billing/webhook`). Stripe CLI installed via winget at `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`.
-- [x] **API Keys** — test keys added to `appsettings.Development.json` (`Stripe:SecretKey`, `Stripe:PublishableKey`)
-- [x] **Webhook Secret** — webhook signing secret added to `appsettings.Development.json` (from Stripe CLI listener)
-- [x] **Customer Portal** — configured: customer info (name, email, billing address, phone), payment methods, cancellations (end of billing period, collect reason). Portal Configuration ID: `bpc_1TDSZQRC4AM5SkTggFFtu6cQ`.
-- [x] **Test Checkout Flow** — end-to-end verified: Upgrade page → Stripe Checkout → webhook → DB records → Subscription page shows Pro. Also tested: plan switching (monthly ↔ yearly), cancel (end-of-period with "Cancelling" state), reactivate via Customer Portal.
-- [ ] **Production Keys** — add live keys to Azure App Service Configuration (when ready to go live)
-- [ ] **Custom Domains** — `pay.mytalli.com` (Checkout), `billing.mytalli.com` (Customer Portal) — production only, CNAME records in GoDaddy
+> **Moved to memory:** `project_stripe_setup.md` — dev environment working, production keys & custom domains pending.
 
 ## Blazor TODO
 
