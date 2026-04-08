@@ -734,104 +734,7 @@ My.Talli.UnitTesting     ← xUnit tests → Domain, Domain.Data, Domain.DI.Lama
 
 ## Brand & Design
 
-> **Source of truth:** `wireframes/MyTalli_ColorPalette.html` (light) and `wireframes/MyTalli_DarkModePalette.html` (dark) — keep this section in sync with those files.
-
-- **Color palette tool:** [Coolors](https://coolors.co) — used to create and manage the brand palette
-
-### Page Branding — Purple Swoosh
-
-Every page except the Landing Page uses a **purple gradient swoosh** header for consistent branding:
-
-- **`BrandHeader` component** (`Components/Shared/BrandHeader.razor`) — reusable swoosh with logo + action slot (`ChildContent` RenderFragment). Used by Sign-In, Unsubscribe, and Error pages.
-- **Dashboard** uses its own inline swoosh (no BrandHeader) because the sidebar already has the logo — the swoosh sits behind the greeting area instead.
-- **Landing Page** has its own distinct hero layout and is **not** branded with the swoosh.
-
-| Page | Swoosh | Logo | Action Slot |
-|------|--------|------|-------------|
-| `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
-| `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | Period pills (7D, 30D, 90D, 12M) |
-| `/manual-entry` | Inline SVG (`.manual-hero`) | No (sidebar has it) | N/A |
-| `/platforms` | Inline SVG (`.plat-hero`) | No (sidebar has it) | N/A |
-| `/goals` | Inline SVG (`.goals-hero`) | No (sidebar has it) | "New Goal" button |
-| `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button |
-| `/settings` | Inline SVG (`.settings-hero`) | No (sidebar has it) | N/A |
-| `/my-plan` | Inline SVG (`.plan-hero`) | No (sidebar has it) | N/A |
-| `/subscription/cancel` | Inline SVG (`.cancel-hero`) | No (sidebar has it) | N/A |
-| `/admin` | Inline SVG (`.admin-hero`) | No (sidebar has it) | N/A |
-| `/unsubscribe` | `<BrandHeader>` | Yes | "Go to Homepage" link |
-| `/Error` | `<BrandHeader>` | Yes | "Go Back" button |
-| `/` | None | Own nav logo | N/A |
-
-Swoosh visual: purple gradient SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7`) with 3 decorative circles (`rgba(255,255,255,0.07)`). All `MainLayout` pages use the same SVG swoosh pattern — `viewBox="0 0 1000 600"` with path `M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z` filled by a per-page `linearGradient`. The hero-bg uses `height: calc(100% + 60px)` to extend the swoosh below the hero content. Pages with hero stats (ManualEntry, Platforms, Goals, Suggestions) use `margin: -32px -40px 0` and `padding: 24px 40px 40px`; pages without stats use `48px` bottom padding.
-- **Font:** DM Sans (Google Fonts) — weights 400, 500, 600, 700
-- **Theme approach:** Purple-tinted surfaces in both modes (no neutral grays in dark mode). CSS custom properties (`:root` for light, `[data-theme="dark"]` for dark) defined in `app.css`. All authenticated page CSS files use `var(--token)` references instead of hardcoded hex values.
-
-### Dark Mode
-
-- **Scope:** Authenticated pages only (MainLayout). Landing Page, Sign-In, Error, and Unsubscribe stay light-mode only.
-- **Default:** `"system"` — follows OS `prefers-color-scheme`. User can override to `"light"` or `"dark"` in Settings → Personalization → Theme.
-- **Storage:** `UserPreferences.DarkMode` (string: `"system"` | `"light"` | `"dark"`), persisted in `auth.User.UserPreferences` JSON column.
-- **Application flow:** `theme.js` defines `themeManager.apply(mode)` which sets `data-theme` attribute on `<html>`. `NavMenuViewModel.OnAfterRenderAsync` reads the user's saved preference and calls `themeManager.apply()` via JS interop. The Settings page calls it immediately on pill click for instant preview.
-- **CSS architecture:** `:root` defines light tokens. `[data-theme="dark"]` overrides with dark tokens. All `MainLayout`-scoped CSS files (`MainLayout.razor.css`, `NavMenu.razor.css`, all page `.razor.css` files, shared component `.razor.css` files) reference tokens via `var(--token-name)`. Landing page CSS files remain hardcoded (light-only).
-- **System mode listener:** `theme.js` listens for `prefers-color-scheme` media query changes. When `data-theme-mode="system"` is set on `<html>`, OS theme changes apply in real time.
-
-### Brand Colors (Light Mode)
-
-- **Primary Purple:** `#6c5ce7` — CTAs, logo accent, links, active states
-- **Primary Hover:** `#5a4bd1` — hover & pressed states
-- **Light Purple:** `#8b5cf6` — gradient mid-point, secondary accent
-- **Lavender:** `#a78bfa` — accents on dark backgrounds
-- **Soft Purple:** `#f0edff` — tags, badges, light backgrounds
-- **Muted Purple:** `#e0dce8` — input borders, subtle dividers
-- **Page Background:** `#f8f7fc` — alternating section backgrounds
-- **Dark Navy:** `#1a1a2e` — primary text, dark sections
-
-### Brand Colors (Dark Mode)
-
-#### Surfaces
-- **Page Background:** `#0f0f1a` — deepest layer, main page bg
-- **Card Surface:** `#1a1a2e` — cards, sidebar, inputs (Dark Navy repurposed)
-- **Elevated Surface:** `#242440` — hover states, dropdowns, tooltips
-- **Border:** `#2a2745` — card borders, dividers, table lines
-- **Subtle Divider:** `#1e1c30` — table row borders, faint separators
-
-#### Accents
-- **Primary Purple:** `#7c6cf7` — CTAs, active states (slightly lifted for dark bg contrast)
-- **Primary Hover:** `#6c5ce7` — hover & pressed (original primary becomes hover)
-- **Lavender:** `#a78bfa` — logo accent, section tags (promoted role in dark mode)
-- **Active Tint:** `#2a2154` — active nav bg, selected states, tags (replaces `#f0edff`)
-- **Active Tint Hover:** `#362d6b` — hover on active tint areas, progress bar tracks
-
-#### Text
-- **Primary Text:** `#e8e6f0` — headings, card values (warm purple-white, not pure `#fff`)
-- **Secondary Text:** `#a09cae` — body paragraphs, descriptions
-- **Muted Text:** `#7a7790` — labels, timestamps, helper text
-- **Disabled / Faintest:** `#5c5977` — disabled states, chart grid lines
-
-#### UI Colors (Dark Mode Adjusted)
-- **Success / Growth:** `#2ecc71` — slightly brighter for pop on dark
-- **Success Tint:** `#1a3a2a` — growth badge background
-- **Danger / Decline:** `#e74c3c` — negative revenue, errors
-- **Danger Tint:** `#3a1a1e` — danger badge background
-- **Warning / Highlight:** `#f5c842` — attention states (warmer than light mode yellow)
-
-### Platform Connector Colors
-
-| Platform | Light Mode | Dark Mode  | Notes                              |
-|----------|------------|------------|------------------------------------|
-| Stripe   | `#635bff`  | `#635bff`  | No change needed                   |
-| Etsy     | `#f56400`  | `#f56400`  | No change needed                   |
-| Gumroad  | `#ff90e8`  | `#ff90e8`  | No change needed                   |
-| PayPal   | `#003087`  | `#2a7fff`  | Lightened — `#003087` invisible on dark |
-| Shopify  | `#96bf48`  | `#96bf48`  | No change needed                   |
-
-### UI Colors (Light Mode)
-
-- **Success / Growth:** `#27ae60` — positive revenue changes, growth indicators
-- **Body Text:** `#555` — secondary paragraph text
-- **Muted Text:** `#999` — footnotes, helper text, timestamps
-- **White:** `#ffffff` — cards, inputs, clean backgrounds
-- **Highlight Yellow:** `#fff176` — attention flash, input highlights
+> **Moved to memory:** `reference_brand_design.md` — color palettes (light/dark), dark mode architecture, platform connector colors, swoosh hero branding, font, theme approach. Source of truth files: `wireframes/MyTalli_ColorPalette.html` (light) and `wireframes/MyTalli_DarkModePalette.html` (dark).
 
 ## Development
 
@@ -888,103 +791,7 @@ dotnet run --project Source/My.Talli.Web
 
 ## Infrastructure
 
-- **Domain registrar:** GoDaddy — `mytalli.com`
-- **Custom domain:** `www.mytalli.com` — CNAME pointing to `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`, SSL via App Service Managed Certificate (SNI SSL, auto-renewing)
-- **DNS verification:** TXT record `asuid.www` with Custom Domain Verification ID for Azure domain ownership proof
-- **Previous hosting:** Azure Static Web Apps (Free tier) — `delightful-grass-000c17010.6.azurestaticapps.net` (static "coming soon" landing page, now superseded by the Blazor app on App Service)
-- **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
-- **Google Search Console:** Property `https://www.mytalli.com/` verified via GA4 (2026-03-07). Sitemap submitted. Dashboard at [search.google.com/search-console](https://search.google.com/search-console)
-- **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys (legacy)
-- **Static assets note:** The `deploy/` and `favicon-concepts/` folders are from the static HTML era. Static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) now live in `wwwroot/`. The `deploy/emails/` folder is still needed — it hosts PNG images referenced by customer-facing email templates.
-
-### Business Entity
-
-- **Entity:** MyTalli LLC — single-member LLC, Texas
-- **Formation:** Filed 2026-03-27 via LegalZoom (Basic plan, $301 state filing fee only). Formed 2026-03-31.
-- **State ID:** 806522234
-- **Owner/Organizer/Registered Agent:** Robert Merrill Jordan (100%)
-- **Management:** Member-managed
-- **Business address:** 5423 Oakhaven Ln, Houston, TX 77091 (home address, on public record)
-- **Industry:** Software
-- **Fiscal year end:** December 31
-- **Status:** Approved by Texas Secretary of State (2026-03-31)
-- **EIN:** 41-5332853 (obtained 2026-04-06)
-- **Operating agreement:** Created 2026-04-06 via Northwest Registered Agent (free Texas single-member LLC template)
-- **Business bank account:** Not yet opened — requires EIN letter + Articles of Organization + Operating Agreement (all obtained)
-- **Expense tracking:** Google Sheets — "MyTalli - Costs" spreadsheet. Two tabs: **Expenses** (two sections: Monthly Recurring and One-Time, each with its own running total; columns: Date, Vendor, Category, Description, Unit Cost, Qty, Amount, Running Total; categories: Hosting, Legal, Email, SaaS, Marketing, Domain) and **LLC Compliance** (formation document checklist with status/dates, annual compliance items, and not-required items for Texas SaaS).
-- **Texas franchise tax report:** Due annually by May 15 (first due May 15, 2027). **⚠️ REMINDER: File PIR by May 15, 2027** — remind Robert on May 1, 2027. $0 tax if under $2.47M revenue, but the Public Information Report must still be filed.
-- **Documentation:** `documentation/MyTalli_PlatformApprovals.html` — LLC formation details, Etsy/PayPal approval strategy
-
-### Scaling & Cost Planning
-
-- **Documentation:** `documentation/MyTalli_ScalingPlan.html` (scaling strategy) and `documentation/MyTalli_CostingPlan.html` (cost projections & optimization)
-- **Blazor Server memory per circuit:** ~400 KB for MyTalli (dashboard with KPI cards, charts, scoped services)
-- **Current capacity (S1):** ~500 concurrent users (1.75 GB RAM, 1 core)
-- **Recommended upgrade (P0v3):** ~1,200 concurrent users (4 GB RAM, 1 core) for only ~$4/mo more than S1
-- **Concurrent vs registered:** A dashboard app typically sees 5-15% of registered users online at any given time
-- **Circuit defaults:** `DisconnectedCircuitRetentionPeriod` = 3 minutes, `DisconnectedCircuitMaxRetained` = 100
-- **Azure SignalR Service:** Not needed until scaling out to multiple App Service instances (~2,000+ concurrent users)
-- **Scale-up triggers:** Memory consistently above 70% → scale up App Service tier. DTU consistently above 80% → scale up SQL tier.
-- **Break-even:** At 5% Pro conversion ($12/mo), infrastructure costs are covered at ~8 paying users
-
-### Social Media
-
-- **X (Twitter):** [@MyTalliApp](https://x.com/MyTalliApp) — verified (blue check, yearly subscription). Profile icon: favicon PNG. Banner: Coming Soon image. Pinned post: launch teaser with branded image.
-- **LinkedIn:** [MyTalli company page](https://www.linkedin.com/company/mytalli) — company page under Robert Jordan's personal account. Profile icon: favicon PNG. Description and tagline set.
-- **Social assets folder:** `social-assets/` — contains `linkedin-cover.html` (source for LinkedIn cover banner). X Coming Soon image generated from `wireframes/` or `social-assets/`.
-
-### Azure Billing
-
-- **Billing account:** MyTalli LLC (Microsoft Customer Agreement)
-- **Billing account ID:** `cc6f661a-e800-45a5-85d1-7e7750867151:ca5bc7aa-b684-4864-97ba-93dd80676eec_2019-05-31`
-- **Billing profile:** MyTalli LLC (`POAA-HQE4-BG7-PGB`)
-- **Registration number (EIN):** 41-5332853
-- **Sold-to address:** MyTalli, 5423 Oakhaven Ln, Houston, TX 77091-5011
-- **Payment method:** Personal credit card (switch to LLC business bank account once opened)
-- **Organization name:** "MyTalli" (read-only — requires Azure support ticket to change to "MyTalli LLC")
-
-### Azure App Service (Blazor Server)
-
-- **App Service Plan:** `mytalli-centralus-asp` (Linux, Standard S1, Central US) — ~$69/mo
-- **App Service:** `mytalli-web` (Linux, .NET 10.0)
-- **Default domain:** `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`
-- **Resource Group:** `MyTalli-CentralUS-ResourceGroup`
-- **Deployment:** Visual Studio Publish to the **staging** slot → verify → **Swap** to production (zero downtime). Sign in as `hello@mytalli.com` (MyTalli tenant). The publish profile (`mytalli-web-staging - Zip Deploy.pubxml`) targets the staging slot directly. Do not use Kudu ZIP deploy — it was unreliable.
-- **Deployment slots:** Standard S1 tier — `mytalli-web` (production, 100% traffic) and `mytalli-web-staging` (staging, 0% traffic). Deploy to staging first, warm up, then swap to production for zero-downtime releases.
-- **Connection string:** `DefaultConnection` configured as SQLAzure type in App Service Configuration
-- **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`, `Authentication__Apple__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
-- **ElmahCore dependency:** `System.Data.SqlClient` NuGet package explicitly added to `My.Talli.Web.csproj` — required on Linux where ElmahCore.Sql cannot resolve it automatically
-
-### SEO
-
-The landing page (`wireframes/MyTalli_LandingPage.html`) includes:
-- `meta description`, `robots`, `theme-color`, `canonical` URL
-- Open Graph tags (`og:type`, `og:url`, `og:title`, `og:description`, `og:image`)
-- Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`)
-- JSON-LD structured data (`SoftwareApplication` schema with free tier pricing)
-- **Favicon:** SVG (`/favicon.svg`) — "T" with ascending growth bars on purple rounded square, using primary purple `#6c5ce7` background and lavender `#a78bfa` bars. Source: `favicon-concepts/favicon-c-growth.svg`
-- **OG Share Image:** PNG (`/og-image.png`, 1200×630) — dark navy gradient with favicon icon, "MyTalli" title (lavender accent), tagline with yellow "One dashboard.", platform pills with brand colors (Stripe, Etsy, Gumroad, PayPal, Shopify), and `www.mytalli.com` footer. Source mockup: `favicon-concepts/og-image-mockup.html`
-
-### Accessibility
-
-The landing page (`deploy/index.html` and `wireframes/MyTalli_LandingPage.html`) includes:
-- **Skip navigation** — hidden "Skip to main content" link, visible on keyboard focus (`.skip-link`)
-- **Landmarks** — `<main id="main">`, `<nav aria-label="Main navigation">`, `<footer role="contentinfo">`
-- **Section labeling** — `aria-labelledby` on each content section pointing to its `<h2>` id; `aria-label="Hero"` on hero section
-- **Decorative hiding** — `aria-hidden="true"` on hero background shapes, wave divider SVG, section tags, and step numbers
-- **Dashboard mockup** — `role="img"` with descriptive `aria-label` (announced as a single image, inner elements hidden)
-- **Emoji icons** — wrapped in `<span role="img" aria-label="...">` with descriptive labels
-- **Pricing checkmarks** — visually-hidden `<span class="sr-only">Included: </span>` prefix on each list item
-- **Step context** — `aria-label="Step 1: Connect your platforms"` etc. on each `.step` div
-- **Logo** — `aria-label="MyTalli, go to top of page"` on nav logo link
-- **Focus indicators** — `:focus-visible { outline: 3px solid #6c5ce7; outline-offset: 2px; }`
-- **Utility class** — `.sr-only` for visually-hidden screen-reader-only text
-
-Deploy folder also contains:
-- `favicon.svg` — chosen favicon (concept C)
-- `og-image.png` — social share image (1200×630 PNG)
-- `robots.txt` — allows all crawlers, references sitemap
-- `sitemap.xml` — single entry for `https://www.mytalli.com/` (update as pages are added)
+> **Moved to memory:** `reference_infrastructure.md` — Azure hosting, domain/DNS, business entity (LLC), scaling, social media, analytics, SEO, accessibility notes.
 
 ## Authentication
 
@@ -1016,50 +823,7 @@ Deploy folder also contains:
 
 ## Billing
 
-### Architecture
-
-- **Stripe Checkout** — hosted payment page for new subscriptions. Created via `StripeBillingService.CreateCheckoutSessionAsync()`, triggered from the Upgrade page.
-- **Stripe Customer Portal** — hosted billing management (update payment, view invoices, cancel). Created via `StripeBillingService.CreatePortalSessionAsync()`, triggered from the Subscription page's "Manage Billing" button.
-- **Webhooks** — Stripe sends events to `/api/billing/webhook`. The endpoint verifies the signature, then delegates to `StripeWebhookHandler` in the Domain layer. Handled events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`.
-- **Plan switching** — `/api/billing/switch-plan?plan=monthly|yearly` calls `StripeBillingService.SwitchPlanAsync()` and updates the local DB directly (doesn't wait for the webhook). Stripe prorates automatically.
-- **`StripeConfiguration.ApiKey`** — set globally at startup in `BillingConfiguration.AddBilling()`.
-
-### Subscription Statuses
-
-| Status | Meaning | Trigger |
-|--------|---------|---------|
-| `Active` | Subscription is current and billing normally | Checkout completed, reactivation |
-| `Cancelling` | User cancelled; active until end of billing period | `cancel_at_period_end = true` on webhook |
-| `Cancelled` | Subscription has ended | `customer.subscription.deleted` webhook |
-| `PastDue` | Payment failed, grace period | Stripe status `past_due` |
-| `Unpaid` | Payment failed, no grace | Stripe status `unpaid` |
-
-- **Cancelling vs Cancelled:** "Cancelling" means the user requested cancellation but still has access until the billing period ends. "Cancelled" means the subscription is fully terminated. The Subscription page shows a warning banner and "Reactivate" button during "Cancelling" state.
-- **Queries:** Any query for "active" subscriptions must include both `Active` and `Cancelling` statuses (the user still has Pro access in both states). This applies to: `MyPlanViewModel`, `NavMenuViewModel`, `ManualEntryViewModel`, portal endpoint, switch-plan endpoint.
-
-### Webhook Handler
-
-`StripeWebhookHandler` (`Domain/Handlers/Billing/`) creates all commerce records on checkout:
-1. `Order` + `OrderItem` — purchase event
-2. `Subscription` + `SubscriptionStripe` — ongoing subscription state
-3. `Billing` + `BillingStripe` — payment record
-
-Product resolution uses `ProductId` (not product name). The web-layer `CheckoutCompletedHandler` resolves the product ID from the Stripe price ID via `ResolveProductId()` — mapping `MonthlyPriceId` → 1, `YearlyPriceId` → 2, and module price IDs from the `Stripe:Modules` config. The same pattern exists in `SubscriptionUpdatedHandler`. This allows the webhook to handle Pro plans and module subscriptions identically.
-
-On subscription updates, it syncs status, dates, and product changes. On deletion, it sets status to `Cancelled`.
-
-### CurrentUserMiddleware
-
-`CurrentUserMiddleware` (`Middleware/CurrentUserMiddleware.cs`) runs after `UseAuthorization()` on every request. It reads the `"UserId"` claim from `HttpContext.User` and calls `ICurrentUserService.Set()`. This ensures the `AuditResolver` can stamp audit fields on DB operations in API endpoints. Webhook requests from Stripe have no auth cookie — the `StripeWebhookHandler` sets `ICurrentUserService` manually from the subscription's `UserId`.
-
-**Blazor Server scoping caveat:** `CurrentUserMiddleware` sets `ICurrentUserService` on the HTTP request's DI scope, but the Blazor SignalR circuit creates its **own** DI scope with a fresh `ICurrentUserService` instance. This means the middleware-set user is not available in Blazor components. **Any ViewModel that performs updates via `RepositoryAdapterAsync` must call `CurrentUserService.Set(userId, ...)` in `OnInitializedAsync`** to ensure the `AuditResolver` has the user for audit field stamping. Inserts work without this (they use `userId ?? 0`), but updates require an authenticated user and will throw `InvalidOperationException` if the service is empty. See `ManualEntryViewModel` and `SuggestionBoxViewModel` for the pattern.
-
-### Local Development
-
-- **Stripe CLI listener:** `stripe listen --forward-to https://localhost:7012/api/billing/webhook` — must be running to receive webhooks during local dev.
-- **Stripe CLI path:** `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`
-- **Test card:** `4242 4242 4242 4242`, any future expiry, any CVC.
-- **Resend events:** `stripe events resend <event_id>` — useful when the app wasn't running when a webhook fired.
+> **Moved to memory:** `reference_billing.md` — Stripe billing architecture, checkout, portal, webhooks, subscription statuses, CurrentUserMiddleware, local dev setup.
 
 ## App Mode
 
@@ -1084,79 +848,7 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 
 ## Email Notifications
 
-### Architecture
-
-Email notifications follow a **Template + Builder** pattern modeled after the Measurement Forms Liquids project:
-
-- **HTML templates** — stored as `EmbeddedResource` files in `Domain/.resources/emails/`, compiled into the assembly, loaded at runtime via `Assembly.GetManifestResourceContent()`
-- **Notification classes** — in `Domain/Notifications/Emails/`, abstract base `EmailNotification` → generic `EmailNotificationOf<T>` → concrete implementations (e.g., `ExceptionOccurredEmailNotification`)
-- **Placeholder replacement** — templates use `[[Placeholder.Name]]` tokens replaced via `string.Replace()` in the `Build()` method. All user-supplied data is HTML-encoded via `WebUtility.HtmlEncode()` before replacement.
-- **SmtpNotification** — serializable POCO carrier returned by `FinalizeEmail()`, passed to `IEmailService.SendAsync()`
-- **Azure Communication Services** — `AcsEmailService` (active) sends via ACS Email SDK. `SmtpEmailService` (MailKit) retained as fallback for local dev with smtp4dev.
-
-### Exception Email Pipeline
-
-Unhandled exceptions trigger email notifications via .NET's `IExceptionHandler` interface:
-
-1. Exception occurs → `UseExceptionHandler("/Error")` middleware runs registered `IExceptionHandler` services
-2. `ExceptionEmailHandler.TryHandleAsync()` builds the notification and sends the email
-3. Handler **always returns `false`** — the middleware continues re-executing to `/Error`, preserving the existing Error page behavior
-4. Email failures are caught and logged — they never mask the original exception or break the error page
-
-### Email Configuration
-
-**ACS settings** are bound from `appsettings.json` → `AzureCommunicationServices` section:
-
-- `ConnectionString` — ACS connection string (in `appsettings.Development.json` for dev, App Service Configuration for prod)
-
-**Email settings** are bound from `appsettings.json` → `Email` section via `IOptions<EmailSettings>`:
-
-- `FromAddress` — default `DoNotReply@mytalli.com` (must match an ACS verified sender)
-- `FromDisplayName` — default `MyTalli`
-- `ExceptionRecipients` — list of admin email addresses; if empty, no exception emails are sent
-- `Host`, `Port`, `Username`, `Password`, `UseSsl` — SMTP settings (only used by `SmtpEmailService` fallback)
-
-### Email Branding
-
-There are two tiers of email branding:
-
-| Tier | Audience | Branding Level | Example |
-|------|----------|----------------|---------|
-| **Internal** | Developers, admins | Simple — MyTalli text logo, brand colors, clean layout | Exception notifications |
-| **Customer** | End users | Full — polished design, logo image, professional copywriting, mobile-responsive, tested across email clients | Welcome emails, subscription confirmations, weekly summaries |
-
-- **Internal emails** use the current template style: purple header (`#6c5ce7`) with "MyTalli" text (no image dependency), functional layout, monospace stack traces. Acceptable as-is.
-- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Hero uses the **bulletproof background image pattern** (`<td background>` + CSS `background-image` + VML conditional comments for Outlook) with hosted PNGs at `https://www.mytalli.com/emails/`. Body icons use HTML entity emojis (render natively, not blocked). Three customer emails are built: Welcome, Subscription Confirmation, Weekly Summary.
-
-### Adding a New Email Notification
-
-1. Create a payload class in `Domain/Notifications/Emails/` with the data properties
-2. Create an HTML template in `Domain/.resources/emails/` with `[[Placeholder]]` tokens — use table-based layout with inline styles for email client compatibility
-3. Create a concrete notification class extending `EmailNotificationOf<TPayload>` — implement `Build()` to load the template, replace tokens, and set Subject
-4. The `EmbeddedResource` glob in `Domain.csproj` (`**/*.html`) picks up new templates automatically
-5. Create a handler/trigger in the Web project that builds and sends the notification via `IEmailService`
-
-### Test Emails (Development Only)
-
-A dev-only endpoint at `GET /api/test/emails` sends all 3 customer emails to `hello@mytalli.com` with sample data via ACS. Only registered when `app.Environment.IsDevelopment()`.
-
-A dev-only endpoint at `GET /api/test/unsubscribe-token/{userId:long}` generates an unsubscribe token for testing the `/unsubscribe` page.
-
-### Unsubscribe Token
-
-All customer emails include a tokenized unsubscribe link (`/unsubscribe?token=xxx`) so users can manage email preferences without signing in (CAN-SPAM compliance).
-
-- **Token format:** `Base64Url(userId + "." + HMAC-SHA256-signature)` — no expiration (unsubscribe links must work indefinitely)
-- **Service:** `UnsubscribeTokenService` (`Domain/Components/Tokens/`) — `GenerateToken(long userId)` / `ValidateToken(string? token) → long?`
-- **Config:** `UnsubscribeToken:SecretKey` in `appsettings.json` (bound via `UnsubscribeTokenSettings`)
-- **Generation:** Auth handlers generate the token during sign-up and pass it to the email payload's `UnsubscribeToken` property
-- **Template placeholder:** `[[UnsubscribeUrl]]` — replaced in each notification's `Build()` method with the full tokenized URL
-- **Unsubscribe page:** `/unsubscribe?token=xxx` — validates token, loads user preferences, renders toggle UI for email opt-in/out. Invalid/missing token shows a fallback with "Sign In" CTA.
-
-### Embedded Resource Naming
-
-Templates embedded from `Domain/.resources/emails/` get resource names like:
-`My.Talli.Domain..resources.emails.{FileName}.html` (dots replace path separators, the leading dot in `.resources` creates a double dot). Use `assembly.GetManifestResourceNames()` to debug if a template fails to load.
+> **Moved to memory:** `reference_email_notifications.md` — email template architecture, ACS config, exception pipeline, unsubscribe tokens, branding tiers, how to add new emails.
 
 ## Platform API Notes
 
@@ -1616,15 +1308,7 @@ public AppleSignInHandler(
 
 ## Testing Tools
 
-- **WAVE** (wave.webaim.org) — web accessibility evaluation tool. Paste a URL to get a visual overlay of ARIA landmarks, contrast errors, heading structure, and missing labels. Note: WAVE cannot evaluate contrast for text over positioned/overlapping backgrounds (e.g., nav links over the hero gradient) — expect false positives there.
-- **Lighthouse** — built into Chrome DevTools (F12 > Lighthouse tab). Scores accessibility, performance, SEO, and best practices out of 100.
-- **axe DevTools** — Chrome extension by Deque. Runs in the Elements panel and catches WCAG violations with fix suggestions.
-- **NVDA** (nvaccess.org) — free Windows screen reader for manual testing of the full blind-user experience.
-
-### Accessibility Notes
-
-- **WAVE contrast errors (28):** Mostly false positives from nav links (`rgba(255,255,255,0.85)`) over the purple hero gradient — WAVE sees them against the white `<body>` background. A few real failures exist on platform brand colors (Shopify `#96bf48`, Gumroad `#ff90e8`, Etsy `#f56400` on `#f8f7fc`), but these are intentional brand colors kept as-is.
-- **WAVE alert (1):** Skipped heading level — the `<h3>` inside the dashboard mockup jumps from `<h1>`. Harmless because the mockup is marked `role="img"` with a descriptive `aria-label`.
+> **Moved to memory:** `reference_testing_tools.md` — WAVE, Lighthouse, axe DevTools, NVDA; known WAVE contrast false positives.
 
 ## Etsy Setup TODO
 
@@ -1636,20 +1320,4 @@ public AppleSignInHandler(
 
 ## Blazor TODO
 
-Features already shipped in the static HTML landing page (`deploy/index.html`) that still need to be ported to the Blazor app:
-
-- [x] **SEO** — meta description, robots, canonical URL, Open Graph tags, Twitter Card tags, JSON-LD structured data (`SoftwareApplication` schema)
-- [x] **Favicon** — link `favicon.svg` (concept C — T + growth bars) in `App.razor` `<head>`
-- [x] **Social Share Image** — add `og-image.png` (1200x630) to `wwwroot/` and reference in OG/Twitter meta tags
-- [x] **Accessibility** — skip navigation link, `<main>` landmark, ARIA labels on nav/sections, `aria-hidden` on decorative SVGs, emoji `role="img"` labels, `.sr-only` utility class, `:focus-visible` outlines, `role="contentinfo"` on footer, visually-hidden "Included:" prefixes on pricing checkmarks
-
-Upcoming features:
-
-- [x] **Admin Page** — role-based admin section (`/admin`) with email management: resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, bulk-send Welcome emails to selected or all users. Visible only to `Admin` role via conditional NavMenu link. Uses `vAuthenticatedUser` view (keyless entity) for user list with emails. ViewModel redirects non-admins to `/dashboard`; API endpoints enforce Admin role via `.RequireAuthorization()`.
-- [x] **Admin Email Resend** — admin ability to resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, plus bulk-send Welcome emails to selected or all users. Implemented as part of the Admin page (`/admin`). API endpoints: `POST /api/admin/email/resend`, `POST /api/admin/email/bulk-welcome`, `POST /api/admin/email/bulk-welcome-all`. Commands: `SendSubscriptionConfirmationEmailCommand` (validates active subscription exists), `SendWeeklySummaryEmailCommand` (uses sample data). Fail-silent on individual errors during bulk sends.
-- [x] **Manual Entry Module** — `app.Revenue`, `app.RevenueManual`, `app.Expense`, and `app.Payout` tables. Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with full CRUD grids on all three data tabs (Revenue, Expenses, Payouts). Each grid has sortable columns, user-selectable pagination (10/25/50), row density toggle (compact/comfortable/spacious). **Revenue grid** columns: Date, Description, Category, Qty, Price, Fees, Net, Actions. Notes toggle via icon button expands a sub-row. **Expenses grid** columns: Date, Description, Category, Amount, Actions. Categories: Listing Fee, Ad Fee, Subscription Fee, Processing Fee, Shipping Label, Other. **Payouts grid** columns: Date, Amount, Status, Actions. Statuses: Pending, In Transit, Paid, Failed, Cancelled. All three grids share the same patterns: **quick-entry row** pinned at top of `<tbody>` for fast new entries (Enter to submit, row resets and refocuses), **inline editing** (click Edit, row cells become inputs, Enter to save, Escape to cancel), **delete** with `ConfirmDialog`, and **empty state** inside grid tbody. `New*` fields serve quick-entry, `Edit*` fields serve inline edit (separate state per tab). Grid preferences (density, page size) shared across tabs, sort state per tab. Non-subscribers see sample data (`ManualEntryDataset`, `ExpenseDataset`, `PayoutDataset`) with CTA banner instead of a lock gate.
-- [x] **My Plan Page** — consolidated plan and module management at `/my-plan`. Replaces the old `/subscription` and `/upgrade` pages (both deleted). Free users see inline pricing cards (Free vs Pro with monthly/yearly toggle). Pro users see their plan card with billing actions (Manage Billing, Change Plan, Cancel). Module owners see per-module cards with billing/cancel. Available modules listed at the bottom. Sidebar upgrade card shows "Pro Plan" for subscribers, "Upgrade to Pro" for free users, with a single "My Plan" button.
-- [x] **Goals Page** — full CRUD for revenue goals at `/goals`. Card-based layout with circular SVG progress indicators, status badges (On track / Ahead / Behind), and days remaining. **Inline form cards** — clicking "Add a new goal" (dashed card) or "New Goal" (hero button) transforms the card into an inline form with Goal Type dropdown, Platform dropdown, Target Amount, Start Date, and End Date fields. Clicking "Edit →" on a goal card transforms it into the same form, pre-populated. Save converts the form back into a goal card. Delete via `ConfirmDialog`. **Live revenue computation** — earned amounts computed from `app.Revenue` by matching goal date range + optional platform filter, using `SUM(NetAmount)`. Status computed dynamically via pace algorithm: projected = (earned / daysElapsed) × totalDays → "Ahead" (≥110%), "On track" (≥100%), "Behind" (<100%). **Form revenue preview** — inline form shows a live indicator: "$X.XX in matching revenue" (green) or "No revenue found for this date range" (warning), computed from cached revenue data as the user fills in dates/platform. **Card hint** — goal cards with $0 earned show "No revenue matches this date range" below the status badge. **Dashboard integration** — Dashboard goal card queries any goal covering the current month (not limited to GoalTypeId=1), computes earned using the same algorithm as the Goals page, and always shows a navigation link ("View goals →" when a goal exists, "Set a goal →" when none). **Platforms Connected card** — platform dots now show visible text labels (e.g., "● Manual Entry") instead of tooltip-only dots. Non-subscribers see sample data (`GoalsDataset`) with CTA banner. Presentation model: `GoalItem.cs` in `Models/` with `Id`, `GoalTypeId`, `Platform`, `StartDate`, `EndDate`, `Label`, `Name`, `Earned`, `Target`, `Percentage` (computed), `Status`, `StatusCss` (computed), `DaysRemaining`.
-- [ ] **Navigation & Data Architecture** — organizing grids, graphs, and reports across platforms (Manual Entry, Stripe, Etsy, Gumroad, PayPal, Shopify) plus an aggregate view. Each platform needs Revenue, Expenses, Payouts, and Cashflow sections. Four navigation patterns wireframed in `wireframes/MyTalli_NavigationPatterns.html`: (A) Hub & Spoke, (B) Data-Type First, (C) Hybrid, (D) Dashboard + Tabs. Three mobile treatments wireframed per pattern in `wireframes/MyTalli_MobilePatterns_Hub_and_Spoke.html` and `wireframes/MyTalli_MobilePatterns_Dashboard_plus_Tabs.html`. **Decision: Hub & Spoke** — aggregate dashboard is the hub, each connected platform is a spoke with its own detail page containing tabs for Overview/Revenue/Expenses/Payouts. Sidebar shows Dashboard, then a Platforms group listing connected platforms. **Mobile Decision: Keyhole Hybrid** (wireframe: `wireframes/MyTalli_MobilePatterns_Keyhole_Hybrid.html`) — combines Desktop Message + Keyhole View. Formula: summary cards with mini charts at top, platform-specific stats on spokes (avg. sale, fee rate, payout status), 5 most recent records as phone-native transaction cards (not grid rows), and a "details on desktop" CTA at the bottom. Hub shows cross-platform activity (with platform color dots); spokes show platform-filtered activity (no dots needed). The 5-card cap sets a clear boundary — this is a preview, not a portal. **Constraint:** regardless of pattern chosen, all page heroes must remain branded with the purple gradient swoosh (see "Page Hero Branding" rule). Platform-specific pages may tint the gradient with platform brand colors (e.g., Etsy orange) but must keep the swoosh shape and decorative circles. **Spoke Tabs (implemented):** Dashboard (hub) and Manual Entry (spoke) both have a 4-tab bar (Overview, Revenue, Expenses, Payouts) below the hero swoosh. Tab bar uses `.spoke-tabs` class in `app.css` (dark navy `#1a1a2e` background, purple `#8b5cf6` underline on active tab). Dashboard defaults to Overview; Manual Entry defaults to Revenue. Dashboard tabs show sample data via `ExpenseDataset` and `PayoutDataset`. Manual Entry tabs load real data from `app.Expense` and `app.Payout` when the user has module access, or sample data when they don't. View models expose `ActiveTab` (string) and `SelectTab(string)`. Presentation models: `ExpenseItem.cs` and `PayoutItem.cs` in `Models/`. Pages with spoke tabs use `120px` bottom hero padding to clear the swoosh curve. Remaining: platform-specific spoke pages (Stripe, Etsy, etc.) not yet built.
-- [ ] **Module Checkout Flow** — extend `/api/billing/create-checkout-session` to handle module product IDs (currently only handles `plan=monthly|yearly` for Pro). Needed for "Add Module" button on My Plan page.
-- [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.
+> **Moved to memory:** `project_blazor_todo.md` — completed features (Admin, Manual Entry, Goals, My Plan) and remaining backlog (Nav architecture, Module checkout, Email hosting).
