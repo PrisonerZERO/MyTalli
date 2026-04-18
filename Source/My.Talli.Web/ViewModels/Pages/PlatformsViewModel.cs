@@ -3,6 +3,7 @@ namespace My.Talli.Web.ViewModels.Pages;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.WebUtilities;
 using Models;
 using System.Security.Claims;
 
@@ -16,6 +17,9 @@ public class PlatformsViewModel : ComponentBase
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+	[Inject]
+	private NavigationManager Navigation { get; set; } = default!;
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.PlatformConnection, ENTITIES.PlatformConnection> PlatformConnectionAdapter { get; set; } = default!;
@@ -38,7 +42,13 @@ public class PlatformsViewModel : ComponentBase
 
 	public List<PlatformItem> ConnectedPlatforms => Platforms.Where(p => p.IsConnected).ToList();
 
+	public string? ConnectingPlatform { get; private set; }
+
+	public string? ErrorMessage { get; private set; }
+
 	public bool IsLoading { get; private set; } = true;
+
+	public string? SuccessMessage { get; private set; }
 
 	public int TotalTransactions => Platforms.Where(p => p.IsConnected).Sum(p => p.TransactionCount);
 
@@ -49,6 +59,8 @@ public class PlatformsViewModel : ComponentBase
 
 	protected override async Task OnInitializedAsync()
 	{
+		ReadQueryStringMessages();
+
 		var authState = await AuthenticationStateTask;
 		var principal = authState.User;
 
@@ -73,6 +85,56 @@ public class PlatformsViewModel : ComponentBase
 	#endregion
 
 	#region <Methods>
+
+	public void CancelConnect()
+	{
+		ConnectingPlatform = null;
+	}
+
+	public void ConfirmConnect()
+	{
+		if (string.IsNullOrEmpty(ConnectingPlatform))
+			return;
+
+		var platform = ConnectingPlatform.ToLowerInvariant();
+		ConnectingPlatform = null;
+
+		Navigation.NavigateTo($"/api/platforms/{platform}/connect", forceLoad: true);
+	}
+
+	public void DismissMessage()
+	{
+		ErrorMessage = null;
+		SuccessMessage = null;
+	}
+
+	public void StartConnect(string platformName)
+	{
+		ConnectingPlatform = platformName;
+	}
+
+	private void ReadQueryStringMessages()
+	{
+		var query = QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query);
+
+		if (query.TryGetValue("connected", out var connected))
+			SuccessMessage = connected.ToString().ToLowerInvariant() switch
+			{
+				"etsy" => "Etsy connected. Your first sync will start shortly.",
+				_ => "Platform connected. Your first sync will start shortly."
+			};
+
+		if (query.TryGetValue("error", out var error))
+			ErrorMessage = error.ToString() switch
+			{
+				"etsy_denied" => "You cancelled the connection to Etsy. No data was saved.",
+				"etsy_invalid" => "Etsy returned an invalid response. Please try again.",
+				"etsy_expired" => "Your connection session expired. Please try again.",
+				"etsy_state" => "Connection could not be verified. Please try again.",
+				"etsy_exchange" => "We couldn't finalize your Etsy connection. Please try again or contact support.",
+				_ => "Something went wrong connecting that platform. Please try again."
+			};
+	}
 
 	private static List<PlatformItem> GetPlatformCatalog()
 	{

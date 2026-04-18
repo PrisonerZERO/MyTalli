@@ -50,6 +50,30 @@
     </div>
 </section>
 
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <div class="plat-toast plat-toast-success animate-in delay-1" role="status">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        <span>@SuccessMessage</span>
+        <button class="plat-toast-dismiss" aria-label="Dismiss notification" @onclick="DismissMessage">&times;</button>
+    </div>
+}
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="plat-toast plat-toast-error animate-in delay-1" role="alert">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" x2="12" y1="8" y2="12" />
+            <line x1="12" x2="12.01" y1="16" y2="16" />
+        </svg>
+        <span>@ErrorMessage</span>
+        <button class="plat-toast-dismiss" aria-label="Dismiss notification" @onclick="DismissMessage">&times;</button>
+    </div>
+}
+
 @if (IsLoading)
 {
     <section class="plat-loading-card animate-in delay-1" aria-label="Loading platforms">
@@ -150,13 +174,24 @@ else
                     </div>
                     <div class="plat-row-actions">
                         <span class="plat-row-type">@platform.Subtitle</span>
-                        <button class="plat-btn-connect" aria-label="Connect @platform.Name">Connect</button>
+                        <button class="plat-btn-connect" aria-label="Connect @platform.Name" @onclick="() => StartConnect(platform.Name)" disabled="@(platform.Name != "Etsy")">Connect</button>
                     </div>
                 </article>
             }
         </div>
     }
 }
+
+<!-- Connect confirmation -->
+<ConfirmDialog Visible="!string.IsNullOrEmpty(ConnectingPlatform)" ConfirmStyle="primary" OnConfirm="ConfirmConnect" OnCancel="CancelConnect">
+    <svg aria-hidden="true" fill="none" height="40" stroke="#6c5ce7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="40">
+        <path d="M12 2a10 10 0 100 20 10 10 0 000-20z" />
+        <line x1="12" x2="12" y1="8" y2="12" />
+        <line x1="12" x2="12.01" y1="16" y2="16" />
+    </svg>
+    <h2>Connect @ConnectingPlatform?</h2>
+    <p>Once connected, <strong>@ConnectingPlatform</strong> can't be disconnected — it will permanently occupy a plan slot. You can pause syncing anytime from this page.</p>
+</ConfirmDialog>
 
 @* Platform icon fragments *@
 @{
