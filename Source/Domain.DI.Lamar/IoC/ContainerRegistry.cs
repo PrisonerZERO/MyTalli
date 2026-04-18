@@ -1,5 +1,7 @@
 namespace My.Talli.Domain.DI.Lamar.IoC;
 
+using Domain.Commands.Billing;
+using Domain.Commands.Platforms;
 using Domain.Components.JsonSerializers;
 using Domain.Data.EntityFramework.Repositories;
 using Domain.Data.EntityFramework.Resolvers;
@@ -56,10 +58,13 @@ public class ContainerRegistry : ServiceRegistry
 		For<UserPreferencesJsonSerializer>();
 
 		For<AppleSignInHandler>();
+		For<ConnectEtsyCommand>();
 		For<EmailLookupService>();
+		For<FindActiveSubscriptionWithStripeCommand>();
 		For<GoogleSignInHandler>();
 		For<MicrosoftSignInHandler>();
 		For<StripeWebhookHandler>();
+		For<UpdateLocalSubscriptionCommand>();
 	}
 
 	#endregion

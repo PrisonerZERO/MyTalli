@@ -1,4 +1,4 @@
-namespace My.Talli.Web.Commands.Endpoints;
+namespace My.Talli.Domain.Commands.Billing;
 
 using Domain.Models;
 using Domain.Repositories;

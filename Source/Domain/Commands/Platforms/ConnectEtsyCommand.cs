@@ -1,8 +1,8 @@
-namespace My.Talli.Web.Commands.Endpoints;
+namespace My.Talli.Domain.Commands.Platforms;
 
+using Domain.Components;
 using Domain.Models;
 using Domain.Repositories;
-using Web.Services.Platforms;
 
 using ENTITIES = Domain.Entities;
 

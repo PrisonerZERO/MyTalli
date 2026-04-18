@@ -1,9 +1,10 @@
 namespace My.Talli.Web.Endpoints;
 
+using Domain.Commands.Platforms;
+using Domain.Components;
 using Domain.Framework;
 using Microsoft.AspNetCore.DataProtection;
 using System.Text.Json;
-using Web.Commands.Endpoints;
 using Web.Services.Platforms;
 
 /// <summary>Endpoint</summary>
@@ -89,7 +90,7 @@ public static class PlatformEndpoints
         try
         {
             var tokenResponse = await etsy.ExchangeCodeAsync(code, cookie.CodeVerifier);
-            var platformAccountId = EtsyService.ExtractEtsyUserId(tokenResponse.AccessToken);
+            var platformAccountId = EtsyPkceGenerator.ExtractEtsyUserId(tokenResponse.AccessToken);
             var shops = await etsy.GetShopsAsync(platformAccountId, tokenResponse.AccessToken);
 
             // TRANSACTION

@@ -1,7 +1,7 @@
 namespace My.Talli.Web.Endpoints;
 
+using Domain.Commands.Billing;
 using System.Security.Claims;
-using Web.Commands.Endpoints;
 using Web.Handlers.Endpoints;
 using Web.Services.Billing;
 
