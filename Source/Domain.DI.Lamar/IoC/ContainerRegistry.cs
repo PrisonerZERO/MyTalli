@@ -11,6 +11,7 @@ using Domain.Handlers.Billing;
 using Domain.Mappers;
 using Domain.Repositories;
 using global::Lamar;
+using Microsoft.Extensions.DependencyInjection;
 
 using ENTITIES = Domain.Entities;
 using MODELS = Domain.Models;
@@ -58,13 +59,15 @@ public class ContainerRegistry : ServiceRegistry
 		For<UserPreferencesJsonSerializer>();
 
 		For<AppleSignInHandler>();
-		For<ConnectEtsyCommand>();
 		For<EmailLookupService>();
-		For<FindActiveSubscriptionWithStripeCommand>();
 		For<GoogleSignInHandler>();
 		For<MicrosoftSignInHandler>();
 		For<StripeWebhookHandler>();
-		For<UpdateLocalSubscriptionCommand>();
+
+		// Commands — AddScoped registers with IServiceProviderIsService so Minimal API parameter binding recognizes them as DI services
+		this.AddScoped<ConnectEtsyCommand>();
+		this.AddScoped<FindActiveSubscriptionWithStripeCommand>();
+		this.AddScoped<UpdateLocalSubscriptionCommand>();
 	}
 
 	#endregion
