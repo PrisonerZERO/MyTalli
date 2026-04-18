@@ -53,13 +53,15 @@ public class TalliDbContext : DbContext
 
     public DbSet<RevenueStripe> RevenueStripes { get; set; } = null!;
 
+    public DbSet<ShopConnection> ShopConnections { get; set; } = null!;
+
+    public DbSet<ShopConnectionEtsy> ShopConnectionEtsys { get; set; } = null!;
+
     public DbSet<Subscription> Subscriptions { get; set; } = null!;
 
     public DbSet<SubscriptionStripe> SubscriptionStripes { get; set; } = null!;
 
     public DbSet<Suggestion> Suggestions { get; set; } = null!;
-
-    public DbSet<SyncQueue> SyncQueues { get; set; } = null!;
 
     public DbSet<SuggestionVote> SuggestionVotes { get; set; } = null!;
 

@@ -88,7 +88,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application features & revenue | Expense, Goal, GoalType, Milestone (legacy), Payout, PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, Suggestion, SuggestionVote, SyncQueue |
+| `app` | Application features & revenue | Expense, Goal, GoalType, Milestone (legacy), Payout, PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, ShopConnection, ShopConnectionEtsy, Suggestion, SuggestionVote |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
@@ -150,11 +150,18 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - `Id` (PK), `UserId` (FK → auth.User), `SuggestionId` (FK → Suggestion)
 - Unique constraint on `(UserId, SuggestionId)` prevents duplicate votes
 
-**`app.SyncQueue`** — background sync job work list (one row per user per connected platform)
-- `Id` (PK), `UserId` (FK → auth.User), `Platform` (string, max 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `Status` (string, max 20 — Pending, InProgress, Completed, Failed), `NextSyncDateTime` (when this row is next eligible for processing), `LastSyncDateTime` (nullable — null until first successful sync), `LastErrorMessage` (nullable, max 2000 — most recent failure reason), `ConsecutiveFailures` (int, default 0 — drives exponential backoff), `IsEnabled` (bool, default true — user can pause syncing)
-- Unique constraint on `(UserId, Platform)` prevents duplicate queue entries
-- Index on `(NextSyncDateTime, Status)` for sync job polling query
-- Users can pause sync (`IsEnabled = false`) but cannot disconnect — connected platforms permanently occupy a plan slot
+**`app.ShopConnection`** — sync target (the thing we sync from). One row per shop under a platform connection. Most platforms are 1:1 with `PlatformConnection` (Stripe, Gumroad, PayPal, Shopify); Etsy is 1:N because a seller can own multiple shops under one OAuth grant.
+- `Id` (PK), `PlatformConnectionId` (FK → PlatformConnection), `UserId` (FK → auth.User, denormalized for per-user queries), `PlatformShopId` (string, max 255 — platform's native shop identifier), `ShopName` (string, max 255), `IsActive` (bool, default true — on free tier only one shop per user is active; Pro may have many), `Status` (string, max 20 — Pending, InProgress, Completed, Failed), `NextSyncDateTime` (when this shop is next eligible for processing; stepped to now + 24h after successful sync), `LastSyncDateTime` (nullable — null until first successful sync), `ConsecutiveFailures` (int, default 0 — drives exponential backoff), `LastErrorMessage` (nullable, max 2000 — most recent failure reason), `IsEnabled` (bool, default true — user can pause syncing)
+- Unique constraint on `(PlatformConnectionId, PlatformShopId)` — one row per shop per connection
+- Index on `(NextSyncDateTime, Status)` for sync worker polling
+- Indexes: `IX_ShopConnection_UserId`, `IX_ShopConnection_PlatformConnectionId`
+- FK behavior: `FK_ShopConnection_PlatformConnection` Cascade; `FK_ShopConnection_User` Restrict (avoids multiple cascade path collision with `FK_PlatformConnection_User`)
+- Replaces the former `app.SyncQueue` table. The sync-queue fields (`Status`, `NextSyncDateTime`, `LastSyncDateTime`, `ConsecutiveFailures`, `LastErrorMessage`, `IsEnabled`) now live here, so there's one row per shop instead of one row per (user, platform).
+- Users can pause sync (`IsEnabled = false`) but cannot disconnect — connected shops permanently occupy a plan slot.
+
+**`app.ShopConnectionEtsy`** — Etsy-specific 1-to-1 extension of ShopConnection (shared PK)
+- `ShopConnectionId` (PK/FK → ShopConnection, C# property: `Id`), `CountryCode` (char 2, ISO alpha-2), `IsVacationMode` (bool, default false — suppress "stale data" warnings when seller is on break), `ShopCurrency` (char 3, ISO 4217), `ShopUrl` (string, max 500 — deep-link target for the Platforms page)
+- Other platforms (Stripe, Gumroad, PayPal, Shopify) don't have a provider-specific subtable yet — the common fields on `ShopConnection` cover them. Subtables get added (following the same shared-PK convention) when a provider-unique shop-level field appears.
 
 ### Schema: `auth`
 
@@ -319,9 +326,12 @@ My.Talli/
 │   ├── scaling-plan/               # Skill — branded scaling/capacity planning HTML document builder
 │   │   └── SKILL.md
 │   ├── MyTalli_CostingPlan.html    # Infrastructure cost projections & optimization strategies
+│   ├── MyTalli_Kanban.html         # Active work kanban — backlog, next up, in progress, done
 │   ├── MyTalli_PlatformCapabilities.html # Platform API capabilities, data richness & integration roadmap
 │   ├── MyTalli_ScalingPlan.html    # Scaling strategy as user base grows (tiers, triggers, capacity)
-│   └── PlatformApiDataShapes.html  # Platform API data shapes, normalized schema, ERD with SyncQueue
+│   ├── MyTalli_ShopConnectionERD.html # ERD for ShopConnection + ShopConnectionEtsy sync-target layer
+│   ├── MyTalli_SyncScalingPlan.html # Platform API rate-limit strategy, daily-baseline sync, 3-phase plan
+│   └── PlatformApiDataShapes.html  # Platform API data shapes, normalized schema, ERD (historical — pre-ShopConnection)
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
 │   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
 │   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg

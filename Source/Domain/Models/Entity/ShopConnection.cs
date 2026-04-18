@@ -1,13 +1,15 @@
 namespace My.Talli.Domain.Models;
 
 /// <summary>Model</summary>
-public class SyncQueue : DefaultModel
+public class ShopConnection : DefaultModel
 {
 	#region <Properties>
 
 	public int ConsecutiveFailures { get; set; }
 
 	public DateTime CreatedOn { get; set; }
+
+	public bool IsActive { get; set; } = true;
 
 	public bool IsEnabled { get; set; } = true;
 
@@ -17,7 +19,11 @@ public class SyncQueue : DefaultModel
 
 	public DateTime NextSyncDateTime { get; set; }
 
-	public string Platform { get; set; } = string.Empty;
+	public long PlatformConnectionId { get; set; }
+
+	public string PlatformShopId { get; set; } = string.Empty;
+
+	public string ShopName { get; set; } = string.Empty;
 
 	public string Status { get; set; } = string.Empty;
 

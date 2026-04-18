@@ -24,7 +24,7 @@ public class PlatformsViewModel : ComponentBase
 	private RepositoryAdapterAsync<MODELS.Revenue, ENTITIES.Revenue> RevenueAdapter { get; set; } = default!;
 
 	[Inject]
-	private RepositoryAdapterAsync<MODELS.SyncQueue, ENTITIES.SyncQueue> SyncQueueAdapter { get; set; } = default!;
+	private RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> ShopConnectionAdapter { get; set; } = default!;
 
 	#endregion
 
@@ -125,11 +125,11 @@ public class PlatformsViewModel : ComponentBase
 	{
 		// Query real data
 		var connections = await PlatformConnectionAdapter.FindAsync(p => p.UserId == userId);
-		var syncQueues = await SyncQueueAdapter.FindAsync(s => s.UserId == userId);
+		var shops = await ShopConnectionAdapter.FindAsync(s => s.UserId == userId);
 		var revenues = await RevenueAdapter.FindAsync(r => r.UserId == userId);
 
 		var connectionsByPlatform = connections.ToDictionary(c => c.Platform, StringComparer.OrdinalIgnoreCase);
-		var syncByPlatform = syncQueues.ToDictionary(s => s.Platform, StringComparer.OrdinalIgnoreCase);
+		var shopsByConnectionId = shops.GroupBy(s => s.PlatformConnectionId).ToDictionary(g => g.Key, g => g.First());
 		var transactionCounts = revenues.GroupBy(r => r.Platform, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
 
 		// Merge catalog with real data
@@ -141,14 +141,14 @@ public class PlatformsViewModel : ComponentBase
 			{
 				item.IsConnected = true;
 				item.ConnectionStatus = connection.ConnectionStatus;
-			}
 
-			if (syncByPlatform.TryGetValue(item.Name, out var sync))
-			{
-				item.IsEnabled = sync.IsEnabled;
-				item.LastErrorMessage = sync.LastErrorMessage;
-				item.LastSyncLabel = ToSyncLabel(sync);
-				item.SyncStatus = sync.Status;
+				if (shopsByConnectionId.TryGetValue(connection.Id, out var shop))
+				{
+					item.IsEnabled = shop.IsEnabled;
+					item.LastErrorMessage = shop.LastErrorMessage;
+					item.LastSyncLabel = ToSyncLabel(shop);
+					item.SyncStatus = shop.Status;
+				}
 			}
 
 			if (transactionCounts.TryGetValue(item.Name, out var count))
@@ -158,12 +158,12 @@ public class PlatformsViewModel : ComponentBase
 		Platforms = catalog;
 	}
 
-	private static string ToSyncLabel(MODELS.SyncQueue sync)
+	private static string ToSyncLabel(MODELS.ShopConnection shop)
 	{
-		if (sync.LastSyncDateTime == null)
+		if (shop.LastSyncDateTime == null)
 			return "Never synced";
 
-		var elapsed = DateTime.UtcNow - sync.LastSyncDateTime.Value;
+		var elapsed = DateTime.UtcNow - shop.LastSyncDateTime.Value;
 
 		return elapsed.TotalMinutes < 1 ? "Synced just now"
 			: elapsed.TotalMinutes < 60 ? $"Synced {(int)elapsed.TotalMinutes} min ago"
