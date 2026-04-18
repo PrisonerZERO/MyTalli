@@ -1679,7 +1679,7 @@
                         ↓
 <span class="string">Ingestion normalizes</span> → app.Revenue (gross, fee, net, currency, date, "Stripe")
                         → app.RevenueStripe (balance_txn_id, risk_score, payment_method)
-                        → app.SyncQueue (LastSyncDateTime = now, NextSyncDateTime = now + 1hr)
+                        → app.SyncQueue (LastSyncDateTime = now, NextSyncDateTime = now + 24hr)
                         ↓
 <span class="string">User notified</span>        → SignalR toast: "Stripe data updated just now" (if online)
                         ↓

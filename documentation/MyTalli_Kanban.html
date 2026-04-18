@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Active Work Kanban</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.5; padding: 0; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; overflow: hidden; padding: 48px; position: relative; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 200px; position: absolute; right: -40px; top: -60px; width: 200px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 120px; left: 30%; position: absolute; top: 80px; width: 120px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.8); font-size: 15px; margin-top: 6px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 12px; position: relative; z-index: 1; }
+
+  /* Content */
+  .content { margin: 0 auto; max-width: 1400px; padding: 40px 32px 80px; }
+
+  /* Intro row */
+  .intro { align-items: center; display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; margin-bottom: 32px; }
+  .intro-left { flex: 1 1 340px; }
+  .intro-left h2 { color: #1a1a2e; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .intro-left p { color: #555; font-size: 14px; }
+  .intro-metrics { display: flex; flex-wrap: wrap; gap: 20px; }
+  .metric { align-items: center; display: inline-flex; gap: 10px; }
+  .metric-value { color: #6c5ce7; font-size: 26px; font-weight: 700; line-height: 1; }
+  .metric-label { color: #999; font-size: 11px; font-weight: 500; line-height: 1.3; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Callout */
+  .callout { background: #fff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin-bottom: 28px; padding: 14px 18px; }
+  .callout p { color: #555; font-size: 13px; margin: 0; }
+  .callout strong { color: #1a1a2e; }
+
+  /* Board */
+  .board { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .board { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1100px) { .board { grid-template-columns: repeat(4, 1fr); } }
+
+  /* Lane */
+  .lane { background: #fafbff; border: 1px solid #e0dce8; border-radius: 12px; display: flex; flex-direction: column; padding: 0; }
+  .lane-header { align-items: center; border-bottom: 1px solid #e0dce8; display: flex; justify-content: space-between; padding: 14px 16px; }
+  .lane-header h3 { color: #1a1a2e; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .lane-count { background: #e0dce8; border-radius: 10px; color: #6b7280; font-size: 11px; font-weight: 700; padding: 2px 10px; }
+  .lane-body { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
+  .lane-empty { color: #999; font-size: 12px; font-style: italic; padding: 12px; text-align: center; }
+
+  /* Lane accent — top bar colored by status */
+  .lane.backlog .lane-header { border-top: 3px solid #9ca3af; border-radius: 12px 12px 0 0; }
+  .lane.next .lane-header { border-top: 3px solid #a78bfa; border-radius: 12px 12px 0 0; }
+  .lane.progress .lane-header { border-top: 3px solid #6c5ce7; border-radius: 12px 12px 0 0; }
+  .lane.done .lane-header { border-top: 3px solid #27ae60; border-radius: 12px 12px 0 0; }
+  .lane.progress { background: #f6f3ff; }
+  .lane.done { background: #f4faf6; }
+
+  /* Card */
+  .card { background: #fff; border: 1px solid #e0dce8; border-radius: 8px; padding: 12px 14px; transition: border-color 0.2s, box-shadow 0.2s; }
+  .card:hover { border-color: #a78bfa; box-shadow: 0 2px 8px rgba(108, 92, 231, 0.08); }
+  .card-tags { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .card h4 { color: #1a1a2e; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .card p { color: #555; font-size: 12px; line-height: 1.4; margin: 0; }
+  .card .blocked { background: #fef3c7; border-radius: 4px; color: #92400e; display: inline-block; font-size: 10px; font-weight: 600; margin-top: 8px; padding: 2px 8px; }
+  .card .done-date { color: #999; display: block; font-size: 10px; font-weight: 500; margin-top: 6px; }
+
+  /* Tag pill */
+  .tag { border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 7px; text-transform: uppercase; }
+  .tag.sync { background: #ede9ff; color: #5b21b6; }
+  .tag.billing { background: #d1fae5; color: #065f46; }
+  .tag.email { background: #dbeafe; color: #1e40af; }
+  .tag.nav { background: #fef3c7; color: #92400e; }
+  .tag.setup { background: #f3f4f6; color: #4b5563; }
+  .tag.docs { background: #f0edff; color: #6c5ce7; }
+
+  /* Legend */
+  .legend { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin-top: 32px; padding: 16px 20px; }
+  .legend h3 { color: #1a1a2e; font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; }
+  .legend-items { display: flex; flex-wrap: wrap; gap: 16px; }
+  .legend-item { align-items: center; color: #555; display: inline-flex; font-size: 12px; gap: 8px; }
+
+  /* Footer */
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 48px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Active Work</h1>
+  <p class="subtitle">Lightweight Kanban board — what's in flight, what's next, what's done</p>
+  <p class="doc-date">Last updated: April 2026</p>
+</div>
+
+<div class="content">
+
+  <div class="intro">
+    <div class="intro-left">
+      <h2>Current focus: Sync Pipeline</h2>
+      <p>Planning complete. Schema work is the next concrete step — everything else (OAuth, workers, UI) depends on <code>ShopConnection</code> existing.</p>
+    </div>
+    <div class="intro-metrics">
+      <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">12</span><span class="metric-label">Next<br>up</span></span>
+      <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
+      <span class="metric"><span class="metric-value">8</span><span class="metric-label">Recently<br>done</span></span>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>How this board is organized:</strong> Cards are tagged by functional area (Sync, Billing, Email, Nav, Setup, Docs) and placed in one of four lanes. Move cards left-to-right as work progresses. Keep "Done" trimmed to the most recent ~10 items — archive or drop older ones.</p>
+  </div>
+
+  <div class="board">
+
+    <!-- Backlog -->
+    <div class="lane backlog">
+      <div class="lane-header">
+        <h3>Backlog</h3>
+        <span class="lane-count">12</span>
+      </div>
+      <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Stripe spoke page</h4>
+          <p>Platform detail page with Overview / Revenue / Expenses / Payouts tabs. Orange swoosh tint.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Etsy spoke page</h4>
+          <p>Platform detail page. Blocked until sync pipeline delivers real Etsy data.</p>
+          <span class="blocked">Blocked: sync pipeline</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Gumroad / PayPal / Shopify spoke pages</h4>
+          <p>Same spoke pattern for remaining platforms. Builds once sync pipeline is proven on Stripe + Etsy.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>CSV Export page</h4>
+          <p>Pro-tier feature. Export revenue/expense/payout data filtered by date range and platform.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Webhook ingestion (Phase 2 scaling)</h4>
+          <p>Etsy + Stripe + PayPal + Shopify webhook endpoints. Triggered when Etsy daily quota approaches 70%. See SyncScalingPlan.html.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag email">Email</span></div>
+          <h4>Azure Blob migration for email assets</h4>
+          <p>Move <code>wwwroot/emails/*.png</code> to Blob Storage so email images survive App Service deploys.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag email">Email</span></div>
+          <h4>Automated weekly summary sending</h4>
+          <p>Scheduled job to send weekly summary email to Pro users. Currently only triggered manually via Admin page.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span></div>
+          <h4>Stripe production keys</h4>
+          <p>Swap test keys for live keys in Azure App Service Configuration when ready to go live.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span></div>
+          <h4>Stripe custom domains</h4>
+          <p><code>pay.mytalli.com</code> (Checkout), <code>billing.mytalli.com</code> (Customer Portal). CNAME in GoDaddy.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Etsy Commercial Access application</h4>
+          <p>Required for 4+ shops. ~20-day review at Etsy's discretion. Apply before public launch.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Account consolidation flow</h4>
+          <p>User-initiated merge of two accounts (e.g., Google + Microsoft with different emails). Schema supports it; UX not yet designed.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Admin role assignment UI</h4>
+          <p>Currently <code>auth.UserRole</code> is assigned via direct DB insert. Build a simple UI for this on the Admin page.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Next Up -->
+    <div class="lane next">
+      <div class="lane-header">
+        <h3>Next Up</h3>
+        <span class="lane-count">12</span>
+      </div>
+      <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Schema: ShopConnection + ShopConnectionEtsy</h4>
+          <p>Migration adds new sync-target tables. Absorbs SyncQueue fields. Provider-specific subtable pattern.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Schema: Drop / refactor SyncQueue</h4>
+          <p>Queue fields (NextSyncDateTime, LastSync, ConsecutiveFailures, etc.) roll into ShopConnection. One less table, one less FK.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Etsy OAuth callback flow</h4>
+          <p>Exchange code → store tokens in PlatformConnection → fetch shop list → create ShopConnection rows.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Etsy shop picker UI</h4>
+          <p>Post-OAuth page: if user has multiple shops, they pick one to track on free tier. Locks in chosen shop.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Pre-connection permanence warning</h4>
+          <p>ConfirmDialog before OAuth: explains connection is permanent and occupies a plan slot. Must confirm before redirect.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Daily Sync Worker</h4>
+          <p>Background service: pick eligible ShopConnection rows, refresh tokens lazily, pull incremental data, upsert Revenue.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Token Keepalive Worker</h4>
+          <p>Daily pass that refreshes tokens approaching expiry for rolling-refresh platforms (Etsy, Shopify). Keeps dormant connections alive.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>"Sync Now" button (rate-limited)</h4>
+          <p>Dashboard button triggers immediate sync. 30-min cooldown per user per platform. Freshness escape hatch for daily baseline.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Incremental sync logic</h4>
+          <p>After first backfill, only pull <code>created_at &gt;= LastSyncDateTime</code>. Keeps steady-state at ~1 call per shop per sync.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>SignalR sync completion toast</h4>
+          <p>Real-time toast when a sync completes and user is on dashboard: "Etsy data updated just now." Page refreshes data silently.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Platforms page connection status</h4>
+          <p>Surface token-expired / last-sync-failed states so users know when a reconnection is required.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span></div>
+          <h4>Module Checkout extension</h4>
+          <p>Extend <code>/api/billing/create-checkout-session</code> to accept module product IDs. Required for "Add Module" button on My Plan page.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- In Progress -->
+    <div class="lane progress">
+      <div class="lane-header">
+        <h3>In Progress</h3>
+        <span class="lane-count">0</span>
+      </div>
+      <div class="lane-body">
+        <div class="lane-empty">Nothing in flight right now. Move a card here when you start it.</div>
+      </div>
+    </div>
+
+    <!-- Done -->
+    <div class="lane done">
+      <div class="lane-header">
+        <h3>Done</h3>
+        <span class="lane-count">8</span>
+      </div>
+      <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag docs">Docs</span></div>
+          <h4>Sync Scaling Plan HTML</h4>
+          <p>Branded 3-phase scaling document in <code>documentation/</code>. Includes phase cards, math boxes, timeline.</p>
+          <span class="done-date">Apr 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag docs">Docs</span></div>
+          <h4>Sync architecture in CLAUDE.md + memory</h4>
+          <p>Revenue Sync Architecture updated to daily baseline. Scaling plan section added. Memory file synced.</p>
+          <span class="done-date">Apr 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Goals Page</h4>
+          <p>Full CRUD for revenue goals with live earned-vs-target computation from <code>app.Revenue</code>. Inline form cards, pace algorithm.</p>
+          <span class="done-date">Apr 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Spoke Tabs (Dashboard + Manual Entry)</h4>
+          <p>4-tab bar pattern: Overview / Revenue / Expenses / Payouts. Shared <code>.spoke-tabs</code> CSS class in <code>app.css</code>.</p>
+          <span class="done-date">Apr 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span></div>
+          <h4>My Plan Page</h4>
+          <p>Consolidated plan + module management at <code>/my-plan</code>. Replaces old <code>/subscription</code> + <code>/upgrade</code> pages.</p>
+          <span class="done-date">Mar 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Manual Entry Module</h4>
+          <p>Full CRUD grids for Revenue / Expenses / Payouts. Quick-entry row, inline editing, density toggle. Module subscription ($3/mo).</p>
+          <span class="done-date">Mar 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag email">Email</span></div>
+          <h4>Admin Email Resend</h4>
+          <p>Admin ability to resend Welcome / SubscriptionConfirmation / WeeklySummary to any user. Bulk Welcome send.</p>
+          <span class="done-date">Mar 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Admin Page</h4>
+          <p>Role-gated <code>/admin</code> page. Uses <code>vAuthenticatedUser</code> view. Non-admin redirects to dashboard.</p>
+          <span class="done-date">Mar 2026</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <h3>Area Tags</h3>
+    <div class="legend-items">
+      <span class="legend-item"><span class="tag sync">Sync</span> Platform sync pipeline, workers, OAuth</span>
+      <span class="legend-item"><span class="tag billing">Billing</span> Stripe checkout, subscriptions, modules</span>
+      <span class="legend-item"><span class="tag email">Email</span> Notifications, templates, delivery</span>
+      <span class="legend-item"><span class="tag nav">Nav</span> Pages, routing, navigation patterns</span>
+      <span class="legend-item"><span class="tag setup">Setup</span> External services, admin, onboarding</span>
+      <span class="legend-item"><span class="tag docs">Docs</span> Documentation, planning artifacts</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli — Internal Documentation
+  </div>
+
+</div>
+
+</body>
+</html>
