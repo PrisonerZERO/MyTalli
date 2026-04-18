@@ -4,7 +4,7 @@
     {
       "name": "mytalli-web",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "Source/My.Talli.Web"],
+      "runtimeArgs": ["run", "--project", "C:/Users/Robert/source/repos/MyTalli/Source/My.Talli.Web"],
       "port": 5034
     },
     {

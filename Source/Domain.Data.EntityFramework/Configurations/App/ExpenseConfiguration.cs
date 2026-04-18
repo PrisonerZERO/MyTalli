@@ -16,23 +16,31 @@ public class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
 		builder.HasKey(e => e.Id).HasName("PK_Expense");
 
 		builder.Property(e => e.Id).HasColumnOrder(0);
-		builder.Property(e => e.UserId).HasColumnOrder(1);
-		builder.Property(e => e.Amount).HasColumnType("decimal(18,2)").HasColumnOrder(2);
-		builder.Property(e => e.Category).HasMaxLength(50).IsRequired().HasColumnOrder(3);
-		builder.Property(e => e.Currency).HasMaxLength(3).IsRequired().HasColumnOrder(4);
-		builder.Property(e => e.Description).HasMaxLength(500).IsRequired().HasColumnOrder(5);
-		builder.Property(e => e.ExpenseDate).HasColumnOrder(6);
-		builder.Property(e => e.Platform).HasMaxLength(50).IsRequired().HasColumnOrder(7);
-		builder.Property(e => e.PlatformTransactionId).HasMaxLength(255).HasColumnOrder(8);
-		builder.Property(e => e.IsDeleted).HasColumnOrder(9);
-		builder.Property(e => e.IsVisible).HasColumnOrder(10);
-		builder.Property(e => e.CreateByUserId).HasColumnOrder(11);
-		builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(12);
-		builder.Property(e => e.UpdatedByUserId).HasColumnOrder(13);
-		builder.Property(e => e.UpdatedOnDate).HasColumnOrder(14);
+		builder.Property(e => e.ShopConnectionId).HasColumnOrder(1);
+		builder.Property(e => e.UserId).HasColumnOrder(2);
+		builder.Property(e => e.Amount).HasColumnType("decimal(18,2)").HasColumnOrder(3);
+		builder.Property(e => e.Category).HasMaxLength(50).IsRequired().HasColumnOrder(4);
+		builder.Property(e => e.Currency).HasMaxLength(3).IsRequired().HasColumnOrder(5);
+		builder.Property(e => e.Description).HasMaxLength(500).IsRequired().HasColumnOrder(6);
+		builder.Property(e => e.ExpenseDate).HasColumnOrder(7);
+		builder.Property(e => e.Platform).HasMaxLength(50).IsRequired().HasColumnOrder(8);
+		builder.Property(e => e.PlatformTransactionId).HasMaxLength(255).HasColumnOrder(9);
+		builder.Property(e => e.IsDeleted).HasColumnOrder(10);
+		builder.Property(e => e.IsVisible).HasColumnOrder(11);
+		builder.Property(e => e.CreateByUserId).HasColumnOrder(12);
+		builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(13);
+		builder.Property(e => e.UpdatedByUserId).HasColumnOrder(14);
+		builder.Property(e => e.UpdatedOnDate).HasColumnOrder(15);
 
+		builder.HasIndex(e => e.ShopConnectionId).HasDatabaseName("IX_Expense_ShopConnectionId");
 		builder.HasIndex(e => e.UserId).HasDatabaseName("IX_Expense_UserId");
 		builder.HasIndex(e => new { e.Platform, e.ExpenseDate }).HasDatabaseName("IX_Expense_Platform_ExpenseDate");
+
+		builder.HasOne(e => e.ShopConnection)
+			.WithMany()
+			.HasForeignKey(e => e.ShopConnectionId)
+			.OnDelete(DeleteBehavior.Restrict)
+			.HasConstraintName("FK_Expense_ShopConnection");
 
 		builder.HasOne(e => e.User)
 			.WithMany()

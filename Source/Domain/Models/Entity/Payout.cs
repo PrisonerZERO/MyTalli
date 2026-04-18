@@ -19,6 +19,8 @@ public class Payout : DefaultModel
 
 	public string PlatformPayoutId { get; set; } = string.Empty;
 
+	public long? ShopConnectionId { get; set; }
+
 	public string Status { get; set; } = string.Empty;
 
 	public long UserId { get; set; }

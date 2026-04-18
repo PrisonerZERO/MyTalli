@@ -21,6 +21,7 @@ public class ExpenseMapper : EntityMapper<MODELS.Expense, ENTITIES.Expense>
 		destination.IsVisible = source.IsVisible;
 		destination.Platform = source.Platform;
 		destination.PlatformTransactionId = source.PlatformTransactionId;
+		destination.ShopConnectionId = source.ShopConnectionId;
 		destination.UserId = source.UserId;
 	}
 
@@ -36,6 +37,7 @@ public class ExpenseMapper : EntityMapper<MODELS.Expense, ENTITIES.Expense>
 		IsVisible = model.IsVisible,
 		Platform = model.Platform,
 		PlatformTransactionId = model.PlatformTransactionId,
+		ShopConnectionId = model.ShopConnectionId,
 		UserId = model.UserId,
 	};
 
@@ -52,6 +54,7 @@ public class ExpenseMapper : EntityMapper<MODELS.Expense, ENTITIES.Expense>
 		IsVisible = entity.IsVisible,
 		Platform = entity.Platform,
 		PlatformTransactionId = entity.PlatformTransactionId,
+		ShopConnectionId = entity.ShopConnectionId,
 		UserId = entity.UserId,
 	};
 

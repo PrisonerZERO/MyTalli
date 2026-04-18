@@ -19,6 +19,10 @@ public class Expense : DefaultEntity
 
 	public string? PlatformTransactionId { get; set; }
 
+	public ShopConnection? ShopConnection { get; set; }
+
+	public long? ShopConnectionId { get; set; }
+
 	public User User { get; set; } = null!;
 
 	public long UserId { get; set; }

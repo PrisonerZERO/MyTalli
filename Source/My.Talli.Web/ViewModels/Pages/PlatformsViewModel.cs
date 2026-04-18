@@ -191,8 +191,8 @@ public class PlatformsViewModel : ComponentBase
 		var revenues = await RevenueAdapter.FindAsync(r => r.UserId == userId);
 
 		var connectionsByPlatform = connections.ToDictionary(c => c.Platform, StringComparer.OrdinalIgnoreCase);
-		var shopsByConnectionId = shops.GroupBy(s => s.PlatformConnectionId).ToDictionary(g => g.Key, g => g.First());
-		var transactionCounts = revenues.GroupBy(r => r.Platform, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
+		var shopsByConnectionId = shops.GroupBy(s => s.PlatformConnectionId).ToDictionary(g => g.Key, g => g.ToList());
+		var txnCountsByShop = revenues.Where(r => r.ShopConnectionId.HasValue).GroupBy(r => r.ShopConnectionId!.Value).ToDictionary(g => g.Key, g => g.Count());
 
 		// Merge catalog with real data
 		var catalog = GetPlatformCatalog();
@@ -204,17 +204,26 @@ public class PlatformsViewModel : ComponentBase
 				item.IsConnected = true;
 				item.ConnectionStatus = connection.ConnectionStatus;
 
-				if (shopsByConnectionId.TryGetValue(connection.Id, out var shop))
+				if (shopsByConnectionId.TryGetValue(connection.Id, out var connectionShops))
 				{
-					item.IsEnabled = shop.IsEnabled;
-					item.LastErrorMessage = shop.LastErrorMessage;
-					item.LastSyncLabel = ToSyncLabel(shop);
-					item.SyncStatus = shop.Status;
+					item.Shops = connectionShops
+						.OrderBy(s => s.ShopName)
+						.Select(s => new ShopItem
+						{
+							ConnectionStatus = connection.ConnectionStatus,
+							IsEnabled = s.IsEnabled,
+							LastErrorMessage = s.LastErrorMessage,
+							LastSyncLabel = ToSyncLabel(s),
+							ShopConnectionId = s.Id,
+							ShopName = s.ShopName,
+							SyncStatus = s.Status,
+							TransactionCount = txnCountsByShop.TryGetValue(s.Id, out var c) ? c : 0,
+						})
+						.ToList();
+
+					item.TransactionCount = item.Shops.Sum(s => s.TransactionCount);
 				}
 			}
-
-			if (transactionCounts.TryGetValue(item.Name, out var count))
-				item.TransactionCount = count;
 		}
 
 		Platforms = catalog;

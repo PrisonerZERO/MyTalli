@@ -95,40 +95,64 @@ else
         {
             @foreach (var platform in ConnectedPlatforms)
             {
-                <article class="plat-row" aria-label="@platform.Name platform, connected">
-                    <div class="plat-row-identity">
-                        <div class="plat-icon" style="background: @platform.BrandColor;" aria-hidden="true">
-                            @RenderPlatformIcon(platform.Icon)
-                        </div>
-                        <div>
-                            <div class="plat-row-name">@platform.Name</div>
-                            <div class="plat-row-sub">@platform.Description</div>
-                        </div>
-                    </div>
-                    <div class="plat-row-center">
-                        <div class="plat-row-status">
-                            <span class="plat-status-dot @StatusDotClass(platform.ConnectionStatus)" aria-hidden="true"></span>
-                            <span class="plat-status-text">@StatusLabel(platform.ConnectionStatus)</span>
-                        </div>
-                        @if (!string.IsNullOrEmpty(platform.LastSyncLabel))
-                        {
-                            <div class="plat-row-sync">
-                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <polyline points="23 4 23 10 17 10" />
-                                    <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
-                                </svg>
-                                @platform.LastSyncLabel
-                                @if (platform.SyncStatus == "Failed")
-                                {
-                                    <span class="plat-sync-error" title="@platform.LastErrorMessage" aria-label="Sync error: @platform.LastErrorMessage">!</span>
-                                }
+                <article class="plat-row plat-row-platform" aria-label="@platform.Name platform, connected">
+                    <div class="plat-row-header">
+                        <div class="plat-row-identity">
+                            <div class="plat-icon" style="background: @platform.BrandColor;" aria-hidden="true">
+                                @RenderPlatformIcon(platform.Icon)
                             </div>
-                        }
-                        <div class="plat-row-data">@platform.TransactionCount transactions</div>
+                            <div>
+                                <div class="plat-row-name">@platform.Name</div>
+                                <div class="plat-row-sub">@platform.Description</div>
+                            </div>
+                        </div>
+                        <div class="plat-row-header-meta">
+                            <div class="plat-row-status">
+                                <span class="plat-status-dot @StatusDotClass(platform.ConnectionStatus)" aria-hidden="true"></span>
+                                <span class="plat-status-text">@StatusLabel(platform.ConnectionStatus)</span>
+                            </div>
+                            <div class="plat-row-data">@platform.Shops.Count @(platform.Shops.Count == 1 ? "shop" : "shops") • @platform.TransactionCount transactions</div>
+                        </div>
                     </div>
-                    <div class="plat-row-actions">
-                        <button class="plat-btn-outline" aria-label="Sync @platform.Name now">Sync Now</button>
-                        <button class="plat-btn-outline" aria-label="Manage @platform.Name connection">Manage</button>
+
+                    <ul class="plat-shop-list" aria-label="Connected @platform.Name shops">
+                        @foreach (var shop in platform.Shops)
+                        {
+                            <li class="plat-shop-row" aria-label="@shop.ShopName shop">
+                                <div class="plat-shop-identity">
+                                    <svg aria-hidden="true" class="plat-shop-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M3 9l1-5h16l1 5" />
+                                        <path d="M5 9v11a1 1 0 001 1h12a1 1 0 001-1V9" />
+                                        <path d="M9 13h6" />
+                                    </svg>
+                                    <span class="plat-shop-name">@shop.ShopName</span>
+                                </div>
+                                <div class="plat-shop-meta">
+                                    <span class="plat-shop-sync">
+                                        @(string.IsNullOrEmpty(shop.LastSyncLabel) ? "Never synced" : shop.LastSyncLabel)
+                                        @if (shop.SyncStatus == "Failed")
+                                        {
+                                            <span class="plat-sync-error" title="@shop.LastErrorMessage" aria-label="Sync error: @shop.LastErrorMessage">!</span>
+                                        }
+                                    </span>
+                                    <span class="plat-shop-data">@shop.TransactionCount transactions</span>
+                                </div>
+                                <div class="plat-shop-actions">
+                                    <button class="plat-btn-outline" aria-label="Sync @shop.ShopName now">Sync Now</button>
+                                    <button class="plat-btn-outline" aria-label="Manage @shop.ShopName">Manage</button>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="plat-shop-add">
+                        <button class="plat-btn-add-shop" aria-label="Connect another @platform.Name shop" @onclick="() => StartConnect(platform.Name)">
+                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                <line x1="12" x2="12" y1="5" y2="19" />
+                                <line x1="5" x2="19" y1="12" y2="12" />
+                            </svg>
+                            Connect another shop
+                        </button>
                     </div>
                 </article>
             }

@@ -21,6 +21,8 @@ public class Expense : DefaultModel
 
 	public string? PlatformTransactionId { get; set; }
 
+	public long? ShopConnectionId { get; set; }
+
 	public long UserId { get; set; }
 
 	#endregion

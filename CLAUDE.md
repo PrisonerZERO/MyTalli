@@ -95,10 +95,11 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 ### Schema: `app`
 
 **`app.Expense`** — platform fees not tied to a specific sale (listing fees, ad fees, subscription fees, etc.), and user-created manual expenses (entered via Manual Entry module)
-- `Id` (PK), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Category` (string 50 — Listing Fee, Ad Fee, Subscription Fee, Processing Fee, Shipping Label, Other), `Currency` (string 3), `Description` (string 500), `ExpenseDate` (datetime), `Platform` (string 50), `PlatformTransactionId` (nullable string 255 — dedup key, `manual_{guid}` for manual entries)
+- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the expense came from for per-shop breakdowns; null for manual entries), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Category` (string 50 — Listing Fee, Ad Fee, Subscription Fee, Processing Fee, Shipping Label, Other), `Currency` (string 3), `Description` (string 500), `ExpenseDate` (datetime), `Platform` (string 50), `PlatformTransactionId` (nullable string 255 — dedup key, `manual_{guid}` for manual entries)
 - Composite index on `(Platform, ExpenseDate)` for dashboard queries
-- Index: `IX_Expense_UserId`
-- Design: Parallel to Revenue — both queried by dashboard, no FK between them. `Revenue.FeeAmount` = per-sale fees; `Expense.Amount` = standalone platform fees or manual expenses. Actively used by Manual Entry module for full CRUD.
+- Indexes: `IX_Expense_UserId`, `IX_Expense_ShopConnectionId`
+- FK behavior: `FK_Expense_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
+- Design: Parallel to Revenue — both queried by dashboard, no FK between them. `Revenue.FeeAmount` = per-sale fees; `Expense.Amount` = standalone platform fees or manual expenses. Actively used by Manual Entry module for full CRUD. Per-shop breakdowns group by `ShopConnectionId`.
 
 **`app.Goal`** — user revenue goals (1:N from User, 1:N from GoalType)
 - `Id` (PK), `UserId` (FK → auth.User), `GoalTypeId` (FK → GoalType), `EndDate` (nullable datetime), `Platform` (nullable string 50 — optional filter for platform-specific goals), `StartDate` (datetime), `Status` (string 20), `TargetAmount` (decimal 18,2)
@@ -119,16 +120,19 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - Index: `IX_PlatformConnection_UserId`
 
 **`app.Payout`** — platform disbursements to user's bank account, and user-created manual payouts (entered via Manual Entry module)
-- `Id` (PK), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Currency` (string 3), `ExpectedArrivalDate` (nullable datetime), `PayoutDate` (datetime), `Platform` (string 50), `PlatformPayoutId` (string 255 — dedup key, `manual_{guid}` for manual entries), `Status` (string 20 — Pending, In Transit, Paid, Failed, Cancelled)
+- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the payout came from for per-shop breakdowns; null for manual entries), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Currency` (string 3), `ExpectedArrivalDate` (nullable datetime), `PayoutDate` (datetime), `Platform` (string 50), `PlatformPayoutId` (string 255 — dedup key, `manual_{guid}` for manual entries), `Status` (string 20 — Pending, In Transit, Paid, Failed, Cancelled)
 - Composite index on `(Platform, PayoutDate)` for dashboard queries
 - Unique index on `PlatformPayoutId` for dedup
-- Index: `IX_Payout_UserId`
-- Design: No FK to Revenue — one payout covers many sales (batched). Enables cash flow view: earned vs received vs pending. Actively used by Manual Entry module for full CRUD.
+- Indexes: `IX_Payout_UserId`, `IX_Payout_ShopConnectionId`
+- FK behavior: `FK_Payout_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
+- Design: No FK to Revenue — one payout covers many sales (batched). Enables cash flow view: earned vs received vs pending. Actively used by Manual Entry module for full CRUD. Per-shop breakdowns group by `ShopConnectionId`.
 
 **`app.Revenue`** — normalized revenue record from all platforms (API-sourced and manual entry)
-- `Id` (PK), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (nullable, unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
+- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the sale came from for per-shop breakdowns; null for manual entries), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (nullable, unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
 - Composite index on `(Platform, TransactionDate)` for dashboard queries
-- Design: Goals and dashboard analytics query **only** this normalized table. Platform-specific tables exist for drill-down detail.
+- Indexes: `IX_Revenue_UserId`, `IX_Revenue_ShopConnectionId`
+- FK behavior: `FK_Revenue_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
+- Design: Goals and dashboard analytics query **only** this normalized table. Platform-specific tables exist for drill-down detail. Per-shop breakdowns (e.g., "Etsy Shop A vs Etsy Shop B") group by `ShopConnectionId`.
 
 **`app.RevenueEtsy`** — Etsy-specific revenue detail (1-to-1 with Revenue, shared PK)
 - `RevenueId` (PK/FK → Revenue, C# property: `Id`), `AdjustedFees` (nullable decimal 18,2), `AdjustedGross` (nullable decimal 18,2), `AdjustedNet` (nullable decimal 18,2), `ListingId` (long), `ReceiptId` (long), `ShopCurrency` (string 3)

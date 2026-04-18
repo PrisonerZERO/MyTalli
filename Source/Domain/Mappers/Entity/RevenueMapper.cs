@@ -22,6 +22,7 @@ public class RevenueMapper : EntityMapper<MODELS.Revenue, ENTITIES.Revenue>
         destination.NetAmount = source.NetAmount;
         destination.Platform = source.Platform;
         destination.PlatformTransactionId = source.PlatformTransactionId;
+        destination.ShopConnectionId = source.ShopConnectionId;
         destination.TransactionDate = source.TransactionDate;
         destination.UserId = source.UserId;
     }
@@ -40,6 +41,7 @@ public class RevenueMapper : EntityMapper<MODELS.Revenue, ENTITIES.Revenue>
         NetAmount = model.NetAmount,
         Platform = model.Platform,
         PlatformTransactionId = model.PlatformTransactionId,
+        ShopConnectionId = model.ShopConnectionId,
         TransactionDate = model.TransactionDate,
         UserId = model.UserId,
     };
@@ -58,6 +60,7 @@ public class RevenueMapper : EntityMapper<MODELS.Revenue, ENTITIES.Revenue>
         NetAmount = entity.NetAmount,
         Platform = entity.Platform,
         PlatformTransactionId = entity.PlatformTransactionId,
+        ShopConnectionId = entity.ShopConnectionId,
         TransactionDate = entity.TransactionDate,
         UserId = entity.UserId,
     };
