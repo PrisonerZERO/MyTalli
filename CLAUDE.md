@@ -395,11 +395,23 @@ My.Talli/
     │   │   ├── Roles.cs                       # Static role name constants (Admin, User)
     │   │   └── SubscriptionStatuses.cs        # Static subscription status constants (Active, Cancelling, Cancelled, PastDue, Unpaid)
     │   ├── Components/
+    │   │   ├── Etsy/                          # Etsy OAuth + API POCOs (shared with Web's EtsyService)
+    │   │   │   ├── AuthorizeChallenge.cs       # PKCE challenge + state + authorize URL
+    │   │   │   ├── EtsyPkceGenerator.cs        # Static helpers: BuildAuthorizeChallenge, ExtractEtsyUserId
+    │   │   │   ├── EtsyShop.cs                 # Etsy shop payload (shop_id, shop_name, currency, etc.)
+    │   │   │   └── EtsyTokenResponse.cs        # OAuth token exchange response (access_token, refresh_token, expires_in)
     │   │   ├── JsonSerializers/
     │   │   │   └── User/
     │   │   │       └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
     │   │   └── Tokens/
     │   │       └── UnsubscribeTokenService.cs  # HMAC-SHA256 token generate/validate for email unsubscribe links
+    │   ├── CommandsAndQueries/                # CQRS umbrella (Commands now; Queries in the future). Organizational — does NOT affect namespace.
+    │   │   └── Commands/
+    │   │       ├── Billing/                    # namespace: My.Talli.Domain.Commands.Billing
+    │   │       │   ├── FindActiveSubscriptionWithStripeCommand.cs  # Query active subscription + Stripe record
+    │   │       │   └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
+    │   │       └── Platforms/                  # namespace: My.Talli.Domain.Commands.Platforms
+    │   │           └── ConnectEtsyCommand.cs   # Upsert PlatformConnection + ShopConnection + ShopConnectionEtsy after OAuth
     │   ├── Mappers/
     │   │   ├── EntityMapper.cs                 # Abstract mapper (collection methods via LINQ)
     │   │   ├── IEntityMapper.cs               # Generic entity↔model mapper interface
@@ -567,7 +579,12 @@ My.Talli/
     │       └── IIdentifiable.cs
     ├── My.Talli.UnitTesting/        # xUnit unit test project
     │   ├── My.Talli.UnitTesting.csproj
+    │   ├── Commands/
+    │   │   └── Platforms/
+    │   │       └── ConnectEtsyCommandTests.cs      # Upsert behavior, multi-shop, null-field handling
     │   ├── Components/
+    │   │   ├── Etsy/
+    │   │   │   └── EtsyPkceGeneratorTests.cs       # PKCE challenge format, SHA256 invariant, ExtractEtsyUserId edge cases
     │   │   ├── JsonSerializers/
     │   │   │   └── UserPreferencesJsonSerializerTests.cs
     │   │   └── Tokens/
@@ -583,7 +600,9 @@ My.Talli/
     │   │       └── SignInScenarioTests.cs
     │   ├── Infrastructure/
     │   │   ├── Builders/
-    │   │   │   └── SignInHandlerBuilder.cs     # Test setup orchestrator (Lamar container, exposes handlers & adapters)
+    │   │   │   ├── BillingHandlerBuilder.cs        # Test setup for Stripe webhook handler + related adapters
+    │   │   │   ├── PlatformHandlerBuilder.cs       # Test setup for ConnectEtsyCommand + PlatformConnection/ShopConnection adapters
+    │   │   │   └── SignInHandlerBuilder.cs         # Test setup orchestrator (Lamar container, exposes handlers & adapters)
     │   │   ├── IoC/
     │   │   │   └── ContainerRegistry.cs        # Test IoC registry (extends Domain.DI.Lamar, swaps in stubs)
     │   │   └── Stubs/
@@ -606,12 +625,14 @@ My.Talli/
         │   ├── DatabaseConfiguration.cs        # DbContext registration
         │   ├── ElmahConfiguration.cs           # Elmah error logging
         │   ├── EmailConfiguration.cs           # Email services + unsubscribe token
+        │   ├── PlatformsConfiguration.cs       # Etsy (and future platform) settings + HttpClient wiring
         │   └── RepositoryConfiguration.cs      # ICurrentUserService registration (mappers, handlers, and repositories are in Domain.DI.Lamar)
         ├── Endpoints/                 # Minimal API endpoint extension methods (one per route group)
         │   ├── AdminEndpoints.cs      # /api/admin/email/* (resend, bulk-welcome, bulk-welcome-all)
         │   ├── AuthEndpoints.cs       # /api/auth/login, /api/auth/logout
         │   ├── BillingEndpoints.cs    # /api/billing/create-checkout-session, portal, switch-plan, webhook
         │   ├── EmailEndpoints.cs      # /api/email/preferences
+        │   ├── PlatformEndpoints.cs   # /api/platforms/etsy/connect, /api/platforms/etsy/callback (PKCE, data-protected cookie)
         │   └── TestEndpoints.cs       # /api/test/* (dev-only)
         ├── Handlers/                  # Web-layer handlers (react to events, orchestrate domain calls)
         │   ├── Authentication/        # OAuth ticket handlers (map claims → domain sign-in → add claims → welcome email)
@@ -622,15 +643,13 @@ My.Talli/
         │       ├── CheckoutCompletedHandler.cs    # Stripe checkout.session.completed → domain handler + email
         │       ├── SubscriptionDeletedHandler.cs  # Stripe customer.subscription.deleted → domain handler
         │       └── SubscriptionUpdatedHandler.cs  # Stripe customer.subscription.updated → domain handler
-        ├── Commands/                  # Web-layer commands (execute actions, data access, notifications)
-        │   ├── Notifications/         # Email and notification commands
+        ├── Commands/                  # Web-layer commands (execute actions that require Web-layer deps)
+        │   ├── Notifications/         # Email and notification commands (depend on IEmailService)
         │   │   ├── SendSubscriptionConfirmationEmailCommand.cs # Build + send subscription confirmation email
         │   │   ├── SendWelcomeEmailCommand.cs                  # Build + send welcome email
         │   │   └── SendWeeklySummaryEmailCommand.cs            # Build + send weekly summary email (sample data)
-        │   └── Endpoints/             # Commands that serve endpoint routes
-        │       ├── FindActiveSubscriptionWithStripeCommand.cs  # Query active subscription + Stripe record
-        │       ├── GetAdminUserListCommand.cs                  # Query users with emails from vAuthenticatedUser view
-        │       └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
+        │   └── Endpoints/             # Commands that need Web-layer primitives (DbContext direct, HttpContext, etc.)
+        │       └── GetAdminUserListCommand.cs                  # Direct TalliDbContext access for the vAuthenticatedUser view
         ├── Middleware/                 # Custom middleware classes
         │   ├── CurrentUserMiddleware.cs   # Populates ICurrentUserService from HttpContext.User claims on every request
         │   └── ProbeFilterMiddleware.cs  # Bot/scanner probe filter (short-circuits .env, .php, wp-admin, etc.)
@@ -691,6 +710,9 @@ My.Talli/
         │   │   ├── IEmailService.cs             # Email sending interface
         │   │   ├── AcsEmailService.cs           # Azure Communication Services implementation (active)
         │   │   └── SmtpEmailService.cs          # MailKit-based implementation (local dev fallback)
+        │   ├── Platforms/
+        │   │   ├── EtsySettings.cs              # Etsy OAuth config POCO (ClientId, ClientSecret, RedirectUri, Scope)
+        │   │   └── EtsyService.cs               # Thin HTTP wrapper — token exchange + shop fetch. Uses Domain.Components.Etsy helpers.
         │   └── Tokens/
         │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
         ├── ViewModels/
@@ -1034,6 +1056,7 @@ public class GenericAuditableRepositoryAsync<TEntity> { ... }
   - `Domain.Entities/Entities/User.cs` → `namespace My.Talli.Domain.Entities;` (not `...Entities.Entities`)
   - `Domain/Components/JsonSerializers/User/UserPreferencesJsonSerializer.cs` → `namespace My.Talli.Domain.Components.JsonSerializers;` (not `...JsonSerializers.User`)
   - `Domain/Handlers/Authentication/Google/GoogleSignInHandler.cs` → `namespace My.Talli.Domain.Handlers.Authentication;` (not `...Authentication.Google`)
+  - `Domain/CommandsAndQueries/Commands/Platforms/ConnectEtsyCommand.cs` → `namespace My.Talli.Domain.Commands.Platforms;` (the `CommandsAndQueries/` umbrella is organizational only — a reserved slot for future `Queries/` siblings — and does NOT appear in the namespace)
 
 ### Clean Up NUL Files
 
@@ -1155,14 +1178,19 @@ public static class AuthEndpoints
 
 ### Handlers and Commands
 
-Endpoint-supporting logic lives in dedicated classes under `Handlers/` and `Commands/` in the web project, organized by subfolder.
+Endpoint-supporting logic lives in dedicated classes under `Handlers/` and `Commands/`. **Commands are split between Domain and Web based on what they depend on** — handlers are always Web.
 
-- **Handlers** (`Handlers/Endpoints/`) — react to events. They orchestrate the pipeline: map external objects (e.g., Stripe SDK types) to Domain payloads, call Domain handlers inside transactions, handle side effects (logging, emails). Each handler owns everything it does — mapping methods, email building, etc. live inside the handler, not back in the endpoint.
-- **Commands** (`Commands/`) — execute actions. Data access operations (queries, updates), notification sending, or any reusable operation that a handler or endpoint shouldn't inline. Each command exposes a single `ExecuteAsync()` method. Organized by subfolder based on **what the command does**, not who calls it: `Commands/Endpoints/` for data access commands, `Commands/Notifications/` for email/notification commands, etc.
-- Both are **non-static classes** with constructor-injected dependencies — no `HttpContext.RequestServices.GetRequiredService` calls.
-- Both are registered as **scoped** in `BillingConfiguration.cs` (or the relevant `Configuration/{Name}Configuration.cs`).
+- **Handlers** (Web only — `My.Talli.Web/Handlers/Endpoints/`) — react to events. They orchestrate the pipeline: map external objects (e.g., Stripe SDK types, Etsy API responses) to Domain payloads, call Domain commands/handlers inside transactions, handle side effects (logging, emails). Each handler owns everything it does — mapping methods, email building, etc. live inside the handler, not back in the endpoint.
+- **Commands** — execute actions. Each command exposes a single `ExecuteAsync()` method. Organized by subfolder based on **what the command does**, not who calls it.
+  - **Domain commands** (`Domain/CommandsAndQueries/Commands/{Area}/`) — the default home for commands. Use only Domain-layer deps: `RepositoryAdapterAsync`, Domain POCOs, `EnforcedTransactionScope`. Registered in `Domain.DI.Lamar.IoC.ContainerRegistry`. Example: `ConnectEtsyCommand`, `FindActiveSubscriptionWithStripeCommand`, `UpdateLocalSubscriptionCommand`. These are testable from `My.Talli.UnitTesting` via the in-memory repository stubs.
+  - **Web commands** (`My.Talli.Web/Commands/{Area}/`) — only when the command genuinely needs Web-layer primitives: `IEmailService`, direct `TalliDbContext` access (for keyless view queries like `vAuthenticatedUser`), or other infrastructure interfaces the Domain shouldn't see. Registered in the relevant `Configuration/{Name}Configuration.cs`. Example: `GetAdminUserListCommand` (direct DbContext), `SendWelcomeEmailCommand` (IEmailService).
+  - **Default to Domain.** A command belongs in Web only if moving it breaks the "Domain stays HTTP- and SDK-free" rule. When in doubt, try Domain first and let the compiler push back.
+- Both handlers and commands are **non-static classes** with constructor-injected dependencies — no `HttpContext.RequestServices.GetRequiredService` calls.
+- All are registered as **scoped** (Web commands in `Configuration/{Name}Configuration.cs`; Domain commands in `Domain.DI.Lamar.IoC.ContainerRegistry`).
 - **One class per operation** — not one class per domain area. `CheckoutCompletedHandler` handles checkout completed events, not "all billing webhook events."
-- **Namespace:** `My.Talli.Web.Handlers.Endpoints` for handlers, `My.Talli.Web.Commands.Endpoints` for commands. The `Endpoints` subfolder is organizational only (following the Subfolder Namespace Convention).
+- **Namespaces:**
+  - Web: `My.Talli.Web.Handlers.Endpoints` / `My.Talli.Web.Commands.{Area}`.
+  - Domain: `My.Talli.Domain.Commands.{Area}` (the `CommandsAndQueries/` umbrella folder is organizational and does NOT appear in the namespace — see Subfolder Namespace Convention).
 
 ### No Inline Code Blocks
 
