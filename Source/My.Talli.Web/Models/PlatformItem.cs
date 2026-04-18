@@ -23,6 +23,8 @@ public class PlatformItem
 
 	public string Name { get; set; } = "";
 
+	public List<ShopItem> Shops { get; set; } = [];
+
 	public string Subtitle { get; set; } = "";
 
 	public string SyncStatus { get; set; } = "";

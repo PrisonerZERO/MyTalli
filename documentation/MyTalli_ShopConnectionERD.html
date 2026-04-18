@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — ShopConnection ERD</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.6; padding: 0; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; overflow: hidden; padding: 48px 32px; position: relative; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 240px; position: absolute; right: -60px; top: -100px; width: 240px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 160px; left: 35%; position: absolute; top: 60px; width: 160px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.85); font-size: 15px; margin-top: 8px; max-width: 720px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.55); font-size: 12px; margin-top: 14px; position: relative; z-index: 1; }
+
+  /* Content */
+  .content { margin: 0 auto; max-width: 1200px; padding: 40px 32px 80px; }
+
+  /* Section */
+  .section { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(108,92,231,0.08); margin-bottom: 24px; padding: 28px 32px; }
+  .section h2 { border-bottom: 2px solid #f0edff; color: #1a1a2e; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 14px; padding-bottom: 12px; }
+  .section h3 { color: #6c5ce7; font-size: 15px; font-weight: 600; margin: 20px 0 10px; }
+  .section p { color: #555; font-size: 14px; margin-bottom: 12px; }
+  .section p:last-child { margin-bottom: 0; }
+  .section ul { color: #555; font-size: 14px; margin: 0 0 12px 20px; }
+  .section li { margin-bottom: 4px; }
+  code { background: #f0edff; border-radius: 4px; color: #6c5ce7; font-family: 'Consolas', monospace; font-size: 0.88em; padding: 1px 6px; }
+
+  /* Callout */
+  .callout { background: #fafbff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin: 16px 0; padding: 14px 18px; }
+  .callout.warn { border-left-color: #f5c842; }
+  .callout.success { border-left-color: #27ae60; }
+  .callout.danger { border-left-color: #e74c3c; }
+  .callout p { color: #555; font-size: 13px; margin: 0; }
+  .callout strong { color: #1a1a2e; }
+
+  /* ERD wrapper */
+  .erd { padding: 12px 0 4px; position: relative; }
+  .erd svg { display: block; height: auto; width: 100%; }
+  .erd-label { color: #999; font-size: 13px; font-style: italic; margin-top: 10px; text-align: center; }
+
+  /* Field tables */
+  table { border-collapse: collapse; font-size: 13px; margin: 14px 0 8px; width: 100%; }
+  th { background: #f0edff; border-bottom: 2px solid #e0dce8; color: #1a1a2e; font-weight: 600; padding: 10px 12px; text-align: left; white-space: nowrap; }
+  td { border-bottom: 1px solid #f0edff; color: #555; padding: 8px 12px; vertical-align: top; }
+  td code { background: #f0edff; color: #6c5ce7; font-family: 'Consolas', monospace; }
+  tr:hover td { background: #faf9ff; }
+  tr.absorbed td { background: #fffaf0; }
+  tr.absorbed:hover td { background: #fff5e4; }
+  tr.absorbed td:first-child::before { background: #f5c842; border-radius: 50%; content: ''; display: inline-block; height: 8px; margin-right: 6px; vertical-align: middle; width: 8px; }
+  tr.pk td code { background: #ede9ff; color: #5b21b6; font-weight: 600; }
+  tr.fk td code { background: #dbeafe; color: #1e40af; font-weight: 600; }
+
+  /* Badges */
+  .tag { border-radius: 4px; display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 7px; text-transform: uppercase; vertical-align: middle; }
+  .tag.new { background: #e8f5e9; color: #27ae60; }
+  .tag.removed { background: #fee2e2; color: #b91c1c; }
+  .tag.existing { background: #f0edff; color: #6c5ce7; }
+  .tag.etsy { background: #fff3e0; color: #e65100; }
+  .tag.absorbed { background: #fef3c7; color: #92400e; }
+
+  /* Absorbed list */
+  .absorbed-list { background: #fffaf0; border: 1px solid #fde4a6; border-radius: 8px; margin: 12px 0; padding: 14px 18px; }
+  .absorbed-list h4 { color: #92400e; font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
+  .absorbed-list ul { color: #555; font-size: 13px; list-style: none; margin: 0; }
+  .absorbed-list li { padding: 2px 0; }
+  .absorbed-list li code { background: #fef3c7; color: #92400e; }
+
+  /* Footer */
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 40px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> ShopConnection ERD</h1>
+  <p class="subtitle">Visual reference for the new sync-target layer: <code style="background:rgba(255,255,255,0.15);color:#fff;">app.ShopConnection</code> + <code style="background:rgba(255,255,255,0.15);color:#fff;">app.ShopConnectionEtsy</code>, plus the retirement of <code style="background:rgba(255,255,255,0.15);color:#fff;">app.SyncQueue</code>.</p>
+  <p class="doc-date">Last updated: April 2026 · Migration: <code style="background:rgba(255,255,255,0.15);color:#fff;">AddShopConnectionsAndDropSyncQueue</code></p>
+</div>
+
+<div class="content">
+
+  <!-- Overview -->
+  <div class="section">
+    <h2>What's Changing</h2>
+    <p>Today a platform connection is 1-to-1 with a sync target — one <code>PlatformConnection</code> per user per platform, one <code>SyncQueue</code> row per user per platform. That works for Stripe, Gumroad, PayPal, and Shopify, but Etsy is different: a seller can own <strong>multiple shops</strong> under a single Etsy OAuth grant.</p>
+    <p>This migration introduces a new sync-target layer <strong>below</strong> <code>PlatformConnection</code>:</p>
+    <ul>
+      <li><code>app.ShopConnection</code> — the thing we sync <em>from</em>. One row per shop. Common fields live here, including the sync-queue fields we're absorbing from <code>SyncQueue</code>.</li>
+      <li><code>app.ShopConnectionEtsy</code> — provider-specific 1-to-1 subtable (shared PK). Only Etsy gets one on day one; other platforms are always 1:1 with their <code>PlatformConnection</code>, so they don't need a subtable yet.</li>
+    </ul>
+    <p><code>app.SyncQueue</code> goes away in the same migration — every field on it has a home on <code>ShopConnection</code>.</p>
+
+    <div class="callout success">
+      <p><strong>Shape of the relationship:</strong> <code>User 1:N PlatformConnection 1:N ShopConnection 1:1 ShopConnectionEtsy</code>. For Stripe / Gumroad / PayPal / Shopify, the middle cardinality is functionally 1:1 — those platforms will always have exactly one <code>ShopConnection</code> per <code>PlatformConnection</code>. Etsy is the outlier.</p>
+    </div>
+  </div>
+
+  <!-- ERD Diagram -->
+  <div class="section">
+    <h2>Entity Relationship Diagram</h2>
+    <p>New tables are outlined in <strong style="color:#27ae60;">green</strong>. Existing tables shown in their usual shades. <code>app.SyncQueue</code> is struck through — it's being dropped.</p>
+
+    <div class="erd">
+      <svg viewBox="0 0 1100 940" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+        <defs>
+          <marker id="arrow-grey" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
+          </marker>
+          <marker id="arrow-purple" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#6c5ce7"/>
+          </marker>
+          <marker id="arrow-etsy" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#f56400"/>
+          </marker>
+          <marker id="arrow-green" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#27ae60"/>
+          </marker>
+          <filter id="shadow" x="-4%" y="-4%" width="108%" height="116%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#6c5ce7" flood-opacity="0.18"/>
+          </filter>
+        </defs>
+
+        <!-- ================= BACKGROUND ZONES ================= -->
+        <rect x="20" y="20" width="1060" height="140" rx="12" fill="#f0edff" opacity="0.45"/>
+        <text x="40" y="44" font-size="11" font-weight="600" fill="#6c5ce7" opacity="0.8">IDENTITY &amp; PLATFORM CONNECTION (existing)</text>
+
+        <rect x="20" y="190" width="1060" height="340" rx="12" fill="#e8f5e9" opacity="0.32"/>
+        <text x="40" y="214" font-size="11" font-weight="600" fill="#27ae60" opacity="0.9">NEW — SYNC-TARGET LAYER (this migration)</text>
+
+        <rect x="20" y="560" width="1060" height="180" rx="12" fill="#fff3e0" opacity="0.25"/>
+        <text x="40" y="584" font-size="11" font-weight="600" fill="#e65100" opacity="0.85">DOWNSTREAM — REVENUE (existing)</text>
+
+        <rect x="20" y="770" width="1060" height="140" rx="12" fill="#fee2e2" opacity="0.4"/>
+        <text x="40" y="794" font-size="11" font-weight="600" fill="#b91c1c" opacity="0.9">REMOVED IN THIS MIGRATION</text>
+
+        <!-- ================= EXISTING ENTITIES ================= -->
+        <!-- auth.User -->
+        <rect x="60" y="70" width="220" height="74" rx="10" fill="#6c5ce7" filter="url(#shadow)"/>
+        <text x="170" y="96" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">auth.User</text>
+        <text x="170" y="116" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Id (PK) · DisplayName</text>
+        <text x="170" y="132" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.8)">InitialProvider · PreferredProvider</text>
+
+        <!-- app.PlatformConnection -->
+        <rect x="420" y="60" width="280" height="94" rx="10" fill="#1565c0" filter="url(#shadow)"/>
+        <text x="560" y="84" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">app.PlatformConnection</text>
+        <text x="560" y="102" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Id (PK) · UserId (FK) · Platform</text>
+        <text x="560" y="116" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">PlatformAccountId · AccessToken</text>
+        <text x="560" y="130" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">RefreshToken · TokenExpiryDateTime</text>
+        <text x="560" y="144" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">ConnectionStatus</text>
+
+        <!-- ================= NEW: ShopConnection ================= -->
+        <rect x="280" y="240" width="360" height="260" rx="10" fill="#fff" stroke="#27ae60" stroke-width="2.5" filter="url(#shadow)"/>
+        <!-- NEW badge -->
+        <rect x="280" y="240" width="48" height="18" rx="0" fill="#27ae60"/>
+        <text x="304" y="253" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">NEW</text>
+        <!-- Title -->
+        <text x="460" y="276" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1a2e">app.ShopConnection</text>
+        <line x1="295" y1="288" x2="625" y2="288" stroke="#e0dce8" stroke-width="1"/>
+
+        <!-- Core fields -->
+        <text x="305" y="306" font-size="11" font-weight="600" fill="#5b21b6">Id</text>
+        <text x="340" y="306" font-size="11" fill="#555">· bigint · PK (identity)</text>
+
+        <text x="305" y="324" font-size="11" font-weight="600" fill="#1e40af">PlatformConnectionId</text>
+        <text x="435" y="324" font-size="11" fill="#555">· FK → PlatformConnection</text>
+
+        <text x="305" y="342" font-size="11" font-weight="600" fill="#1e40af">UserId</text>
+        <text x="355" y="342" font-size="11" fill="#555">· FK → auth.User (denormalized)</text>
+
+        <text x="305" y="360" font-size="11" fill="#1a1a2e">PlatformShopId</text>
+        <text x="400" y="360" font-size="11" fill="#555">· nvarchar(255)</text>
+
+        <text x="305" y="378" font-size="11" fill="#1a1a2e">ShopName</text>
+        <text x="365" y="378" font-size="11" fill="#555">· nvarchar(255)</text>
+
+        <text x="305" y="396" font-size="11" fill="#1a1a2e">IsActive</text>
+        <text x="355" y="396" font-size="11" fill="#555">· bit · default true</text>
+
+        <!-- Divider: absorbed from SyncQueue -->
+        <line x1="295" y1="408" x2="625" y2="408" stroke="#f5c842" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="460" y="422" text-anchor="middle" font-size="9" font-weight="700" fill="#92400e" letter-spacing="0.5">~ ABSORBED FROM SyncQueue ~</text>
+
+        <text x="305" y="440" font-size="11" fill="#1a1a2e">Status</text>
+        <text x="345" y="440" font-size="11" fill="#92400e">· nvarchar(20) · Pending / InProgress / Completed / Failed</text>
+
+        <text x="305" y="458" font-size="11" fill="#1a1a2e">NextSyncDateTime</text>
+        <text x="420" y="458" font-size="11" fill="#92400e">· datetime2 (now + 24h default)</text>
+
+        <text x="305" y="476" font-size="11" fill="#1a1a2e">LastSyncDateTime</text>
+        <text x="415" y="476" font-size="11" fill="#92400e">· datetime2 · nullable</text>
+
+        <text x="305" y="494" font-size="11" fill="#1a1a2e">ConsecutiveFailures · LastErrorMessage · IsEnabled</text>
+
+        <!-- ================= NEW: ShopConnectionEtsy ================= -->
+        <rect x="760" y="270" width="300" height="200" rx="10" fill="#fff" stroke="#f56400" stroke-width="2.5" filter="url(#shadow)"/>
+        <rect x="760" y="270" width="48" height="18" rx="0" fill="#27ae60"/>
+        <text x="784" y="283" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">NEW</text>
+        <rect x="812" y="270" width="52" height="18" rx="0" fill="#f56400"/>
+        <text x="838" y="283" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">ETSY</text>
+
+        <text x="910" y="306" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1a2e">app.ShopConnectionEtsy</text>
+        <line x1="775" y1="318" x2="1045" y2="318" stroke="#e0dce8" stroke-width="1"/>
+
+        <text x="785" y="340" font-size="11" font-weight="600" fill="#5b21b6">Id</text>
+        <text x="820" y="340" font-size="11" fill="#555">· bigint · PK / FK (shared)</text>
+        <text x="785" y="355" font-size="9.5" fill="#999" font-style="italic">C# property: Id · DB column: ShopConnectionId</text>
+
+        <text x="785" y="378" font-size="11" fill="#1a1a2e">ShopCurrency</text>
+        <text x="870" y="378" font-size="11" fill="#555">· char(3)</text>
+
+        <text x="785" y="396" font-size="11" fill="#1a1a2e">ShopUrl</text>
+        <text x="835" y="396" font-size="11" fill="#555">· nvarchar(500)</text>
+
+        <text x="785" y="414" font-size="11" fill="#1a1a2e">CountryCode</text>
+        <text x="865" y="414" font-size="11" fill="#555">· char(2) (ISO alpha-2)</text>
+
+        <text x="785" y="432" font-size="11" fill="#1a1a2e">IsVacationMode</text>
+        <text x="885" y="432" font-size="11" fill="#555">· bit</text>
+
+        <text x="910" y="456" text-anchor="middle" font-size="10" fill="#999" font-style="italic">Shared-PK 1:1 extension of ShopConnection</text>
+
+        <!-- ================= DOWNSTREAM: Revenue ================= -->
+        <rect x="280" y="620" width="360" height="94" rx="10" fill="#27ae60" filter="url(#shadow)"/>
+        <text x="460" y="646" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">app.Revenue</text>
+        <text x="460" y="666" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Id · UserId (FK) · Platform</text>
+        <text x="460" y="683" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">PlatformTransactionId · Gross / Fee / Net</text>
+        <text x="460" y="700" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.7)">no direct FK to ShopConnection — linked by (Platform, PlatformTransactionId)</text>
+
+        <rect x="760" y="620" width="280" height="94" rx="10" fill="#fff" stroke="#f56400" stroke-width="2" filter="url(#shadow)"/>
+        <text x="900" y="646" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">app.RevenueEtsy</text>
+        <text x="900" y="666" text-anchor="middle" font-size="11" fill="#a09cae">ReceiptId · ListingId · ShopCurrency</text>
+        <text x="900" y="683" text-anchor="middle" font-size="11" fill="#a09cae">Adjusted Gross / Fees / Net</text>
+        <text x="900" y="700" text-anchor="middle" font-size="10" fill="#999" font-style="italic">1:1 extension of Revenue (shared PK)</text>
+
+        <!-- ================= REMOVED: SyncQueue ================= -->
+        <rect x="280" y="810" width="360" height="80" rx="10" fill="#fee2e2" stroke="#b91c1c" stroke-width="2" stroke-dasharray="6,4"/>
+        <text x="460" y="838" text-anchor="middle" font-size="14" font-weight="700" fill="#b91c1c" text-decoration="line-through">app.SyncQueue</text>
+        <text x="460" y="856" text-anchor="middle" font-size="11" fill="#7f1d1d">Dropped. One row per (User, Platform) →</text>
+        <text x="460" y="872" text-anchor="middle" font-size="11" fill="#7f1d1d">fields move to ShopConnection (one row per shop).</text>
+
+        <!-- ================= RELATIONSHIPS ================= -->
+        <!-- User → PlatformConnection -->
+        <line x1="280" y1="104" x2="420" y2="104" stroke="#a09cae" stroke-width="1.6" marker-end="url(#arrow-grey)"/>
+        <text x="346" y="97" font-size="10" font-weight="600" fill="#a09cae">1 : N</text>
+
+        <!-- User → ShopConnection (denormalized, 1:N) -->
+        <path d="M 170 144 L 170 185 L 40 185 L 40 355 L 280 355" fill="none" stroke="#6c5ce7" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-purple)"/>
+        <text x="54" y="260" font-size="10" font-weight="600" fill="#6c5ce7" transform="rotate(-90 54 260)">1 : N (denormalized)</text>
+
+        <!-- PlatformConnection → ShopConnection (1:N) -->
+        <path d="M 560 154 L 560 240" fill="none" stroke="#a09cae" stroke-width="1.6" marker-end="url(#arrow-grey)"/>
+        <text x="572" y="200" font-size="10" font-weight="600" fill="#a09cae">1 : N</text>
+
+        <!-- ShopConnection → ShopConnectionEtsy (1:1 shared PK) -->
+        <line x1="640" y1="370" x2="760" y2="370" stroke="#f56400" stroke-width="2" marker-end="url(#arrow-etsy)"/>
+        <text x="700" y="362" text-anchor="middle" font-size="10" font-weight="700" fill="#f56400">1 : 1 (shared PK)</text>
+
+        <!-- ShopConnection → Revenue (sync writes, no FK) -->
+        <path d="M 460 500 L 460 620" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-green)"/>
+        <text x="475" y="562" font-size="10" font-weight="600" fill="#27ae60">sync writes</text>
+        <text x="475" y="576" font-size="9" fill="#27ae60" font-style="italic">(no direct FK)</text>
+
+        <!-- ShopConnectionEtsy → RevenueEtsy (conceptual) -->
+        <path d="M 910 470 L 910 620" fill="none" stroke="#f56400" stroke-width="1.2" stroke-dasharray="3,4" opacity="0.6"/>
+        <text x="920" y="548" font-size="9" fill="#f56400" font-style="italic" opacity="0.85">ShopCurrency</text>
+        <text x="920" y="560" font-size="9" fill="#f56400" font-style="italic" opacity="0.85">sourced here</text>
+
+        <!-- SyncQueue → ShopConnection (fields absorbed) -->
+        <path d="M 460 810 L 460 770 L 700 770 L 700 500" fill="none" stroke="#b91c1c" stroke-width="1.3" stroke-dasharray="4,4" marker-end="url(#arrow-grey)"/>
+        <text x="710" y="640" font-size="10" font-weight="600" fill="#b91c1c">fields absorbed</text>
+
+        <!-- ================= LEGEND ================= -->
+        <rect x="60" y="250" width="200" height="220" rx="10" fill="#fff" stroke="#e0dce8" stroke-width="1"/>
+        <text x="75" y="272" font-size="11" font-weight="700" fill="#1a1a2e">Legend</text>
+
+        <rect x="75" y="284" width="14" height="14" rx="3" fill="#fff" stroke="#27ae60" stroke-width="2"/>
+        <text x="96" y="295" font-size="11" fill="#555">New in this migration</text>
+
+        <rect x="75" y="306" width="14" height="14" rx="3" fill="#6c5ce7"/>
+        <text x="96" y="317" font-size="11" fill="#555">Existing (auth schema)</text>
+
+        <rect x="75" y="328" width="14" height="14" rx="3" fill="#1565c0"/>
+        <text x="96" y="339" font-size="11" fill="#555">Existing (app schema)</text>
+
+        <rect x="75" y="350" width="14" height="14" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5" stroke-dasharray="3,2"/>
+        <text x="96" y="361" font-size="11" fill="#555">Dropped in this migration</text>
+
+        <line x1="75" y1="378" x2="105" y2="378" stroke="#a09cae" stroke-width="1.6" marker-end="url(#arrow-grey)"/>
+        <text x="115" y="382" font-size="10" fill="#555">FK (solid grey)</text>
+
+        <line x1="75" y1="396" x2="105" y2="396" stroke="#6c5ce7" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-purple)"/>
+        <text x="115" y="400" font-size="10" fill="#555">FK (denormalized)</text>
+
+        <line x1="75" y1="414" x2="105" y2="414" stroke="#f56400" stroke-width="2" marker-end="url(#arrow-etsy)"/>
+        <text x="115" y="418" font-size="10" fill="#555">1:1 shared PK</text>
+
+        <line x1="75" y1="432" x2="105" y2="432" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-green)"/>
+        <text x="115" y="436" font-size="10" fill="#555">Data flow (no FK)</text>
+
+        <rect x="75" y="448" width="14" height="14" rx="3" fill="#fffaf0" stroke="#f5c842" stroke-width="1"/>
+        <text x="96" y="459" font-size="10" fill="#555">Absorbed from SyncQueue</text>
+      </svg>
+      <div class="erd-label">Sync-target layer: one <code>PlatformConnection</code> can host many shops (Etsy); for other platforms it's effectively 1:1</div>
+    </div>
+  </div>
+
+  <!-- ShopConnection fields -->
+  <div class="section">
+    <h2>app.ShopConnection — Full Field List <span class="tag new">NEW</span></h2>
+    <p>Common fields every sync target needs. Rows highlighted in <span style="background:#fffaf0;border:1px solid #fde4a6;border-radius:3px;padding:1px 6px;">amber</span> are absorbed from <code>app.SyncQueue</code>.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:30px;">#</th>
+          <th style="width:220px;">Column</th>
+          <th style="width:160px;">Type</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>Id</code></td><td>bigint identity</td><td>Primary key</td></tr>
+        <tr class="fk"><td>1</td><td><code>PlatformConnectionId</code></td><td>bigint</td><td>FK → <code>app.PlatformConnection</code>. Restrict on delete.</td></tr>
+        <tr class="fk"><td>2</td><td><code>UserId</code></td><td>bigint</td><td>FK → <code>auth.User</code>. Denormalized for indexable per-user queries (matches <code>Revenue</code>, <code>Expense</code>, <code>Payout</code>).</td></tr>
+        <tr><td>3</td><td><code>PlatformShopId</code></td><td>nvarchar(255)</td><td>The platform's native shop identifier (e.g., Etsy <code>shop_id</code>).</td></tr>
+        <tr><td>4</td><td><code>ShopName</code></td><td>nvarchar(255)</td><td>Human-readable name for UI.</td></tr>
+        <tr><td>5</td><td><code>IsActive</code></td><td>bit · default <code>true</code></td><td>On free tier, only one <code>ShopConnection</code> per user is active. Pro may have many.</td></tr>
+        <tr class="absorbed"><td>6</td><td><code>Status</code></td><td>nvarchar(20)</td><td>Pending / InProgress / Completed / Failed. Same vocabulary as the old <code>SyncQueue.Status</code>.</td></tr>
+        <tr class="absorbed"><td>7</td><td><code>NextSyncDateTime</code></td><td>datetime2</td><td>When the worker is next eligible to sync this shop. Default <code>now + 24h</code> per the daily-baseline policy.</td></tr>
+        <tr class="absorbed"><td>8</td><td><code>LastSyncDateTime</code></td><td>datetime2 · nullable</td><td>Null until first successful sync.</td></tr>
+        <tr class="absorbed"><td>9</td><td><code>ConsecutiveFailures</code></td><td>int · default <code>0</code></td><td>Drives exponential backoff on <code>NextSyncDateTime</code>.</td></tr>
+        <tr class="absorbed"><td>10</td><td><code>LastErrorMessage</code></td><td>nvarchar(2000) · nullable</td><td>Most recent failure reason for Platforms-page status surfacing.</td></tr>
+        <tr class="absorbed"><td>11</td><td><code>IsEnabled</code></td><td>bit · default <code>true</code></td><td>User can pause syncing without disconnecting (slot still occupied).</td></tr>
+        <tr><td>12</td><td><code>IsDeleted</code></td><td>bit · default <code>false</code></td><td>Soft-delete flag (global query filter).</td></tr>
+        <tr><td>13</td><td><code>IsVisible</code></td><td>bit · default <code>true</code></td><td>Standard visibility flag.</td></tr>
+        <tr><td>14</td><td><code>CreateByUserId</code></td><td>bigint</td><td>Audit.</td></tr>
+        <tr><td>15</td><td><code>CreatedOnDateTime</code></td><td>datetime2</td><td>Audit.</td></tr>
+        <tr><td>16</td><td><code>UpdatedByUserId</code></td><td>bigint · nullable</td><td>Audit.</td></tr>
+        <tr><td>17</td><td><code>UpdatedOnDate</code></td><td>datetime2 · nullable</td><td>Audit.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Constraints &amp; Indexes</h3>
+    <ul>
+      <li><code>PK_ShopConnection</code> on <code>Id</code></li>
+      <li><code>FK_ShopConnection_PlatformConnection</code> → <code>app.PlatformConnection.Id</code> (Restrict)</li>
+      <li><code>FK_ShopConnection_User</code> → <code>auth.User.Id</code> (Restrict — avoid cascade path collision with <code>FK_Billing_User</code>, <code>FK_Subscription_User</code> precedent)</li>
+      <li><code>UQ_ShopConnection_PlatformConnectionId_PlatformShopId</code> — one row per shop per connection</li>
+      <li><code>IX_ShopConnection_NextSyncDateTime_Status</code> — sync worker polling</li>
+      <li><code>IX_ShopConnection_UserId</code> — per-user queries</li>
+      <li><code>IX_ShopConnection_PlatformConnectionId</code> — JOIN performance (every FK column gets an index per the naming convention)</li>
+    </ul>
+  </div>
+
+  <!-- ShopConnectionEtsy fields -->
+  <div class="section">
+    <h2>app.ShopConnectionEtsy — Full Field List <span class="tag new">NEW</span> <span class="tag etsy">ETSY</span></h2>
+    <p>Etsy-specific 1-to-1 extension of <code>ShopConnection</code>. Shared-PK convention: the C# property stays <code>Id</code>, the DB column is renamed to <code>ShopConnectionId</code> via <code>HasColumnName()</code> to show the data lineage.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:30px;">#</th>
+          <th style="width:220px;">Column</th>
+          <th style="width:160px;">Type</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>ShopConnectionId</code> <span style="color:#999;">(Id)</span></td><td>bigint</td><td>PK + FK → <code>app.ShopConnection</code>. <code>ValueGeneratedNever()</code>. C# property name: <code>Id</code>.</td></tr>
+        <tr><td>1</td><td><code>ShopCurrency</code></td><td>char(3)</td><td>Etsy <code>currency_code</code>. ISO 4217.</td></tr>
+        <tr><td>2</td><td><code>ShopUrl</code></td><td>nvarchar(500)</td><td>Deep-link target for the Platforms-page card.</td></tr>
+        <tr><td>3</td><td><code>CountryCode</code></td><td>char(2)</td><td>ISO alpha-2. Drives currency display and later tax heuristics.</td></tr>
+        <tr><td>4</td><td><code>IsVacationMode</code></td><td>bit · default <code>false</code></td><td>When true, suppress "stale data" warnings — seller is on break.</td></tr>
+        <tr><td>5</td><td><code>IsDeleted</code></td><td>bit · default <code>false</code></td><td>Soft-delete.</td></tr>
+        <tr><td>6</td><td><code>IsVisible</code></td><td>bit · default <code>true</code></td><td>Visibility.</td></tr>
+        <tr><td>7</td><td><code>CreateByUserId</code></td><td>bigint</td><td>Audit.</td></tr>
+        <tr><td>8</td><td><code>CreatedOnDateTime</code></td><td>datetime2</td><td>Audit.</td></tr>
+        <tr><td>9</td><td><code>UpdatedByUserId</code></td><td>bigint · nullable</td><td>Audit.</td></tr>
+        <tr><td>10</td><td><code>UpdatedOnDate</code></td><td>datetime2 · nullable</td><td>Audit.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Constraints &amp; Indexes</h3>
+    <ul>
+      <li><code>PK_ShopConnectionEtsy</code> on <code>ShopConnectionId</code></li>
+      <li><code>FK_ShopConnectionEtsy_ShopConnection</code> → <code>app.ShopConnection.Id</code> (Cascade is safe here — pure 1:1 extension)</li>
+      <li>No secondary indexes needed — it's always reached by PK lookup from <code>ShopConnection</code></li>
+    </ul>
+
+    <div class="callout">
+      <p><strong>Not included on day one</strong> (propose separately if wanted): <code>ListingActiveCount</code>, <code>TransactionSoldCount</code>, <code>NumFavorers</code> — these are rolling stats, better suited to a snapshot/metrics table. <code>Title</code>, <code>Announcement</code> — long-form seller copy, not a sync-target concern. <code>CreationTimestamp</code> — we have <code>CreatedOnDateTime</code> already.</p>
+    </div>
+  </div>
+
+  <!-- Whats going away -->
+  <div class="section">
+    <h2>app.SyncQueue — Being Dropped <span class="tag removed">REMOVED</span></h2>
+    <p>The current schema has a <strong>1:1</strong> relationship between <code>PlatformConnection</code> and <code>SyncQueue</code> — one queue row per user per platform. Introducing <code>ShopConnection</code> breaks that model for Etsy: one Etsy <code>PlatformConnection</code> can point at multiple shops, and each shop is its own sync target with its own cadence. Leaving <code>SyncQueue</code> in place would require us to either (a) add <code>ShopConnectionId</code> to <code>SyncQueue</code> and leave the table with only two useful columns, or (b) maintain two parallel tables for the same concept.</p>
+    <p>Cleaner path: absorb the queue fields onto <code>ShopConnection</code>. One row per shop, not one row per connection.</p>
+
+    <div class="absorbed-list">
+      <h4>Fields Moving to ShopConnection</h4>
+      <ul>
+        <li><code>Status</code> → same name, same values (Pending / InProgress / Completed / Failed)</li>
+        <li><code>NextSyncDateTime</code> → same name (default now, stepped to <code>now + 24h</code> after successful sync)</li>
+        <li><code>LastSyncDateTime</code> → same name (nullable)</li>
+        <li><code>ConsecutiveFailures</code> → same name (exponential backoff driver)</li>
+        <li><code>LastErrorMessage</code> → same name (nvarchar(2000), nullable)</li>
+        <li><code>IsEnabled</code> → same name (pause without disconnecting)</li>
+      </ul>
+    </div>
+
+    <h3>Fields Not Migrating</h3>
+    <ul>
+      <li><code>UserId</code> — already on <code>ShopConnection</code> (denormalized)</li>
+      <li><code>Platform</code> — reachable via <code>ShopConnection.PlatformConnection.Platform</code>, so it stays a single source of truth on <code>PlatformConnection</code></li>
+    </ul>
+
+    <div class="callout danger">
+      <p><strong>Migration note:</strong> The Kanban lists "Schema: Drop / refactor SyncQueue" as a separate card, but doing both in one migration keeps the schema consistent end-to-end (no intermediate state where <code>SyncQueue</code> exists alongside <code>ShopConnection</code>). Proposed migration name: <code>AddShopConnectionsAndDropSyncQueue</code>.</p>
+    </div>
+  </div>
+
+  <!-- Shape across platforms -->
+  <div class="section">
+    <h2>How the Shape Plays Out Per Platform</h2>
+    <p>Only Etsy actually needs the 1:N cardinality between <code>PlatformConnection</code> and <code>ShopConnection</code>. The table below shows how the other platforms map.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Platform</th>
+          <th>Connection → ShopConnection</th>
+          <th>Provider-specific subtable?</th>
+          <th>Rationale</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:#f56400;">Etsy</strong></td>
+          <td><strong>1 : N</strong></td>
+          <td><code>ShopConnectionEtsy</code> — built in this migration</td>
+          <td>Multiple shops per seller. Needs currency, URL, country, vacation mode.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#635bff;">Stripe</strong></td>
+          <td>1 : 1 (always)</td>
+          <td>Not yet — add when a Stripe-unique shop field appears</td>
+          <td>One Stripe account per connection. No "shops" concept.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#d63a9e;">Gumroad</strong></td>
+          <td>1 : 1 (always)</td>
+          <td>Not yet</td>
+          <td>No shop layer. One account = one sync target.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#003087;">PayPal</strong></td>
+          <td>1 : 1 (always)</td>
+          <td>Not yet</td>
+          <td>Merchant account = sync target.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#96bf48;">Shopify</strong></td>
+          <td>1 : 1 (always)</td>
+          <td>Not yet — likely added later (<code>ShopConnectionShopify</code> for shop domain, currency, plan)</td>
+          <td>Shop domain + currency are shop-scoped. Worth tracking per shop when we build the Shopify spoke.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout success">
+      <p><strong>Pattern:</strong> <code>ShopConnection</code> splits by provider only when a provider-unique shop-level field exists. Today that's only Etsy. Future subtables follow the same shared-PK convention (<code>ShopConnectionShopify</code>, etc.).</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli — Internal Documentation
+  </div>
+
+</div>
+
+</body>
+</html>

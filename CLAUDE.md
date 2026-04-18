@@ -88,17 +88,18 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application features & revenue | Expense, Goal, GoalType, Milestone (legacy), Payout, PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, Suggestion, SuggestionVote, SyncQueue |
+| `app` | Application features & revenue | Expense, Goal, GoalType, Milestone (legacy), Payout, PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, ShopConnection, ShopConnectionEtsy, Suggestion, SuggestionVote |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
 ### Schema: `app`
 
 **`app.Expense`** — platform fees not tied to a specific sale (listing fees, ad fees, subscription fees, etc.), and user-created manual expenses (entered via Manual Entry module)
-- `Id` (PK), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Category` (string 50 — Listing Fee, Ad Fee, Subscription Fee, Processing Fee, Shipping Label, Other), `Currency` (string 3), `Description` (string 500), `ExpenseDate` (datetime), `Platform` (string 50), `PlatformTransactionId` (nullable string 255 — dedup key, `manual_{guid}` for manual entries)
+- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the expense came from for per-shop breakdowns; null for manual entries), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Category` (string 50 — Listing Fee, Ad Fee, Subscription Fee, Processing Fee, Shipping Label, Other), `Currency` (string 3), `Description` (string 500), `ExpenseDate` (datetime), `Platform` (string 50), `PlatformTransactionId` (nullable string 255 — dedup key, `manual_{guid}` for manual entries)
 - Composite index on `(Platform, ExpenseDate)` for dashboard queries
-- Index: `IX_Expense_UserId`
-- Design: Parallel to Revenue — both queried by dashboard, no FK between them. `Revenue.FeeAmount` = per-sale fees; `Expense.Amount` = standalone platform fees or manual expenses. Actively used by Manual Entry module for full CRUD.
+- Indexes: `IX_Expense_UserId`, `IX_Expense_ShopConnectionId`
+- FK behavior: `FK_Expense_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
+- Design: Parallel to Revenue — both queried by dashboard, no FK between them. `Revenue.FeeAmount` = per-sale fees; `Expense.Amount` = standalone platform fees or manual expenses. Actively used by Manual Entry module for full CRUD. Per-shop breakdowns group by `ShopConnectionId`.
 
 **`app.Goal`** — user revenue goals (1:N from User, 1:N from GoalType)
 - `Id` (PK), `UserId` (FK → auth.User), `GoalTypeId` (FK → GoalType), `EndDate` (nullable datetime), `Platform` (nullable string 50 — optional filter for platform-specific goals), `StartDate` (datetime), `Status` (string 20), `TargetAmount` (decimal 18,2)
@@ -119,16 +120,19 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - Index: `IX_PlatformConnection_UserId`
 
 **`app.Payout`** — platform disbursements to user's bank account, and user-created manual payouts (entered via Manual Entry module)
-- `Id` (PK), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Currency` (string 3), `ExpectedArrivalDate` (nullable datetime), `PayoutDate` (datetime), `Platform` (string 50), `PlatformPayoutId` (string 255 — dedup key, `manual_{guid}` for manual entries), `Status` (string 20 — Pending, In Transit, Paid, Failed, Cancelled)
+- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the payout came from for per-shop breakdowns; null for manual entries), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Currency` (string 3), `ExpectedArrivalDate` (nullable datetime), `PayoutDate` (datetime), `Platform` (string 50), `PlatformPayoutId` (string 255 — dedup key, `manual_{guid}` for manual entries), `Status` (string 20 — Pending, In Transit, Paid, Failed, Cancelled)
 - Composite index on `(Platform, PayoutDate)` for dashboard queries
 - Unique index on `PlatformPayoutId` for dedup
-- Index: `IX_Payout_UserId`
-- Design: No FK to Revenue — one payout covers many sales (batched). Enables cash flow view: earned vs received vs pending. Actively used by Manual Entry module for full CRUD.
+- Indexes: `IX_Payout_UserId`, `IX_Payout_ShopConnectionId`
+- FK behavior: `FK_Payout_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
+- Design: No FK to Revenue — one payout covers many sales (batched). Enables cash flow view: earned vs received vs pending. Actively used by Manual Entry module for full CRUD. Per-shop breakdowns group by `ShopConnectionId`.
 
 **`app.Revenue`** — normalized revenue record from all platforms (API-sourced and manual entry)
-- `Id` (PK), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (nullable, unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
+- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the sale came from for per-shop breakdowns; null for manual entries), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (nullable, unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
 - Composite index on `(Platform, TransactionDate)` for dashboard queries
-- Design: Goals and dashboard analytics query **only** this normalized table. Platform-specific tables exist for drill-down detail.
+- Indexes: `IX_Revenue_UserId`, `IX_Revenue_ShopConnectionId`
+- FK behavior: `FK_Revenue_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
+- Design: Goals and dashboard analytics query **only** this normalized table. Platform-specific tables exist for drill-down detail. Per-shop breakdowns (e.g., "Etsy Shop A vs Etsy Shop B") group by `ShopConnectionId`.
 
 **`app.RevenueEtsy`** — Etsy-specific revenue detail (1-to-1 with Revenue, shared PK)
 - `RevenueId` (PK/FK → Revenue, C# property: `Id`), `AdjustedFees` (nullable decimal 18,2), `AdjustedGross` (nullable decimal 18,2), `AdjustedNet` (nullable decimal 18,2), `ListingId` (long), `ReceiptId` (long), `ShopCurrency` (string 3)
@@ -150,11 +154,18 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - `Id` (PK), `UserId` (FK → auth.User), `SuggestionId` (FK → Suggestion)
 - Unique constraint on `(UserId, SuggestionId)` prevents duplicate votes
 
-**`app.SyncQueue`** — background sync job work list (one row per user per connected platform)
-- `Id` (PK), `UserId` (FK → auth.User), `Platform` (string, max 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `Status` (string, max 20 — Pending, InProgress, Completed, Failed), `NextSyncDateTime` (when this row is next eligible for processing), `LastSyncDateTime` (nullable — null until first successful sync), `LastErrorMessage` (nullable, max 2000 — most recent failure reason), `ConsecutiveFailures` (int, default 0 — drives exponential backoff), `IsEnabled` (bool, default true — user can pause syncing)
-- Unique constraint on `(UserId, Platform)` prevents duplicate queue entries
-- Index on `(NextSyncDateTime, Status)` for sync job polling query
-- Users can pause sync (`IsEnabled = false`) but cannot disconnect — connected platforms permanently occupy a plan slot
+**`app.ShopConnection`** — sync target (the thing we sync from). One row per shop under a platform connection. Most platforms are 1:1 with `PlatformConnection` (Stripe, Gumroad, PayPal, Shopify); Etsy is 1:N because a seller can own multiple shops under one OAuth grant.
+- `Id` (PK), `PlatformConnectionId` (FK → PlatformConnection), `UserId` (FK → auth.User, denormalized for per-user queries), `PlatformShopId` (string, max 255 — platform's native shop identifier), `ShopName` (string, max 255), `IsActive` (bool, default true — on free tier only one shop per user is active; Pro may have many), `Status` (string, max 20 — Pending, InProgress, Completed, Failed), `NextSyncDateTime` (when this shop is next eligible for processing; stepped to now + 24h after successful sync), `LastSyncDateTime` (nullable — null until first successful sync), `ConsecutiveFailures` (int, default 0 — drives exponential backoff), `LastErrorMessage` (nullable, max 2000 — most recent failure reason), `IsEnabled` (bool, default true — user can pause syncing)
+- Unique constraint on `(PlatformConnectionId, PlatformShopId)` — one row per shop per connection
+- Index on `(NextSyncDateTime, Status)` for sync worker polling
+- Indexes: `IX_ShopConnection_UserId`, `IX_ShopConnection_PlatformConnectionId`
+- FK behavior: `FK_ShopConnection_PlatformConnection` Cascade; `FK_ShopConnection_User` Restrict (avoids multiple cascade path collision with `FK_PlatformConnection_User`)
+- Replaces the former `app.SyncQueue` table. The sync-queue fields (`Status`, `NextSyncDateTime`, `LastSyncDateTime`, `ConsecutiveFailures`, `LastErrorMessage`, `IsEnabled`) now live here, so there's one row per shop instead of one row per (user, platform).
+- Users can pause sync (`IsEnabled = false`) but cannot disconnect — connected shops permanently occupy a plan slot.
+
+**`app.ShopConnectionEtsy`** — Etsy-specific 1-to-1 extension of ShopConnection (shared PK)
+- `ShopConnectionId` (PK/FK → ShopConnection, C# property: `Id`), `CountryCode` (char 2, ISO alpha-2), `IsVacationMode` (bool, default false — suppress "stale data" warnings when seller is on break), `ShopCurrency` (char 3, ISO 4217), `ShopUrl` (string, max 500 — deep-link target for the Platforms page)
+- Other platforms (Stripe, Gumroad, PayPal, Shopify) don't have a provider-specific subtable yet — the common fields on `ShopConnection` cover them. Subtables get added (following the same shared-PK convention) when a provider-unique shop-level field appears.
 
 ### Schema: `auth`
 
@@ -319,9 +330,12 @@ My.Talli/
 │   ├── scaling-plan/               # Skill — branded scaling/capacity planning HTML document builder
 │   │   └── SKILL.md
 │   ├── MyTalli_CostingPlan.html    # Infrastructure cost projections & optimization strategies
+│   ├── MyTalli_Kanban.html         # Active work kanban — backlog, next up, in progress, done
 │   ├── MyTalli_PlatformCapabilities.html # Platform API capabilities, data richness & integration roadmap
 │   ├── MyTalli_ScalingPlan.html    # Scaling strategy as user base grows (tiers, triggers, capacity)
-│   └── PlatformApiDataShapes.html  # Platform API data shapes, normalized schema, ERD with SyncQueue
+│   ├── MyTalli_ShopConnectionERD.html # ERD for ShopConnection + ShopConnectionEtsy sync-target layer
+│   ├── MyTalli_SyncScalingPlan.html # Platform API rate-limit strategy, daily-baseline sync, 3-phase plan
+│   └── PlatformApiDataShapes.html  # Platform API data shapes, normalized schema, ERD (historical — pre-ShopConnection)
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
 │   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
 │   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
@@ -385,11 +399,23 @@ My.Talli/
     │   │   ├── Roles.cs                       # Static role name constants (Admin, User)
     │   │   └── SubscriptionStatuses.cs        # Static subscription status constants (Active, Cancelling, Cancelled, PastDue, Unpaid)
     │   ├── Components/
+    │   │   ├── Etsy/                          # Etsy OAuth + API POCOs (shared with Web's EtsyService)
+    │   │   │   ├── AuthorizeChallenge.cs       # PKCE challenge + state + authorize URL
+    │   │   │   ├── EtsyPkceGenerator.cs        # Static helpers: BuildAuthorizeChallenge, ExtractEtsyUserId
+    │   │   │   ├── EtsyShop.cs                 # Etsy shop payload (shop_id, shop_name, currency, etc.)
+    │   │   │   └── EtsyTokenResponse.cs        # OAuth token exchange response (access_token, refresh_token, expires_in)
     │   │   ├── JsonSerializers/
     │   │   │   └── User/
     │   │   │       └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
     │   │   └── Tokens/
     │   │       └── UnsubscribeTokenService.cs  # HMAC-SHA256 token generate/validate for email unsubscribe links
+    │   ├── CommandsAndQueries/                # CQRS umbrella (Commands now; Queries in the future). Organizational — does NOT affect namespace.
+    │   │   └── Commands/
+    │   │       ├── Billing/                    # namespace: My.Talli.Domain.Commands.Billing
+    │   │       │   ├── FindActiveSubscriptionWithStripeCommand.cs  # Query active subscription + Stripe record
+    │   │       │   └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
+    │   │       └── Platforms/                  # namespace: My.Talli.Domain.Commands.Platforms
+    │   │           └── ConnectEtsyCommand.cs   # Upsert PlatformConnection + ShopConnection + ShopConnectionEtsy after OAuth
     │   ├── Mappers/
     │   │   ├── EntityMapper.cs                 # Abstract mapper (collection methods via LINQ)
     │   │   ├── IEntityMapper.cs               # Generic entity↔model mapper interface
@@ -557,7 +583,12 @@ My.Talli/
     │       └── IIdentifiable.cs
     ├── My.Talli.UnitTesting/        # xUnit unit test project
     │   ├── My.Talli.UnitTesting.csproj
+    │   ├── Commands/
+    │   │   └── Platforms/
+    │   │       └── ConnectEtsyCommandTests.cs      # Upsert behavior, multi-shop, null-field handling
     │   ├── Components/
+    │   │   ├── Etsy/
+    │   │   │   └── EtsyPkceGeneratorTests.cs       # PKCE challenge format, SHA256 invariant, ExtractEtsyUserId edge cases
     │   │   ├── JsonSerializers/
     │   │   │   └── UserPreferencesJsonSerializerTests.cs
     │   │   └── Tokens/
@@ -573,7 +604,9 @@ My.Talli/
     │   │       └── SignInScenarioTests.cs
     │   ├── Infrastructure/
     │   │   ├── Builders/
-    │   │   │   └── SignInHandlerBuilder.cs     # Test setup orchestrator (Lamar container, exposes handlers & adapters)
+    │   │   │   ├── BillingHandlerBuilder.cs        # Test setup for Stripe webhook handler + related adapters
+    │   │   │   ├── PlatformHandlerBuilder.cs       # Test setup for ConnectEtsyCommand + PlatformConnection/ShopConnection adapters
+    │   │   │   └── SignInHandlerBuilder.cs         # Test setup orchestrator (Lamar container, exposes handlers & adapters)
     │   │   ├── IoC/
     │   │   │   └── ContainerRegistry.cs        # Test IoC registry (extends Domain.DI.Lamar, swaps in stubs)
     │   │   └── Stubs/
@@ -596,12 +629,14 @@ My.Talli/
         │   ├── DatabaseConfiguration.cs        # DbContext registration
         │   ├── ElmahConfiguration.cs           # Elmah error logging
         │   ├── EmailConfiguration.cs           # Email services + unsubscribe token
+        │   ├── PlatformsConfiguration.cs       # Etsy (and future platform) settings + HttpClient wiring
         │   └── RepositoryConfiguration.cs      # ICurrentUserService registration (mappers, handlers, and repositories are in Domain.DI.Lamar)
         ├── Endpoints/                 # Minimal API endpoint extension methods (one per route group)
         │   ├── AdminEndpoints.cs      # /api/admin/email/* (resend, bulk-welcome, bulk-welcome-all)
         │   ├── AuthEndpoints.cs       # /api/auth/login, /api/auth/logout
         │   ├── BillingEndpoints.cs    # /api/billing/create-checkout-session, portal, switch-plan, webhook
         │   ├── EmailEndpoints.cs      # /api/email/preferences
+        │   ├── PlatformEndpoints.cs   # /api/platforms/etsy/connect, /api/platforms/etsy/callback (PKCE, data-protected cookie)
         │   └── TestEndpoints.cs       # /api/test/* (dev-only)
         ├── Handlers/                  # Web-layer handlers (react to events, orchestrate domain calls)
         │   ├── Authentication/        # OAuth ticket handlers (map claims → domain sign-in → add claims → welcome email)
@@ -612,15 +647,13 @@ My.Talli/
         │       ├── CheckoutCompletedHandler.cs    # Stripe checkout.session.completed → domain handler + email
         │       ├── SubscriptionDeletedHandler.cs  # Stripe customer.subscription.deleted → domain handler
         │       └── SubscriptionUpdatedHandler.cs  # Stripe customer.subscription.updated → domain handler
-        ├── Commands/                  # Web-layer commands (execute actions, data access, notifications)
-        │   ├── Notifications/         # Email and notification commands
+        ├── Commands/                  # Web-layer commands (execute actions that require Web-layer deps)
+        │   ├── Notifications/         # Email and notification commands (depend on IEmailService)
         │   │   ├── SendSubscriptionConfirmationEmailCommand.cs # Build + send subscription confirmation email
         │   │   ├── SendWelcomeEmailCommand.cs                  # Build + send welcome email
         │   │   └── SendWeeklySummaryEmailCommand.cs            # Build + send weekly summary email (sample data)
-        │   └── Endpoints/             # Commands that serve endpoint routes
-        │       ├── FindActiveSubscriptionWithStripeCommand.cs  # Query active subscription + Stripe record
-        │       ├── GetAdminUserListCommand.cs                  # Query users with emails from vAuthenticatedUser view
-        │       └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
+        │   └── Endpoints/             # Commands that need Web-layer primitives (DbContext direct, HttpContext, etc.)
+        │       └── GetAdminUserListCommand.cs                  # Direct TalliDbContext access for the vAuthenticatedUser view
         ├── Middleware/                 # Custom middleware classes
         │   ├── CurrentUserMiddleware.cs   # Populates ICurrentUserService from HttpContext.User claims on every request
         │   └── ProbeFilterMiddleware.cs  # Bot/scanner probe filter (short-circuits .env, .php, wp-admin, etc.)
@@ -681,6 +714,9 @@ My.Talli/
         │   │   ├── IEmailService.cs             # Email sending interface
         │   │   ├── AcsEmailService.cs           # Azure Communication Services implementation (active)
         │   │   └── SmtpEmailService.cs          # MailKit-based implementation (local dev fallback)
+        │   ├── Platforms/
+        │   │   ├── EtsySettings.cs              # Etsy OAuth config POCO (ClientId, ClientSecret, RedirectUri, Scope)
+        │   │   └── EtsyService.cs               # Thin HTTP wrapper — token exchange + shop fetch. Uses Domain.Components.Etsy helpers.
         │   └── Tokens/
         │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
         ├── ViewModels/
@@ -734,104 +770,7 @@ My.Talli.UnitTesting     ← xUnit tests → Domain, Domain.Data, Domain.DI.Lama
 
 ## Brand & Design
 
-> **Source of truth:** `wireframes/MyTalli_ColorPalette.html` (light) and `wireframes/MyTalli_DarkModePalette.html` (dark) — keep this section in sync with those files.
-
-- **Color palette tool:** [Coolors](https://coolors.co) — used to create and manage the brand palette
-
-### Page Branding — Purple Swoosh
-
-Every page except the Landing Page uses a **purple gradient swoosh** header for consistent branding:
-
-- **`BrandHeader` component** (`Components/Shared/BrandHeader.razor`) — reusable swoosh with logo + action slot (`ChildContent` RenderFragment). Used by Sign-In, Unsubscribe, and Error pages.
-- **Dashboard** uses its own inline swoosh (no BrandHeader) because the sidebar already has the logo — the swoosh sits behind the greeting area instead.
-- **Landing Page** has its own distinct hero layout and is **not** branded with the swoosh.
-
-| Page | Swoosh | Logo | Action Slot |
-|------|--------|------|-------------|
-| `/signin` | `<BrandHeader>` | Yes | "Back to homepage" link |
-| `/dashboard` | Inline SVG (`.dash-hero`) | No (sidebar has it) | Period pills (7D, 30D, 90D, 12M) |
-| `/manual-entry` | Inline SVG (`.manual-hero`) | No (sidebar has it) | N/A |
-| `/platforms` | Inline SVG (`.plat-hero`) | No (sidebar has it) | N/A |
-| `/goals` | Inline SVG (`.goals-hero`) | No (sidebar has it) | "New Goal" button |
-| `/suggestions` | Inline SVG (`.suggest-hero`) | No (sidebar has it) | "New Suggestion" button |
-| `/settings` | Inline SVG (`.settings-hero`) | No (sidebar has it) | N/A |
-| `/my-plan` | Inline SVG (`.plan-hero`) | No (sidebar has it) | N/A |
-| `/subscription/cancel` | Inline SVG (`.cancel-hero`) | No (sidebar has it) | N/A |
-| `/admin` | Inline SVG (`.admin-hero`) | No (sidebar has it) | N/A |
-| `/unsubscribe` | `<BrandHeader>` | Yes | "Go to Homepage" link |
-| `/Error` | `<BrandHeader>` | Yes | "Go Back" button |
-| `/` | None | Own nav logo | N/A |
-
-Swoosh visual: purple gradient SVG (`#6c5ce7` → `#8b5cf6` → `#6c5ce7`) with 3 decorative circles (`rgba(255,255,255,0.07)`). All `MainLayout` pages use the same SVG swoosh pattern — `viewBox="0 0 1000 600"` with path `M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z` filled by a per-page `linearGradient`. The hero-bg uses `height: calc(100% + 60px)` to extend the swoosh below the hero content. Pages with hero stats (ManualEntry, Platforms, Goals, Suggestions) use `margin: -32px -40px 0` and `padding: 24px 40px 40px`; pages without stats use `48px` bottom padding.
-- **Font:** DM Sans (Google Fonts) — weights 400, 500, 600, 700
-- **Theme approach:** Purple-tinted surfaces in both modes (no neutral grays in dark mode). CSS custom properties (`:root` for light, `[data-theme="dark"]` for dark) defined in `app.css`. All authenticated page CSS files use `var(--token)` references instead of hardcoded hex values.
-
-### Dark Mode
-
-- **Scope:** Authenticated pages only (MainLayout). Landing Page, Sign-In, Error, and Unsubscribe stay light-mode only.
-- **Default:** `"system"` — follows OS `prefers-color-scheme`. User can override to `"light"` or `"dark"` in Settings → Personalization → Theme.
-- **Storage:** `UserPreferences.DarkMode` (string: `"system"` | `"light"` | `"dark"`), persisted in `auth.User.UserPreferences` JSON column.
-- **Application flow:** `theme.js` defines `themeManager.apply(mode)` which sets `data-theme` attribute on `<html>`. `NavMenuViewModel.OnAfterRenderAsync` reads the user's saved preference and calls `themeManager.apply()` via JS interop. The Settings page calls it immediately on pill click for instant preview.
-- **CSS architecture:** `:root` defines light tokens. `[data-theme="dark"]` overrides with dark tokens. All `MainLayout`-scoped CSS files (`MainLayout.razor.css`, `NavMenu.razor.css`, all page `.razor.css` files, shared component `.razor.css` files) reference tokens via `var(--token-name)`. Landing page CSS files remain hardcoded (light-only).
-- **System mode listener:** `theme.js` listens for `prefers-color-scheme` media query changes. When `data-theme-mode="system"` is set on `<html>`, OS theme changes apply in real time.
-
-### Brand Colors (Light Mode)
-
-- **Primary Purple:** `#6c5ce7` — CTAs, logo accent, links, active states
-- **Primary Hover:** `#5a4bd1` — hover & pressed states
-- **Light Purple:** `#8b5cf6` — gradient mid-point, secondary accent
-- **Lavender:** `#a78bfa` — accents on dark backgrounds
-- **Soft Purple:** `#f0edff` — tags, badges, light backgrounds
-- **Muted Purple:** `#e0dce8` — input borders, subtle dividers
-- **Page Background:** `#f8f7fc` — alternating section backgrounds
-- **Dark Navy:** `#1a1a2e` — primary text, dark sections
-
-### Brand Colors (Dark Mode)
-
-#### Surfaces
-- **Page Background:** `#0f0f1a` — deepest layer, main page bg
-- **Card Surface:** `#1a1a2e` — cards, sidebar, inputs (Dark Navy repurposed)
-- **Elevated Surface:** `#242440` — hover states, dropdowns, tooltips
-- **Border:** `#2a2745` — card borders, dividers, table lines
-- **Subtle Divider:** `#1e1c30` — table row borders, faint separators
-
-#### Accents
-- **Primary Purple:** `#7c6cf7` — CTAs, active states (slightly lifted for dark bg contrast)
-- **Primary Hover:** `#6c5ce7` — hover & pressed (original primary becomes hover)
-- **Lavender:** `#a78bfa` — logo accent, section tags (promoted role in dark mode)
-- **Active Tint:** `#2a2154` — active nav bg, selected states, tags (replaces `#f0edff`)
-- **Active Tint Hover:** `#362d6b` — hover on active tint areas, progress bar tracks
-
-#### Text
-- **Primary Text:** `#e8e6f0` — headings, card values (warm purple-white, not pure `#fff`)
-- **Secondary Text:** `#a09cae` — body paragraphs, descriptions
-- **Muted Text:** `#7a7790` — labels, timestamps, helper text
-- **Disabled / Faintest:** `#5c5977` — disabled states, chart grid lines
-
-#### UI Colors (Dark Mode Adjusted)
-- **Success / Growth:** `#2ecc71` — slightly brighter for pop on dark
-- **Success Tint:** `#1a3a2a` — growth badge background
-- **Danger / Decline:** `#e74c3c` — negative revenue, errors
-- **Danger Tint:** `#3a1a1e` — danger badge background
-- **Warning / Highlight:** `#f5c842` — attention states (warmer than light mode yellow)
-
-### Platform Connector Colors
-
-| Platform | Light Mode | Dark Mode  | Notes                              |
-|----------|------------|------------|------------------------------------|
-| Stripe   | `#635bff`  | `#635bff`  | No change needed                   |
-| Etsy     | `#f56400`  | `#f56400`  | No change needed                   |
-| Gumroad  | `#ff90e8`  | `#ff90e8`  | No change needed                   |
-| PayPal   | `#003087`  | `#2a7fff`  | Lightened — `#003087` invisible on dark |
-| Shopify  | `#96bf48`  | `#96bf48`  | No change needed                   |
-
-### UI Colors (Light Mode)
-
-- **Success / Growth:** `#27ae60` — positive revenue changes, growth indicators
-- **Body Text:** `#555` — secondary paragraph text
-- **Muted Text:** `#999` — footnotes, helper text, timestamps
-- **White:** `#ffffff` — cards, inputs, clean backgrounds
-- **Highlight Yellow:** `#fff176` — attention flash, input highlights
+> **Moved to memory:** `reference_brand_design.md` — color palettes (light/dark), dark mode architecture, platform connector colors, swoosh hero branding, font, theme approach. Source of truth files: `wireframes/MyTalli_ColorPalette.html` (light) and `wireframes/MyTalli_DarkModePalette.html` (dark).
 
 ## Development
 
@@ -888,91 +827,7 @@ dotnet run --project Source/My.Talli.Web
 
 ## Infrastructure
 
-- **Domain registrar:** GoDaddy — `mytalli.com`
-- **Custom domain:** `www.mytalli.com` — CNAME pointing to `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`, SSL via App Service Managed Certificate (SNI SSL, auto-renewing)
-- **DNS verification:** TXT record `asuid.www` with Custom Domain Verification ID for Azure domain ownership proof
-- **Previous hosting:** Azure Static Web Apps (Free tier) — `delightful-grass-000c17010.6.azurestaticapps.net` (static "coming soon" landing page, now superseded by the Blazor app on App Service)
-- **Analytics:** Google Analytics 4 — measurement ID `G-7X9ZL3K4GS` (gtag snippet in landing page `<head>`)
-- **Google Search Console:** Property `https://www.mytalli.com/` verified via GA4 (2026-03-07). Sitemap submitted. Dashboard at [search.google.com/search-console](https://search.google.com/search-console)
-- **Secrets file:** `.secrets` (git-ignored) — contains `SWA_DEPLOYMENT_TOKEN` for Azure SWA deploys (legacy)
-- **Static assets note:** The `deploy/` and `favicon-concepts/` folders are from the static HTML era. Static assets (`favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) now live in `wwwroot/`. The `deploy/emails/` folder is still needed — it hosts PNG images referenced by customer-facing email templates.
-
-### Business Entity
-
-- **Entity:** MyTalli LLC — single-member LLC, Texas
-- **Formation:** Filed 2026-03-27 via LegalZoom (Basic plan, $301 state filing fee only)
-- **Owner/Organizer/Registered Agent:** Robert Merrill Jordan
-- **Management:** Member-managed
-- **Business address:** 5423 Oakhaven Ln, Houston, TX 77091 (home address, on public record)
-- **Industry:** Software
-- **Fiscal year end:** December 31
-- **Status:** Pending Texas Secretary of State approval (5-14 business days from filing)
-- **EIN:** Not yet obtained — apply at [irs.gov/ein](https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online) after Texas approves (free, instant)
-- **Operating agreement:** Not yet created — use a free single-member template after approval
-- **Business bank account:** Not yet opened — requires EIN letter + Articles of Organization
-- **Texas franchise tax report:** Due annually by May 15 (first due May 15, 2027)
-- **Documentation:** `documentation/MyTalli_PlatformApprovals.html` — LLC formation details, Etsy/PayPal approval strategy
-
-### Scaling & Cost Planning
-
-- **Documentation:** `documentation/MyTalli_ScalingPlan.html` (scaling strategy) and `documentation/MyTalli_CostingPlan.html` (cost projections & optimization)
-- **Blazor Server memory per circuit:** ~400 KB for MyTalli (dashboard with KPI cards, charts, scoped services)
-- **Current capacity (S1):** ~500 concurrent users (1.75 GB RAM, 1 core)
-- **Recommended upgrade (P0v3):** ~1,200 concurrent users (4 GB RAM, 1 core) for only ~$4/mo more than S1
-- **Concurrent vs registered:** A dashboard app typically sees 5-15% of registered users online at any given time
-- **Circuit defaults:** `DisconnectedCircuitRetentionPeriod` = 3 minutes, `DisconnectedCircuitMaxRetained` = 100
-- **Azure SignalR Service:** Not needed until scaling out to multiple App Service instances (~2,000+ concurrent users)
-- **Scale-up triggers:** Memory consistently above 70% → scale up App Service tier. DTU consistently above 80% → scale up SQL tier.
-- **Break-even:** At 5% Pro conversion ($12/mo), infrastructure costs are covered at ~8 paying users
-
-### Social Media
-
-- **X (Twitter):** [@MyTalliApp](https://x.com/MyTalliApp) — verified (blue check, yearly subscription). Profile icon: favicon PNG. Banner: Coming Soon image. Pinned post: launch teaser with branded image.
-- **LinkedIn:** [MyTalli company page](https://www.linkedin.com/company/mytalli) — company page under Robert Jordan's personal account. Profile icon: favicon PNG. Description and tagline set.
-- **Social assets folder:** `social-assets/` — contains `linkedin-cover.html` (source for LinkedIn cover banner). X Coming Soon image generated from `wireframes/` or `social-assets/`.
-
-### Azure App Service (Blazor Server)
-
-- **App Service Plan:** `mytalli-centralus-asp` (Linux, Standard S1, Central US) — ~$69/mo
-- **App Service:** `mytalli-web` (Linux, .NET 10.0)
-- **Default domain:** `mytalli-web-f5b9f2a0h4cwdwa6.centralus-01.azurewebsites.net`
-- **Resource Group:** `MyTalli-CentralUS-ResourceGroup`
-- **Deployment:** Visual Studio Publish to the **staging** slot → verify → **Swap** to production (zero downtime). Sign in as `hello@mytalli.com` (MyTalli tenant). The publish profile (`mytalli-web-staging - Zip Deploy.pubxml`) targets the staging slot directly. Do not use Kudu ZIP deploy — it was unreliable.
-- **Deployment slots:** Standard S1 tier — `mytalli-web` (production, 100% traffic) and `mytalli-web-staging` (staging, 0% traffic). Deploy to staging first, warm up, then swap to production for zero-downtime releases.
-- **Connection string:** `DefaultConnection` configured as SQLAzure type in App Service Configuration
-- **App settings:** OAuth credentials (`Authentication__Google__*`, `Authentication__Microsoft__*`, `Authentication__Apple__*`), ACS connection string, email settings, Stripe keys, and unsubscribe token secret are configured in App Service Configuration (use `__` for nested keys)
-- **ElmahCore dependency:** `System.Data.SqlClient` NuGet package explicitly added to `My.Talli.Web.csproj` — required on Linux where ElmahCore.Sql cannot resolve it automatically
-
-### SEO
-
-The landing page (`wireframes/MyTalli_LandingPage.html`) includes:
-- `meta description`, `robots`, `theme-color`, `canonical` URL
-- Open Graph tags (`og:type`, `og:url`, `og:title`, `og:description`, `og:image`)
-- Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`)
-- JSON-LD structured data (`SoftwareApplication` schema with free tier pricing)
-- **Favicon:** SVG (`/favicon.svg`) — "T" with ascending growth bars on purple rounded square, using primary purple `#6c5ce7` background and lavender `#a78bfa` bars. Source: `favicon-concepts/favicon-c-growth.svg`
-- **OG Share Image:** PNG (`/og-image.png`, 1200×630) — dark navy gradient with favicon icon, "MyTalli" title (lavender accent), tagline with yellow "One dashboard.", platform pills with brand colors (Stripe, Etsy, Gumroad, PayPal, Shopify), and `www.mytalli.com` footer. Source mockup: `favicon-concepts/og-image-mockup.html`
-
-### Accessibility
-
-The landing page (`deploy/index.html` and `wireframes/MyTalli_LandingPage.html`) includes:
-- **Skip navigation** — hidden "Skip to main content" link, visible on keyboard focus (`.skip-link`)
-- **Landmarks** — `<main id="main">`, `<nav aria-label="Main navigation">`, `<footer role="contentinfo">`
-- **Section labeling** — `aria-labelledby` on each content section pointing to its `<h2>` id; `aria-label="Hero"` on hero section
-- **Decorative hiding** — `aria-hidden="true"` on hero background shapes, wave divider SVG, section tags, and step numbers
-- **Dashboard mockup** — `role="img"` with descriptive `aria-label` (announced as a single image, inner elements hidden)
-- **Emoji icons** — wrapped in `<span role="img" aria-label="...">` with descriptive labels
-- **Pricing checkmarks** — visually-hidden `<span class="sr-only">Included: </span>` prefix on each list item
-- **Step context** — `aria-label="Step 1: Connect your platforms"` etc. on each `.step` div
-- **Logo** — `aria-label="MyTalli, go to top of page"` on nav logo link
-- **Focus indicators** — `:focus-visible { outline: 3px solid #6c5ce7; outline-offset: 2px; }`
-- **Utility class** — `.sr-only` for visually-hidden screen-reader-only text
-
-Deploy folder also contains:
-- `favicon.svg` — chosen favicon (concept C)
-- `og-image.png` — social share image (1200×630 PNG)
-- `robots.txt` — allows all crawlers, references sitemap
-- `sitemap.xml` — single entry for `https://www.mytalli.com/` (update as pages are added)
+> **Moved to memory:** `reference_infrastructure.md` — Azure hosting, domain/DNS, business entity (LLC), scaling, social media, analytics, SEO, accessibility notes.
 
 ## Authentication
 
@@ -1004,50 +859,7 @@ Deploy folder also contains:
 
 ## Billing
 
-### Architecture
-
-- **Stripe Checkout** — hosted payment page for new subscriptions. Created via `StripeBillingService.CreateCheckoutSessionAsync()`, triggered from the Upgrade page.
-- **Stripe Customer Portal** — hosted billing management (update payment, view invoices, cancel). Created via `StripeBillingService.CreatePortalSessionAsync()`, triggered from the Subscription page's "Manage Billing" button.
-- **Webhooks** — Stripe sends events to `/api/billing/webhook`. The endpoint verifies the signature, then delegates to `StripeWebhookHandler` in the Domain layer. Handled events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`.
-- **Plan switching** — `/api/billing/switch-plan?plan=monthly|yearly` calls `StripeBillingService.SwitchPlanAsync()` and updates the local DB directly (doesn't wait for the webhook). Stripe prorates automatically.
-- **`StripeConfiguration.ApiKey`** — set globally at startup in `BillingConfiguration.AddBilling()`.
-
-### Subscription Statuses
-
-| Status | Meaning | Trigger |
-|--------|---------|---------|
-| `Active` | Subscription is current and billing normally | Checkout completed, reactivation |
-| `Cancelling` | User cancelled; active until end of billing period | `cancel_at_period_end = true` on webhook |
-| `Cancelled` | Subscription has ended | `customer.subscription.deleted` webhook |
-| `PastDue` | Payment failed, grace period | Stripe status `past_due` |
-| `Unpaid` | Payment failed, no grace | Stripe status `unpaid` |
-
-- **Cancelling vs Cancelled:** "Cancelling" means the user requested cancellation but still has access until the billing period ends. "Cancelled" means the subscription is fully terminated. The Subscription page shows a warning banner and "Reactivate" button during "Cancelling" state.
-- **Queries:** Any query for "active" subscriptions must include both `Active` and `Cancelling` statuses (the user still has Pro access in both states). This applies to: `MyPlanViewModel`, `NavMenuViewModel`, `ManualEntryViewModel`, portal endpoint, switch-plan endpoint.
-
-### Webhook Handler
-
-`StripeWebhookHandler` (`Domain/Handlers/Billing/`) creates all commerce records on checkout:
-1. `Order` + `OrderItem` — purchase event
-2. `Subscription` + `SubscriptionStripe` — ongoing subscription state
-3. `Billing` + `BillingStripe` — payment record
-
-Product resolution uses `ProductId` (not product name). The web-layer `CheckoutCompletedHandler` resolves the product ID from the Stripe price ID via `ResolveProductId()` — mapping `MonthlyPriceId` → 1, `YearlyPriceId` → 2, and module price IDs from the `Stripe:Modules` config. The same pattern exists in `SubscriptionUpdatedHandler`. This allows the webhook to handle Pro plans and module subscriptions identically.
-
-On subscription updates, it syncs status, dates, and product changes. On deletion, it sets status to `Cancelled`.
-
-### CurrentUserMiddleware
-
-`CurrentUserMiddleware` (`Middleware/CurrentUserMiddleware.cs`) runs after `UseAuthorization()` on every request. It reads the `"UserId"` claim from `HttpContext.User` and calls `ICurrentUserService.Set()`. This ensures the `AuditResolver` can stamp audit fields on DB operations in API endpoints. Webhook requests from Stripe have no auth cookie — the `StripeWebhookHandler` sets `ICurrentUserService` manually from the subscription's `UserId`.
-
-**Blazor Server scoping caveat:** `CurrentUserMiddleware` sets `ICurrentUserService` on the HTTP request's DI scope, but the Blazor SignalR circuit creates its **own** DI scope with a fresh `ICurrentUserService` instance. This means the middleware-set user is not available in Blazor components. **Any ViewModel that performs updates via `RepositoryAdapterAsync` must call `CurrentUserService.Set(userId, ...)` in `OnInitializedAsync`** to ensure the `AuditResolver` has the user for audit field stamping. Inserts work without this (they use `userId ?? 0`), but updates require an authenticated user and will throw `InvalidOperationException` if the service is empty. See `ManualEntryViewModel` and `SuggestionBoxViewModel` for the pattern.
-
-### Local Development
-
-- **Stripe CLI listener:** `stripe listen --forward-to https://localhost:7012/api/billing/webhook` — must be running to receive webhooks during local dev.
-- **Stripe CLI path:** `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`
-- **Test card:** `4242 4242 4242 4242`, any future expiry, any CVC.
-- **Resend events:** `stripe events resend <event_id>` — useful when the app wasn't running when a webhook fired.
+> **Moved to memory:** `reference_billing.md` — Stripe billing architecture, checkout, portal, webhooks, subscription statuses, CurrentUserMiddleware, local dev setup.
 
 ## App Mode
 
@@ -1072,171 +884,11 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 
 ## Email Notifications
 
-### Architecture
-
-Email notifications follow a **Template + Builder** pattern modeled after the Measurement Forms Liquids project:
-
-- **HTML templates** — stored as `EmbeddedResource` files in `Domain/.resources/emails/`, compiled into the assembly, loaded at runtime via `Assembly.GetManifestResourceContent()`
-- **Notification classes** — in `Domain/Notifications/Emails/`, abstract base `EmailNotification` → generic `EmailNotificationOf<T>` → concrete implementations (e.g., `ExceptionOccurredEmailNotification`)
-- **Placeholder replacement** — templates use `[[Placeholder.Name]]` tokens replaced via `string.Replace()` in the `Build()` method. All user-supplied data is HTML-encoded via `WebUtility.HtmlEncode()` before replacement.
-- **SmtpNotification** — serializable POCO carrier returned by `FinalizeEmail()`, passed to `IEmailService.SendAsync()`
-- **Azure Communication Services** — `AcsEmailService` (active) sends via ACS Email SDK. `SmtpEmailService` (MailKit) retained as fallback for local dev with smtp4dev.
-
-### Exception Email Pipeline
-
-Unhandled exceptions trigger email notifications via .NET's `IExceptionHandler` interface:
-
-1. Exception occurs → `UseExceptionHandler("/Error")` middleware runs registered `IExceptionHandler` services
-2. `ExceptionEmailHandler.TryHandleAsync()` builds the notification and sends the email
-3. Handler **always returns `false`** — the middleware continues re-executing to `/Error`, preserving the existing Error page behavior
-4. Email failures are caught and logged — they never mask the original exception or break the error page
-
-### Email Configuration
-
-**ACS settings** are bound from `appsettings.json` → `AzureCommunicationServices` section:
-
-- `ConnectionString` — ACS connection string (in `appsettings.Development.json` for dev, App Service Configuration for prod)
-
-**Email settings** are bound from `appsettings.json` → `Email` section via `IOptions<EmailSettings>`:
-
-- `FromAddress` — default `DoNotReply@mytalli.com` (must match an ACS verified sender)
-- `FromDisplayName` — default `MyTalli`
-- `ExceptionRecipients` — list of admin email addresses; if empty, no exception emails are sent
-- `Host`, `Port`, `Username`, `Password`, `UseSsl` — SMTP settings (only used by `SmtpEmailService` fallback)
-
-### Email Branding
-
-There are two tiers of email branding:
-
-| Tier | Audience | Branding Level | Example |
-|------|----------|----------------|---------|
-| **Internal** | Developers, admins | Simple — MyTalli text logo, brand colors, clean layout | Exception notifications |
-| **Customer** | End users | Full — polished design, logo image, professional copywriting, mobile-responsive, tested across email clients | Welcome emails, subscription confirmations, weekly summaries |
-
-- **Internal emails** use the current template style: purple header (`#6c5ce7`) with "MyTalli" text (no image dependency), functional layout, monospace stack traces. Acceptable as-is.
-- **Customer-facing emails** use the **Landing Hero** design — an organic purple blob (`#6c5ce7` → `#8b5cf6` → `#6c5ce7` gradient) on the right with dark text on white left, matching the brand swoosh style. Hero uses the **bulletproof background image pattern** (`<td background>` + CSS `background-image` + VML conditional comments for Outlook) with hosted PNGs at `https://www.mytalli.com/emails/`. Body icons use HTML entity emojis (render natively, not blocked). Three customer emails are built: Welcome, Subscription Confirmation, Weekly Summary.
-
-### Adding a New Email Notification
-
-1. Create a payload class in `Domain/Notifications/Emails/` with the data properties
-2. Create an HTML template in `Domain/.resources/emails/` with `[[Placeholder]]` tokens — use table-based layout with inline styles for email client compatibility
-3. Create a concrete notification class extending `EmailNotificationOf<TPayload>` — implement `Build()` to load the template, replace tokens, and set Subject
-4. The `EmbeddedResource` glob in `Domain.csproj` (`**/*.html`) picks up new templates automatically
-5. Create a handler/trigger in the Web project that builds and sends the notification via `IEmailService`
-
-### Test Emails (Development Only)
-
-A dev-only endpoint at `GET /api/test/emails` sends all 3 customer emails to `hello@mytalli.com` with sample data via ACS. Only registered when `app.Environment.IsDevelopment()`.
-
-A dev-only endpoint at `GET /api/test/unsubscribe-token/{userId:long}` generates an unsubscribe token for testing the `/unsubscribe` page.
-
-### Unsubscribe Token
-
-All customer emails include a tokenized unsubscribe link (`/unsubscribe?token=xxx`) so users can manage email preferences without signing in (CAN-SPAM compliance).
-
-- **Token format:** `Base64Url(userId + "." + HMAC-SHA256-signature)` — no expiration (unsubscribe links must work indefinitely)
-- **Service:** `UnsubscribeTokenService` (`Domain/Components/Tokens/`) — `GenerateToken(long userId)` / `ValidateToken(string? token) → long?`
-- **Config:** `UnsubscribeToken:SecretKey` in `appsettings.json` (bound via `UnsubscribeTokenSettings`)
-- **Generation:** Auth handlers generate the token during sign-up and pass it to the email payload's `UnsubscribeToken` property
-- **Template placeholder:** `[[UnsubscribeUrl]]` — replaced in each notification's `Build()` method with the full tokenized URL
-- **Unsubscribe page:** `/unsubscribe?token=xxx` — validates token, loads user preferences, renders toggle UI for email opt-in/out. Invalid/missing token shows a fallback with "Sign In" CTA.
-
-### Embedded Resource Naming
-
-Templates embedded from `Domain/.resources/emails/` get resource names like:
-`My.Talli.Domain..resources.emails.{FileName}.html` (dots replace path separators, the leading dot in `.resources` creates a double dot). Use `assembly.GetManifestResourceNames()` to debug if a template fails to load.
+> **Moved to memory:** `reference_email_notifications.md` — email template architecture, ACS config, exception pipeline, unsubscribe tokens, branding tiers, how to add new emails.
 
 ## Platform API Notes
 
-Integration with each revenue platform uses OAuth so users grant MyTalli read-only access to their sales/payment data. Full comparison document: `documentation/MyTalli_PlatformCapabilities.html`. Data shapes, normalized schema, and ERD: `documentation/PlatformApiDataShapes.html`.
-
-**Integration priority:** Stripe → Gumroad → Etsy → Shopify → PayPal (based on data richness, complexity, and approval timelines).
-
-### Revenue Sync Architecture
-
-Platform API rate limits are **application-level** — they apply to MyTalli's API keys, not per-user. If hundreds of users connect the same platform, every API call counts against one shared limit. Hitting platform APIs on every page load would exhaust rate limits almost immediately at scale.
-
-**Solution: Local Cache + Periodic Sync**
-
-1. **Dashboard reads are local only.** When a user visits the dashboard (or any revenue-displaying page), all data comes from `app.Revenue` in our database. No external API calls are made during page loads.
-2. **Background sync job runs once per hour.** A scheduled process iterates through all users with connected platforms, pulls their latest transactions from each platform's API, and upserts into `app.Revenue`. The job controls its own pace — adding delays between users and between platforms to stay within each platform's rate limits.
-
-This means:
-- Users always see data instantly (local DB read)
-- Rate limits are manageable (one controlled background process, not N concurrent users)
-- The sync job can spread work across the full hour, throttle per-platform, and retry failures without affecting the user experience
-
-**`app.Revenue` is the single source of truth for the dashboard.** Both API-sourced data (from the sync job) and manual entries flow into this same normalized table. The `Platform` column distinguishes the source ("Stripe", "Etsy", "Manual", etc.) and `PlatformTransactionId` prevents duplicate inserts during re-syncs.
-
-**`app.SyncQueue`** — the sync job's work list. One row per user per connected platform.
-
-- `Id` (PK), `UserId` (FK → auth.User), `Platform` (string — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `Status` (Pending, InProgress, Completed, Failed), `LastSyncDateTime` (nullable — null until first successful sync), `NextSyncDateTime` (when this row is next eligible for processing), `LastErrorMessage` (nullable — most recent failure reason), `ConsecutiveFailures` (int, default 0 — for exponential backoff), `IsEnabled` (bool, default true — user can pause syncing)
-- Unique constraint on `(UserId, Platform)` — one queue entry per user per platform
-- Index on `(NextSyncDateTime, Status)` — the sync job queries "give me rows where `NextSyncDateTime <= now AND Status = Pending AND IsEnabled = true`", ordered by `NextSyncDateTime` ASC (oldest first)
-- **Row lifecycle:** Created when a user connects a platform. `NextSyncDateTime` set to now (immediate first sync). After each sync: `LastSyncDateTime` = now, `NextSyncDateTime` = now + 1 hour, `Status` = Pending, `ConsecutiveFailures` = 0. On failure: `ConsecutiveFailures` incremented, `NextSyncDateTime` pushed out with exponential backoff, `LastErrorMessage` updated.
-- **Backoff strategy:** On failure, `NextSyncDateTime` = now + (base interval × 2^ConsecutiveFailures), capped at a max delay (e.g., 24 hours). This prevents hammering a platform that's down or rate-limiting us.
-- **Sync pause:** Users can toggle `IsEnabled` off to pause syncing for a connected platform. The platform remains connected and still counts against the plan limit.
-- **No disconnect.** Once a platform is connected, it cannot be disconnected. This prevents Free tier users from gaming the platform limit by rotating connections — connect one platform, sync it, disconnect, connect another. A connected platform permanently occupies a plan slot.
-- **Pre-connection warning.** Before completing a platform connection, the user must be shown a confirmation dialog explaining that this connection is permanent and will occupy a plan slot. The user must explicitly confirm before the OAuth flow begins.
-
-**Sync completion notification:** When a sync completes for a user, the app notifies them in real time via the Blazor SignalR circuit. If the user is currently on the dashboard (or any revenue-displaying page), they see a non-intrusive toast or banner (e.g., "Stripe data updated just now") so they know fresh data is available. The page can then refresh its data from `app.Revenue` without a full page reload. If the user is not online, no notification is needed — they'll see the latest data on their next visit. Failed syncs do not notify the user (the backoff mechanism handles retries silently); persistent failures surface on the Platforms page as a connection status indicator.
-
-### Stripe
-
-- **API:** REST API — [docs.stripe.com/api](https://docs.stripe.com/api)
-- **Auth:** OAuth 2.0 via Stripe Connect (Standard accounts), scope: `read_only`. Access token: 1hr, refresh token: 1yr rolling.
-- **Key endpoints:** Balance Transactions (`/v1/balance_transactions`), Charges, PaymentIntents, Payouts, Refunds
-- **Data richness:** Excellent — gross, net, fee (per-component breakdown), currency, payout schedule, exchange rates
-- **Webhooks:** Full catalog (`charge.succeeded`, `charge.refunded`, `payout.paid`, etc.). Connect webhook endpoint with `account` property per connected account.
-- **Rate limits:** 25 read req/s per endpoint, 100 req/s global (live)
-- **Approval:** None for Connect OAuth. Stripe App Marketplace listing requires ~4 day review.
-- **Caveat:** Stripe is steering new platforms toward Stripe Apps (Marketplace) rather than traditional Connect OAuth. Confirm recommended path with Stripe support before building.
-
-### Etsy
-
-- **API:** Etsy Open API v3 (REST) — [developers.etsy.com](https://developers.etsy.com/)
-- **Auth:** OAuth 2.0 + PKCE (S256), scopes: `transactions_r shops_r`. Access token: 1hr, refresh token: 90 days.
-- **Key endpoints:** Shop Receipts, Transactions, Payments, Ledger Entries (running account balance)
-- **Data richness:** Good — order totals, item prices, shipping, taxes, Etsy fees, refunds, multi-currency
-- **Webhooks:** 4 order events (`order.paid`, `order.canceled`, `order.shipped`, `order.delivered`). Payloads are lightweight (URL only) — require follow-up API call for data.
-- **Rate limits:** ~10 QPS, ~10,000 QPD (sliding window). Receipts endpoint may enforce 1 req/s/shop.
-- **Approval:** **Commercial access required** for 4+ shops (~20+ day review). Apply early — approved at Etsy's sole discretion.
-- **Caveat:** Refresh token expires in 90 days — if a user doesn't visit MyTalli for 3 months, their connection breaks and they must re-authorize.
-- **Developer account:** Registered under `hello@mytalli.com` at [developers.etsy.com](https://developers.etsy.com/). App name: `mytalli`. Keystring (client ID): `nqbjy0nj18t8o0d1yudbzr5t`.
-- **Test shop:** `MyTalliTestShop` — shop creation paused at the payment setup step. Waiting for LLC approval → EIN → business bank account before completing setup.
-
-### Gumroad
-
-- **API:** REST API v2 — [gumroad.com/api](https://gumroad.com/api)
-- **Auth:** OAuth 2.0, scope: `view_sales`. Access tokens **never expire** — simplest auth of all platforms.
-- **Key endpoints:** Sales (`/v2/sales` with date filtering), Products, Subscribers
-- **Data richness:** Basic — sale amount, flat Gumroad fee (10%, no breakdown), product details, refunds, subscriptions
-- **Webhooks:** Ping feature — `sale`, `refund`, `subscription_updated`, `subscription_ended`. HMAC-SHA256 verification.
-- **Rate limits:** Undocumented — implement adaptive backoff
-- **Approval:** None — immediate access
-- **Caveats:** No payout/disbursement API. No net amount (calculate manually). API docs are sparse. Platform stability uncertain (open-sourced, company changes).
-
-### PayPal
-
-- **API:** REST API v1 — [developer.paypal.com/docs/api/transaction-search/v1/](https://developer.paypal.com/docs/api/transaction-search/v1/)
-- **Auth:** OAuth 2.0 Authorization Code via "Log In with PayPal", scopes: `openid` + `reporting/search/read` + `reporting/balances/read`. Access token: ~8hr, refresh token: 180 days.
-- **Key endpoints:** Transaction Search (`/v1/reporting/transactions`, 31-day max range, 500/page, 10K max records), Balance (`/v1/reporting/balances`)
-- **Data richness:** Good — transaction amount, fees, status, timestamp, payer info (not anonymized), multi-currency balances. No net amount field (calculate gross - fees). Payouts via T-code filtering.
-- **Webhooks:** Full catalog (`PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.REFUNDED`, etc.). Up to 10 webhook URLs per app. Retries up to 25 times over 3 days.
-- **Rate limits:** ~50 req/min per IP (dynamic, not formally published)
-- **Approval:** Reporting scopes require PayPal approval (24-72hr). **Third-party access may require Partner program enrollment** — path is unclear. Contact PayPal partner team early.
-- **Caveats:** Transaction data delayed 3-72 hours in Search API — must use webhooks for real-time. 31-day max date range per query (12+ calls for a year). Refresh token expires at 180 days.
-
-### Shopify
-
-- **API:** GraphQL Admin API (required for new apps since April 2025) — [shopify.dev/docs/api/admin-graphql](https://shopify.dev/docs/api/admin-graphql/latest)
-- **Auth:** OAuth 2.0 Authorization Code, scopes: `read_orders` (60 days) + `read_all_orders` (full history, requires approval) + `read_shopify_payments_payouts` + `read_shopify_payments_accounts`. Offline access token: 60min, refresh token: 90 days rolling. **Expiring offline tokens mandatory for new apps April 1, 2026.**
-- **Key endpoints:** Orders (with nested transactions, refunds in single GraphQL query), Shopify Payments Balance/Payouts/Balance Transactions
-- **Data richness:** Good — order totals, subtotals, taxes, shipping, discounts, multi-currency (shop + presentment). **Fee/net data only available for Shopify Payments merchants** — third-party gateway merchants only have gross amounts.
-- **Webhooks:** Full catalog (`orders/paid`, `refunds/create`, `order_transactions/create`, `disputes/create`). HMAC-SHA256 verification. Delivery not guaranteed — retries for 48hr.
-- **Rate limits:** 1,000pt bucket, 50pt/s restore (Standard plans). GraphQL calculated query cost.
-- **Approval:** `read_all_orders` is a protected scope — request in Partner Dashboard. Unlisted public app distribution (no App Store listing required).
-- **Caveats:** Fee data is Shopify Payments only. 60-day order limit without `read_all_orders` approval. GraphQL only (no REST for new apps). Mandatory compliance webhooks (`customers/data_request`, `customers/redact`, `shop/redact`).
+> **Moved to memory:** Platform API details (auth, endpoints, rate limits, webhooks, sync architecture) for all 5 platforms are in the `reference_platform_api_notes.md` memory file. Loaded on demand when working on platform integrations.
 
 ## Planned Features
 
@@ -1244,6 +896,7 @@ This means:
 - Trends & month-over-month comparisons
 - CSV export for tax prep / bookkeeping
 - Weekly email summaries (Pro tier)
+- **Product Development Module** — future module for managing product campaigns/efforts. May eventually support collaboration (inviting people into a campaign to handle specific tasks). **Teams are explicitly deferred** — build the module single-user first, then let real usage patterns define what collaboration looks like. The current schema (everything scoped to `UserId`, provider-separation pattern) is friendly to adding `TeamId` later without reworking existing tables.
 
 ## Pricing Model
 
@@ -1407,6 +1060,7 @@ public class GenericAuditableRepositoryAsync<TEntity> { ... }
   - `Domain.Entities/Entities/User.cs` → `namespace My.Talli.Domain.Entities;` (not `...Entities.Entities`)
   - `Domain/Components/JsonSerializers/User/UserPreferencesJsonSerializer.cs` → `namespace My.Talli.Domain.Components.JsonSerializers;` (not `...JsonSerializers.User`)
   - `Domain/Handlers/Authentication/Google/GoogleSignInHandler.cs` → `namespace My.Talli.Domain.Handlers.Authentication;` (not `...Authentication.Google`)
+  - `Domain/CommandsAndQueries/Commands/Platforms/ConnectEtsyCommand.cs` → `namespace My.Talli.Domain.Commands.Platforms;` (the `CommandsAndQueries/` umbrella is organizational only — a reserved slot for future `Queries/` siblings — and does NOT appear in the namespace)
 
 ### Clean Up NUL Files
 
@@ -1528,14 +1182,19 @@ public static class AuthEndpoints
 
 ### Handlers and Commands
 
-Endpoint-supporting logic lives in dedicated classes under `Handlers/` and `Commands/` in the web project, organized by subfolder.
+Endpoint-supporting logic lives in dedicated classes under `Handlers/` and `Commands/`. **Commands are split between Domain and Web based on what they depend on** — handlers are always Web.
 
-- **Handlers** (`Handlers/Endpoints/`) — react to events. They orchestrate the pipeline: map external objects (e.g., Stripe SDK types) to Domain payloads, call Domain handlers inside transactions, handle side effects (logging, emails). Each handler owns everything it does — mapping methods, email building, etc. live inside the handler, not back in the endpoint.
-- **Commands** (`Commands/`) — execute actions. Data access operations (queries, updates), notification sending, or any reusable operation that a handler or endpoint shouldn't inline. Each command exposes a single `ExecuteAsync()` method. Organized by subfolder based on **what the command does**, not who calls it: `Commands/Endpoints/` for data access commands, `Commands/Notifications/` for email/notification commands, etc.
-- Both are **non-static classes** with constructor-injected dependencies — no `HttpContext.RequestServices.GetRequiredService` calls.
-- Both are registered as **scoped** in `BillingConfiguration.cs` (or the relevant `Configuration/{Name}Configuration.cs`).
+- **Handlers** (Web only — `My.Talli.Web/Handlers/Endpoints/`) — react to events. They orchestrate the pipeline: map external objects (e.g., Stripe SDK types, Etsy API responses) to Domain payloads, call Domain commands/handlers inside transactions, handle side effects (logging, emails). Each handler owns everything it does — mapping methods, email building, etc. live inside the handler, not back in the endpoint.
+- **Commands** — execute actions. Each command exposes a single `ExecuteAsync()` method. Organized by subfolder based on **what the command does**, not who calls it.
+  - **Domain commands** (`Domain/CommandsAndQueries/Commands/{Area}/`) — the default home for commands. Use only Domain-layer deps: `RepositoryAdapterAsync`, Domain POCOs, `EnforcedTransactionScope`. Registered in `Domain.DI.Lamar.IoC.ContainerRegistry`. Example: `ConnectEtsyCommand`, `FindActiveSubscriptionWithStripeCommand`, `UpdateLocalSubscriptionCommand`. These are testable from `My.Talli.UnitTesting` via the in-memory repository stubs.
+  - **Web commands** (`My.Talli.Web/Commands/{Area}/`) — only when the command genuinely needs Web-layer primitives: `IEmailService`, direct `TalliDbContext` access (for keyless view queries like `vAuthenticatedUser`), or other infrastructure interfaces the Domain shouldn't see. Registered in the relevant `Configuration/{Name}Configuration.cs`. Example: `GetAdminUserListCommand` (direct DbContext), `SendWelcomeEmailCommand` (IEmailService).
+  - **Default to Domain.** A command belongs in Web only if moving it breaks the "Domain stays HTTP- and SDK-free" rule. When in doubt, try Domain first and let the compiler push back.
+- Both handlers and commands are **non-static classes** with constructor-injected dependencies — no `HttpContext.RequestServices.GetRequiredService` calls.
+- All are registered as **scoped** (Web commands in `Configuration/{Name}Configuration.cs`; Domain commands in `Domain.DI.Lamar.IoC.ContainerRegistry`).
 - **One class per operation** — not one class per domain area. `CheckoutCompletedHandler` handles checkout completed events, not "all billing webhook events."
-- **Namespace:** `My.Talli.Web.Handlers.Endpoints` for handlers, `My.Talli.Web.Commands.Endpoints` for commands. The `Endpoints` subfolder is organizational only (following the Subfolder Namespace Convention).
+- **Namespaces:**
+  - Web: `My.Talli.Web.Handlers.Endpoints` / `My.Talli.Web.Commands.{Area}`.
+  - Domain: `My.Talli.Domain.Commands.{Area}` (the `CommandsAndQueries/` umbrella folder is organizational and does NOT appear in the namespace — see Subfolder Namespace Convention).
 
 ### No Inline Code Blocks
 
@@ -1691,57 +1350,16 @@ public AppleSignInHandler(
 
 ## Testing Tools
 
-- **WAVE** (wave.webaim.org) — web accessibility evaluation tool. Paste a URL to get a visual overlay of ARIA landmarks, contrast errors, heading structure, and missing labels. Note: WAVE cannot evaluate contrast for text over positioned/overlapping backgrounds (e.g., nav links over the hero gradient) — expect false positives there.
-- **Lighthouse** — built into Chrome DevTools (F12 > Lighthouse tab). Scores accessibility, performance, SEO, and best practices out of 100.
-- **axe DevTools** — Chrome extension by Deque. Runs in the Elements panel and catches WCAG violations with fix suggestions.
-- **NVDA** (nvaccess.org) — free Windows screen reader for manual testing of the full blind-user experience.
-
-### Accessibility Notes
-
-- **WAVE contrast errors (28):** Mostly false positives from nav links (`rgba(255,255,255,0.85)`) over the purple hero gradient — WAVE sees them against the white `<body>` background. A few real failures exist on platform brand colors (Shopify `#96bf48`, Gumroad `#ff90e8`, Etsy `#f56400` on `#f8f7fc`), but these are intentional brand colors kept as-is.
-- **WAVE alert (1):** Skipped heading level — the `<h3>` inside the dashboard mockup jumps from `<h1>`. Harmless because the mockup is marked `role="img"` with a descriptive `aria-label`.
+> **Moved to memory:** `reference_testing_tools.md` — WAVE, Lighthouse, axe DevTools, NVDA; known WAVE contrast false positives.
 
 ## Etsy Setup TODO
 
-- [x] **Developer Account** — registered under `hello@mytalli.com` at [developers.etsy.com](https://developers.etsy.com/)
-- [x] **App Registration** — app name `mytalli`, Seller Tools, commercial, read sales data. Keystring: `nqbjy0nj18t8o0d1yudbzr5t`. Status: Pending Personal Approval.
-- [ ] **API Key Approval** — waiting for Etsy to approve the personal access key (check back on developer dashboard periodically — no notification on denial)
-- [x] **Test Shop (started)** — `MyTalliTestShop` created through shop preferences and naming steps. Paused at payment setup — requires business bank account.
-- [ ] **Test Shop (complete)** — finish shop setup after LLC approval → EIN → business bank account. Remaining steps: payment info, billing info, shop security.
-- [ ] **API Keys to Config** — add Keystring and Shared Secret to `appsettings.Development.json` (`Etsy:ClientId`, `Etsy:ClientSecret`)
-- [ ] **Commercial Access** — apply for commercial access (4+ shops) before public launch (~20-day review)
+> **Moved to memory:** `project_etsy_setup.md` — API key approved, test shop & commercial access pending.
 
 ## Stripe Setup TODO
 
-- [x] **Stripe Account** — created sandbox under `robertmerrilljordan@gmail.com`
-- [x] **Branding** — brand color `#6c5ce7`, accent `#8b5cf6`, icon uploaded (favicon PNG)
-- [x] **Business Model** — Platform (not Marketplace)
-- [x] **Payment Integration** — Prebuilt checkout form (Stripe Checkout Sessions)
-- [x] **Products & Prices** — Pro product with two prices: monthly ($12/mo, default) and yearly ($99/yr, description "Annual"). Product ID: `prod_UBpqjWROUeH1OY`. Monthly Price ID: `price_1TDSAwRC4AM5SkTgiNbOw53a`. Yearly Price ID: `price_1TDSHVRC4AM5SkTgToKjXCny`. Free tier has no Stripe product (it's just the absence of a subscription). Manual Entry Module: Product ID `prod_UEPfDUVNr9l4kJ`, Price ID `price_1TFwpvRC4AM5SkTgEZMliKrz` ($3/mo). Module price IDs are configured in `Stripe:Modules` (key = DB product ID, value = Stripe price ID).
-- [x] **Webhook Endpoint** — using Stripe CLI local listener (`stripe listen --forward-to https://localhost:7012/api/billing/webhook`). Stripe CLI installed via winget at `C:\Users\Robert\AppData\Local\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe`.
-- [x] **API Keys** — test keys added to `appsettings.Development.json` (`Stripe:SecretKey`, `Stripe:PublishableKey`)
-- [x] **Webhook Secret** — webhook signing secret added to `appsettings.Development.json` (from Stripe CLI listener)
-- [x] **Customer Portal** — configured: customer info (name, email, billing address, phone), payment methods, cancellations (end of billing period, collect reason). Portal Configuration ID: `bpc_1TDSZQRC4AM5SkTggFFtu6cQ`.
-- [x] **Test Checkout Flow** — end-to-end verified: Upgrade page → Stripe Checkout → webhook → DB records → Subscription page shows Pro. Also tested: plan switching (monthly ↔ yearly), cancel (end-of-period with "Cancelling" state), reactivate via Customer Portal.
-- [ ] **Production Keys** — add live keys to Azure App Service Configuration (when ready to go live)
-- [ ] **Custom Domains** — `pay.mytalli.com` (Checkout), `billing.mytalli.com` (Customer Portal) — production only, CNAME records in GoDaddy
+> **Moved to memory:** `project_stripe_setup.md` — dev environment working, production keys & custom domains pending.
 
 ## Blazor TODO
 
-Features already shipped in the static HTML landing page (`deploy/index.html`) that still need to be ported to the Blazor app:
-
-- [x] **SEO** — meta description, robots, canonical URL, Open Graph tags, Twitter Card tags, JSON-LD structured data (`SoftwareApplication` schema)
-- [x] **Favicon** — link `favicon.svg` (concept C — T + growth bars) in `App.razor` `<head>`
-- [x] **Social Share Image** — add `og-image.png` (1200x630) to `wwwroot/` and reference in OG/Twitter meta tags
-- [x] **Accessibility** — skip navigation link, `<main>` landmark, ARIA labels on nav/sections, `aria-hidden` on decorative SVGs, emoji `role="img"` labels, `.sr-only` utility class, `:focus-visible` outlines, `role="contentinfo"` on footer, visually-hidden "Included:" prefixes on pricing checkmarks
-
-Upcoming features:
-
-- [x] **Admin Page** — role-based admin section (`/admin`) with email management: resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, bulk-send Welcome emails to selected or all users. Visible only to `Admin` role via conditional NavMenu link. Uses `vAuthenticatedUser` view (keyless entity) for user list with emails. ViewModel redirects non-admins to `/dashboard`; API endpoints enforce Admin role via `.RequireAuthorization()`.
-- [x] **Admin Email Resend** — admin ability to resend any customer email (Welcome, Subscription Confirmation, Weekly Summary) to a specific user, plus bulk-send Welcome emails to selected or all users. Implemented as part of the Admin page (`/admin`). API endpoints: `POST /api/admin/email/resend`, `POST /api/admin/email/bulk-welcome`, `POST /api/admin/email/bulk-welcome-all`. Commands: `SendSubscriptionConfirmationEmailCommand` (validates active subscription exists), `SendWeeklySummaryEmailCommand` (uses sample data). Fail-silent on individual errors during bulk sends.
-- [x] **Manual Entry Module** — `app.Revenue`, `app.RevenueManual`, `app.Expense`, and `app.Payout` tables. Sold as a monthly module subscription ($3/mo). Product seeded as `commerce.Product` Id 3, `commerce.ProductType` "Software Module" Id 2. Page at `/manual-entry` with full CRUD grids on all three data tabs (Revenue, Expenses, Payouts). Each grid has sortable columns, user-selectable pagination (10/25/50), row density toggle (compact/comfortable/spacious). **Revenue grid** columns: Date, Description, Category, Qty, Price, Fees, Net, Actions. Notes toggle via icon button expands a sub-row. **Expenses grid** columns: Date, Description, Category, Amount, Actions. Categories: Listing Fee, Ad Fee, Subscription Fee, Processing Fee, Shipping Label, Other. **Payouts grid** columns: Date, Amount, Status, Actions. Statuses: Pending, In Transit, Paid, Failed, Cancelled. All three grids share the same patterns: **quick-entry row** pinned at top of `<tbody>` for fast new entries (Enter to submit, row resets and refocuses), **inline editing** (click Edit, row cells become inputs, Enter to save, Escape to cancel), **delete** with `ConfirmDialog`, and **empty state** inside grid tbody. `New*` fields serve quick-entry, `Edit*` fields serve inline edit (separate state per tab). Grid preferences (density, page size) shared across tabs, sort state per tab. Non-subscribers see sample data (`ManualEntryDataset`, `ExpenseDataset`, `PayoutDataset`) with CTA banner instead of a lock gate.
-- [x] **My Plan Page** — consolidated plan and module management at `/my-plan`. Replaces the old `/subscription` and `/upgrade` pages (both deleted). Free users see inline pricing cards (Free vs Pro with monthly/yearly toggle). Pro users see their plan card with billing actions (Manage Billing, Change Plan, Cancel). Module owners see per-module cards with billing/cancel. Available modules listed at the bottom. Sidebar upgrade card shows "Pro Plan" for subscribers, "Upgrade to Pro" for free users, with a single "My Plan" button.
-- [x] **Goals Page** — full CRUD for revenue goals at `/goals`. Card-based layout with circular SVG progress indicators, status badges (On track / Ahead / Behind), and days remaining. **Inline form cards** — clicking "Add a new goal" (dashed card) or "New Goal" (hero button) transforms the card into an inline form with Goal Type dropdown, Platform dropdown, Target Amount, Start Date, and End Date fields. Clicking "Edit →" on a goal card transforms it into the same form, pre-populated. Save converts the form back into a goal card. Delete via `ConfirmDialog`. **Live revenue computation** — earned amounts computed from `app.Revenue` by matching goal date range + optional platform filter, using `SUM(NetAmount)`. Status computed dynamically via pace algorithm: projected = (earned / daysElapsed) × totalDays → "Ahead" (≥110%), "On track" (≥100%), "Behind" (<100%). **Form revenue preview** — inline form shows a live indicator: "$X.XX in matching revenue" (green) or "No revenue found for this date range" (warning), computed from cached revenue data as the user fills in dates/platform. **Card hint** — goal cards with $0 earned show "No revenue matches this date range" below the status badge. **Dashboard integration** — Dashboard goal card queries any goal covering the current month (not limited to GoalTypeId=1), computes earned using the same algorithm as the Goals page, and always shows a navigation link ("View goals →" when a goal exists, "Set a goal →" when none). **Platforms Connected card** — platform dots now show visible text labels (e.g., "● Manual Entry") instead of tooltip-only dots. Non-subscribers see sample data (`GoalsDataset`) with CTA banner. Presentation model: `GoalItem.cs` in `Models/` with `Id`, `GoalTypeId`, `Platform`, `StartDate`, `EndDate`, `Label`, `Name`, `Earned`, `Target`, `Percentage` (computed), `Status`, `StatusCss` (computed), `DaysRemaining`.
-- [ ] **Navigation & Data Architecture** — organizing grids, graphs, and reports across platforms (Manual Entry, Stripe, Etsy, Gumroad, PayPal, Shopify) plus an aggregate view. Each platform needs Revenue, Expenses, Payouts, and Cashflow sections. Four navigation patterns wireframed in `wireframes/MyTalli_NavigationPatterns.html`: (A) Hub & Spoke, (B) Data-Type First, (C) Hybrid, (D) Dashboard + Tabs. Three mobile treatments wireframed per pattern in `wireframes/MyTalli_MobilePatterns_Hub_and_Spoke.html` and `wireframes/MyTalli_MobilePatterns_Dashboard_plus_Tabs.html`. **Decision: Hub & Spoke** — aggregate dashboard is the hub, each connected platform is a spoke with its own detail page containing tabs for Overview/Revenue/Expenses/Payouts. Sidebar shows Dashboard, then a Platforms group listing connected platforms. **Mobile Decision: Keyhole Hybrid** (wireframe: `wireframes/MyTalli_MobilePatterns_Keyhole_Hybrid.html`) — combines Desktop Message + Keyhole View. Formula: summary cards with mini charts at top, platform-specific stats on spokes (avg. sale, fee rate, payout status), 5 most recent records as phone-native transaction cards (not grid rows), and a "details on desktop" CTA at the bottom. Hub shows cross-platform activity (with platform color dots); spokes show platform-filtered activity (no dots needed). The 5-card cap sets a clear boundary — this is a preview, not a portal. **Constraint:** regardless of pattern chosen, all page heroes must remain branded with the purple gradient swoosh (see "Page Hero Branding" rule). Platform-specific pages may tint the gradient with platform brand colors (e.g., Etsy orange) but must keep the swoosh shape and decorative circles. **Spoke Tabs (implemented):** Dashboard (hub) and Manual Entry (spoke) both have a 4-tab bar (Overview, Revenue, Expenses, Payouts) below the hero swoosh. Tab bar uses `.spoke-tabs` class in `app.css` (dark navy `#1a1a2e` background, purple `#8b5cf6` underline on active tab). Dashboard defaults to Overview; Manual Entry defaults to Revenue. Dashboard tabs show sample data via `ExpenseDataset` and `PayoutDataset`. Manual Entry tabs load real data from `app.Expense` and `app.Payout` when the user has module access, or sample data when they don't. View models expose `ActiveTab` (string) and `SelectTab(string)`. Presentation models: `ExpenseItem.cs` and `PayoutItem.cs` in `Models/`. Pages with spoke tabs use `120px` bottom hero padding to clear the swoosh curve. Remaining: platform-specific spoke pages (Stripe, Etsy, etc.) not yet built.
-- [ ] **Module Checkout Flow** — extend `/api/billing/create-checkout-session` to handle module product IDs (currently only handles `plan=monthly|yearly` for Pro). Needed for "Add Module" button on My Plan page.
-- [ ] **Email Asset Hosting** — email image assets (`email-hero-bg.png`, `email-icon-graph.png`) are currently served from `wwwroot/emails/` on the App Service (deployed with the app). Phase 2: migrate to Azure Blob Storage with a public container (e.g., `https://mytallistorage.blob.core.windows.net/emails/`) and update all 3 customer email template URLs. This decouples email assets from app deployments so images are always available regardless of deploy state.
+> **Moved to memory:** `project_blazor_todo.md` — completed features (Admin, Manual Entry, Goals, My Plan) and remaining backlog (Nav architecture, Module checkout, Email hosting).

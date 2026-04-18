@@ -196,71 +196,78 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)")
-                        .HasColumnOrder(2);
+                        .HasColumnOrder(3);
 
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
-                        .HasColumnOrder(3);
+                        .HasColumnOrder(4);
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(12);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)")
-                        .HasColumnOrder(4);
+                        .HasColumnOrder(5);
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
-                        .HasColumnOrder(5);
+                        .HasColumnOrder(6);
 
                     b.Property<DateTime>("ExpenseDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.Property<string>("Platform")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
                     b.Property<string>("PlatformTransactionId")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
-                    b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(13);
-
-                    b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(14);
-
-                    b.Property<long>("UserId")
+                    b.Property<long?>("ShopConnectionId")
                         .HasColumnType("bigint")
                         .HasColumnOrder(1);
 
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(14);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(15);
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(2);
+
                     b.HasKey("Id")
                         .HasName("PK_Expense");
+
+                    b.HasIndex("ShopConnectionId")
+                        .HasDatabaseName("IX_Expense_ShopConnectionId");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_Expense_UserId");
@@ -518,67 +525,71 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)")
-                        .HasColumnOrder(2);
+                        .HasColumnOrder(3);
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(12);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)")
-                        .HasColumnOrder(3);
+                        .HasColumnOrder(4);
 
                     b.Property<DateTime?>("ExpectedArrivalDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(4);
+                        .HasColumnOrder(5);
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.Property<DateTime>("PayoutDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(5);
+                        .HasColumnOrder(6);
 
                     b.Property<string>("Platform")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
                     b.Property<string>("PlatformPayoutId")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
+
+                    b.Property<long?>("ShopConnectionId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(14);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(14);
+                        .HasColumnOrder(15);
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(1);
+                        .HasColumnOrder(2);
 
                     b.HasKey("Id")
                         .HasName("PK_Payout");
@@ -586,6 +597,9 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.HasIndex("PlatformPayoutId")
                         .IsUnique()
                         .HasDatabaseName("UQ_Payout_PlatformPayoutId");
+
+                    b.HasIndex("ShopConnectionId")
+                        .HasDatabaseName("IX_Payout_ShopConnectionId");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_Payout_UserId");
@@ -841,84 +855,91 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(14);
+                        .HasColumnOrder(15);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(15);
+                        .HasColumnOrder(16);
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)")
-                        .HasColumnOrder(2);
+                        .HasColumnOrder(3);
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
-                        .HasColumnOrder(3);
+                        .HasColumnOrder(4);
 
                     b.Property<decimal>("FeeAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
-                        .HasColumnOrder(4);
+                        .HasColumnOrder(5);
 
                     b.Property<decimal>("GrossAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
-                        .HasColumnOrder(5);
+                        .HasColumnOrder(6);
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<bool>("IsDisputed")
                         .HasColumnType("bit")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(7);
 
                     b.Property<bool>("IsRefunded")
                         .HasColumnType("bit")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(14);
 
                     b.Property<decimal>("NetAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.Property<string>("Platform")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<string>("PlatformTransactionId")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
-                        .HasColumnOrder(10);
-
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("datetime2")
                         .HasColumnOrder(11);
 
-                    b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(16);
-
-                    b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(17);
-
-                    b.Property<long>("UserId")
+                    b.Property<long?>("ShopConnectionId")
                         .HasColumnType("bigint")
                         .HasColumnOrder(1);
 
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(12);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(17);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(18);
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(2);
+
                     b.HasKey("Id")
                         .HasName("PK_Revenue");
+
+                    b.HasIndex("ShopConnectionId")
+                        .HasDatabaseName("IX_Revenue_ShopConnectionId");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_Revenue_UserId");
@@ -1153,6 +1174,178 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasName("PK_RevenueStripe");
 
                     b.ToTable("RevenueStripe", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.ShopConnection", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("ConsecutiveFailures")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnOrder(3);
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(14);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(15);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnOrder(4);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(12);
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(13);
+
+                    b.Property<string>("LastErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime?>("LastSyncDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
+
+                    b.Property<DateTime>("NextSyncDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
+
+                    b.Property<long>("PlatformConnectionId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("PlatformShopId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnOrder(9);
+
+                    b.Property<string>("ShopName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnOrder(11);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(16);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(17);
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(2);
+
+                    b.HasKey("Id")
+                        .HasName("PK_ShopConnection");
+
+                    b.HasIndex("PlatformConnectionId")
+                        .HasDatabaseName("IX_ShopConnection_PlatformConnectionId");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_ShopConnection_UserId");
+
+                    b.HasIndex("NextSyncDateTime", "Status")
+                        .HasDatabaseName("IX_ShopConnection_NextSyncDateTime_Status");
+
+                    b.HasIndex("PlatformConnectionId", "PlatformShopId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ShopConnection_PlatformConnectionId_PlatformShopId");
+
+                    b.ToTable("ShopConnection", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.ShopConnectionEtsy", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ShopConnectionId")
+                        .HasColumnOrder(0);
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nchar(2)")
+                        .HasColumnOrder(1)
+                        .IsFixedLength();
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(7);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsVacationMode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnOrder(2);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(6);
+
+                    b.Property<string>("ShopCurrency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nchar(3)")
+                        .HasColumnOrder(3)
+                        .IsFixedLength();
+
+                    b.Property<string>("ShopUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnOrder(4);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(9);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(10);
+
+                    b.HasKey("Id")
+                        .HasName("PK_ShopConnectionEtsy");
+
+                    b.ToTable("ShopConnectionEtsy", "app");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.Subscription", b =>
@@ -1422,96 +1615,6 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasDatabaseName("UQ_SuggestionVote_SuggestionId_UserId");
 
                     b.ToTable("SuggestionVote", "app");
-                });
-
-            modelBuilder.Entity("My.Talli.Domain.Entities.SyncQueue", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(0);
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("ConsecutiveFailures")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0)
-                        .HasColumnOrder(2);
-
-                    b.Property<long>("CreateByUserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(11);
-
-                    b.Property<DateTime>("CreatedOnDateTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(12);
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnOrder(9);
-
-                    b.Property<bool>("IsEnabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnOrder(3);
-
-                    b.Property<bool>("IsVisible")
-                        .HasColumnType("bit")
-                        .HasColumnOrder(10);
-
-                    b.Property<string>("LastErrorMessage")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)")
-                        .HasColumnOrder(4);
-
-                    b.Property<DateTime?>("LastSyncDateTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(5);
-
-                    b.Property<DateTime>("NextSyncDateTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(6);
-
-                    b.Property<string>("Platform")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnOrder(7);
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasColumnOrder(8);
-
-                    b.Property<long?>("UpdatedByUserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(13);
-
-                    b.Property<DateTime?>("UpdatedOnDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnOrder(14);
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1);
-
-                    b.HasKey("Id")
-                        .HasName("PK_SyncQueue");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("IX_SyncQueue_UserId");
-
-                    b.HasIndex("NextSyncDateTime", "Status")
-                        .HasDatabaseName("IX_SyncQueue_NextSyncDateTime_Status");
-
-                    b.HasIndex("UserId", "Platform")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_SyncQueue_UserId_Platform");
-
-                    b.ToTable("SyncQueue", "app");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.User", b =>
@@ -1916,12 +2019,20 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
             modelBuilder.Entity("My.Talli.Domain.Entities.Expense", b =>
                 {
+                    b.HasOne("My.Talli.Domain.Entities.ShopConnection", "ShopConnection")
+                        .WithMany()
+                        .HasForeignKey("ShopConnectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Expense_ShopConnection");
+
                     b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Expense_User");
+
+                    b.Navigation("ShopConnection");
 
                     b.Navigation("User");
                 });
@@ -1982,12 +2093,20 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
             modelBuilder.Entity("My.Talli.Domain.Entities.Payout", b =>
                 {
+                    b.HasOne("My.Talli.Domain.Entities.ShopConnection", "ShopConnection")
+                        .WithMany()
+                        .HasForeignKey("ShopConnectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Payout_ShopConnection");
+
                     b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Payout_User");
+
+                    b.Navigation("ShopConnection");
 
                     b.Navigation("User");
                 });
@@ -2027,12 +2146,20 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
             modelBuilder.Entity("My.Talli.Domain.Entities.Revenue", b =>
                 {
+                    b.HasOne("My.Talli.Domain.Entities.ShopConnection", "ShopConnection")
+                        .WithMany()
+                        .HasForeignKey("ShopConnectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Revenue_ShopConnection");
+
                     b.HasOne("My.Talli.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Revenue_User");
+
+                    b.Navigation("ShopConnection");
 
                     b.Navigation("User");
                 });
@@ -2083,6 +2210,39 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasConstraintName("FK_RevenueStripe_Revenue");
 
                     b.Navigation("Revenue");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.ShopConnection", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.PlatformConnection", "PlatformConnection")
+                        .WithMany()
+                        .HasForeignKey("PlatformConnectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ShopConnection_PlatformConnection");
+
+                    b.HasOne("My.Talli.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ShopConnection_User");
+
+                    b.Navigation("PlatformConnection");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.ShopConnectionEtsy", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.ShopConnection", "ShopConnection")
+                        .WithOne()
+                        .HasForeignKey("My.Talli.Domain.Entities.ShopConnectionEtsy", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ShopConnectionEtsy_ShopConnection");
+
+                    b.Navigation("ShopConnection");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.Subscription", b =>
@@ -2156,18 +2316,6 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasConstraintName("FK_SuggestionVote_User");
 
                     b.Navigation("Suggestion");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("My.Talli.Domain.Entities.SyncQueue", b =>
-                {
-                    b.HasOne("My.Talli.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_SyncQueue_User");
 
                     b.Navigation("User");
                 });

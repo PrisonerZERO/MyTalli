@@ -2,6 +2,15 @@
 .plat-hero { margin: -32px -40px 10px; padding: 24px 40px 40px; }
 .hero-stat:nth-child(2) .hero-stat-num { color: #f5c842; }
 
+/* ─── TOASTS ─── */
+.plat-toast { align-items: center; border-radius: 12px; display: flex; font-size: 14px; font-weight: 500; gap: 12px; margin-bottom: 16px; padding: 14px 18px; }
+.plat-toast svg { flex-shrink: 0; height: 20px; width: 20px; }
+.plat-toast-success { background: var(--success-bg); border: 1px solid rgba(39, 174, 96, 0.2); color: var(--success); }
+.plat-toast-error { background: rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.25); color: #c0392b; }
+.plat-toast-dismiss { background: none; border: none; color: inherit; cursor: pointer; font-size: 20px; margin-left: auto; opacity: 0.6; padding: 0 4px; }
+.plat-toast-dismiss:hover { opacity: 1; }
+.plat-btn-connect[disabled] { cursor: not-allowed; opacity: 0.5; }
+
 /* ─── LOADING ─── */
 .plat-loading-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 28px; }
 .plat-loading { padding: 20px 0; text-align: center; }
@@ -15,6 +24,10 @@
 /* ─── PLATFORM ROWS ─── */
 .plat-row { align-items: center; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; display: flex; gap: 16px; margin-bottom: 12px; padding: 20px 24px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
 .plat-row:hover { border-color: var(--border); box-shadow: 0 4px 16px var(--shadow-hover); }
+
+.plat-row-platform { align-items: stretch; display: block; }
+.plat-row-header { align-items: center; display: flex; gap: 16px; padding-bottom: 16px; }
+.plat-row-header-meta { align-items: center; display: flex; gap: 24px; margin-left: auto; }
 
 .plat-row-identity { align-items: center; display: flex; gap: 14px; min-width: 240px; }
 .plat-icon { align-items: center; border-radius: 12px; color: #fff; display: flex; height: 44px; justify-content: center; width: 44px; }
@@ -34,6 +47,24 @@
 .plat-row-data { color: var(--text-secondary); font-size: 13px; font-weight: 500; }
 
 .plat-row-actions { align-items: center; display: flex; gap: 12px; margin-left: auto; }
+
+/* ─── SHOP SUB-ROWS ─── */
+.plat-shop-list { border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; list-style: none; margin: 0; padding: 0; }
+.plat-shop-row { align-items: center; border-bottom: 1px solid var(--border-subtle); display: flex; gap: 16px; padding: 14px 8px 14px 58px; }
+.plat-shop-row:last-child { border-bottom: none; }
+.plat-shop-identity { align-items: center; display: flex; flex: 1; gap: 10px; min-width: 200px; }
+.plat-shop-icon { color: var(--text-muted); flex-shrink: 0; height: 16px; width: 16px; }
+.plat-shop-name { color: var(--text-primary); font-size: 14px; font-weight: 500; }
+.plat-shop-meta { align-items: center; display: flex; gap: 20px; }
+.plat-shop-sync { color: var(--text-muted); font-size: 13px; min-width: 140px; }
+.plat-shop-data { color: var(--text-secondary); font-size: 13px; font-weight: 500; }
+.plat-shop-actions { align-items: center; display: flex; gap: 8px; margin-left: auto; }
+.plat-shop-actions .plat-btn-outline { font-size: 12px; padding: 6px 14px; }
+
+.plat-shop-add { border-top: 1px solid var(--border-subtle); padding: 12px 8px 0 58px; }
+.plat-btn-add-shop { align-items: center; background: none; border: 1px dashed var(--border); border-radius: 8px; color: var(--purple-primary); cursor: pointer; display: inline-flex; font-family: inherit; font-size: 13px; font-weight: 600; gap: 6px; padding: 8px 16px; transition: all 0.15s ease; }
+.plat-btn-add-shop:hover { background: var(--purple-soft); border-color: var(--purple-primary); border-style: solid; }
+.plat-btn-add-shop svg { height: 14px; width: 14px; }
 
 /* ─── AVAILABLE ROW ─── */
 .plat-row-available { opacity: 0.85; }

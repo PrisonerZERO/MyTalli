@@ -17,6 +17,10 @@ public class Payout : DefaultEntity
 
 	public string PlatformPayoutId { get; set; } = string.Empty;
 
+	public ShopConnection? ShopConnection { get; set; }
+
+	public long? ShopConnectionId { get; set; }
+
 	public string Status { get; set; } = string.Empty;
 
 	public User User { get; set; } = null!;

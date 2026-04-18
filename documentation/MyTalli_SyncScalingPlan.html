@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Sync Scaling Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.6; padding: 0; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; overflow: hidden; padding: 48px; position: relative; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 200px; position: absolute; right: -40px; top: -60px; width: 200px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 120px; left: 30%; position: absolute; top: 80px; width: 120px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.8); font-size: 15px; margin-top: 6px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 12px; position: relative; z-index: 1; }
+
+  /* Content */
+  .content { margin: 0 auto; max-width: 960px; padding: 48px 32px 80px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-tag { background: #f0edff; border-radius: 20px; color: #6c5ce7; display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 16px; padding: 6px 16px; text-transform: uppercase; }
+  .section h2 { color: #1a1a2e; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .section p { color: #555; font-size: 15px; margin-bottom: 16px; }
+
+  /* Cards */
+  .card { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; padding: 24px; }
+  .card h3 { color: #1a1a2e; font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .card p { color: #555; font-size: 14px; margin-bottom: 0; }
+
+  /* Info grid */
+  .info-grid { display: grid; gap: 16px; grid-template-columns: 1fr; margin-bottom: 16px; }
+  @media (min-width: 640px) { .info-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* Tier cards */
+  .tier-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .tier-grid { grid-template-columns: 1fr 1fr; } }
+  .tier-card { background: #fff; border: 2px solid #e0dce8; border-radius: 12px; padding: 24px; position: relative; transition: border-color 0.2s; }
+  .tier-card.current { border-color: #6c5ce7; }
+  .tier-card.current::after { background: #6c5ce7; border-radius: 0 0 6px 6px; color: #fff; content: 'CURRENT'; font-size: 10px; font-weight: 700; left: 20px; letter-spacing: 1px; padding: 3px 10px; position: absolute; top: 0; }
+  .tier-card.recommended { border-color: #27ae60; }
+  .tier-card.recommended::after { background: #27ae60; border-radius: 0 0 6px 6px; color: #fff; content: 'NEXT MOVE'; font-size: 10px; font-weight: 700; left: 20px; letter-spacing: 1px; padding: 3px 10px; position: absolute; top: 0; }
+  .tier-name { color: #6c5ce7; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px; text-transform: uppercase; }
+  .tier-users { color: #1a1a2e; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .tier-desc { color: #999; font-size: 13px; margin-bottom: 16px; }
+  .tier-specs { border-top: 1px solid #f0edff; list-style: none; padding-top: 16px; }
+  .tier-specs li { color: #555; font-size: 13px; margin-bottom: 8px; padding-left: 20px; position: relative; }
+  .tier-specs li::before { color: #6c5ce7; content: '\2713'; font-weight: 700; left: 0; position: absolute; }
+
+  /* Tables */
+  .table-wrap { border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th { background: #f0edff; color: #6c5ce7; font-size: 11px; font-weight: 600; letter-spacing: 1px; padding: 12px 16px; text-align: left; text-transform: uppercase; }
+  td { border-top: 1px solid #f0edff; color: #555; font-size: 14px; padding: 12px 16px; vertical-align: top; }
+  tr:hover td { background: #faf9ff; }
+  .highlight-row td { background: #f0edff; color: #1a1a2e; font-weight: 600; }
+
+  /* Metric badges */
+  .metric { align-items: center; display: inline-flex; gap: 8px; margin-bottom: 8px; margin-right: 24px; }
+  .metric-value { color: #6c5ce7; font-size: 28px; font-weight: 700; }
+  .metric-label { color: #999; font-size: 12px; font-weight: 500; line-height: 1.3; }
+
+  /* Alert / callout */
+  .callout { background: #fff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin-bottom: 16px; padding: 16px 20px; }
+  .callout.warning { border-left-color: #f5c842; }
+  .callout.success { border-left-color: #27ae60; }
+  .callout.danger { border-left-color: #e74c3c; }
+  .callout strong { color: #1a1a2e; }
+  .callout p { color: #555; font-size: 14px; margin: 0; }
+
+  /* Timeline */
+  .timeline { padding-left: 32px; position: relative; }
+  .timeline::before { background: #e0dce8; content: ''; height: 100%; left: 8px; position: absolute; top: 0; width: 2px; }
+  .timeline-item { margin-bottom: 32px; position: relative; }
+  .timeline-item::before { background: #6c5ce7; border: 3px solid #f0edff; border-radius: 50%; content: ''; height: 16px; left: -32px; position: absolute; top: 4px; width: 16px; }
+  .timeline-item.future::before { background: #e0dce8; }
+  .timeline-item h4 { color: #1a1a2e; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .timeline-item p { color: #555; font-size: 13px; margin: 0 0 6px; }
+  .timeline-trigger { background: #f0edff; border-radius: 6px; color: #6c5ce7; display: inline-block; font-size: 11px; font-weight: 600; margin-top: 6px; padding: 3px 10px; }
+
+  /* Math box */
+  .math-box { background: #fafbff; border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; padding: 20px 24px; }
+  .math-box h4 { color: #1a1a2e; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .math-row { align-items: center; border-bottom: 1px dashed #e0dce8; color: #555; display: flex; font-family: 'DM Sans', monospace; font-size: 13px; justify-content: space-between; padding: 8px 0; }
+  .math-row:last-child { border-bottom: none; }
+  .math-row .result { font-weight: 600; }
+  .math-row .result.good { color: #27ae60; }
+  .math-row .result.bad { color: #e74c3c; }
+  .math-row .result.close { color: #f5a623; }
+
+  /* Platform dots */
+  .platform-dot { border-radius: 4px; color: #fff; display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; }
+  .p-stripe { background: #635bff; }
+  .p-etsy { background: #f56400; }
+  .p-gumroad { background: #ff90e8; color: #1a1a2e; }
+  .p-paypal { background: #003087; }
+  .p-shopify { background: #96bf48; color: #1a1a2e; }
+
+  /* Footer */
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 48px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Sync Scaling Plan</h1>
+  <p class="subtitle">API rate-limit strategy with daily sync baseline + on-demand refresh</p>
+  <p class="doc-date">Last updated: April 2026</p>
+</div>
+
+<div class="content">
+
+  <!-- Overview -->
+  <div class="section">
+    <span class="section-tag">Overview</span>
+    <h2>A Different Scaling Axis</h2>
+    <p>MyTalli has two independent scaling axes. The first is <strong>infrastructure scaling</strong> (App Service tier, SQL DTU, memory per circuit) — covered in the companion <em>Scaling Plan</em> document. This document covers the second axis: <strong>platform API rate limits</strong>.</p>
+    <p>Every revenue sync hits an external platform's API — and those platforms meter us on an <strong>application-wide</strong> basis, not per-user. One shared API key. One shared daily quota. Hundreds of users syncing from the same platform all eat from the same bucket.</p>
+
+    <div style="margin: 24px 0;">
+      <span class="metric"><span class="metric-value">10,000</span><span class="metric-label">Etsy calls/day<br>app-wide ceiling</span></span>
+      <span class="metric"><span class="metric-value">1 / day</span><span class="metric-label">Baseline scheduled<br>sync per shop</span></span>
+      <span class="metric"><span class="metric-value">3</span><span class="metric-label">Scaling phases<br>(was 5)</span></span>
+      <span class="metric"><span class="metric-value">~5,000</span><span class="metric-label">Etsy connections<br>in Phase 1 alone</span></span>
+    </div>
+
+    <div class="callout">
+      <p><strong>Key insight:</strong> Etsy is the binding constraint. Stripe, Shopify, PayPal, and Gumroad all have much higher effective ceilings for our workload. When we talk about "sync scaling," we are really talking about "when do we bump into Etsy's 10K QPD quota, and what do we do about it."</p>
+    </div>
+
+    <div class="callout success">
+      <p><strong>Baseline cadence: once per day.</strong> Side-hustle revenue is sporadic (0-5 sales per shop per day typically) and users visit the dashboard sporadically, not continuously. Daily scheduled sync + a rate-limited "Sync Now" button delivers the right freshness tradeoff at a fraction of the quota cost of hourly polling.</p>
+    </div>
+  </div>
+
+  <!-- Platform Limits -->
+  <div class="section">
+    <span class="section-tag">Platform Limits</span>
+    <h2>Rate Limits at a Glance</h2>
+    <p>All limits below apply <strong>to MyTalli's application API key</strong>, not per user. Connecting 1,000 users to a single platform does not give us 1,000× the quota — it gives us the same quota shared 1,000 ways.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Platform</th><th>Per-Second</th><th>Per-Day</th><th>Scoped To</th><th>Headroom</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="platform-dot p-etsy">Etsy</span></td>
+            <td>~10 QPS</td>
+            <td><strong>~10,000 QPD</strong></td>
+            <td>App-wide</td>
+            <td><span style="background: #fee2e2; border-radius: 4px; color: #b91c1c; font-size: 12px; font-weight: 600; padding: 2px 8px;">Tight</span></td>
+          </tr>
+          <tr>
+            <td><span class="platform-dot p-paypal">PayPal</span></td>
+            <td>~50 req/min</td>
+            <td>Not formally published</td>
+            <td>Per IP</td>
+            <td><span style="background: #fef3c7; border-radius: 4px; color: #92400e; font-size: 12px; font-weight: 600; padding: 2px 8px;">Moderate</span></td>
+          </tr>
+          <tr>
+            <td><span class="platform-dot p-stripe">Stripe</span></td>
+            <td>25 QPS / endpoint, 100 QPS global</td>
+            <td>No hard daily cap</td>
+            <td>App-wide</td>
+            <td><span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">Generous</span></td>
+          </tr>
+          <tr>
+            <td><span class="platform-dot p-shopify">Shopify</span></td>
+            <td>50 pt/s restore, 1,000pt bucket</td>
+            <td>Bucket-based, no daily cap</td>
+            <td>Per shop</td>
+            <td><span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">Generous</span></td>
+          </tr>
+          <tr>
+            <td><span class="platform-dot p-gumroad">Gumroad</span></td>
+            <td>Undocumented</td>
+            <td>Undocumented</td>
+            <td>App-wide (assumed)</td>
+            <td><span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">Unknown</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warning">
+      <p><strong>Why Etsy hurts first:</strong> 10,000 calls/day sounds like a lot until you multiply by sync cadence and shop count. At hourly polling, just 500 shops blows past the quota. At daily polling, the same 10,000-call ceiling comfortably supports ~8,000 shops. Cadence choice is the biggest lever we have.</p>
+    </div>
+  </div>
+
+  <!-- Scaling Phases -->
+  <div class="section">
+    <span class="section-tag">Scaling Phases</span>
+    <h2>Three-Phase Plan</h2>
+    <p>We advance one phase at a time, only when metrics force the move. Each phase has a concrete engineering response and a concrete trigger.</p>
+
+    <div class="tier-grid">
+      <div class="tier-card current">
+        <div class="tier-name">Phase 1 — Baseline</div>
+        <div class="tier-users">0 – ~5,000 Etsy shops</div>
+        <div class="tier-desc">Daily sync + incremental + user "Sync Now"</div>
+        <ul class="tier-specs">
+          <li>Strategy: <span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">Daily baseline</span></li>
+          <li>Each shop polls once per day on schedule</li>
+          <li>Rate-limited "Sync Now" button on dashboard (30-min cooldown per user per platform)</li>
+          <li>First sync is a full backfill; subsequent syncs are deltas</li>
+          <li>Exponential backoff on failures</li>
+          <li>Zero engineering cost to operate — covers the full Phase 1 range with no tuning</li>
+        </ul>
+      </div>
+
+      <div class="tier-card recommended">
+        <div class="tier-name">Phase 2 — Webhooks</div>
+        <div class="tier-users">~5,000 – ~15,000+ Etsy shops</div>
+        <div class="tier-desc">Real-time push as a product differentiator</div>
+        <ul class="tier-specs">
+          <li>Strategy: <span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">Engineering</span></li>
+          <li>Wire up 4 Etsy order webhooks (<code>order.paid</code>, <code>order.canceled</code>, <code>order.shipped</code>, <code>order.delivered</code>)</li>
+          <li>Webhooks deliver <em>better</em> freshness than hourly polling at <em>lower</em> cost</li>
+          <li>Daily polling becomes a reconciliation backstop, not the primary signal</li>
+          <li>Market as "real-time revenue updates" — product feature, not just plumbing</li>
+          <li>Same pattern for Stripe, PayPal, Shopify</li>
+        </ul>
+      </div>
+
+      <div class="tier-card">
+        <div class="tier-name">Phase 3 — Bespoke</div>
+        <div class="tier-users">Very large scale</div>
+        <div class="tier-desc">Multi-key, dedicated workers, paid API tiers</div>
+        <ul class="tier-specs">
+          <li>Strategy: <span style="background: #fef3c7; border-radius: 4px; color: #92400e; font-size: 12px; font-weight: 600; padding: 2px 8px;">Enterprise</span></li>
+          <li>Etsy Commercial Access quota negotiation</li>
+          <li>Multiple API keys across isolated sub-apps where policy allows</li>
+          <li>Platform-dedicated sync workers with custom pacing</li>
+          <li>Paid-tier API access where offered</li>
+          <li>"A problem we'd be thrilled to have"</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><strong>Previous 5-phase plan collapsed to 3.</strong> Switching the baseline from hourly to daily eliminated the need for "stretch cadence" (Phase 2) and "Commercial Access quota request" (Phase 4) as distinct phases. They still exist as tactics, but no longer get their own milestone because Phase 1 carries us ~10× further than before.</p>
+    </div>
+  </div>
+
+  <!-- Phase Details Table -->
+  <div class="section">
+    <span class="section-tag">Phase Details</span>
+    <h2>Strategy Comparison</h2>
+    <p>The same plan in tabular form — useful for quick reference when deciding which phase we are in.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Phase</th><th>Etsy Shops</th><th>Strategy</th><th>Calls/Day @ upper bound</th><th>Trigger to Advance</th></tr>
+        </thead>
+        <tbody>
+          <tr class="highlight-row">
+            <td><span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">1</span></td>
+            <td>0 – ~5,000</td>
+            <td>Daily + incremental + "Sync Now"</td>
+            <td>~6,500 (scheduled + manual refresh)</td>
+            <td>Daily quota approaching 7K</td>
+          </tr>
+          <tr>
+            <td><span style="background: #d1fae5; border-radius: 4px; color: #065f46; font-size: 12px; font-weight: 600; padding: 2px 8px;">2</span></td>
+            <td>~5,000 – ~15,000+</td>
+            <td>Webhooks + daily reconciliation</td>
+            <td>~1,500-3,000 (event-driven)</td>
+            <td>Webhook ingestion saturating</td>
+          </tr>
+          <tr>
+            <td><span style="background: #fef3c7; border-radius: 4px; color: #92400e; font-size: 12px; font-weight: 600; padding: 2px 8px;">3</span></td>
+            <td>Very large</td>
+            <td>Multi-key, dedicated workers, partnership</td>
+            <td>Effectively unbounded</td>
+            <td>Revenue justifies engineering</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Core Math -->
+  <div class="section">
+    <span class="section-tag">Core Math</span>
+    <h2>Why These Thresholds</h2>
+    <p>All numbers assume steady-state operation after first backfill. Incremental sync means <strong>1 API call per shop per sync cycle</strong> in typical conditions (pulls only <code>created_at &gt;= LastSyncDateTime</code>).</p>
+
+    <div class="math-box">
+      <h4>Why daily beats hourly — the scaling impact</h4>
+      <div class="math-row"><span>500 shops × 24 hourly syncs × 1 call</span><span class="result bad">= 12,000 calls/day  ✗ over 10K limit</span></div>
+      <div class="math-row"><span>500 shops × 1 daily sync × 1 call</span><span class="result good">= 500 calls/day  ✓ 5% of quota</span></div>
+      <div class="math-row"><span>5,000 shops × 1 daily sync × 1 call</span><span class="result good">= 5,000 calls/day  ✓ 50% of quota</span></div>
+    </div>
+
+    <div class="math-box">
+      <h4>Phase 1 at upper bound (~5,000 Etsy shops)</h4>
+      <div class="math-row"><span>Scheduled daily sync (5,000 × 1 call)</span><span class="result good">= 5,000 calls/day  ✓ 50%</span></div>
+      <div class="math-row"><span>User "Sync Now" refresh (~20% active × 2.5 clicks avg)</span><span class="result good">≈ 1,000 calls/day  ✓ 10%</span></div>
+      <div class="math-row"><span>First-backfill spikes for new sign-ups</span><span class="result good">≈ 300 calls/day  ✓ 3%</span></div>
+      <div class="math-row"><span><strong>Total load</strong></span><span class="result good">≈ 6,300 calls/day  ✓ ~63% of quota</span></div>
+    </div>
+
+    <div class="math-box">
+      <h4>Phase 2 at 10,000 Etsy shops — webhooks take over</h4>
+      <div class="math-row"><span>Webhook events (avg 0.5/shop/day × 1 fetch call)</span><span class="result good">≈ 5,000 calls/day  ✓</span></div>
+      <div class="math-row"><span>Daily reconciliation (1 call/shop, 1×/day)</span><span class="result good">= 10,000 calls/day if kept</span></div>
+      <div class="math-row"><span>Reconciliation stretched to weekly (1/7)</span><span class="result good">≈ 1,400 calls/day  ✓</span></div>
+      <div class="math-row"><span><strong>Webhook-dominated total</strong></span><span class="result good">~6,000-7,000 calls/day  ✓</span></div>
+    </div>
+
+    <div class="callout success">
+      <p><strong>Phase 1 runway is huge.</strong> At daily baseline, the 10K QPD ceiling comfortably supports ~8,000 Etsy shops before we even think about Phase 2. A realistic user mix (30-40% connecting Etsy) means that corresponds to <strong>20,000+ total MyTalli users</strong> — a long runway on a simple, zero-cost-to-operate architecture.</p>
+    </div>
+  </div>
+
+  <!-- Why batching doesn't help -->
+  <div class="section">
+    <span class="section-tag">Architecture Constraint</span>
+    <h2>Why We Cannot Batch Queries</h2>
+    <p>A natural instinct is to ask: "Can we query data for shops A, B, and C in a single API call?" The answer is no — and it is not a quota-tier limitation we could pay around. It is architectural.</p>
+
+    <p>Every OAuth token is scoped to <strong>exactly one identity</strong>: one Etsy user, one Shopify shop, one Stripe account. The API has no concept of "this app is asking for data across 10 unrelated shops." Each token authenticates the app <em>as that one user</em>, and the endpoints return data <em>for that one user</em>.</p>
+
+    <div class="info-grid">
+      <div class="card">
+        <h3><span class="platform-dot p-etsy">Etsy</span></h3>
+        <p><code>/v3/application/shops/{shop_id}/receipts</code> — one shop per call. No multi-shop endpoint.</p>
+      </div>
+      <div class="card">
+        <h3><span class="platform-dot p-stripe">Stripe</span></h3>
+        <p>Uses <code>Stripe-Account</code> header — one connected account per call.</p>
+      </div>
+      <div class="card">
+        <h3><span class="platform-dot p-paypal">PayPal</span></h3>
+        <p>Transaction Search is merchant-scoped by token — one merchant per call.</p>
+      </div>
+      <div class="card">
+        <h3><span class="platform-dot p-shopify">Shopify</span></h3>
+        <p>One OAuth install per shop — each shop is its own tenant.</p>
+      </div>
+    </div>
+
+    <p>Since batching is off the table, the three real call-reduction levers are:</p>
+
+    <div class="tier-specs" style="border-top: none; padding-top: 0; padding-left: 8px;">
+      <li><strong>Fewer, fatter queries per shop.</strong> Pull 100 records per page, not 10. Etsy allows <code>limit=100</code>. Shopify's GraphQL fetches orders + transactions + refunds in one query.</li>
+      <li><strong>Incremental delta pulls.</strong> After backfill, query only <code>created_at &gt;= LastSyncDateTime</code>. Steady-state is 0-3 records per sync.</li>
+      <li><strong>Webhook ingestion.</strong> When a shop event fires, we make 1 call to fetch its detail — instead of polling "just in case." Flips the cost model from poll-count to event-count.</li>
+    </div>
+  </div>
+
+  <!-- Why daily vs hourly -->
+  <div class="section">
+    <span class="section-tag">Cadence Rationale</span>
+    <h2>Why Daily, Not Hourly</h2>
+    <p>Hourly polling is the default instinct for "real-time dashboards," but it is overkill for this product. Three reasons daily is the right baseline:</p>
+
+    <div class="info-grid">
+      <div class="card">
+        <h3>1. Side-hustle revenue is sporadic</h3>
+        <p>A typical target-market Etsy shop gets <strong>0-5 sales per day</strong>, unevenly distributed. Most hourly syncs would return "nothing new." Those are wasted calls against a shared quota.</p>
+      </div>
+      <div class="card">
+        <h3>2. Users visit sporadically</h3>
+        <p>Side-hustlers check their revenue dashboard <strong>weekly or a few times per week</strong>, not hourly. They do not care whether data is 1 hour old or 18 hours old — they care that it is "today."</p>
+      </div>
+      <div class="card">
+        <h3>3. On-demand refresh handles the edge case</h3>
+        <p>The rare user who <em>does</em> want fresh data right now can click <strong>"Sync Now"</strong> on the dashboard. One click = one set of API calls. Rate-limited to a 30-minute cooldown per user per platform.</p>
+      </div>
+      <div class="card">
+        <h3>4. Webhooks beat hourly at freshness</h3>
+        <p>When we do need near-real-time (Phase 2), webhooks fire in <strong>seconds</strong>, not hours. Hourly polling is strictly worse than webhooks on freshness <em>and</em> quota cost. Skipping it entirely simplifies the architecture.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="section">
+    <span class="section-tag">Action Timeline</span>
+    <h2>What To Build When</h2>
+    <p>Ordered by growth milestone, not calendar date. We advance only when metrics say so.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <h4>Now — Build Phase 1 pipeline</h4>
+        <p>Daily scheduled sync worker + incremental sync + exponential backoff. Add the "Sync Now" button with a 30-min per-user-per-platform rate limit. This is the foundation every later phase builds on.</p>
+        <span class="timeline-trigger" style="background: #d1fae5; color: #065f46;">Launch default</span>
+      </div>
+      <div class="timeline-item">
+        <h4>At ~3,000 Etsy shops — Instrument the quota meter</h4>
+        <p>Log daily call count per platform. Dashboard or Elmah alert when Etsy count approaches 7K. Phase 1 is still comfortable here but we want the signal ready.</p>
+        <span class="timeline-trigger" style="background: #f3f4f6; color: #6b7280;">Trigger: 3,000+ Etsy connections</span>
+      </div>
+      <div class="timeline-item future">
+        <h4>At ~5,000 Etsy shops — Build webhook ingestion</h4>
+        <p>Wire up Etsy's 4 order webhooks and ingest events into the sync pipeline. Daily polling continues as a reconciliation backstop. Market "real-time updates" as a product feature. Same pattern for Stripe, PayPal, Shopify.</p>
+        <span class="timeline-trigger" style="background: #f3f4f6; color: #6b7280;">Trigger: Quota 70% saturated</span>
+      </div>
+      <div class="timeline-item future">
+        <h4>At very large scale — Bespoke architecture</h4>
+        <p>Evaluate Etsy Commercial Access quota negotiation, multi-key sub-apps, dedicated per-platform workers, or paid API tiers. At this scale, engineering investment is trivially affordable.</p>
+        <span class="timeline-trigger" style="background: #f3f4f6; color: #6b7280;">Trigger: Webhooks + cadence exhausted</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business Framing -->
+  <div class="section">
+    <span class="section-tag">Business Context</span>
+    <h2>Runway &amp; Risk</h2>
+    <p>Scaling problems arrive <em>after</em> product-market fit, not before. By the time we cross each phase boundary, revenue has already built up to pay for the engineering or partnership work the next phase requires.</p>
+
+    <div class="info-grid">
+      <div class="card">
+        <h3>Revenue alignment</h3>
+        <p>At 5,000 paying-tier-eligible users with 5% Pro conversion (~$3K/mo MRR), we can afford webhook engineering comfortably. Phase 1 carries us well past product-market fit before any paid engineering work is needed.</p>
+      </div>
+      <div class="card">
+        <h3>User-mix realism</h3>
+        <p>"5,000 users" and "5,000 Etsy connections" are not the same. Most users will connect Stripe first — and Stripe has massive headroom. A realistic 30-40% Etsy mix means Phase 1 supports <strong>15,000-20,000 total MyTalli users</strong>.</p>
+      </div>
+    </div>
+
+    <div class="callout warning">
+      <p><strong>The one real risk:</strong> a platform (most likely Etsy) unilaterally tightens rate limits, changes Commercial Access policy, or ends OAuth access. This is real but not unique — every third-party-API business carries platform risk. Our mitigation is diversification: users connecting 2-3 platforms means we are not all-in on any one platform relationship.</p>
+    </div>
+
+    <div class="callout success">
+      <p><strong>Bottom line:</strong> Daily baseline + on-demand refresh is the right architecture for a side-hustle revenue dashboard. Phase 1 carries us to 15,000+ total users with zero engineering investment. Phase 2 adds webhooks as a product differentiator. Phase 3 is a "thrilled to have" problem.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli — Internal Documentation
+  </div>
+
+</div>
+
+</body>
+</html>

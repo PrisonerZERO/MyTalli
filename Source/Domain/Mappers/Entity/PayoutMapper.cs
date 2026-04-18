@@ -20,6 +20,7 @@ public class PayoutMapper : EntityMapper<MODELS.Payout, ENTITIES.Payout>
 		destination.PayoutDate = source.PayoutDate;
 		destination.Platform = source.Platform;
 		destination.PlatformPayoutId = source.PlatformPayoutId;
+		destination.ShopConnectionId = source.ShopConnectionId;
 		destination.Status = source.Status;
 		destination.UserId = source.UserId;
 	}
@@ -35,6 +36,7 @@ public class PayoutMapper : EntityMapper<MODELS.Payout, ENTITIES.Payout>
 		PayoutDate = model.PayoutDate,
 		Platform = model.Platform,
 		PlatformPayoutId = model.PlatformPayoutId,
+		ShopConnectionId = model.ShopConnectionId,
 		Status = model.Status,
 		UserId = model.UserId,
 	};
@@ -51,6 +53,7 @@ public class PayoutMapper : EntityMapper<MODELS.Payout, ENTITIES.Payout>
 		PayoutDate = entity.PayoutDate,
 		Platform = entity.Platform,
 		PlatformPayoutId = entity.PlatformPayoutId,
+		ShopConnectionId = entity.ShopConnectionId,
 		Status = entity.Status,
 		UserId = entity.UserId,
 	};

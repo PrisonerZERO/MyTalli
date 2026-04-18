@@ -6,6 +6,7 @@ using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
+using Models;
 using Services.Identity;
 using System.Security.Claims;
 
@@ -27,6 +28,9 @@ public class NavMenuViewModel : ComponentBase
 	private UserPreferencesJsonSerializer PreferencesSerializer { get; set; } = default!;
 
 	[Inject]
+	private RepositoryAdapterAsync<MODELS.PlatformConnection, ENTITIES.PlatformConnection> PlatformConnectionAdapter { get; set; } = default!;
+
+	[Inject]
 	private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
 
 	[Inject]
@@ -42,6 +46,8 @@ public class NavMenuViewModel : ComponentBase
 	#endregion
 
 	#region <Properties>
+
+	public List<ConnectedPlatformLink> ConnectedPlatforms { get; private set; } = [];
 
 	public bool IsAdmin { get; private set; }
 
@@ -88,6 +94,17 @@ public class NavMenuViewModel : ComponentBase
 
 		IsProSubscriber = proSub is not null;
 
+		var connections = await PlatformConnectionAdapter.FindAsync(p => p.UserId == userId);
+
+		ConnectedPlatforms = connections
+			.OrderBy(c => c.Platform)
+			.Select(c => new ConnectedPlatformLink
+			{
+				BrandColor = GetBrandColor(c.Platform),
+				Name = c.Platform,
+			})
+			.ToList();
+
 		_userId = userId;
 	}
 
@@ -104,6 +121,16 @@ public class NavMenuViewModel : ComponentBase
 	#endregion
 
 	#region <Methods>
+
+	private static string GetBrandColor(string platform) => platform.ToLowerInvariant() switch
+	{
+		"stripe" => "#635bff",
+		"etsy" => "#f56400",
+		"gumroad" => "#ff90e8",
+		"paypal" => "#2a7fff",
+		"shopify" => "#96bf48",
+		_ => "#7c6cf7",
+	};
 
 	private async Task ApplyThemeAsync(long userId)
 	{

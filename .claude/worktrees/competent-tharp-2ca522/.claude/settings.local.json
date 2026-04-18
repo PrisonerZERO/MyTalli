@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -rn \"Components.ViewModels\\\\|Components\\\\\\\\\\\\\\\\ViewModels\" Source/My.Talli.Web/)",
+      "Bash(dotnet ef *)"
+    ]
+  }
+}
