@@ -719,6 +719,21 @@ My.Talli/
         │   │   └── EtsyService.cs               # Thin HTTP wrapper — token exchange + shop fetch. Uses Domain.Components.Etsy helpers.
         │   └── Tokens/
         │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
+        ├── Models/                     # Web-layer view-model DTOs (not to be confused with Domain.Models)
+        │   ├── ConnectedPlatformLink.cs   # NavMenu link row — platform name + brand color
+        │   ├── ExpenseItem.cs             # Manual Entry expense row
+        │   ├── GoalItem.cs                # Goals page row
+        │   ├── ManualEntryItem.cs         # Manual Entry generic row
+        │   ├── PayoutItem.cs              # Manual Entry payout row
+        │   ├── PlatformItem.cs            # Platforms page platform row (includes nested Shops list)
+        │   ├── ShopItem.cs                # Platforms page shop sub-row (per-shop sync status + txn count)
+        │   ├── SuggestionItem.cs          # Suggestion Box row
+        │   └── SampleData/                # Static classes returning mock data for gated features
+        │       ├── DashboardDataset.cs
+        │       ├── ExpenseDataset.cs
+        │       ├── GoalsDataset.cs
+        │       ├── ManualEntryDataset.cs
+        │       └── PayoutDataset.cs
         ├── ViewModels/
         │   ├── Pages/
         │   │   ├── AdminViewModel.cs

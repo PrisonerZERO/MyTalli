@@ -98,13 +98,13 @@
   <div class="intro">
     <div class="intro-left">
       <h2>Current focus: Sync Pipeline</h2>
-      <p>Planning complete. Schema work is the next concrete step — everything else (OAuth, workers, UI) depends on <code>ShopConnection</code> existing.</p>
+      <p>Schema layer built (<code>ShopConnection</code>, <code>ShopConnectionEtsy</code>, FKs on Revenue/Expense/Payout). Etsy OAuth callback shipped. Next concrete step is the Daily Sync Worker and incremental pull logic.</p>
     </div>
     <div class="intro-metrics">
       <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
-      <span class="metric"><span class="metric-value">12</span><span class="metric-label">Next<br>up</span></span>
+      <span class="metric"><span class="metric-value">8</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">8</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">9</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -202,38 +202,14 @@
     <div class="lane next">
       <div class="lane-header">
         <h3>Next Up</h3>
-        <span class="lane-count">12</span>
+        <span class="lane-count">8</span>
       </div>
       <div class="lane-body">
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Schema: ShopConnection + ShopConnectionEtsy</h4>
-          <p>Migration adds new sync-target tables. Absorbs SyncQueue fields. Provider-specific subtable pattern.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Schema: Drop / refactor SyncQueue</h4>
-          <p>Queue fields (NextSyncDateTime, LastSync, ConsecutiveFailures, etc.) roll into ShopConnection. One less table, one less FK.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Etsy OAuth callback flow</h4>
-          <p>Exchange code → store tokens in PlatformConnection → fetch shop list → create ShopConnection rows.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Etsy shop picker UI</h4>
-          <p>Post-OAuth page: if user has multiple shops, they pick one to track on free tier. Locks in chosen shop.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Pre-connection permanence warning</h4>
-          <p>ConfirmDialog before OAuth: explains connection is permanent and occupies a plan slot. Must confirm before redirect.</p>
+          <h4>Free-tier active-shop gate</h4>
+          <p>Enforce <code>ShopConnection.IsActive</code> so free-tier users have exactly one syncing shop per platform. Pro unlocks the rest. UI already shows all connected shops — this adds the business rule.</p>
         </div>
 
         <div class="card">
@@ -296,9 +272,37 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">8</span>
+        <span class="lane-count">9</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Multi-shop schema + UI</h4>
+          <p>Added nullable <code>ShopConnectionId</code> FK to Revenue / Expense / Payout (per-shop analytics). Platforms page now shows nested shop rows with per-shop Sync / Manage actions and a "Connect another shop" button. Sidebar lists each connected platform under Manual Entry.</p>
+          <span class="done-date">Apr 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Schema: ShopConnection + ShopConnectionEtsy</h4>
+          <p>New sync-target tables. Provider-specific subtable pattern. SyncQueue fields absorbed onto ShopConnection in the same migration (one row per shop, not per connection).</p>
+          <span class="done-date">Apr 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Etsy OAuth callback flow</h4>
+          <p>Exchange code → store tokens in PlatformConnection → fetch shop list → create ShopConnection rows. Integrated with the ConnectEtsyCommand upsert.</p>
+          <span class="done-date">Apr 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Pre-connection permanence warning</h4>
+          <p>ConfirmDialog before OAuth explains the connection is permanent and occupies a plan slot. Wired on the Platforms page for all connect actions.</p>
+          <span class="done-date">Apr 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag docs">Docs</span></div>
@@ -329,31 +333,10 @@
         </div>
 
         <div class="card">
-          <div class="card-tags"><span class="tag billing">Billing</span></div>
-          <h4>My Plan Page</h4>
-          <p>Consolidated plan + module management at <code>/my-plan</code>. Replaces old <code>/subscription</code> + <code>/upgrade</code> pages.</p>
-          <span class="done-date">Mar 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Manual Entry Module</h4>
-          <p>Full CRUD grids for Revenue / Expenses / Payouts. Quick-entry row, inline editing, density toggle. Module subscription ($3/mo).</p>
-          <span class="done-date">Mar 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag email">Email</span></div>
-          <h4>Admin Email Resend</h4>
-          <p>Admin ability to resend Welcome / SubscriptionConfirmation / WeeklySummary to any user. Bulk Welcome send.</p>
-          <span class="done-date">Mar 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag nav">Nav</span></div>
-          <h4>Admin Page</h4>
-          <p>Role-gated <code>/admin</code> page. Uses <code>vAuthenticatedUser</code> view. Non-admin redirects to dashboard.</p>
-          <span class="done-date">Mar 2026</span>
+          <div class="card-tags"><span class="tag docs">Docs</span></div>
+          <h4>ShopConnection ERD + CostingPlan updates</h4>
+          <p>ERD updated to show the new Revenue/Expense/Payout → ShopConnection FKs. CostingPlan gets a "Multi-Shop Power Users" note in Hidden Costs.</p>
+          <span class="done-date">Apr 2026</span>
         </div>
 
       </div>

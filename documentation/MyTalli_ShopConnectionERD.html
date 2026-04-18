@@ -80,7 +80,7 @@
 <div class="header">
   <h1>My<span>Talli</span> ShopConnection ERD</h1>
   <p class="subtitle">Visual reference for the new sync-target layer: <code style="background:rgba(255,255,255,0.15);color:#fff;">app.ShopConnection</code> + <code style="background:rgba(255,255,255,0.15);color:#fff;">app.ShopConnectionEtsy</code>, plus the retirement of <code style="background:rgba(255,255,255,0.15);color:#fff;">app.SyncQueue</code>.</p>
-  <p class="doc-date">Last updated: April 2026 · Migration: <code style="background:rgba(255,255,255,0.15);color:#fff;">AddShopConnectionsAndDropSyncQueue</code></p>
+  <p class="doc-date">Last updated: April 2026 · Migrations: <code style="background:rgba(255,255,255,0.15);color:#fff;">AddShopConnectionsAndDropSyncQueue</code> + <code style="background:rgba(255,255,255,0.15);color:#fff;">AddShopConnectionIdToRevenueExpensePayout</code></p>
 </div>
 
 <div class="content">
@@ -134,7 +134,7 @@
         <text x="40" y="214" font-size="11" font-weight="600" fill="#27ae60" opacity="0.9">NEW — SYNC-TARGET LAYER (this migration)</text>
 
         <rect x="20" y="560" width="1060" height="180" rx="12" fill="#fff3e0" opacity="0.25"/>
-        <text x="40" y="584" font-size="11" font-weight="600" fill="#e65100" opacity="0.85">DOWNSTREAM — REVENUE (existing)</text>
+        <text x="40" y="584" font-size="11" font-weight="600" fill="#e65100" opacity="0.85">DOWNSTREAM — REVENUE / EXPENSE / PAYOUT (existing tables, new FK to ShopConnection)</text>
 
         <rect x="20" y="770" width="1060" height="140" rx="12" fill="#fee2e2" opacity="0.4"/>
         <text x="40" y="794" font-size="11" font-weight="600" fill="#b91c1c" opacity="0.9">REMOVED IN THIS MIGRATION</text>
@@ -225,12 +225,12 @@
 
         <text x="910" y="456" text-anchor="middle" font-size="10" fill="#999" font-style="italic">Shared-PK 1:1 extension of ShopConnection</text>
 
-        <!-- ================= DOWNSTREAM: Revenue ================= -->
+        <!-- ================= DOWNSTREAM: Revenue (+ Expense, Payout siblings) ================= -->
         <rect x="280" y="620" width="360" height="94" rx="10" fill="#27ae60" filter="url(#shadow)"/>
-        <text x="460" y="646" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">app.Revenue</text>
-        <text x="460" y="666" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Id · UserId (FK) · Platform</text>
-        <text x="460" y="683" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">PlatformTransactionId · Gross / Fee / Net</text>
-        <text x="460" y="700" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.7)">no direct FK to ShopConnection — linked by (Platform, PlatformTransactionId)</text>
+        <text x="460" y="644" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">app.Revenue / Expense / Payout</text>
+        <text x="460" y="662" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Id · UserId (FK) · ShopConnectionId (FK, nullable)</text>
+        <text x="460" y="678" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Platform · platform-specific Tx/Payout id · amounts</text>
+        <text x="460" y="700" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">FK → ShopConnection (nullable; null for manual entries)</text>
 
         <rect x="760" y="620" width="280" height="94" rx="10" fill="#fff" stroke="#f56400" stroke-width="2" filter="url(#shadow)"/>
         <text x="900" y="646" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">app.RevenueEtsy</text>
@@ -261,10 +261,10 @@
         <line x1="640" y1="370" x2="760" y2="370" stroke="#f56400" stroke-width="2" marker-end="url(#arrow-etsy)"/>
         <text x="700" y="362" text-anchor="middle" font-size="10" font-weight="700" fill="#f56400">1 : 1 (shared PK)</text>
 
-        <!-- ShopConnection → Revenue (sync writes, no FK) -->
-        <path d="M 460 500 L 460 620" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-green)"/>
-        <text x="475" y="562" font-size="10" font-weight="600" fill="#27ae60">sync writes</text>
-        <text x="475" y="576" font-size="9" fill="#27ae60" font-style="italic">(no direct FK)</text>
+        <!-- ShopConnection → Revenue/Expense/Payout (nullable FK, Restrict) -->
+        <path d="M 460 500 L 460 620" fill="none" stroke="#27ae60" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+        <text x="475" y="560" font-size="10" font-weight="600" fill="#27ae60">1 : N · FK (nullable)</text>
+        <text x="475" y="574" font-size="9" fill="#27ae60" font-style="italic">Restrict on delete</text>
 
         <!-- ShopConnectionEtsy → RevenueEtsy (conceptual) -->
         <path d="M 910 470 L 910 620" fill="none" stroke="#f56400" stroke-width="1.2" stroke-dasharray="3,4" opacity="0.6"/>
@@ -300,8 +300,8 @@
         <line x1="75" y1="414" x2="105" y2="414" stroke="#f56400" stroke-width="2" marker-end="url(#arrow-etsy)"/>
         <text x="115" y="418" font-size="10" fill="#555">1:1 shared PK</text>
 
-        <line x1="75" y1="432" x2="105" y2="432" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-green)"/>
-        <text x="115" y="436" font-size="10" fill="#555">Data flow (no FK)</text>
+        <line x1="75" y1="432" x2="105" y2="432" stroke="#27ae60" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+        <text x="115" y="436" font-size="10" fill="#555">FK (nullable, Restrict)</text>
 
         <rect x="75" y="448" width="14" height="14" rx="3" fill="#fffaf0" stroke="#f5c842" stroke-width="1"/>
         <text x="96" y="459" font-size="10" fill="#555">Absorbed from SyncQueue</text>
@@ -478,6 +478,34 @@
 
     <div class="callout success">
       <p><strong>Pattern:</strong> <code>ShopConnection</code> splits by provider only when a provider-unique shop-level field exists. Today that's only Etsy. Future subtables follow the same shared-PK convention (<code>ShopConnectionShopify</code>, etc.).</p>
+    </div>
+  </div>
+
+  <!-- Revenue / Expense / Payout linkage -->
+  <div class="section">
+    <h2>Revenue / Expense / Payout → ShopConnection <span class="tag new">UPDATED</span></h2>
+    <p>A follow-up migration (<code>AddShopConnectionIdToRevenueExpensePayout</code>) added a nullable <code>ShopConnectionId</code> foreign key to each of the three downstream tables. This enables per-shop analytics (group revenue/expense/payout by shop, not just by platform) and gives dashboards a direct join to <code>ShopConnection.ShopName</code> for display.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:200px;">Table</th>
+          <th style="width:240px;">New Column</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="fk"><td><code>app.Revenue</code></td><td><code>ShopConnectionId</code> bigint · nullable</td><td>Null for manual entries. FK → <code>app.ShopConnection</code>, Restrict on delete. Indexed (<code>IX_Revenue_ShopConnectionId</code>).</td></tr>
+        <tr class="fk"><td><code>app.Expense</code></td><td><code>ShopConnectionId</code> bigint · nullable</td><td>Same pattern. FK <code>FK_Expense_ShopConnection</code>, index <code>IX_Expense_ShopConnectionId</code>.</td></tr>
+        <tr class="fk"><td><code>app.Payout</code></td><td><code>ShopConnectionId</code> bigint · nullable</td><td>Same pattern. FK <code>FK_Payout_ShopConnection</code>, index <code>IX_Payout_ShopConnectionId</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Why Restrict (not Cascade)?</h3>
+    <p>Shops are effectively permanent (users can pause syncing but can't disconnect). A rare hard-delete of a <code>ShopConnection</code> shouldn't blow away years of revenue history — Restrict forces an explicit nullout or reassignment first. It also matches the precedent set by <code>FK_ShopConnection_User</code> and avoids SQL Server multiple-cascade-path collisions with <code>FK_Revenue_User</code>.</p>
+
+    <div class="callout success">
+      <p><strong>Querying per shop:</strong> Dashboard and goal queries can now do <code>GROUP BY ShopConnectionId</code> (for cross-platform views) or join to <code>ShopConnection</code> for human-readable shop names. The existing <code>(Platform, TransactionDate)</code> index still serves platform-level rollups; the new FK index serves shop-scoped queries.</p>
     </div>
   </div>
 
