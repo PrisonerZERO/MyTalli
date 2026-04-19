@@ -149,13 +149,25 @@ else
                     @if (platform.SupportsMultipleShops)
                     {
                         <div class="plat-shop-add">
-                            <button class="plat-btn-add-shop" aria-label="Connect another @platform.Name shop" @onclick="() => StartConnectAnotherShop(platform.Name)">
-                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
-                                    <line x1="12" x2="12" y1="5" y2="19" />
-                                    <line x1="5" x2="19" y1="12" y2="12" />
-                                </svg>
-                                Connect another shop
-                            </button>
+                            @if (platform.CanAddAnotherShop)
+                            {
+                                <button class="plat-btn-add-shop" aria-label="Connect another @platform.Name shop" @onclick="() => StartConnectAnotherShop(platform.Name)">
+                                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                        <line x1="12" x2="12" y1="5" y2="19" />
+                                        <line x1="5" x2="19" y1="12" y2="12" />
+                                    </svg>
+                                    Connect another shop
+                                </button>
+                            }
+                            else
+                            {
+                                <a class="plat-btn-upgrade" href="/my-plan" aria-label="Upgrade to Pro to connect additional @platform.Name shops">
+                                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                    </svg>
+                                    <span>Upgrade to Pro to connect another @platform.Name shop</span>
+                                </a>
+                            }
                         </div>
                     }
                 </article>

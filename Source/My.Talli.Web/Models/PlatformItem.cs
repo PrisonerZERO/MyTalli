@@ -7,6 +7,8 @@ public class PlatformItem
 
 	public string BrandColor { get; set; } = "";
 
+	public bool CanAddAnotherShop { get; set; }
+
 	public string ConnectionStatus { get; set; } = "";
 
 	public string Description { get; set; } = "";

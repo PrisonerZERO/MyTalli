@@ -3,9 +3,13 @@ namespace My.Talli.Web.Endpoints;
 using Domain.Commands.Platforms;
 using Domain.Components;
 using Domain.Framework;
+using Domain.Repositories;
 using Microsoft.AspNetCore.DataProtection;
 using System.Text.Json;
 using Web.Services.Platforms;
+
+using ENTITIES = Domain.Entities;
+using MODELS = Domain.Models;
 
 /// <summary>Endpoint</summary>
 public static class PlatformEndpoints
@@ -29,11 +33,31 @@ public static class PlatformEndpoints
 
     #region <Methods>
 
-    private static IResult EtsyConnect(HttpContext context, EtsyService etsy, IDataProtectionProvider dataProtectionProvider)
+    private static async Task<IResult> EtsyConnect(
+        HttpContext context,
+        EtsyService etsy,
+        IDataProtectionProvider dataProtectionProvider,
+        RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter,
+        RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> subscriptionAdapter)
     {
         var userIdClaim = context.User.FindFirst("UserId")?.Value;
         if (!long.TryParse(userIdClaim, out var userId))
             return Results.Unauthorized();
+
+        // Plan-tier guard: free tier is capped at 1 Etsy shop. Pro (ProductId 1 or 2, Active/Cancelling) is uncapped.
+        var isPro = (await subscriptionAdapter.FindAsync(s =>
+            s.UserId == userId &&
+            (s.ProductId == 1 || s.ProductId == 2) &&
+            (s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling))).Any();
+
+        if (!isPro)
+        {
+            var etsyShopCount = (await shopConnectionAdapter.FindAsync(s =>
+                s.UserId == userId && s.PlatformConnection.Platform == "Etsy")).Count();
+
+            if (etsyShopCount >= 1)
+                return Results.Redirect("/platforms?error=etsy_plan_limit");
+        }
 
         var challenge = etsy.BuildAuthorizeChallenge();
         var protector = dataProtectionProvider.CreateProtector(EtsyChallengePurpose);

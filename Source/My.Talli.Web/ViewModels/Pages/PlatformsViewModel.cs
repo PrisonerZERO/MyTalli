@@ -1,5 +1,7 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Data.Interfaces;
+using Domain.Framework;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -19,6 +21,9 @@ public class PlatformsViewModel : ComponentBase
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
 	[Inject]
+	private ICurrentUserService CurrentUserService { get; set; } = default!;
+
+	[Inject]
 	private NavigationManager Navigation { get; set; } = default!;
 
 	[Inject]
@@ -29,6 +34,9 @@ public class PlatformsViewModel : ComponentBase
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> ShopConnectionAdapter { get; set; } = default!;
+
+	[Inject]
+	private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
 
 	#endregion
 
@@ -49,6 +57,8 @@ public class PlatformsViewModel : ComponentBase
 	public string? ErrorMessage { get; private set; }
 
 	public bool IsLoading { get; private set; } = true;
+
+	public bool IsProSubscriber { get; private set; }
 
 	public string? SuccessMessage { get; private set; }
 
@@ -78,6 +88,11 @@ public class PlatformsViewModel : ComponentBase
 			IsLoading = false;
 			return;
 		}
+
+		// Populate the circuit-scoped CurrentUserService so audit stamping works on interactive
+		// updates (Pause/Resume). Middleware populates the HTTP-request-scoped instance, which
+		// isn't the same scope Blazor components see once the SignalR circuit takes over.
+		CurrentUserService.Set(userId, string.Empty);
 
 		await LoadPlatformsAsync(userId);
 		IsLoading = false;
@@ -171,6 +186,7 @@ public class PlatformsViewModel : ComponentBase
 				"etsy_expired" => "Your connection session expired. Please try again.",
 				"etsy_state" => "Connection could not be verified. Please try again.",
 				"etsy_exchange" => "We couldn't finalize your Etsy connection. Please try again or contact support.",
+				"etsy_plan_limit" => "Your plan allows 1 Etsy shop. Upgrade to Pro to connect additional shops.",
 				_ => "Something went wrong connecting that platform. Please try again."
 			};
 	}
@@ -230,6 +246,13 @@ public class PlatformsViewModel : ComponentBase
 		var shops = await ShopConnectionAdapter.FindAsync(s => s.UserId == userId);
 		var revenues = await RevenueAdapter.FindAsync(r => r.UserId == userId);
 
+		// Detect Pro subscriber (ProductId 1 = Pro Monthly, 2 = Pro Yearly; Active or Cancelling both count)
+		var proSubscriptions = await SubscriptionAdapter.FindAsync(s =>
+			s.UserId == userId &&
+			(s.ProductId == 1 || s.ProductId == 2) &&
+			(s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling));
+		IsProSubscriber = proSubscriptions.Any();
+
 		var connectionsByPlatform = connections.ToDictionary(c => c.Platform, StringComparer.OrdinalIgnoreCase);
 		var shopsByConnectionId = shops.GroupBy(s => s.PlatformConnectionId).ToDictionary(g => g.Key, g => g.ToList());
 		var txnCountsByShop = revenues.Where(r => r.ShopConnectionId.HasValue).GroupBy(r => r.ShopConnectionId!.Value).ToDictionary(g => g.Key, g => g.Count());
@@ -264,6 +287,9 @@ public class PlatformsViewModel : ComponentBase
 					item.TransactionCount = item.Shops.Sum(s => s.TransactionCount);
 				}
 			}
+
+			// Multi-shop platforms: free tier capped at 1 shop; Pro unlimited.
+			item.CanAddAnotherShop = item.SupportsMultipleShops && (IsProSubscriber || item.Shops.Count == 0);
 		}
 
 		Platforms = catalog;

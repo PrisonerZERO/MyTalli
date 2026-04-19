@@ -66,6 +66,10 @@
 .plat-btn-add-shop:hover { background: var(--purple-soft); border-color: var(--purple-primary); border-style: solid; }
 .plat-btn-add-shop svg { height: 14px; width: 14px; }
 
+.plat-btn-upgrade { align-items: center; background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 100%); border: none; border-radius: 8px; color: #fff; cursor: pointer; display: inline-flex; font-family: inherit; font-size: 13px; font-weight: 600; gap: 8px; padding: 9px 16px; text-decoration: none; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.plat-btn-upgrade:hover { box-shadow: 0 2px 12px rgba(108, 92, 231, 0.35); transform: translateY(-1px); }
+.plat-btn-upgrade svg { color: #f5c842; height: 14px; width: 14px; }
+
 /* ─── AVAILABLE ROW ─── */
 .plat-row-available { opacity: 0.85; }
 .plat-row-type { color: var(--text-muted); font-size: 13px; }
