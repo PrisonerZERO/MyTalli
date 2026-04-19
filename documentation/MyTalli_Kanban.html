@@ -90,7 +90,7 @@
 <div class="header">
   <h1>My<span>Talli</span> Active Work</h1>
   <p class="subtitle">Lightweight Kanban board — what's in flight, what's next, what's done</p>
-  <p class="doc-date">Last updated: April 2026</p>
+  <p class="doc-date">Last updated: April 19, 2026</p>
 </div>
 
 <div class="content">
@@ -102,9 +102,9 @@
     </div>
     <div class="intro-metrics">
       <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
-      <span class="metric"><span class="metric-value">8</span><span class="metric-label">Next<br>up</span></span>
+      <span class="metric"><span class="metric-value">7</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">9</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">10</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -226,12 +226,6 @@
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>"Sync Now" button (rate-limited)</h4>
-          <p>Dashboard button triggers immediate sync. 30-min cooldown per user per platform. Freshness escape hatch for daily baseline.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
           <h4>Incremental sync logic</h4>
           <p>After first backfill, only pull <code>created_at &gt;= LastSyncDateTime</code>. Keeps steady-state at ~1 call per shop per sync.</p>
         </div>
@@ -278,8 +272,15 @@
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Multi-login Etsy tokens (per-shop)</h4>
+          <p>Moved <code>AccessToken</code> / <code>RefreshToken</code> / <code>TokenExpiryDateTime</code> / <code>PlatformAccountId</code> from <code>PlatformConnection</code> to <code>ShopConnection</code> (migration preserves existing data). One MyTalli user can now own N Etsy shops via N Etsy logins. <code>ConnectEtsyCommand</code> rewritten; dedicated "Add another shop" dialog; three-state callback (<code>connected</code> / <code>added</code> / <code>refreshed</code>) with teach-on-failure toast. <code>SupportsMultipleShops</code> gates the button to Etsy only.</p>
+          <span class="done-date">Apr 19 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
           <h4>Multi-shop schema + UI</h4>
-          <p>Added nullable <code>ShopConnectionId</code> FK to Revenue / Expense / Payout (per-shop analytics). Platforms page now shows nested shop rows with per-shop Sync / Manage actions and a "Connect another shop" button. Sidebar lists each connected platform under Manual Entry.</p>
+          <p>Added nullable <code>ShopConnectionId</code> FK to Revenue / Expense / Payout (per-shop analytics). Platforms page now shows nested shop rows with a per-shop Pause/Resume toggle and a "Connect another shop" button. Sidebar lists each connected platform under Manual Entry.</p>
           <span class="done-date">Apr 2026</span>
         </div>
 
@@ -293,7 +294,7 @@
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
           <h4>Etsy OAuth callback flow</h4>
-          <p>Exchange code → store tokens in PlatformConnection → fetch shop list → create ShopConnection rows. Integrated with the ConnectEtsyCommand upsert.</p>
+          <p>Exchange code → fetch shop list → upsert via ConnectEtsyCommand. Tokens stored per-shop on <code>ShopConnection</code>, not on PlatformConnection.</p>
           <span class="done-date">Apr 2026</span>
         </div>
 

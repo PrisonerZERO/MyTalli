@@ -966,6 +966,20 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 - **ViewModel pattern:** `ActiveTab` (string property, default varies by page), `SelectTab(string tab)` method. Page content wrapped in `@if (ActiveTab == "xxx")` blocks with `role="tabpanel"` and `aria-label`.
 - **`PageTitle`** updates based on active tab (e.g., "Dashboard — Revenue — MyTalli").
 
+### Platform Connections
+
+- **Tokens belong to the shop, not the platform.** `PlatformConnection` is a bookkeeping row per (user, platform); OAuth credentials (`AccessToken`, `RefreshToken`, `TokenExpiryDateTime`, `PlatformAccountId`) live on `ShopConnection`. This is what lets a single MyTalli user own multiple Etsy shops under multiple Etsy logins — each shop carries its own login's tokens.
+- **Per-shop controls, not per-platform.** The shop row on `/platforms` shows one action button: **Pause** / **Resume** (toggles `ShopConnection.IsEnabled`). No "Sync Now" — syncing is scheduled server-side via `ShopConnection.NextSyncDateTime`; a manual trigger would undermine the rate-limit strategy. No "Manage" — there's no separate management surface; connect/pause on this page is the management surface.
+- **`SupportsMultipleShops` flag on `PlatformItem`.** Gates the "Connect another shop" button on the Platforms page. Only `true` for platforms where one user legitimately has many shops (Etsy today). The 1:1 platforms (Stripe, Gumroad, PayPal, Shopify) hide the button entirely since the concept doesn't exist there.
+- **Connect-another-shop dialog.** Separate from first-time connect. Copy explains the platform reality ("each login owns exactly one shop") and instructs the user to sign in with a different account on the next screen. Wired to its own `AddingShopToPlatform` / `StartConnectAnotherShop` / `ConfirmAddShop` / `CancelAddShop` set on the view model — does not re-use the first-time connect dialog.
+- **Etsy OAuth has no account switcher.** `prompt=login` is silently ignored. There is no documented Etsy logout URL we can redirect through (probed `/signout`, `/logout`, `/sign-out` — all return 404; Etsy's UI signout is a POST + CSRF flow, not a GET target). Browser same-origin policy prevents us from destroying Etsy cookies from our JS. Result: to connect a *different* Etsy login, the user must manually sign out of etsy.com (profile menu → Sign out) or use an incognito window. We cannot automate this.
+- **Three-state OAuth callback outcome.** [EtsyCallback](Source/My.Talli.Web/Endpoints/PlatformEndpoints.cs) redirects to `/platforms?etsy={status}` based on `ConnectEtsyResult`:
+  - `connected` — first-time connection for this user+platform
+  - `added` — existing connection, at least one new shop row inserted
+  - `refreshed` — existing connection, only existing shop(s) refreshed (user authorized the same Etsy account again)
+- **Teach on failure, not upfront.** The "Add another shop" pre-flight dialog stays short on instructions. When the `refreshed` state fires, that's the teachable moment — the toast explains what happened *and* gives the recovery step (*"sign out of Etsy first, then click Connect another shop again"*). Don't front-load the dialog with recovery UX; users who breeze through don't need it, users who hit the wall get the instruction exactly when they're paying attention.
+- **Sync worker is not built yet.** The schema, per-shop tokens, and connection flow are ready. Nothing polls `ShopConnection.NextSyncDateTime` today — that's the next chunk of work. Until it exists, even connected shops show "Never synced". When built, the worker enumerates `ShopConnection` rows, uses each row's tokens, and multi-shop comes out of the box with zero special-casing.
+
 ### Modal Behavior
 
 - **Modals do not close on backdrop click.** Only the Cancel button (or equivalent) closes the modal. This prevents accidental data loss when users click outside a form modal.
