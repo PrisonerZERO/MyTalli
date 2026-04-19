@@ -1,9 +1,11 @@
-namespace My.Talli.Web.Services.Platforms;
+namespace My.Talli.Web.Workers;
 
 using Domain.Commands.Platforms;
+using Domain.Data.Interfaces;
 using Domain.Models;
 using Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using Web.Services.Platforms;
 
 using ENTITIES = Domain.Entities;
 
@@ -69,17 +71,18 @@ public class TokenRefreshWorker : BackgroundService
 
         var shopAdapter = sp.GetRequiredService<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
         var refreshCommand = sp.GetRequiredService<RefreshShopTokensCommand>();
+        var currentUserService = sp.GetRequiredService<ICurrentUserService>();
 
         foreach (var refresher in refreshers)
         {
             if (stoppingToken.IsCancellationRequested)
                 return;
 
-            await RefreshPlatformAsync(refresher, shopAdapter, refreshCommand, stoppingToken);
+            await RefreshPlatformAsync(refresher, shopAdapter, refreshCommand, currentUserService, stoppingToken);
         }
     }
 
-    private async Task RefreshPlatformAsync(IPlatformTokenRefresher refresher, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopAdapter, RefreshShopTokensCommand refreshCommand, CancellationToken stoppingToken)
+    private async Task RefreshPlatformAsync(IPlatformTokenRefresher refresher, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopAdapter, RefreshShopTokensCommand refreshCommand, ICurrentUserService currentUserService, CancellationToken stoppingToken)
     {
         var platform = refresher.Platform;
         var threshold = DateTime.UtcNow.Add(refresher.ProactiveRefreshWindow);
@@ -101,7 +104,10 @@ public class TokenRefreshWorker : BackgroundService
             if (stoppingToken.IsCancellationRequested)
                 return;
 
-            await RefreshOneShopAsync(shop, refresher, refreshCommand, stoppingToken);
+            // Audit fields require an authenticated user — stamp as the shop's owner
+            currentUserService.Set(shop.UserId, string.Empty);
+            try { await RefreshOneShopAsync(shop, refresher, refreshCommand, stoppingToken); }
+            finally { currentUserService.Clear(); }
 
             try { await Task.Delay(PerShopDelay, stoppingToken); }
             catch (TaskCanceledException) { return; }

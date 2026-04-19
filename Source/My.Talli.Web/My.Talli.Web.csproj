@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <Folder Include="Handlers\Endpoints\" />
+    <Folder Include="Services\Workers\" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 namespace My.Talli.Web.Configuration;
 
 using Web.Services.Platforms;
+using Web.Workers;
 
 /// <summary>Configuration</summary>
 public static class PlatformsConfiguration
@@ -12,11 +13,16 @@ public static class PlatformsConfiguration
         services.Configure<EtsySettings>(configuration.GetSection("Etsy"));
         services.AddHttpClient<EtsyService>();
 
-        // Platform token refreshers — one per platform that rotates refresh tokens
-        services.AddScoped<IPlatformTokenRefresher, EtsyTokenRefresher>();
+        // Per-platform token refreshers (rotate refresh tokens before expiry)
+        services.AddScoped<EtsyTokenRefresher>();
+        services.AddScoped<IPlatformTokenRefresher, EtsyTokenRefresher>(sp => sp.GetRequiredService<EtsyTokenRefresher>());
 
-        // Background worker — proactively refreshes tokens before expiry
+        // Per-platform sync services (pull revenue data)
+        services.AddScoped<IPlatformSyncService, EtsySyncService>();
+
+        // Background workers
         services.AddHostedService<TokenRefreshWorker>();
+        services.AddHostedService<ShopSyncWorker>();
     }
 
     #endregion

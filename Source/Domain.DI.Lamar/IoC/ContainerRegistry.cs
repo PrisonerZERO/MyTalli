@@ -69,6 +69,8 @@ public class ContainerRegistry : ServiceRegistry
 		this.AddScoped<FindActiveSubscriptionWithStripeCommand>();
 		this.AddScoped<RefreshShopTokensCommand>();
 		this.AddScoped<UpdateLocalSubscriptionCommand>();
+		this.AddScoped<UpdateShopSyncStateCommand>();
+		this.AddScoped<UpsertEtsyRevenueCommand>();
 	}
 
 	#endregion
