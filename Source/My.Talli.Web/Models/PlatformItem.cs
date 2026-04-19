@@ -27,6 +27,8 @@ public class PlatformItem
 
 	public string Subtitle { get; set; } = "";
 
+	public bool SupportsMultipleShops { get; set; }
+
 	public string SyncStatus { get; set; } = "";
 
 	public int TransactionCount { get; set; }

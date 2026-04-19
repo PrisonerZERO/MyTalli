@@ -94,11 +94,18 @@ public static class PlatformEndpoints
             var shops = await etsy.GetShopsAsync(platformAccountId, tokenResponse.AccessToken);
 
             // TRANSACTION
-            await EnforcedTransactionScope.ExecuteAsync(async () => await connectEtsy.ExecuteAsync(cookie.UserId, tokenResponse, platformAccountId, shops));
+            var result = await EnforcedTransactionScope.ExecuteAsync(async () => await connectEtsy.ExecuteAsync(cookie.UserId, tokenResponse, platformAccountId, shops));
 
-            logger.LogInformation("Etsy OAuth connected for user {UserId} with {ShopCount} shop(s)", cookie.UserId, shops.Count);
+            logger.LogInformation("Etsy OAuth connected for user {UserId}: firstConnection={IsFirst} new={NewShopCount} refreshed={RefreshedShopCount}", cookie.UserId, result.IsFirstConnection, result.NewShopCount, result.RefreshedShopCount);
             ClearChallengeCookie(context);
-            return Results.Redirect("/platforms?connected=etsy");
+
+            var status = (result.IsFirstConnection, result.NewShopCount) switch
+            {
+                (true, _) => "connected",
+                (false, > 0) => "added",
+                _ => "refreshed"
+            };
+            return Results.Redirect($"/platforms?etsy={status}");
         }
         catch (Exception ex)
         {

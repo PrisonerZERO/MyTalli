@@ -150,6 +150,44 @@ public class ConnectEtsyCommandTests
     }
 
     [Fact]
+    public async Task Execute_FirstConnectionWithNewShop_ReportsFirstConnectionAndOneNewShop()
+    {
+        var builder = new PlatformHandlerBuilder();
+
+        var result = await builder.Command.ExecuteAsync(1, BuildTokens(), "user", [BuildShop()]);
+
+        Assert.True(result.IsFirstConnection);
+        Assert.Equal(1, result.NewShopCount);
+        Assert.Equal(0, result.RefreshedShopCount);
+    }
+
+    [Fact]
+    public async Task Execute_ReconnectExistingShop_ReportsRefreshOnly()
+    {
+        var builder = new PlatformHandlerBuilder();
+        await builder.Command.ExecuteAsync(1, BuildTokens(), "user", [BuildShop()]);
+
+        var result = await builder.Command.ExecuteAsync(1, BuildTokens(), "user", [BuildShop()]);
+
+        Assert.False(result.IsFirstConnection);
+        Assert.Equal(0, result.NewShopCount);
+        Assert.Equal(1, result.RefreshedShopCount);
+    }
+
+    [Fact]
+    public async Task Execute_SecondEtsyLogin_ReportsOneNewShopAndZeroRefresh()
+    {
+        var builder = new PlatformHandlerBuilder();
+        await builder.Command.ExecuteAsync(1, BuildTokens(), "etsy-user-a", [BuildShop(shopId: 100, shopName: "Shop A")]);
+
+        var result = await builder.Command.ExecuteAsync(1, BuildTokens(), "etsy-user-b", [BuildShop(shopId: 200, shopName: "Shop B")]);
+
+        Assert.False(result.IsFirstConnection);
+        Assert.Equal(1, result.NewShopCount);
+        Assert.Equal(0, result.RefreshedShopCount);
+    }
+
+    [Fact]
     public async Task Execute_NoShopsReturned_CreatesPlatformConnectionOnly()
     {
         var builder = new PlatformHandlerBuilder();

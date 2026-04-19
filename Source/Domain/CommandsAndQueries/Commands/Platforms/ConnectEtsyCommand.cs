@@ -36,38 +36,50 @@ public class ConnectEtsyCommand
 
     #region <Methods>
 
-    public async Task ExecuteAsync(long userId, EtsyTokenResponse tokens, string platformAccountId, IReadOnlyList<EtsyShop> shops)
+    public async Task<ConnectEtsyResult> ExecuteAsync(long userId, EtsyTokenResponse tokens, string platformAccountId, IReadOnlyList<EtsyShop> shops)
     {
-        var connection = await UpsertPlatformConnectionAsync(userId);
+        var (connection, isFirstConnection) = await UpsertPlatformConnectionAsync(userId);
+
+        var result = new ConnectEtsyResult { IsFirstConnection = isFirstConnection };
 
         foreach (var shop in shops)
-            await UpsertShopAsync(userId, connection.Id, tokens, platformAccountId, shop);
+        {
+            var wasNewShop = await UpsertShopAsync(userId, connection.Id, tokens, platformAccountId, shop);
+            if (wasNewShop)
+                result.NewShopCount++;
+            else
+                result.RefreshedShopCount++;
+        }
+
+        return result;
     }
 
-    private async Task<PlatformConnection> UpsertPlatformConnectionAsync(long userId)
+    private async Task<(PlatformConnection Connection, bool WasInserted)> UpsertPlatformConnectionAsync(long userId)
     {
         var existing = (await _platformConnectionAdapter.FindAsync(p => p.UserId == userId && p.Platform == EtsyPlatformName)).FirstOrDefault();
 
         if (existing is null)
         {
-            return await _platformConnectionAdapter.InsertAsync(new PlatformConnection
+            var inserted = await _platformConnectionAdapter.InsertAsync(new PlatformConnection
             {
                 ConnectionStatus = "Active",
                 Platform = EtsyPlatformName,
                 UserId = userId
             });
+            return (inserted, true);
         }
 
         existing.ConnectionStatus = "Active";
         await _platformConnectionAdapter.UpdateAsync(existing);
-        return existing;
+        return (existing, false);
     }
 
-    private async Task UpsertShopAsync(long userId, long platformConnectionId, EtsyTokenResponse tokens, string platformAccountId, EtsyShop shop)
+    private async Task<bool> UpsertShopAsync(long userId, long platformConnectionId, EtsyTokenResponse tokens, string platformAccountId, EtsyShop shop)
     {
         var platformShopId = shop.ShopId.ToString();
         var expiry = DateTime.UtcNow.AddSeconds(tokens.ExpiresIn);
         var existing = (await _shopConnectionAdapter.FindAsync(s => s.PlatformConnectionId == platformConnectionId && s.PlatformShopId == platformShopId)).FirstOrDefault();
+        var wasNewShop = existing is null;
 
         if (existing is null)
         {
@@ -100,6 +112,7 @@ public class ConnectEtsyCommand
         }
 
         await UpsertShopEtsyDetailAsync(existing.Id, shop);
+        return wasNewShop;
     }
 
     private async Task UpsertShopEtsyDetailAsync(long shopConnectionId, EtsyShop shop)

@@ -34,6 +34,8 @@ public class PlatformsViewModel : ComponentBase
 
 	#region <Properties>
 
+	public string? AddingShopToPlatform { get; private set; }
+
 	public int AvailableCount => Platforms.Count(p => !p.IsConnected);
 
 	public List<PlatformItem> AvailablePlatforms => Platforms.Where(p => !p.IsConnected).ToList();
@@ -86,9 +88,25 @@ public class PlatformsViewModel : ComponentBase
 
 	#region <Methods>
 
+	public void CancelAddShop()
+	{
+		AddingShopToPlatform = null;
+	}
+
 	public void CancelConnect()
 	{
 		ConnectingPlatform = null;
+	}
+
+	public void ConfirmAddShop()
+	{
+		if (string.IsNullOrEmpty(AddingShopToPlatform))
+			return;
+
+		var platform = AddingShopToPlatform.ToLowerInvariant();
+		AddingShopToPlatform = null;
+
+		Navigation.NavigateTo($"/api/platforms/{platform}/connect", forceLoad: true);
 	}
 
 	public void ConfirmConnect()
@@ -113,6 +131,11 @@ public class PlatformsViewModel : ComponentBase
 		ConnectingPlatform = platformName;
 	}
 
+	public void StartConnectAnotherShop(string platformName)
+	{
+		AddingShopToPlatform = platformName;
+	}
+
 	public async Task TogglePauseAsync(long shopConnectionId)
 	{
 		var shop = (await ShopConnectionAdapter.FindAsync(s => s.Id == shopConnectionId)).FirstOrDefault();
@@ -131,11 +154,13 @@ public class PlatformsViewModel : ComponentBase
 	{
 		var query = QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query);
 
-		if (query.TryGetValue("connected", out var connected))
-			SuccessMessage = connected.ToString().ToLowerInvariant() switch
+		if (query.TryGetValue("etsy", out var etsyStatus))
+			SuccessMessage = etsyStatus.ToString().ToLowerInvariant() switch
 			{
-				"etsy" => "Etsy connected. Your first sync will start shortly.",
-				_ => "Platform connected. Your first sync will start shortly."
+				"connected" => "Etsy connected. Your first sync will start shortly.",
+				"added" => "New Etsy shop connected. Sync will start shortly.",
+				"refreshed" => "No new shop found — that Etsy login was already connected. To add a shop, sign in with a different Etsy account.",
+				_ => null
 			};
 
 		if (query.TryGetValue("error", out var error))
@@ -169,6 +194,7 @@ public class PlatformsViewModel : ComponentBase
 				Icon = "etsy",
 				Name = "Etsy",
 				Subtitle = "Handmade marketplace",
+				SupportsMultipleShops = true,
 			},
 			new PlatformItem
 			{
