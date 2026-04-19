@@ -67,6 +67,30 @@ public class EtsyService
         return payload;
     }
 
+    public async Task<EtsyTokenResponse> RefreshTokensAsync(string refreshToken, CancellationToken cancellationToken)
+    {
+        var form = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["grant_type"] = "refresh_token",
+            ["client_id"] = _settings.ClientId,
+            ["refresh_token"] = refreshToken
+        });
+
+        var response = await _httpClient.PostAsync(TokenUrl, form, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogWarning("Etsy token refresh failed: {Status} {Body}", response.StatusCode, body);
+            throw new InvalidOperationException($"Etsy token refresh failed with status {(int)response.StatusCode}.");
+        }
+
+        var payload = await response.Content.ReadFromJsonAsync<EtsyTokenResponse>(cancellationToken);
+        if (payload is null || string.IsNullOrEmpty(payload.AccessToken))
+            throw new InvalidOperationException("Etsy token refresh returned an empty response.");
+
+        return payload;
+    }
+
     public async Task<List<EtsyShop>> GetShopsAsync(string etsyUserId, string accessToken)
     {
         var url = string.Format(UserShopsUrlTemplate, etsyUserId);

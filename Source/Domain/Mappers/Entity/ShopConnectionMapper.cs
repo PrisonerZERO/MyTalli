@@ -25,6 +25,7 @@ public class ShopConnectionMapper : EntityMapper<MODELS.ShopConnection, ENTITIES
 		destination.PlatformConnectionId = source.PlatformConnectionId;
 		destination.PlatformShopId = source.PlatformShopId;
 		destination.RefreshToken = source.RefreshToken;
+		destination.RefreshTokenExpiryDateTime = source.RefreshTokenExpiryDateTime;
 		destination.ShopName = source.ShopName;
 		destination.Status = source.Status;
 		destination.TokenExpiryDateTime = source.TokenExpiryDateTime;
@@ -47,6 +48,7 @@ public class ShopConnectionMapper : EntityMapper<MODELS.ShopConnection, ENTITIES
 		PlatformConnectionId = model.PlatformConnectionId,
 		PlatformShopId = model.PlatformShopId,
 		RefreshToken = model.RefreshToken,
+		RefreshTokenExpiryDateTime = model.RefreshTokenExpiryDateTime,
 		ShopName = model.ShopName,
 		Status = model.Status,
 		TokenExpiryDateTime = model.TokenExpiryDateTime,
@@ -70,6 +72,7 @@ public class ShopConnectionMapper : EntityMapper<MODELS.ShopConnection, ENTITIES
 		PlatformConnectionId = entity.PlatformConnectionId,
 		PlatformShopId = entity.PlatformShopId,
 		RefreshToken = entity.RefreshToken,
+		RefreshTokenExpiryDateTime = entity.RefreshTokenExpiryDateTime,
 		ShopName = entity.ShopName,
 		Status = entity.Status,
 		TokenExpiryDateTime = entity.TokenExpiryDateTime,

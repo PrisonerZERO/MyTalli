@@ -11,6 +11,12 @@ public static class PlatformsConfiguration
     {
         services.Configure<EtsySettings>(configuration.GetSection("Etsy"));
         services.AddHttpClient<EtsyService>();
+
+        // Platform token refreshers — one per platform that rotates refresh tokens
+        services.AddScoped<IPlatformTokenRefresher, EtsyTokenRefresher>();
+
+        // Background worker — proactively refreshes tokens before expiry
+        services.AddHostedService<TokenRefreshWorker>();
     }
 
     #endregion
