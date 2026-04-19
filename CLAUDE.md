@@ -155,7 +155,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - Unique constraint on `(UserId, SuggestionId)` prevents duplicate votes
 
 **`app.ShopConnection`** — sync target (the thing we sync from) and the owner of the OAuth tokens for this shop's login. One row per shop under a platform connection. Most platforms are 1:1 with `PlatformConnection` (Stripe, Gumroad, PayPal, Shopify); Etsy is 1:N because sellers running multiple shops do so through multiple Etsy logins (Etsy caps each login at one shop), and each of those logins becomes a separate `ShopConnection` row with its own tokens under the same `PlatformConnection`.
-- `Id` (PK), `PlatformConnectionId` (FK → PlatformConnection), `UserId` (FK → auth.User, denormalized for per-user queries), `AccessToken` (nvarchar max — this shop's login token), `RefreshToken` (nullable, nvarchar max), `TokenExpiryDateTime` (nullable datetime), `PlatformAccountId` (string, max 255 — platform's native user/account identifier that owns this shop), `PlatformShopId` (string, max 255 — platform's native shop identifier), `ShopName` (string, max 255), `IsActive` (bool, default true — on free tier only one shop per user is active; Pro may have many), `Status` (string, max 20 — Pending, InProgress, Completed, Failed), `NextSyncDateTime` (when this shop is next eligible for processing; stepped to now + 24h after successful sync), `LastSyncDateTime` (nullable — null until first successful sync), `ConsecutiveFailures` (int, default 0 — drives exponential backoff), `LastErrorMessage` (nullable, max 2000 — most recent failure reason), `IsEnabled` (bool, default true — user can pause syncing)
+- `Id` (PK), `PlatformConnectionId` (FK → PlatformConnection), `UserId` (FK → auth.User, denormalized for per-user queries), `AccessToken` (nvarchar max — this shop's login token), `RefreshToken` (nullable, nvarchar max), `RefreshTokenExpiryDateTime` (nullable datetime — when the refresh token itself expires; Etsy rotates this every refresh, set to now + 90 days on connect/refresh; drives `TokenRefreshWorker`'s proactive refresh window), `TokenExpiryDateTime` (nullable datetime — access token expiry, typically ~1 hour after issue), `PlatformAccountId` (string, max 255 — platform's native user/account identifier that owns this shop), `PlatformShopId` (string, max 255 — platform's native shop identifier), `ShopName` (string, max 255), `IsActive` (bool, default true — on free tier only one shop per user is active; Pro may have many), `Status` (string, max 20 — Pending, InProgress, Completed, Failed), `NextSyncDateTime` (when this shop is next eligible for processing; stepped to now + 24h after successful sync), `LastSyncDateTime` (nullable — null until first successful sync), `ConsecutiveFailures` (int, default 0 — drives exponential backoff), `LastErrorMessage` (nullable, max 2000 — most recent failure reason), `IsEnabled` (bool, default true — user can pause syncing)
 - Unique constraint on `(PlatformConnectionId, PlatformShopId)` — one row per shop per connection
 - Index on `(NextSyncDateTime, Status)` for sync worker polling
 - Indexes: `IX_ShopConnection_UserId`, `IX_ShopConnection_PlatformConnectionId`
@@ -345,6 +345,7 @@ My.Talli/
 │   ├── MyTalli_PlatformCapabilities.html # Platform API capabilities, data richness & integration roadmap
 │   ├── MyTalli_ScalingPlan.html    # Infrastructure scaling strategy (Blazor circuits, Azure App Service tiers)
 │   ├── MyTalli_SyncScalingPlan.html # Platform API rate-limit strategy, daily-baseline sync, 3-phase plan
+│   ├── MyTalli_WorkerProcesses.html # Background worker architecture — two workers, in-process, paced, why & when to extract
 │   └── PlatformApiDataShapes.html  # Platform API data shapes (historical snapshot — banner points to current schema docs)
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
 │   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
@@ -411,9 +412,13 @@ My.Talli/
     │   ├── Components/
     │   │   ├── Etsy/                          # Etsy OAuth + API POCOs (shared with Web's EtsyService)
     │   │   │   ├── AuthorizeChallenge.cs       # PKCE challenge + state + authorize URL
+    │   │   │   ├── EtsyMoney.cs                # { amount, divisor, currency_code } — ToDecimal() helper
     │   │   │   ├── EtsyPkceGenerator.cs        # Static helpers: BuildAuthorizeChallenge, ExtractEtsyUserId
+    │   │   │   ├── EtsyReceipt.cs              # Shop receipt payload (receipt_id, timestamps, totals, transactions[])
+    │   │   │   ├── EtsyReceiptsResponse.cs     # Pagination envelope for GET /shops/{id}/receipts ({ count, results })
     │   │   │   ├── EtsyShop.cs                 # Etsy shop payload (shop_id, shop_name, currency, etc.)
-    │   │   │   └── EtsyTokenResponse.cs        # OAuth token exchange response (access_token, refresh_token, expires_in)
+    │   │   │   ├── EtsyTokenResponse.cs        # OAuth token exchange response (access_token, refresh_token, expires_in)
+    │   │   │   └── EtsyTransaction.cs          # Line-item payload inside a receipt (transaction_id, listing_id, price, quantity)
     │   │   ├── JsonSerializers/
     │   │   │   └── User/
     │   │   │       └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
@@ -425,7 +430,11 @@ My.Talli/
     │   │       │   ├── FindActiveSubscriptionWithStripeCommand.cs  # Query active subscription + Stripe record
     │   │       │   └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
     │   │       └── Platforms/                  # namespace: My.Talli.Domain.Commands.Platforms
-    │   │           └── ConnectEtsyCommand.cs   # Upsert PlatformConnection + ShopConnection + ShopConnectionEtsy after OAuth
+    │   │           ├── ConnectEtsyCommand.cs         # Upsert PlatformConnection + ShopConnection + ShopConnectionEtsy after OAuth
+    │   │           ├── EtsyRevenueInput.cs           # DTO — one row per Etsy transaction, consumed by UpsertEtsyRevenueCommand
+    │   │           ├── RefreshShopTokensCommand.cs   # Update a ShopConnection's tokens after a refresh; RecordFailureAsync for failed refreshes
+    │   │           ├── UpdateShopSyncStateCommand.cs # Sync lifecycle — MarkInProgress / MarkCompleted / MarkFailed (touches sync fields only)
+    │   │           └── UpsertEtsyRevenueCommand.cs   # Dedup by (UserId, Platform, PlatformTransactionId), insert Revenue + RevenueEtsy pairs
     │   ├── Mappers/
     │   │   ├── EntityMapper.cs                 # Abstract mapper (collection methods via LINQ)
     │   │   ├── IEntityMapper.cs               # Generic entity↔model mapper interface
@@ -725,10 +734,19 @@ My.Talli/
         │   │   ├── AcsEmailService.cs           # Azure Communication Services implementation (active)
         │   │   └── SmtpEmailService.cs          # MailKit-based implementation (local dev fallback)
         │   ├── Platforms/
-        │   │   ├── EtsySettings.cs              # Etsy OAuth config POCO (ClientId, ClientSecret, RedirectUri, Scope)
-        │   │   └── EtsyService.cs               # Thin HTTP wrapper — token exchange + shop fetch. Uses Domain.Components.Etsy helpers.
+        │   │   ├── EtsyService.cs                # Thin HTTP wrapper — token exchange, token refresh, shop fetch, receipts fetch. Uses Domain.Components.Etsy helpers.
+        │   │   ├── EtsySettings.cs               # Etsy OAuth config POCO (ClientId, ClientSecret, RedirectUri, Scope)
+        │   │   ├── EtsySyncService.cs            # IPlatformSyncService — pulls Etsy receipts page-by-page, maps to Revenue+RevenueEtsy via Domain command
+        │   │   ├── EtsyTokenRefresher.cs         # IPlatformTokenRefresher — Etsy refresh-token rotation (90-day lifetime, 30-day proactive window)
+        │   │   ├── IPlatformSyncService.cs       # Per-platform sync contract (Platform name + SyncShopAsync)
+        │   │   ├── IPlatformTokenRefresher.cs    # Per-platform token-refresh contract (Platform name, ProactiveRefreshWindow, RefreshAsync)
+        │   │   ├── PlatformSyncResult.cs         # Result — NewRevenueRowCount, MostRecentTransactionDate, PagesFetched, ReceiptsProcessed
+        │   │   └── PlatformTokenRefreshResult.cs # Result — new AccessToken + expiry, rotated RefreshToken + expiry
         │   └── Tokens/
         │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
+        ├── Workers/                    # BackgroundService-hosted workers (same process as Blazor). See documentation/MyTalli_WorkerProcesses.html for architecture.
+        │   ├── ShopSyncWorker.cs       # Polls ShopConnection.NextSyncDateTime every 5 min — paced, 24h cadence per shop, exponential backoff on failure
+        │   └── TokenRefreshWorker.cs   # Rotates expiring OAuth refresh tokens every 6h before they hit the platform's lifetime cap
         ├── Models/                     # Web-layer view-model DTOs (not to be confused with Domain.Models)
         │   ├── ConnectedPlatformLink.cs   # NavMenu link row — platform name + brand color
         │   ├── ExpenseItem.cs             # Manual Entry expense row
@@ -991,7 +1009,7 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
   - `added` — existing connection, at least one new shop row inserted
   - `refreshed` — existing connection, only existing shop(s) refreshed (user authorized the same Etsy account again)
 - **Teach on failure, not upfront.** The "Add another shop" pre-flight dialog stays short on instructions. When the `refreshed` state fires, that's the teachable moment — the toast explains what happened *and* gives the recovery step (*"sign out of Etsy first, then click Connect another shop again"*). Don't front-load the dialog with recovery UX; users who breeze through don't need it, users who hit the wall get the instruction exactly when they're paying attention.
-- **Sync worker is not built yet.** The schema, per-shop tokens, and connection flow are ready. Nothing polls `ShopConnection.NextSyncDateTime` today — that's the next chunk of work. Until it exists, even connected shops show "Never synced". When built, the worker enumerates `ShopConnection` rows, uses each row's tokens, and multi-shop comes out of the box with zero special-casing.
+- **Sync & token workers** — both run inside `My.Talli.Web` as `BackgroundService` hosted services (see **Background Workers** rule below). `TokenRefreshWorker` rotates expiring refresh tokens every 6h; `ShopSyncWorker` polls `ShopConnection.NextSyncDateTime` every 5 min and pulls new receipts into `app.Revenue` + `app.RevenueEtsy`. Architecture rationale (why two workers, why in-process, why paced) is documented in [documentation/MyTalli_WorkerProcesses.html](documentation/MyTalli_WorkerProcesses.html).
 
 ### Modal Behavior
 
@@ -1077,6 +1095,21 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 - **Why:** `CurrentUserMiddleware` populates `ICurrentUserService` in the **HTTP-request DI scope**. Blazor Server components run in the **circuit DI scope** once the SignalR connection takes over — a *different* scope with a *different* `CurrentUserService` instance that the middleware never touched. Interactive events (button clicks over SignalR) that try to update an entity will hit `AuditResolver`, which throws `InvalidOperationException("Cannot resolve audit fields — no authenticated user.")` because `CurrentUserService.IsAuthenticated` is `false`. The exception tears down the circuit, and the user sees a signed-out UI. This happened on the Platforms page Pause button after a forceLoad navigation round-trip.
 - **The fix is one line per ViewModel:** `CurrentUserService.Set(userId, string.Empty)`. Pattern is already used in `DashboardViewModel`, `GoalsViewModel`, `ManualEntryViewModel`, `PlatformsViewModel`, `SettingsViewModel`, `SuggestionBoxViewModel`, `UnsubscribeViewModel`. When adding a new ViewModel that writes data, mirror the pattern — don't rely on the middleware alone.
 - **Second argument (DisplayName) is `string.Empty` for most pages** — audit resolution only needs `UserId`. `SettingsViewModel` is the exception: it sets the real DisplayName because the user just changed it.
+
+### Background Workers
+
+Architecture rationale (why two workers, paced, in-process) lives in [documentation/MyTalli_WorkerProcesses.html](documentation/MyTalli_WorkerProcesses.html). The rules below are the guardrails for building and extending them.
+
+- **Location:** all `BackgroundService` subclasses live in `Source/My.Talli.Web/Workers/` (namespace `My.Talli.Web.Workers`). Platform-specific services the workers call (refreshers, sync services) stay under `Source/My.Talli.Web/Services/Platforms/`.
+- **Two workers today:** `TokenRefreshWorker` (every 6h, rotates refresh tokens before platform expiry) and `ShopSyncWorker` (every 5 min, pulls new revenue data, 24h cadence per shop).
+- **Audit-field stamping:** workers have no HTTP context, so `CurrentUserMiddleware` never runs. Before any write that hits `AuditResolver`, the worker must call `currentUserService.Set(shop.UserId, string.Empty)` and clear it in a `finally`. Otherwise `AuditResolver` throws on UPDATE. Both current workers follow this pattern per-shop.
+- **Pacing is non-negotiable.** Four independent constraints force it: app-wide rate limits (Etsy 10 QPS / 10,000 QPD shared), the shared .NET thread pool, DB index contention on `app.Revenue`, and failure-blast-radius (unpaced failures cause thundering herds on recovery). Concrete numbers: 250ms per-shop for token refresh, 500ms per-shop + 200ms per-page for sync.
+- **Per-platform abstraction:** new platforms plug in by implementing `IPlatformTokenRefresher` and `IPlatformSyncService` (both in `Services/Platforms/`). The workers enumerate registered instances and dispatch by `Platform` name. No worker code changes needed to add Stripe, PayPal, Shopify, or Gumroad later.
+- **No user-triggered sync.** There is no "Sync Now" button and there won't be one before webhooks ship — see the **Platform Connections** rule.
+- **Scope per pass:** each loop iteration creates a fresh `IServiceProvider.CreateScope()` so every shop gets its own DbContext. No shared state between shops; no contention with Blazor circuits.
+- **Failure semantics:** `ShopSyncWorker` increments `ConsecutiveFailures`, writes `LastErrorMessage` (truncated to 1,900 chars), and schedules the next retry via exponential backoff (`5 min × 2^N`, capped at 24h). `TokenRefreshWorker` logs and retries on the next 6h loop without a backoff counter — token refresh is cheap enough to just try again.
+- **Azure "Always On" required.** App Service idles the process after ~20 min of no web traffic, which stops both workers. Enable Always On on every environment that runs workers.
+- **When to extract to a separate project:** once the web app scales to 2+ Azure App Service instances, workers will duplicate work (each instance runs its own copy) unless extracted or a SQL distributed lock (`sp_getapplock`) is added. Extract target: `My.Talli.Worker` (Azure WebJob / Container App / Functions, sharing Domain + Domain.Data.EntityFramework + Domain.DI.Lamar via project references).
 
 ### Summary Tag Convention
 
