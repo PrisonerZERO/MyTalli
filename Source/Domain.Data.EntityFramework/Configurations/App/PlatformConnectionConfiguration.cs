@@ -17,18 +17,14 @@ public class PlatformConnectionConfiguration : IEntityTypeConfiguration<Platform
 
 		builder.Property(e => e.Id).HasColumnOrder(0);
 		builder.Property(e => e.UserId).HasColumnOrder(1);
-		builder.Property(e => e.AccessToken).IsRequired().HasColumnOrder(2);
-		builder.Property(e => e.ConnectionStatus).HasMaxLength(50).IsRequired().HasColumnOrder(3);
-		builder.Property(e => e.Platform).HasMaxLength(50).IsRequired().HasColumnOrder(4);
-		builder.Property(e => e.PlatformAccountId).HasMaxLength(255).IsRequired().HasColumnOrder(5);
-		builder.Property(e => e.RefreshToken).HasColumnOrder(6);
-		builder.Property(e => e.TokenExpiryDateTime).HasColumnOrder(7);
-		builder.Property(e => e.IsDeleted).HasColumnOrder(8);
-		builder.Property(e => e.IsVisible).HasColumnOrder(9);
-		builder.Property(e => e.CreateByUserId).HasColumnOrder(10);
-		builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(11);
-		builder.Property(e => e.UpdatedByUserId).HasColumnOrder(12);
-		builder.Property(e => e.UpdatedOnDate).HasColumnOrder(13);
+		builder.Property(e => e.ConnectionStatus).HasMaxLength(50).IsRequired().HasColumnOrder(2);
+		builder.Property(e => e.Platform).HasMaxLength(50).IsRequired().HasColumnOrder(3);
+		builder.Property(e => e.IsDeleted).HasColumnOrder(4);
+		builder.Property(e => e.IsVisible).HasColumnOrder(5);
+		builder.Property(e => e.CreateByUserId).HasColumnOrder(6);
+		builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(7);
+		builder.Property(e => e.UpdatedByUserId).HasColumnOrder(8);
+		builder.Property(e => e.UpdatedOnDate).HasColumnOrder(9);
 
 		builder.HasIndex(e => e.UserId).HasDatabaseName("IX_PlatformConnection_UserId");
 		builder.HasIndex(e => new { e.UserId, e.Platform }).IsUnique().HasDatabaseName("UQ_PlatformConnection_UserId_Platform");

@@ -3,9 +3,13 @@ namespace My.Talli.Web.Endpoints;
 using Domain.Commands.Platforms;
 using Domain.Components;
 using Domain.Framework;
+using Domain.Repositories;
 using Microsoft.AspNetCore.DataProtection;
 using System.Text.Json;
 using Web.Services.Platforms;
+
+using ENTITIES = Domain.Entities;
+using MODELS = Domain.Models;
 
 /// <summary>Endpoint</summary>
 public static class PlatformEndpoints
@@ -29,11 +33,31 @@ public static class PlatformEndpoints
 
     #region <Methods>
 
-    private static IResult EtsyConnect(HttpContext context, EtsyService etsy, IDataProtectionProvider dataProtectionProvider)
+    private static async Task<IResult> EtsyConnect(
+        HttpContext context,
+        EtsyService etsy,
+        IDataProtectionProvider dataProtectionProvider,
+        RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter,
+        RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> subscriptionAdapter)
     {
         var userIdClaim = context.User.FindFirst("UserId")?.Value;
         if (!long.TryParse(userIdClaim, out var userId))
             return Results.Unauthorized();
+
+        // Plan-tier guard: free tier is capped at 1 Etsy shop. Pro (ProductId 1 or 2, Active/Cancelling) is uncapped.
+        var isPro = (await subscriptionAdapter.FindAsync(s =>
+            s.UserId == userId &&
+            (s.ProductId == 1 || s.ProductId == 2) &&
+            (s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling))).Any();
+
+        if (!isPro)
+        {
+            var etsyShopCount = (await shopConnectionAdapter.FindAsync(s =>
+                s.UserId == userId && s.PlatformConnection.Platform == "Etsy")).Count();
+
+            if (etsyShopCount >= 1)
+                return Results.Redirect("/platforms?error=etsy_plan_limit");
+        }
 
         var challenge = etsy.BuildAuthorizeChallenge();
         var protector = dataProtectionProvider.CreateProtector(EtsyChallengePurpose);
@@ -94,11 +118,18 @@ public static class PlatformEndpoints
             var shops = await etsy.GetShopsAsync(platformAccountId, tokenResponse.AccessToken);
 
             // TRANSACTION
-            await EnforcedTransactionScope.ExecuteAsync(async () => await connectEtsy.ExecuteAsync(cookie.UserId, tokenResponse, platformAccountId, shops));
+            var result = await EnforcedTransactionScope.ExecuteAsync(async () => await connectEtsy.ExecuteAsync(cookie.UserId, tokenResponse, platformAccountId, shops));
 
-            logger.LogInformation("Etsy OAuth connected for user {UserId} with {ShopCount} shop(s)", cookie.UserId, shops.Count);
+            logger.LogInformation("Etsy OAuth connected for user {UserId}: firstConnection={IsFirst} new={NewShopCount} refreshed={RefreshedShopCount}", cookie.UserId, result.IsFirstConnection, result.NewShopCount, result.RefreshedShopCount);
             ClearChallengeCookie(context);
-            return Results.Redirect("/platforms?connected=etsy");
+
+            var status = (result.IsFirstConnection, result.NewShopCount) switch
+            {
+                (true, _) => "connected",
+                (false, > 0) => "added",
+                _ => "refreshed"
+            };
+            return Results.Redirect($"/platforms?etsy={status}");
         }
         catch (Exception ex)
         {

@@ -133,7 +133,7 @@
     </div>
 
     <div class="callout success">
-      <p><strong>Baseline cadence: once per day.</strong> Side-hustle revenue is sporadic (0-5 sales per shop per day typically) and users visit the dashboard sporadically, not continuously. Daily scheduled sync + a rate-limited "Sync Now" button delivers the right freshness tradeoff at a fraction of the quota cost of hourly polling.</p>
+      <p><strong>Baseline cadence: once per day.</strong> Side-hustle revenue is sporadic (0-5 sales per shop per day typically) and users visit the dashboard sporadically, not continuously. Daily scheduled sync — driven server-side by <code>ShopConnection.NextSyncDateTime</code> — delivers the right freshness tradeoff at a fraction of the quota cost of hourly polling. There is intentionally no user-facing "Sync Now" button: manual triggers undermine the rate-limit plan and the benefit doesn't justify the complexity. If an admin debug trigger is needed later, it lives behind the Admin page.</p>
     </div>
   </div>
 
@@ -202,12 +202,12 @@
     <div class="tier-grid">
       <div class="tier-card current">
         <div class="tier-name">Phase 1 — Baseline</div>
-        <div class="tier-users">0 – ~5,000 Etsy shops</div>
-        <div class="tier-desc">Daily sync + incremental + user "Sync Now"</div>
+        <div class="tier-users">0 – ~8,000 Etsy shops</div>
+        <div class="tier-desc">Daily scheduled sync + incremental delta pulls</div>
         <ul class="tier-specs">
           <li>Strategy: <span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">Daily baseline</span></li>
-          <li>Each shop polls once per day on schedule</li>
-          <li>Rate-limited "Sync Now" button on dashboard (30-min cooldown per user per platform)</li>
+          <li>Each shop polls once per day on schedule — driven by <code>ShopConnection.NextSyncDateTime</code></li>
+          <li>No user-facing manual trigger (no "Sync Now" button) — undermines rate-limit plan</li>
           <li>First sync is a full backfill; subsequent syncs are deltas</li>
           <li>Exponential backoff on failures</li>
           <li>Zero engineering cost to operate — covers the full Phase 1 range with no tuning</li>
@@ -262,9 +262,9 @@
         <tbody>
           <tr class="highlight-row">
             <td><span style="background: #f3f4f6; border-radius: 4px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 2px 8px;">1</span></td>
-            <td>0 – ~5,000</td>
-            <td>Daily + incremental + "Sync Now"</td>
-            <td>~6,500 (scheduled + manual refresh)</td>
+            <td>0 – ~8,000</td>
+            <td>Daily scheduled + incremental deltas</td>
+            <td>~5,300 (scheduled + backfill spikes)</td>
             <td>Daily quota approaching 7K</td>
           </tr>
           <tr>
@@ -302,9 +302,8 @@
     <div class="math-box">
       <h4>Phase 1 at upper bound (~5,000 Etsy shops)</h4>
       <div class="math-row"><span>Scheduled daily sync (5,000 × 1 call)</span><span class="result good">= 5,000 calls/day  ✓ 50%</span></div>
-      <div class="math-row"><span>User "Sync Now" refresh (~20% active × 2.5 clicks avg)</span><span class="result good">≈ 1,000 calls/day  ✓ 10%</span></div>
       <div class="math-row"><span>First-backfill spikes for new sign-ups</span><span class="result good">≈ 300 calls/day  ✓ 3%</span></div>
-      <div class="math-row"><span><strong>Total load</strong></span><span class="result good">≈ 6,300 calls/day  ✓ ~63% of quota</span></div>
+      <div class="math-row"><span><strong>Total load</strong></span><span class="result good">≈ 5,300 calls/day  ✓ ~53% of quota</span></div>
     </div>
 
     <div class="math-box">
@@ -372,8 +371,8 @@
         <p>Side-hustlers check their revenue dashboard <strong>weekly or a few times per week</strong>, not hourly. They do not care whether data is 1 hour old or 18 hours old — they care that it is "today."</p>
       </div>
       <div class="card">
-        <h3>3. On-demand refresh handles the edge case</h3>
-        <p>The rare user who <em>does</em> want fresh data right now can click <strong>"Sync Now"</strong> on the dashboard. One click = one set of API calls. Rate-limited to a 30-minute cooldown per user per platform.</p>
+        <h3>3. Server-side scheduling, not user-triggered</h3>
+        <p>No "Sync Now" button. A manual trigger turns rate-limit accounting from a predictable daily figure into a per-click guessing game, and the benefit (slightly fresher data in a rare edge case) doesn't justify the complexity. If an admin debug trigger is ever needed, it lives behind the Admin page.</p>
       </div>
       <div class="card">
         <h3>4. Webhooks beat hourly at freshness</h3>
@@ -391,7 +390,7 @@
     <div class="timeline">
       <div class="timeline-item">
         <h4>Now — Build Phase 1 pipeline</h4>
-        <p>Daily scheduled sync worker + incremental sync + exponential backoff. Add the "Sync Now" button with a 30-min per-user-per-platform rate limit. This is the foundation every later phase builds on.</p>
+        <p>Daily scheduled sync worker (polls <code>ShopConnection.NextSyncDateTime</code>, refreshes tokens lazily, pulls incremental data), incremental sync, exponential backoff. No user-facing manual trigger. This is the foundation every later phase builds on.</p>
         <span class="timeline-trigger" style="background: #d1fae5; color: #065f46;">Launch default</span>
       </div>
       <div class="timeline-item">

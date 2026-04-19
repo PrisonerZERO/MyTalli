@@ -10,6 +10,7 @@ public class ShopConnectionMapper : EntityMapper<MODELS.ShopConnection, ENTITIES
 
 	public override void ApplyTo(ENTITIES.ShopConnection source, MODELS.ShopConnection destination)
 	{
+		destination.AccessToken = source.AccessToken;
 		destination.ConsecutiveFailures = source.ConsecutiveFailures;
 		destination.CreatedOn = source.CreatedOnDateTime;
 		destination.Id = source.Id;
@@ -20,15 +21,19 @@ public class ShopConnectionMapper : EntityMapper<MODELS.ShopConnection, ENTITIES
 		destination.LastErrorMessage = source.LastErrorMessage;
 		destination.LastSyncDateTime = source.LastSyncDateTime;
 		destination.NextSyncDateTime = source.NextSyncDateTime;
+		destination.PlatformAccountId = source.PlatformAccountId;
 		destination.PlatformConnectionId = source.PlatformConnectionId;
 		destination.PlatformShopId = source.PlatformShopId;
+		destination.RefreshToken = source.RefreshToken;
 		destination.ShopName = source.ShopName;
 		destination.Status = source.Status;
+		destination.TokenExpiryDateTime = source.TokenExpiryDateTime;
 		destination.UserId = source.UserId;
 	}
 
 	public override ENTITIES.ShopConnection ToEntity(MODELS.ShopConnection model) => new()
 	{
+		AccessToken = model.AccessToken,
 		ConsecutiveFailures = model.ConsecutiveFailures,
 		Id = model.Id,
 		IsActive = model.IsActive,
@@ -38,15 +43,19 @@ public class ShopConnectionMapper : EntityMapper<MODELS.ShopConnection, ENTITIES
 		LastErrorMessage = model.LastErrorMessage,
 		LastSyncDateTime = model.LastSyncDateTime,
 		NextSyncDateTime = model.NextSyncDateTime,
+		PlatformAccountId = model.PlatformAccountId,
 		PlatformConnectionId = model.PlatformConnectionId,
 		PlatformShopId = model.PlatformShopId,
+		RefreshToken = model.RefreshToken,
 		ShopName = model.ShopName,
 		Status = model.Status,
+		TokenExpiryDateTime = model.TokenExpiryDateTime,
 		UserId = model.UserId,
 	};
 
 	public override MODELS.ShopConnection ToModel(ENTITIES.ShopConnection entity) => new()
 	{
+		AccessToken = entity.AccessToken,
 		ConsecutiveFailures = entity.ConsecutiveFailures,
 		CreatedOn = entity.CreatedOnDateTime,
 		Id = entity.Id,
@@ -57,10 +66,13 @@ public class ShopConnectionMapper : EntityMapper<MODELS.ShopConnection, ENTITIES
 		LastErrorMessage = entity.LastErrorMessage,
 		LastSyncDateTime = entity.LastSyncDateTime,
 		NextSyncDateTime = entity.NextSyncDateTime,
+		PlatformAccountId = entity.PlatformAccountId,
 		PlatformConnectionId = entity.PlatformConnectionId,
 		PlatformShopId = entity.PlatformShopId,
+		RefreshToken = entity.RefreshToken,
 		ShopName = entity.ShopName,
 		Status = entity.Status,
+		TokenExpiryDateTime = entity.TokenExpiryDateTime,
 		UserId = entity.UserId,
 	};
 

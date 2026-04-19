@@ -89,7 +89,7 @@
 <div class="header">
   <h1>My<span>Talli</span> Costing Plan</h1>
   <p class="subtitle">Current infrastructure costs, growth projections, and optimization strategies</p>
-  <p class="doc-date">Last updated: March 2026</p>
+  <p class="doc-date">Last updated: April 2026</p>
 </div>
 
 <div class="content">
@@ -645,6 +645,11 @@
     <div class="card">
       <h3>Stripe Fees</h3>
       <p>Not an Azure cost, but relevant to margin: Stripe charges 2.9% + $0.30 per transaction. On a $12/month subscription, that's $0.65/transaction (5.4% effective rate). On $99/year, it's $3.17/transaction (3.2%). Annual plans are more margin-efficient.</p>
+    </div>
+
+    <div class="card">
+      <h3>Multi-Shop Power Users</h3>
+      <p>A minority of users connect multiple shops on the same platform (Etsy sellers with multiple storefronts, Shopify merchants with multiple stores, Stripe users with personal + business accounts). Each shop is an independent sync target, so a 3-shop user generates ~3× the sync load of a 1-shop user. Expect a modest per-user multiplier on platform API calls, background sync time, and SQL write volume at scale — plan for 1.2-1.5× vs a single-shop baseline. Platform rate limits (Etsy: 10,000 calls/day per OAuth grant, Stripe: 100 req/sec per account) cap the worst case per user. See <strong>SyncScalingPlan.html</strong> for the full per-platform sync load model.</p>
     </div>
   </div>
 

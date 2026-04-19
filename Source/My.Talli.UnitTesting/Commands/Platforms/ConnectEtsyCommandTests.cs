@@ -21,10 +21,21 @@ public class ConnectEtsyCommandTests
         var connection = Assert.Single(connections);
         Assert.Equal(42, connection.UserId);
         Assert.Equal("Etsy", connection.Platform);
-        Assert.Equal("1226690893", connection.PlatformAccountId);
         Assert.Equal("Active", connection.ConnectionStatus);
-        Assert.Equal("access-abc", connection.AccessToken);
-        Assert.Equal("refresh-xyz", connection.RefreshToken);
+    }
+
+    [Fact]
+    public async Task Execute_NewConnection_StoresTokensOnShopConnection()
+    {
+        var builder = new PlatformHandlerBuilder();
+        var tokens = BuildTokens();
+
+        await builder.Command.ExecuteAsync(42, tokens, "1226690893", [BuildShop()]);
+
+        var shop = Assert.Single(await builder.ShopConnectionAdapter.GetAllAsync());
+        Assert.Equal("access-abc", shop.AccessToken);
+        Assert.Equal("refresh-xyz", shop.RefreshToken);
+        Assert.Equal("1226690893", shop.PlatformAccountId);
     }
 
     [Fact]
@@ -37,23 +48,40 @@ public class ConnectEtsyCommandTests
         await builder.Command.ExecuteAsync(1, tokens, "user", [BuildShop()]);
         var after = DateTime.UtcNow;
 
-        var connection = (await builder.PlatformConnectionAdapter.GetAllAsync()).Single();
-        Assert.NotNull(connection.TokenExpiryDateTime);
-        Assert.InRange(connection.TokenExpiryDateTime!.Value, before.AddSeconds(3600 - 2), after.AddSeconds(3600 + 2));
+        var shop = (await builder.ShopConnectionAdapter.GetAllAsync()).Single();
+        Assert.NotNull(shop.TokenExpiryDateTime);
+        Assert.InRange(shop.TokenExpiryDateTime!.Value, before.AddSeconds(3600 - 2), after.AddSeconds(3600 + 2));
     }
 
     [Fact]
-    public async Task Execute_ExistingConnection_UpdatesTokensInPlace()
+    public async Task Execute_ExistingShop_UpdatesTokensInPlace()
     {
         var builder = new PlatformHandlerBuilder();
         await builder.Command.ExecuteAsync(1, BuildTokens("old-access", "old-refresh"), "user", [BuildShop()]);
 
         await builder.Command.ExecuteAsync(1, BuildTokens("new-access", "new-refresh"), "user", [BuildShop()]);
 
-        var connections = await builder.PlatformConnectionAdapter.GetAllAsync();
-        var connection = Assert.Single(connections);
-        Assert.Equal("new-access", connection.AccessToken);
-        Assert.Equal("new-refresh", connection.RefreshToken);
+        var shop = Assert.Single(await builder.ShopConnectionAdapter.GetAllAsync());
+        Assert.Equal("new-access", shop.AccessToken);
+        Assert.Equal("new-refresh", shop.RefreshToken);
+    }
+
+    [Fact]
+    public async Task Execute_SecondEtsyLoginNewShop_KeepsFirstShopTokensIntact()
+    {
+        var builder = new PlatformHandlerBuilder();
+        await builder.Command.ExecuteAsync(1, BuildTokens("login-a-access", "login-a-refresh"), "etsy-user-a", [BuildShop(shopId: 100, shopName: "Shop A")]);
+
+        await builder.Command.ExecuteAsync(1, BuildTokens("login-b-access", "login-b-refresh"), "etsy-user-b", [BuildShop(shopId: 200, shopName: "Shop B")]);
+
+        Assert.Single(await builder.PlatformConnectionAdapter.GetAllAsync());
+
+        var shops = (await builder.ShopConnectionAdapter.GetAllAsync()).OrderBy(s => s.PlatformShopId).ToList();
+        Assert.Equal(2, shops.Count);
+        Assert.Equal("login-a-access", shops[0].AccessToken);
+        Assert.Equal("etsy-user-a", shops[0].PlatformAccountId);
+        Assert.Equal("login-b-access", shops[1].AccessToken);
+        Assert.Equal("etsy-user-b", shops[1].PlatformAccountId);
     }
 
     [Fact]
@@ -119,6 +147,44 @@ public class ConnectEtsyCommandTests
         var shopEtsyRows = await builder.ShopConnectionEtsyAdapter.GetAllAsync();
         Assert.Single(shopEtsyRows);
         Assert.True(shopEtsyRows.Single().IsVacationMode);
+    }
+
+    [Fact]
+    public async Task Execute_FirstConnectionWithNewShop_ReportsFirstConnectionAndOneNewShop()
+    {
+        var builder = new PlatformHandlerBuilder();
+
+        var result = await builder.Command.ExecuteAsync(1, BuildTokens(), "user", [BuildShop()]);
+
+        Assert.True(result.IsFirstConnection);
+        Assert.Equal(1, result.NewShopCount);
+        Assert.Equal(0, result.RefreshedShopCount);
+    }
+
+    [Fact]
+    public async Task Execute_ReconnectExistingShop_ReportsRefreshOnly()
+    {
+        var builder = new PlatformHandlerBuilder();
+        await builder.Command.ExecuteAsync(1, BuildTokens(), "user", [BuildShop()]);
+
+        var result = await builder.Command.ExecuteAsync(1, BuildTokens(), "user", [BuildShop()]);
+
+        Assert.False(result.IsFirstConnection);
+        Assert.Equal(0, result.NewShopCount);
+        Assert.Equal(1, result.RefreshedShopCount);
+    }
+
+    [Fact]
+    public async Task Execute_SecondEtsyLogin_ReportsOneNewShopAndZeroRefresh()
+    {
+        var builder = new PlatformHandlerBuilder();
+        await builder.Command.ExecuteAsync(1, BuildTokens(), "etsy-user-a", [BuildShop(shopId: 100, shopName: "Shop A")]);
+
+        var result = await builder.Command.ExecuteAsync(1, BuildTokens(), "etsy-user-b", [BuildShop(shopId: 200, shopName: "Shop B")]);
+
+        Assert.False(result.IsFirstConnection);
+        Assert.Equal(1, result.NewShopCount);
+        Assert.Equal(0, result.RefreshedShopCount);
     }
 
     [Fact]

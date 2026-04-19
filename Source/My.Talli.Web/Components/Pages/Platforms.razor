@@ -129,8 +129,8 @@ else
                                 </div>
                                 <div class="plat-shop-meta">
                                     <span class="plat-shop-sync">
-                                        @(string.IsNullOrEmpty(shop.LastSyncLabel) ? "Never synced" : shop.LastSyncLabel)
-                                        @if (shop.SyncStatus == "Failed")
+                                        @(shop.IsEnabled ? (string.IsNullOrEmpty(shop.LastSyncLabel) ? "Never synced" : shop.LastSyncLabel) : "Sync paused")
+                                        @if (shop.IsEnabled && shop.SyncStatus == "Failed")
                                         {
                                             <span class="plat-sync-error" title="@shop.LastErrorMessage" aria-label="Sync error: @shop.LastErrorMessage">!</span>
                                         }
@@ -138,22 +138,38 @@ else
                                     <span class="plat-shop-data">@shop.TransactionCount transactions</span>
                                 </div>
                                 <div class="plat-shop-actions">
-                                    <button class="plat-btn-outline" aria-label="Sync @shop.ShopName now">Sync Now</button>
-                                    <button class="plat-btn-outline" aria-label="Manage @shop.ShopName">Manage</button>
+                                    <button class="plat-btn-outline" aria-label="@(shop.IsEnabled ? $"Pause syncing for {shop.ShopName}" : $"Resume syncing for {shop.ShopName}")" @onclick="() => TogglePauseAsync(shop.ShopConnectionId)">
+                                        @(shop.IsEnabled ? "Pause" : "Resume")
+                                    </button>
                                 </div>
                             </li>
                         }
                     </ul>
 
-                    <div class="plat-shop-add">
-                        <button class="plat-btn-add-shop" aria-label="Connect another @platform.Name shop" @onclick="() => StartConnect(platform.Name)">
-                            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
-                                <line x1="12" x2="12" y1="5" y2="19" />
-                                <line x1="5" x2="19" y1="12" y2="12" />
-                            </svg>
-                            Connect another shop
-                        </button>
-                    </div>
+                    @if (platform.SupportsMultipleShops)
+                    {
+                        <div class="plat-shop-add">
+                            @if (platform.CanAddAnotherShop)
+                            {
+                                <button class="plat-btn-add-shop" aria-label="Connect another @platform.Name shop" @onclick="() => StartConnectAnotherShop(platform.Name)">
+                                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                        <line x1="12" x2="12" y1="5" y2="19" />
+                                        <line x1="5" x2="19" y1="12" y2="12" />
+                                    </svg>
+                                    Connect another shop
+                                </button>
+                            }
+                            else
+                            {
+                                <a class="plat-btn-upgrade" href="/my-plan" aria-label="Upgrade to Pro to connect additional @platform.Name shops">
+                                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                    </svg>
+                                    <span>Upgrade to Pro to connect another @platform.Name shop</span>
+                                </a>
+                            }
+                        </div>
+                    }
                 </article>
             }
         }
@@ -215,6 +231,17 @@ else
     </svg>
     <h2>Connect @ConnectingPlatform?</h2>
     <p>Once connected, <strong>@ConnectingPlatform</strong> can't be disconnected — it will permanently occupy a plan slot. You can pause syncing anytime from this page.</p>
+</ConfirmDialog>
+
+<!-- Add another Etsy shop (new login) confirmation -->
+<ConfirmDialog Visible="!string.IsNullOrEmpty(AddingShopToPlatform)" ConfirmStyle="primary" OnConfirm="ConfirmAddShop" OnCancel="CancelAddShop">
+    <svg aria-hidden="true" fill="none" height="40" stroke="#6c5ce7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="40">
+        <path d="M3 9l1-5h16l1 5" />
+        <path d="M5 9v11a1 1 0 001 1h12a1 1 0 001-1V9" />
+        <path d="M9 13h6" />
+    </svg>
+    <h2>Add another @AddingShopToPlatform shop?</h2>
+    <p>On @AddingShopToPlatform, each login owns exactly one shop. Sign in with a <strong>different</strong> @AddingShopToPlatform account on the next screen to add that account's shop. Each new shop permanently occupies a plan slot.</p>
 </ConfirmDialog>
 
 @* Platform icon fragments *@

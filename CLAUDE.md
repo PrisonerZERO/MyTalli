@@ -114,8 +114,8 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - `Id` (PK), `Description`, `MilestoneGroup` (Beta, FullLaunch), `SortOrder` (display order within group), `Status` (Complete, InProgress, Upcoming), `Title`
 - `MilestoneStatuses.cs` and `MilestoneGroups.cs` (formerly in `Domain/Framework/`) have been removed.
 
-**`app.PlatformConnection`** — OAuth tokens and platform account linking (one row per user per connected platform)
-- `Id` (PK), `UserId` (FK → auth.User), `AccessToken` (nvarchar max), `ConnectionStatus` (string 50 — active, expired, revoked), `Platform` (string 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify"), `PlatformAccountId` (string 255), `RefreshToken` (nullable, nvarchar max), `TokenExpiryDateTime` (nullable datetime)
+**`app.PlatformConnection`** — bookkeeping row marking that a user has connected a given platform (one row per user per connected platform). OAuth tokens live on `ShopConnection`, not here — each shop carries its own login's tokens so multi-login platforms (e.g., Etsy, where each seller account owns exactly one shop) can have many shops under a single user.
+- `Id` (PK), `UserId` (FK → auth.User), `ConnectionStatus` (string 50 — active, expired, revoked), `Platform` (string 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify")
 - Unique constraint on `(UserId, Platform)` — one connection per user per platform
 - Index: `IX_PlatformConnection_UserId`
 
@@ -154,8 +154,8 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - `Id` (PK), `UserId` (FK → auth.User), `SuggestionId` (FK → Suggestion)
 - Unique constraint on `(UserId, SuggestionId)` prevents duplicate votes
 
-**`app.ShopConnection`** — sync target (the thing we sync from). One row per shop under a platform connection. Most platforms are 1:1 with `PlatformConnection` (Stripe, Gumroad, PayPal, Shopify); Etsy is 1:N because a seller can own multiple shops under one OAuth grant.
-- `Id` (PK), `PlatformConnectionId` (FK → PlatformConnection), `UserId` (FK → auth.User, denormalized for per-user queries), `PlatformShopId` (string, max 255 — platform's native shop identifier), `ShopName` (string, max 255), `IsActive` (bool, default true — on free tier only one shop per user is active; Pro may have many), `Status` (string, max 20 — Pending, InProgress, Completed, Failed), `NextSyncDateTime` (when this shop is next eligible for processing; stepped to now + 24h after successful sync), `LastSyncDateTime` (nullable — null until first successful sync), `ConsecutiveFailures` (int, default 0 — drives exponential backoff), `LastErrorMessage` (nullable, max 2000 — most recent failure reason), `IsEnabled` (bool, default true — user can pause syncing)
+**`app.ShopConnection`** — sync target (the thing we sync from) and the owner of the OAuth tokens for this shop's login. One row per shop under a platform connection. Most platforms are 1:1 with `PlatformConnection` (Stripe, Gumroad, PayPal, Shopify); Etsy is 1:N because sellers running multiple shops do so through multiple Etsy logins (Etsy caps each login at one shop), and each of those logins becomes a separate `ShopConnection` row with its own tokens under the same `PlatformConnection`.
+- `Id` (PK), `PlatformConnectionId` (FK → PlatformConnection), `UserId` (FK → auth.User, denormalized for per-user queries), `AccessToken` (nvarchar max — this shop's login token), `RefreshToken` (nullable, nvarchar max), `TokenExpiryDateTime` (nullable datetime), `PlatformAccountId` (string, max 255 — platform's native user/account identifier that owns this shop), `PlatformShopId` (string, max 255 — platform's native shop identifier), `ShopName` (string, max 255), `IsActive` (bool, default true — on free tier only one shop per user is active; Pro may have many), `Status` (string, max 20 — Pending, InProgress, Completed, Failed), `NextSyncDateTime` (when this shop is next eligible for processing; stepped to now + 24h after successful sync), `LastSyncDateTime` (nullable — null until first successful sync), `ConsecutiveFailures` (int, default 0 — drives exponential backoff), `LastErrorMessage` (nullable, max 2000 — most recent failure reason), `IsEnabled` (bool, default true — user can pause syncing)
 - Unique constraint on `(PlatformConnectionId, PlatformShopId)` — one row per shop per connection
 - Index on `(NextSyncDateTime, Status)` for sync worker polling
 - Indexes: `IX_ShopConnection_UserId`, `IX_ShopConnection_PlatformConnectionId`
@@ -325,17 +325,27 @@ My.Talli/
 ├── og-image.png                    # Social share image (1200×630) — source copy
 ├── setup-iis.ps1                   # IIS setup script for local dev
 ├── documentation/                  # Internal planning & reference documents
-│   ├── cost-report/                # Skill — branded financial/costing HTML document builder
-│   │   └── SKILL.md
-│   ├── scaling-plan/               # Skill — branded scaling/capacity planning HTML document builder
-│   │   └── SKILL.md
+│   ├── _backup/                    # Archived documents (superseded — kept for historical reference)
+│   │   └── MyTalli_ShopConnectionERD.html # Superseded by schemas/Platform_and_Shop_Schema.html
+│   ├── schemas/                    # Current-state schema reference docs (one per functional area)
+│   │   ├── Authentication_Schema.html   # auth.* tables — User, provider auth tables, UserRole, vAuthenticatedUser
+│   │   ├── Commerce_Schema.html         # commerce.* tables — Product, Order, Billing, Subscription + Stripe subtables
+│   │   ├── Dashboard_Schema.html        # app.Revenue / Expense / Payout / Goal + Revenue provider subtables
+│   │   └── Platform_and_Shop_Schema.html # app.PlatformConnection / ShopConnection / ShopConnectionEtsy
+│   ├── skills/                     # Claude Code skills local to this project
+│   │   ├── cost-report/            # Skill — branded financial/costing HTML document builder
+│   │   │   └── SKILL.md
+│   │   ├── scaling-plan/           # Skill — branded scaling/capacity planning HTML document builder
+│   │   │   └── SKILL.md
+│   │   └── uncle-robs-ninja-architecture/ # Skill — universal clean-code architecture principles (teach/enforce)
+│   │       └── SKILL.md
 │   ├── MyTalli_CostingPlan.html    # Infrastructure cost projections & optimization strategies
 │   ├── MyTalli_Kanban.html         # Active work kanban — backlog, next up, in progress, done
+│   ├── MyTalli_PlatformApprovals.html # Platform commercial-access / Partner-enrollment workflow & checklist
 │   ├── MyTalli_PlatformCapabilities.html # Platform API capabilities, data richness & integration roadmap
-│   ├── MyTalli_ScalingPlan.html    # Scaling strategy as user base grows (tiers, triggers, capacity)
-│   ├── MyTalli_ShopConnectionERD.html # ERD for ShopConnection + ShopConnectionEtsy sync-target layer
+│   ├── MyTalli_ScalingPlan.html    # Infrastructure scaling strategy (Blazor circuits, Azure App Service tiers)
 │   ├── MyTalli_SyncScalingPlan.html # Platform API rate-limit strategy, daily-baseline sync, 3-phase plan
-│   └── PlatformApiDataShapes.html  # Platform API data shapes, normalized schema, ERD (historical — pre-ShopConnection)
+│   └── PlatformApiDataShapes.html  # Platform API data shapes (historical snapshot — banner points to current schema docs)
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
 │   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
 │   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
@@ -719,6 +729,21 @@ My.Talli/
         │   │   └── EtsyService.cs               # Thin HTTP wrapper — token exchange + shop fetch. Uses Domain.Components.Etsy helpers.
         │   └── Tokens/
         │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
+        ├── Models/                     # Web-layer view-model DTOs (not to be confused with Domain.Models)
+        │   ├── ConnectedPlatformLink.cs   # NavMenu link row — platform name + brand color
+        │   ├── ExpenseItem.cs             # Manual Entry expense row
+        │   ├── GoalItem.cs                # Goals page row
+        │   ├── ManualEntryItem.cs         # Manual Entry generic row
+        │   ├── PayoutItem.cs              # Manual Entry payout row
+        │   ├── PlatformItem.cs            # Platforms page platform row (includes nested Shops list)
+        │   ├── ShopItem.cs                # Platforms page shop sub-row (per-shop sync status + txn count)
+        │   ├── SuggestionItem.cs          # Suggestion Box row
+        │   └── SampleData/                # Static classes returning mock data for gated features
+        │       ├── DashboardDataset.cs
+        │       ├── ExpenseDataset.cs
+        │       ├── GoalsDataset.cs
+        │       ├── ManualEntryDataset.cs
+        │       └── PayoutDataset.cs
         ├── ViewModels/
         │   ├── Pages/
         │   │   ├── AdminViewModel.cs
@@ -951,6 +976,23 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 - **ViewModel pattern:** `ActiveTab` (string property, default varies by page), `SelectTab(string tab)` method. Page content wrapped in `@if (ActiveTab == "xxx")` blocks with `role="tabpanel"` and `aria-label`.
 - **`PageTitle`** updates based on active tab (e.g., "Dashboard — Revenue — MyTalli").
 
+### Platform Connections
+
+- **Tokens belong to the shop, not the platform.** `PlatformConnection` is a bookkeeping row per (user, platform); OAuth credentials (`AccessToken`, `RefreshToken`, `TokenExpiryDateTime`, `PlatformAccountId`) live on `ShopConnection`. This is what lets a single MyTalli user own multiple Etsy shops under multiple Etsy logins — each shop carries its own login's tokens.
+- **Per-shop controls, not per-platform.** The shop row on `/platforms` shows one action button: **Pause** / **Resume** (toggles `ShopConnection.IsEnabled`). No "Sync Now" — syncing is scheduled server-side via `ShopConnection.NextSyncDateTime`; a manual trigger would undermine the rate-limit strategy. No "Manage" — there's no separate management surface; connect/pause on this page is the management surface.
+- **`SupportsMultipleShops` flag on `PlatformItem`.** Gates the "Connect another shop" button on the Platforms page. Only `true` for platforms where one user legitimately has many shops (Etsy today). The 1:1 platforms (Stripe, Gumroad, PayPal, Shopify) hide the button entirely since the concept doesn't exist there.
+- **Free-tier 1-shop cap on multi-shop platforms.** On a multi-shop platform (Etsy today), free-tier users are capped at one shop; Pro users (ProductId 1 or 2, `Active` or `Cancelling`) are uncapped. Enforcement is two-layer:
+  - **UI:** `PlatformItem.CanAddAnotherShop = SupportsMultipleShops && (IsProSubscriber || Shops.Count == 0)` — computed in `PlatformsViewModel.LoadPlatformsAsync`. When `true` the "Connect another shop" button shows; when `false` the button is replaced by a purple-gradient `plat-btn-upgrade` CTA linking to `/my-plan` ("Upgrade to Pro to connect another Etsy shop").
+  - **Server:** [EtsyConnect](Source/My.Talli.Web/Endpoints/PlatformEndpoints.cs) runs the same Pro/shop-count check and refuses the OAuth launch if the free-tier user already has 1 Etsy shop. Redirects to `/platforms?error=etsy_plan_limit`, which the view model maps to an explanatory toast. Defense-in-depth — UI hides the trigger, server refuses the request.
+- **Connect-another-shop dialog.** Separate from first-time connect. Copy explains the platform reality ("each login owns exactly one shop") and instructs the user to sign in with a different account on the next screen. Wired to its own `AddingShopToPlatform` / `StartConnectAnotherShop` / `ConfirmAddShop` / `CancelAddShop` set on the view model — does not re-use the first-time connect dialog.
+- **Etsy OAuth has no account switcher.** `prompt=login` is silently ignored. There is no documented Etsy logout URL we can redirect through (probed `/signout`, `/logout`, `/sign-out` — all return 404; Etsy's UI signout is a POST + CSRF flow, not a GET target). Browser same-origin policy prevents us from destroying Etsy cookies from our JS. Result: to connect a *different* Etsy login, the user must manually sign out of etsy.com (profile menu → Sign out) or use an incognito window. We cannot automate this.
+- **Three-state OAuth callback outcome.** [EtsyCallback](Source/My.Talli.Web/Endpoints/PlatformEndpoints.cs) redirects to `/platforms?etsy={status}` based on `ConnectEtsyResult`:
+  - `connected` — first-time connection for this user+platform
+  - `added` — existing connection, at least one new shop row inserted
+  - `refreshed` — existing connection, only existing shop(s) refreshed (user authorized the same Etsy account again)
+- **Teach on failure, not upfront.** The "Add another shop" pre-flight dialog stays short on instructions. When the `refreshed` state fires, that's the teachable moment — the toast explains what happened *and* gives the recovery step (*"sign out of Etsy first, then click Connect another shop again"*). Don't front-load the dialog with recovery UX; users who breeze through don't need it, users who hit the wall get the instruction exactly when they're paying attention.
+- **Sync worker is not built yet.** The schema, per-shop tokens, and connection flow are ready. Nothing polls `ShopConnection.NextSyncDateTime` today — that's the next chunk of work. Until it exists, even connected shops show "Never synced". When built, the worker enumerates `ShopConnection` rows, uses each row's tokens, and multi-shop comes out of the box with zero special-casing.
+
 ### Modal Behavior
 
 - **Modals do not close on backdrop click.** Only the Cancel button (or equivalent) closes the modal. This prevents accidental data loss when users click outside a form modal.
@@ -1028,6 +1070,13 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 - **Fallback chain for initials:** First+Last initials → first+last word of DisplayName → first letter of email → `"?"`
 - **Fun Greetings** — when no name is available, the greeting falls back to a random title-cased fun greeting (e.g., "Revenue Rockstar", "Side-Hustle Hero"). This is the last-resort fallback in `Resolve()` and always activates when names are empty, regardless of the Fun Greetings user preference. The Fun Greetings preference adds randomness on top (a different greeting each visit) when the user *does* have a name.
 - **Email notifications** — all customer emails (`WelcomeEmailNotification`, `SubscriptionConfirmationEmailNotification`, `WeeklySummaryEmailNotification`) fall back to `"there"` when FirstName is empty (e.g., "Welcome to MyTalli, there!").
+
+### ViewModels Must Populate CurrentUserService
+
+- **Every ViewModel that performs audit-resolved writes must call `CurrentUserService.Set(userId, string.Empty)` in `OnInitializedAsync`** — immediately after parsing the `UserId` claim and before any repository call that could hit `AuditResolver`.
+- **Why:** `CurrentUserMiddleware` populates `ICurrentUserService` in the **HTTP-request DI scope**. Blazor Server components run in the **circuit DI scope** once the SignalR connection takes over — a *different* scope with a *different* `CurrentUserService` instance that the middleware never touched. Interactive events (button clicks over SignalR) that try to update an entity will hit `AuditResolver`, which throws `InvalidOperationException("Cannot resolve audit fields — no authenticated user.")` because `CurrentUserService.IsAuthenticated` is `false`. The exception tears down the circuit, and the user sees a signed-out UI. This happened on the Platforms page Pause button after a forceLoad navigation round-trip.
+- **The fix is one line per ViewModel:** `CurrentUserService.Set(userId, string.Empty)`. Pattern is already used in `DashboardViewModel`, `GoalsViewModel`, `ManualEntryViewModel`, `PlatformsViewModel`, `SettingsViewModel`, `SuggestionBoxViewModel`, `UnsubscribeViewModel`. When adding a new ViewModel that writes data, mirror the pattern — don't rely on the middleware alone.
+- **Second argument (DisplayName) is `string.Empty` for most pages** — audit resolution only needs `UserId`. `SettingsViewModel` is the exception: it sets the real DisplayName because the user just changed it.
 
 ### Summary Tag Convention
 
