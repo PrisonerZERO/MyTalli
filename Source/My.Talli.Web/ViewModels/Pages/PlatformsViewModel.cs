@@ -113,6 +113,20 @@ public class PlatformsViewModel : ComponentBase
 		ConnectingPlatform = platformName;
 	}
 
+	public async Task TogglePauseAsync(long shopConnectionId)
+	{
+		var shop = (await ShopConnectionAdapter.FindAsync(s => s.Id == shopConnectionId)).FirstOrDefault();
+		if (shop is null)
+			return;
+
+		shop.IsEnabled = !shop.IsEnabled;
+		await ShopConnectionAdapter.UpdateAsync(shop);
+
+		var shopItem = Platforms.SelectMany(p => p.Shops).FirstOrDefault(s => s.ShopConnectionId == shopConnectionId);
+		if (shopItem is not null)
+			shopItem.IsEnabled = shop.IsEnabled;
+	}
+
 	private void ReadQueryStringMessages()
 	{
 		var query = QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query);

@@ -129,8 +129,8 @@ else
                                 </div>
                                 <div class="plat-shop-meta">
                                     <span class="plat-shop-sync">
-                                        @(string.IsNullOrEmpty(shop.LastSyncLabel) ? "Never synced" : shop.LastSyncLabel)
-                                        @if (shop.SyncStatus == "Failed")
+                                        @(shop.IsEnabled ? (string.IsNullOrEmpty(shop.LastSyncLabel) ? "Never synced" : shop.LastSyncLabel) : "Sync paused")
+                                        @if (shop.IsEnabled && shop.SyncStatus == "Failed")
                                         {
                                             <span class="plat-sync-error" title="@shop.LastErrorMessage" aria-label="Sync error: @shop.LastErrorMessage">!</span>
                                         }
@@ -138,8 +138,9 @@ else
                                     <span class="plat-shop-data">@shop.TransactionCount transactions</span>
                                 </div>
                                 <div class="plat-shop-actions">
-                                    <button class="plat-btn-outline" aria-label="Sync @shop.ShopName now">Sync Now</button>
-                                    <button class="plat-btn-outline" aria-label="Manage @shop.ShopName">Manage</button>
+                                    <button class="plat-btn-outline" aria-label="@(shop.IsEnabled ? $"Pause syncing for {shop.ShopName}" : $"Resume syncing for {shop.ShopName}")" @onclick="() => TogglePauseAsync(shop.ShopConnectionId)">
+                                        @(shop.IsEnabled ? "Pause" : "Resume")
+                                    </button>
                                 </div>
                             </li>
                         }
