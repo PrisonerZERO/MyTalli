@@ -159,7 +159,7 @@ public class PlatformsViewModel : ComponentBase
 			{
 				"connected" => "Etsy connected. Your first sync will start shortly.",
 				"added" => "New Etsy shop connected. Sync will start shortly.",
-				"refreshed" => "No new shop found — that Etsy login was already connected. To add a shop, sign in with a different Etsy account.",
+				"refreshed" => "That Etsy login was already connected — no new shop was added. To add a different shop, sign out of Etsy first (profile menu → Sign out on etsy.com), then click \"Connect another shop\" again.",
 				_ => null
 			};
 
