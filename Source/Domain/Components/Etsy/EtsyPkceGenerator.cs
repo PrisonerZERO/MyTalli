@@ -28,7 +28,8 @@ public static class EtsyPkceGenerator
             $"&scope={Uri.EscapeDataString(scope)}" +
             $"&state={Uri.EscapeDataString(state)}" +
             $"&code_challenge={Uri.EscapeDataString(codeChallenge)}" +
-            $"&code_challenge_method=S256";
+            $"&code_challenge_method=S256" +
+            $"&prompt=login";
 
         return new AuthorizeChallenge
         {

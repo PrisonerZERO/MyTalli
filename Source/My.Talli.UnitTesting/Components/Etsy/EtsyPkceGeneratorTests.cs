@@ -20,6 +20,7 @@ public class EtsyPkceGeneratorTests
         Assert.Contains("scope=transactions_r%20shops_r", challenge.AuthorizeUrl);
         Assert.Contains("code_challenge_method=S256", challenge.AuthorizeUrl);
         Assert.Contains($"state={challenge.State}", challenge.AuthorizeUrl);
+        Assert.Contains("prompt=login", challenge.AuthorizeUrl);
     }
 
     [Fact]
