@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Platform &amp; Shop Schema</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.6; padding: 0; }
+
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; overflow: hidden; padding: 48px 32px; position: relative; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 240px; position: absolute; right: -60px; top: -100px; width: 240px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 160px; left: 35%; position: absolute; top: 60px; width: 160px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.85); font-size: 15px; margin-top: 8px; max-width: 780px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.55); font-size: 12px; margin-top: 14px; position: relative; z-index: 1; }
+  .header a { color: #fff; text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,0.4); }
+  .header a:hover { border-bottom-color: rgba(255,255,255,0.9); }
+
+  .content { margin: 0 auto; max-width: 1200px; padding: 40px 32px 80px; }
+
+  .section { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(108,92,231,0.08); margin-bottom: 24px; padding: 28px 32px; }
+  .section h2 { border-bottom: 2px solid #f0edff; color: #1a1a2e; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 14px; padding-bottom: 12px; }
+  .section h3 { color: #6c5ce7; font-size: 15px; font-weight: 600; margin: 20px 0 10px; }
+  .section p { color: #555; font-size: 14px; margin-bottom: 12px; }
+  .section p:last-child { margin-bottom: 0; }
+  .section ul { color: #555; font-size: 14px; margin: 0 0 12px 20px; }
+  .section li { margin-bottom: 4px; }
+  code { background: #f0edff; border-radius: 4px; color: #6c5ce7; font-family: 'Consolas', monospace; font-size: 0.88em; padding: 1px 6px; }
+
+  .callout { background: #fafbff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin: 16px 0; padding: 14px 18px; }
+  .callout.warn { border-left-color: #f5c842; }
+  .callout.success { border-left-color: #27ae60; }
+  .callout.danger { border-left-color: #e74c3c; }
+  .callout p { color: #555; font-size: 13px; margin: 0; }
+  .callout strong { color: #1a1a2e; }
+
+  .erd { padding: 12px 0 4px; position: relative; }
+  .erd svg { display: block; height: auto; width: 100%; }
+  .erd-label { color: #999; font-size: 13px; font-style: italic; margin-top: 10px; text-align: center; }
+
+  table { border-collapse: collapse; font-size: 13px; margin: 14px 0 8px; width: 100%; }
+  th { background: #f0edff; border-bottom: 2px solid #e0dce8; color: #1a1a2e; font-weight: 600; padding: 10px 12px; text-align: left; white-space: nowrap; }
+  td { border-bottom: 1px solid #f0edff; color: #555; padding: 8px 12px; vertical-align: top; }
+  td code { background: #f0edff; color: #6c5ce7; font-family: 'Consolas', monospace; }
+  tr:hover td { background: #faf9ff; }
+  tr.pk td code { background: #ede9ff; color: #5b21b6; font-weight: 600; }
+  tr.fk td code { background: #dbeafe; color: #1e40af; font-weight: 600; }
+  tr.token td:first-child::before { background: #6c5ce7; border-radius: 50%; content: ''; display: inline-block; height: 8px; margin-right: 6px; vertical-align: middle; width: 8px; }
+
+  .tag { border-radius: 4px; display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 7px; text-transform: uppercase; vertical-align: middle; }
+  .tag.core { background: #ede9ff; color: #5b21b6; }
+  .tag.etsy { background: #fff3e0; color: #e65100; }
+  .tag.subtable { background: #e0e7ff; color: #4338ca; }
+  .tag.token { background: #ede9ff; color: #5b21b6; }
+
+  /* Platform matrix */
+  .platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; }
+  .platform-card { background: #fafbff; border: 1px solid #e0dce8; border-radius: 10px; padding: 14px 16px; }
+  .platform-card h4 { color: #1a1a2e; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .platform-card h4 .dot { border-radius: 50%; display: inline-block; height: 10px; margin-right: 6px; vertical-align: middle; width: 10px; }
+  .platform-card p { color: #555; font-size: 12px; line-height: 1.5; margin: 0; }
+  .platform-card .cardinality { color: #6c5ce7; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin: 4px 0 6px; text-transform: uppercase; }
+
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 40px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Platform &amp; Shop Schema</h1>
+  <p class="subtitle">The integration surface where MyTalli connects to external revenue platforms. A user connects a platform once (<code style="background:rgba(255,255,255,0.15);color:#fff;">PlatformConnection</code>), and each shop under that platform becomes a sync target (<code style="background:rgba(255,255,255,0.15);color:#fff;">ShopConnection</code>) with its own OAuth tokens. Etsy gets a provider subtable (<code style="background:rgba(255,255,255,0.15);color:#fff;">ShopConnectionEtsy</code>); other platforms add one when they need shop-level provider-unique fields.</p>
+  <p class="doc-date">Schema: <code style="background:rgba(255,255,255,0.15);color:#fff;">app</code> (platform/shop tables) · Siblings: <a href="Authentication_Schema.html">auth</a> · <a href="Commerce_Schema.html">commerce</a> · <a href="Dashboard_Schema.html">dashboard</a></p>
+</div>
+
+<div class="content">
+
+  <div class="section">
+    <h2>Overview</h2>
+    <p>The platform/shop layer answers two questions:</p>
+    <ul>
+      <li><strong>"Has this user connected this platform?"</strong> &nbsp;→ <code>app.PlatformConnection</code> (one row per user per platform)</li>
+      <li><strong>"Which shops do we sync, how, and with what credentials?"</strong> &nbsp;→ <code>app.ShopConnection</code> (one row per shop, carrying its own OAuth tokens)</li>
+    </ul>
+    <p>Most platforms are 1:1 between connection and shop (Stripe, Gumroad, PayPal, Shopify — one login = one account = one sync target). Etsy is the outlier: Etsy caps each login at one shop, so a seller with multiple shops runs multiple Etsy logins, and each login becomes a separate <code>ShopConnection</code> row with its own tokens under the same <code>PlatformConnection</code>.</p>
+
+    <div class="callout success">
+      <p><strong>Shape:</strong> <code>User 1:N PlatformConnection 1:N ShopConnection 1:1 ShopConnection{Provider}</code>. The middle cardinality is functionally 1:1 for Stripe/Gumroad/PayPal/Shopify, genuinely 1:N for Etsy.</p>
+    </div>
+
+    <div class="callout warn">
+      <p><strong>Tokens belong to the shop, not the platform.</strong> This is what lets one MyTalli user own multiple Etsy shops under multiple Etsy logins — each shop carries its own login's OAuth credentials independently. <code>PlatformConnection</code> is a bookkeeping row; it does not store tokens.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Entity Relationship Diagram</h2>
+
+    <div class="erd">
+      <svg viewBox="0 0 1100 700" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+        <defs>
+          <marker id="arrow-grey" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
+          </marker>
+          <marker id="arrow-purple" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#6c5ce7"/>
+          </marker>
+          <marker id="arrow-etsy" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#f56400"/>
+          </marker>
+          <filter id="shadow" x="-4%" y="-4%" width="108%" height="116%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#6c5ce7" flood-opacity="0.18"/>
+          </filter>
+        </defs>
+
+        <!-- Zones -->
+        <rect x="20" y="20" width="1060" height="160" rx="12" fill="#f0edff" opacity="0.45"/>
+        <text x="40" y="44" font-size="11" font-weight="600" fill="#6c5ce7" opacity="0.85">IDENTITY &amp; PLATFORM CONNECTION</text>
+
+        <rect x="20" y="210" width="1060" height="460" rx="12" fill="#e8f5e9" opacity="0.3"/>
+        <text x="40" y="234" font-size="11" font-weight="600" fill="#27ae60" opacity="0.9">SYNC-TARGET LAYER</text>
+
+        <!-- auth.User -->
+        <rect x="60" y="70" width="220" height="74" rx="10" fill="#6c5ce7" filter="url(#shadow)"/>
+        <text x="170" y="96" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">auth.User</text>
+        <text x="170" y="116" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Id (PK)</text>
+        <text x="170" y="132" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.7)" font-style="italic">cross-schema reference</text>
+
+        <!-- PlatformConnection -->
+        <rect x="420" y="60" width="300" height="100" rx="10" fill="#1565c0" filter="url(#shadow)"/>
+        <text x="570" y="86" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">app.PlatformConnection</text>
+        <text x="570" y="108" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.9)">Id (PK) · UserId (FK)</text>
+        <text x="570" y="126" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Platform · ConnectionStatus</text>
+        <text x="570" y="146" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.65)" font-style="italic">bookkeeping — "user connected this platform"</text>
+
+        <!-- ShopConnection -->
+        <rect x="260" y="260" width="400" height="380" rx="10" fill="#fff" stroke="#27ae60" stroke-width="2.5" filter="url(#shadow)"/>
+        <text x="460" y="292" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1a2e">app.ShopConnection</text>
+        <line x1="275" y1="304" x2="645" y2="304" stroke="#e0dce8" stroke-width="1"/>
+
+        <!-- Core fields -->
+        <text x="285" y="324" font-size="11" font-weight="600" fill="#5b21b6">Id</text>
+        <text x="320" y="324" font-size="11" fill="#555">· bigint · PK</text>
+
+        <text x="285" y="342" font-size="11" font-weight="600" fill="#1e40af">PlatformConnectionId</text>
+        <text x="415" y="342" font-size="11" fill="#555">· FK → PlatformConnection</text>
+
+        <text x="285" y="360" font-size="11" font-weight="600" fill="#1e40af">UserId</text>
+        <text x="335" y="360" font-size="11" fill="#555">· FK → auth.User (denormalized)</text>
+
+        <text x="285" y="378" font-size="11" fill="#1a1a2e">PlatformShopId · ShopName · IsActive</text>
+
+        <!-- Divider: SyncQueue absorbed -->
+        <line x1="275" y1="394" x2="645" y2="394" stroke="#f5c842" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="460" y="408" text-anchor="middle" font-size="9" font-weight="700" fill="#92400e" letter-spacing="0.5">SYNC STATE</text>
+
+        <text x="285" y="426" font-size="11" fill="#1a1a2e">Status · NextSyncDateTime · LastSyncDateTime</text>
+        <text x="285" y="444" font-size="11" fill="#1a1a2e">ConsecutiveFailures · LastErrorMessage</text>
+        <text x="285" y="462" font-size="11" fill="#1a1a2e">IsEnabled</text>
+        <text x="285" y="478" font-size="9" fill="#999" font-style="italic">User can pause sync; cannot disconnect.</text>
+
+        <!-- Divider: OAuth tokens -->
+        <line x1="275" y1="494" x2="645" y2="494" stroke="#6c5ce7" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="460" y="508" text-anchor="middle" font-size="9" font-weight="700" fill="#5b21b6" letter-spacing="0.5">OAUTH TOKENS (per shop — per login)</text>
+
+        <text x="285" y="528" font-size="11" fill="#1a1a2e">AccessToken · RefreshToken</text>
+        <text x="285" y="546" font-size="11" fill="#1a1a2e">TokenExpiryDateTime · PlatformAccountId</text>
+        <text x="285" y="562" font-size="9" fill="#999" font-style="italic">Each Etsy login has its own tokens.</text>
+        <text x="285" y="574" font-size="9" fill="#999" font-style="italic">1:1 platforms still store tokens here.</text>
+
+        <!-- audit -->
+        <line x1="275" y1="590" x2="645" y2="590" stroke="#e0dce8" stroke-width="1"/>
+        <text x="285" y="610" font-size="10" fill="#999" font-style="italic">+ IsDeleted · IsVisible · audit (Create/Updated)</text>
+
+        <!-- ShopConnectionEtsy -->
+        <rect x="720" y="300" width="320" height="200" rx="10" fill="#fff" stroke="#f56400" stroke-width="2.5" filter="url(#shadow)"/>
+        <rect x="720" y="300" width="52" height="18" rx="0" fill="#f56400"/>
+        <text x="746" y="313" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">ETSY</text>
+        <text x="880" y="338" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1a2e">app.ShopConnectionEtsy</text>
+        <line x1="735" y1="350" x2="1025" y2="350" stroke="#e0dce8" stroke-width="1"/>
+
+        <text x="745" y="372" font-size="11" font-weight="600" fill="#5b21b6">Id</text>
+        <text x="780" y="372" font-size="11" fill="#555">· PK + FK (shared)</text>
+        <text x="745" y="386" font-size="9" fill="#999" font-style="italic">C# property: Id · DB column: ShopConnectionId</text>
+
+        <text x="745" y="408" font-size="11" fill="#1a1a2e">CountryCode</text>
+        <text x="830" y="408" font-size="11" fill="#555">· char(2) ISO</text>
+
+        <text x="745" y="426" font-size="11" fill="#1a1a2e">ShopCurrency</text>
+        <text x="835" y="426" font-size="11" fill="#555">· char(3) ISO</text>
+
+        <text x="745" y="444" font-size="11" fill="#1a1a2e">ShopUrl</text>
+        <text x="795" y="444" font-size="11" fill="#555">· nvarchar(500)</text>
+
+        <text x="745" y="462" font-size="11" fill="#1a1a2e">IsVacationMode</text>
+        <text x="850" y="462" font-size="11" fill="#555">· bit</text>
+
+        <text x="745" y="486" font-size="10" fill="#999" font-style="italic">Provider-unique shop-level fields</text>
+
+        <!-- Relationships -->
+        <!-- User → PlatformConnection -->
+        <line x1="280" y1="104" x2="420" y2="104" stroke="#a09cae" stroke-width="1.6" marker-end="url(#arrow-grey)"/>
+        <text x="346" y="97" font-size="10" font-weight="600" fill="#a09cae">1 : N</text>
+
+        <!-- User → ShopConnection (denormalized) -->
+        <path d="M 170 144 L 170 230 L 90 230 L 90 395 L 260 395" fill="none" stroke="#6c5ce7" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-purple)"/>
+        <text x="104" y="310" font-size="10" font-weight="600" fill="#6c5ce7" transform="rotate(-90 104 310)">1 : N (denormalized)</text>
+
+        <!-- PlatformConnection → ShopConnection -->
+        <path d="M 570 160 L 570 260" fill="none" stroke="#a09cae" stroke-width="1.6" marker-end="url(#arrow-grey)"/>
+        <text x="582" y="220" font-size="10" font-weight="600" fill="#a09cae">1 : N</text>
+        <text x="582" y="233" font-size="9" fill="#a09cae" font-style="italic">1:1 for most platforms</text>
+        <text x="582" y="245" font-size="9" fill="#a09cae" font-style="italic">1:N for Etsy</text>
+
+        <!-- ShopConnection → ShopConnectionEtsy -->
+        <line x1="660" y1="400" x2="720" y2="400" stroke="#f56400" stroke-width="2" marker-end="url(#arrow-etsy)"/>
+        <text x="690" y="392" text-anchor="middle" font-size="10" font-weight="700" fill="#f56400">1 : 1</text>
+        <text x="690" y="414" text-anchor="middle" font-size="9" fill="#f56400">shared PK</text>
+      </svg>
+      <div class="erd-label">PlatformConnection is bookkeeping. ShopConnection is the sync target. Tokens live on the shop. Etsy adds a provider-specific 1:1 subtable; other platforms will get theirs when they need provider-unique shop fields.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>app.PlatformConnection <span class="tag core">BOOKKEEPING</span></h2>
+    <p>A bookkeeping row marking that a user has connected a given platform. <strong>Does not store OAuth tokens</strong> — those live on <code>ShopConnection</code>, one set per shop (because each Etsy login owns exactly one shop).</p>
+
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:220px;">Column</th><th style="width:160px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>Id</code></td><td>bigint identity</td><td>Primary key</td></tr>
+        <tr class="fk"><td>1</td><td><code>UserId</code></td><td>bigint</td><td>FK → <code>auth.User</code></td></tr>
+        <tr><td>2</td><td><code>ConnectionStatus</code></td><td>nvarchar(50)</td><td>active / expired / revoked</td></tr>
+        <tr><td>3</td><td><code>Platform</code></td><td>nvarchar(50)</td><td>"Stripe" · "Etsy" · "Gumroad" · "PayPal" · "Shopify"</td></tr>
+        <tr><td>4-9</td><td><em>+ IsDeleted · IsVisible · audit</em></td><td>&mdash;</td><td>Standard <code>DefaultEntity</code> tail</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Indexes &amp; constraints:</strong></p>
+    <ul>
+      <li><code>PK_PlatformConnection</code> on <code>Id</code></li>
+      <li><code>FK_PlatformConnection_User</code> → <code>auth.User.Id</code></li>
+      <li><code>UQ_PlatformConnection_UserId_Platform</code> — one connection row per user per platform</li>
+      <li><code>IX_PlatformConnection_UserId</code></li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>app.ShopConnection <span class="tag core">SYNC TARGET</span></h2>
+    <p>The thing we sync <em>from</em>, and the owner of the OAuth tokens for this shop's login. One row per shop under a platform connection.</p>
+
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:220px;">Column</th><th style="width:160px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>Id</code></td><td>bigint identity</td><td>Primary key</td></tr>
+        <tr class="fk"><td>1</td><td><code>PlatformConnectionId</code></td><td>bigint</td><td>FK → <code>PlatformConnection</code>. Cascade on delete.</td></tr>
+        <tr class="fk"><td>2</td><td><code>UserId</code></td><td>bigint</td><td>FK → <code>auth.User</code>. Denormalized for per-user queries (matches <code>Revenue</code> / <code>Expense</code> / <code>Payout</code>). Restrict on delete (avoids multiple-cascade-path collision with <code>FK_PlatformConnection_User</code>).</td></tr>
+        <tr class="token"><td>3</td><td><code>AccessToken</code> <span class="tag token">TOKEN</span></td><td>nvarchar(max)</td><td>OAuth access token for this shop's login.</td></tr>
+        <tr><td>4</td><td><code>ConsecutiveFailures</code></td><td>int · default <code>0</code></td><td>Drives exponential backoff on <code>NextSyncDateTime</code>.</td></tr>
+        <tr><td>5</td><td><code>IsActive</code></td><td>bit · default <code>true</code></td><td>On free tier, only one <code>ShopConnection</code> per user is active. Pro may have many.</td></tr>
+        <tr><td>6</td><td><code>IsEnabled</code></td><td>bit · default <code>true</code></td><td>User can pause syncing without disconnecting (slot still occupied).</td></tr>
+        <tr><td>7</td><td><code>LastErrorMessage</code></td><td>nvarchar(2000) · nullable</td><td>Most recent failure reason.</td></tr>
+        <tr><td>8</td><td><code>LastSyncDateTime</code></td><td>datetime2 · nullable</td><td>Null until first successful sync.</td></tr>
+        <tr><td>9</td><td><code>NextSyncDateTime</code></td><td>datetime2</td><td>When the worker is next eligible to sync. Stepped to <code>now + 24h</code> after successful sync (daily-baseline policy).</td></tr>
+        <tr class="token"><td>10</td><td><code>PlatformAccountId</code> <span class="tag token">TOKEN</span></td><td>nvarchar(255)</td><td>Platform's native account/user identifier that owns this shop (e.g., Etsy user id).</td></tr>
+        <tr><td>11</td><td><code>PlatformShopId</code></td><td>nvarchar(255)</td><td>Platform's native shop identifier (e.g., Etsy <code>shop_id</code>).</td></tr>
+        <tr class="token"><td>12</td><td><code>RefreshToken</code> <span class="tag token">TOKEN</span></td><td>nvarchar(max) · nullable</td><td>OAuth refresh token for this shop's login.</td></tr>
+        <tr><td>13</td><td><code>ShopName</code></td><td>nvarchar(255)</td><td>Human-readable name for UI.</td></tr>
+        <tr><td>14</td><td><code>Status</code></td><td>nvarchar(20)</td><td>Pending / InProgress / Completed / Failed.</td></tr>
+        <tr class="token"><td>15</td><td><code>TokenExpiryDateTime</code> <span class="tag token">TOKEN</span></td><td>datetime2 · nullable</td><td>When the access token expires. Worker refreshes lazily before calling the API.</td></tr>
+        <tr><td>16-21</td><td><em>+ IsDeleted · IsVisible · audit</em></td><td>&mdash;</td><td>Standard <code>DefaultEntity</code> tail</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Indexes &amp; constraints:</strong></p>
+    <ul>
+      <li><code>PK_ShopConnection</code> on <code>Id</code></li>
+      <li><code>FK_ShopConnection_PlatformConnection</code> → <code>PlatformConnection.Id</code> (Cascade)</li>
+      <li><code>FK_ShopConnection_User</code> → <code>auth.User.Id</code> (Restrict — avoids cascade path collision)</li>
+      <li><code>UQ_ShopConnection_PlatformConnectionId_PlatformShopId</code> — one row per shop per connection</li>
+      <li><code>IX_ShopConnection_NextSyncDateTime_Status</code> — sync worker polling</li>
+      <li><code>IX_ShopConnection_UserId</code> · <code>IX_ShopConnection_PlatformConnectionId</code></li>
+    </ul>
+
+    <div class="callout">
+      <p><strong>Users can pause, not disconnect.</strong> Toggling <code>IsEnabled = false</code> stops syncing but the row stays (and continues to occupy a plan slot). There is no "disconnect" flow on purpose — connected shops are a permanent commitment in the user's plan.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>app.ShopConnectionEtsy <span class="tag etsy">ETSY 1:1</span></h2>
+    <p>Etsy-specific provider subtable, 1:1 with <code>ShopConnection</code>. Shared-PK convention — C# property <code>Id</code>, DB column <code>ShopConnectionId</code> via <code>HasColumnName()</code>. <code>ValueGeneratedNever()</code>.</p>
+
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:220px;">Column</th><th style="width:160px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>ShopConnectionId</code> <span style="color:#999;">(Id)</span></td><td>bigint</td><td>PK + FK → <code>ShopConnection</code>. Cascade on delete (pure 1:1 extension).</td></tr>
+        <tr><td>1</td><td><code>CountryCode</code></td><td>char(2)</td><td>ISO alpha-2. Drives currency display and later tax heuristics.</td></tr>
+        <tr><td>2</td><td><code>IsVacationMode</code></td><td>bit · default <code>false</code></td><td>When true, suppress "stale data" warnings — seller is on break.</td></tr>
+        <tr><td>3</td><td><code>ShopCurrency</code></td><td>char(3)</td><td>ISO 4217. Etsy's <code>currency_code</code>.</td></tr>
+        <tr><td>4</td><td><code>ShopUrl</code></td><td>nvarchar(500)</td><td>Deep-link target for the Platforms-page card.</td></tr>
+        <tr><td>5-10</td><td><em>+ IsDeleted · IsVisible · audit</em></td><td>&mdash;</td><td>Standard <code>DefaultEntity</code> tail</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><strong>Not included on day one:</strong> <code>ListingActiveCount</code>, <code>TransactionSoldCount</code>, <code>NumFavorers</code> (rolling stats, better suited to a snapshot/metrics table). <code>Title</code>, <code>Announcement</code> (long-form seller copy, not a sync-target concern). <code>CreationTimestamp</code> (we have <code>CreatedOnDateTime</code> already).</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>How the Shape Plays Out Per Platform</h2>
+    <p>Only Etsy actually exercises the 1:N cardinality between <code>PlatformConnection</code> and <code>ShopConnection</code>. The cardinality is still "many" for everything else — it's just always 1 in practice.</p>
+
+    <div class="platform-grid">
+      <div class="platform-card">
+        <h4><span class="dot" style="background:#f56400;"></span>Etsy</h4>
+        <div class="cardinality">1 : N</div>
+        <p>Etsy caps each login at one shop. Multi-shop sellers run multiple Etsy logins; each login becomes its own <code>ShopConnection</code> row with its own tokens. <code>ShopConnectionEtsy</code> subtable carries country, currency, URL, vacation mode.</p>
+      </div>
+      <div class="platform-card">
+        <h4><span class="dot" style="background:#635bff;"></span>Stripe</h4>
+        <div class="cardinality">1 : 1 (always)</div>
+        <p>One Stripe account per connection. No "shops" concept. Subtable added when a Stripe-unique shop-level field appears.</p>
+      </div>
+      <div class="platform-card">
+        <h4><span class="dot" style="background:#ff90e8;"></span>Gumroad</h4>
+        <div class="cardinality">1 : 1 (always)</div>
+        <p>No shop layer. One account = one sync target. No subtable yet.</p>
+      </div>
+      <div class="platform-card">
+        <h4><span class="dot" style="background:#003087;"></span>PayPal</h4>
+        <div class="cardinality">1 : 1 (always)</div>
+        <p>Merchant account = sync target. No subtable yet.</p>
+      </div>
+      <div class="platform-card">
+        <h4><span class="dot" style="background:#96bf48;"></span>Shopify</h4>
+        <div class="cardinality">1 : 1 (always)</div>
+        <p>One OAuth install per shop — each shop is its own tenant. Likely gets a <code>ShopConnectionShopify</code> subtable (shop domain, currency, plan) when the Shopify spoke is built.</p>
+      </div>
+    </div>
+
+    <div class="callout success">
+      <p><strong>Pattern:</strong> <code>ShopConnection</code> splits by provider only when a provider-unique shop-level field exists. Today that's only Etsy. Future subtables follow the same shared-PK convention (<code>ShopConnectionShopify</code>, etc.).</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Design Notes</h2>
+
+    <h3>Tokens belong to the shop</h3>
+    <p>OAuth credentials (<code>AccessToken</code> / <code>RefreshToken</code> / <code>TokenExpiryDateTime</code> / <code>PlatformAccountId</code>) live on <code>ShopConnection</code>, not <code>PlatformConnection</code>. On Etsy, each login has its own tokens and owns one shop — so tokens are inherently per-shop. For 1:1 platforms, the tokens still live with the shop row; there's just always one.</p>
+
+    <h3>Per-shop Pause/Resume</h3>
+    <p>The Platforms page shows a per-shop <strong>Pause / Resume</strong> toggle that flips <code>IsEnabled</code>. There is no "Sync Now" button — syncing is driven server-side by <code>NextSyncDateTime</code>; a manual trigger would undermine the rate-limit plan (see <a href="../MyTalli_SyncScalingPlan.html">SyncScalingPlan.html</a>).</p>
+
+    <h3>Connect-another-shop flow (Etsy)</h3>
+    <p>The <code>SupportsMultipleShops</code> flag on the <code>PlatformItem</code> view model gates the "Connect another shop" button — only <code>true</code> for Etsy today. The OAuth callback distinguishes three outcomes via a <code>ConnectEtsyResult</code>:</p>
+    <ul>
+      <li><code>connected</code> — first-time connection for this user+platform</li>
+      <li><code>added</code> — existing connection, at least one new <code>ShopConnection</code> row inserted</li>
+      <li><code>refreshed</code> — existing connection, only existing shops refreshed (user authorized the same Etsy account again)</li>
+    </ul>
+    <p>The <code>refreshed</code> toast is the teachable moment — it explains to the user how to actually add a different shop (sign out of etsy.com first, because Etsy's OAuth has no account switcher).</p>
+
+    <h3>Shared-PK convention</h3>
+    <p><code>ShopConnectionEtsy</code> uses <code>ShopConnection.Id</code> as its own PK. C# property stays <code>Id</code>; DB column is renamed to <code>ShopConnectionId</code> via <code>HasColumnName()</code>. Enforced by <code>ValueGeneratedNever()</code> + <code>HasForeignKey&lt;T&gt;(e =&gt; e.Id)</code>.</p>
+
+    <h3>Sync worker (not yet built)</h3>
+    <p>The schema is ready for a background worker that:</p>
+    <ol>
+      <li>Polls <code>ShopConnection WHERE NextSyncDateTime &lt;= now AND IsEnabled = true AND Status != 'InProgress'</code></li>
+      <li>Refreshes the access token if <code>TokenExpiryDateTime</code> has passed (using <code>RefreshToken</code>)</li>
+      <li>Calls the platform API with this row's tokens — fetches receipts/transactions/payments for this shop only</li>
+      <li>Writes normalized rows to <code>app.Revenue</code> / <code>app.Expense</code> / <code>app.Payout</code> stamped with this <code>ShopConnectionId</code></li>
+      <li>Updates <code>LastSyncDateTime</code>, steps <code>NextSyncDateTime</code> to <code>now + 24h</code>, clears <code>ConsecutiveFailures</code></li>
+    </ol>
+    <p>Multi-shop comes out of the box — each row is self-contained.</p>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli — Internal Documentation · Schema: <code>app</code> (platform &amp; shop tables)
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Dashboard Schema</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.6; padding: 0; }
+
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; overflow: hidden; padding: 48px 32px; position: relative; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 240px; position: absolute; right: -60px; top: -100px; width: 240px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 160px; left: 35%; position: absolute; top: 60px; width: 160px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.85); font-size: 15px; margin-top: 8px; max-width: 780px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.55); font-size: 12px; margin-top: 14px; position: relative; z-index: 1; }
+  .header a { color: #fff; text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,0.4); }
+  .header a:hover { border-bottom-color: rgba(255,255,255,0.9); }
+
+  .content { margin: 0 auto; max-width: 1200px; padding: 40px 32px 80px; }
+
+  .section { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(108,92,231,0.08); margin-bottom: 24px; padding: 28px 32px; }
+  .section h2 { border-bottom: 2px solid #f0edff; color: #1a1a2e; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 14px; padding-bottom: 12px; }
+  .section h3 { color: #6c5ce7; font-size: 15px; font-weight: 600; margin: 20px 0 10px; }
+  .section p { color: #555; font-size: 14px; margin-bottom: 12px; }
+  .section p:last-child { margin-bottom: 0; }
+  .section ul, .section ol { color: #555; font-size: 14px; margin: 0 0 12px 20px; }
+  .section li { margin-bottom: 4px; }
+  code { background: #f0edff; border-radius: 4px; color: #6c5ce7; font-family: 'Consolas', monospace; font-size: 0.88em; padding: 1px 6px; }
+
+  .callout { background: #fafbff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin: 16px 0; padding: 14px 18px; }
+  .callout.warn { border-left-color: #f5c842; }
+  .callout.success { border-left-color: #27ae60; }
+  .callout p { color: #555; font-size: 13px; margin: 0; }
+  .callout strong { color: #1a1a2e; }
+
+  .erd { padding: 12px 0 4px; position: relative; }
+  .erd svg { display: block; height: auto; width: 100%; }
+  .erd-label { color: #999; font-size: 13px; font-style: italic; margin-top: 10px; text-align: center; }
+
+  table { border-collapse: collapse; font-size: 13px; margin: 14px 0 8px; width: 100%; }
+  th { background: #f0edff; border-bottom: 2px solid #e0dce8; color: #1a1a2e; font-weight: 600; padding: 10px 12px; text-align: left; white-space: nowrap; }
+  td { border-bottom: 1px solid #f0edff; color: #555; padding: 8px 12px; vertical-align: top; }
+  td code { background: #f0edff; color: #6c5ce7; font-family: 'Consolas', monospace; }
+  tr:hover td { background: #faf9ff; }
+  tr.pk td code { background: #ede9ff; color: #5b21b6; font-weight: 600; }
+  tr.fk td code { background: #dbeafe; color: #1e40af; font-weight: 600; }
+
+  .tag { border-radius: 4px; display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 7px; text-transform: uppercase; vertical-align: middle; }
+  .tag.core { background: #ede9ff; color: #5b21b6; }
+  .tag.subtable { background: #fff3e0; color: #e65100; }
+  .tag.stripe { background: #e0e7ff; color: #4338ca; }
+  .tag.etsy { background: #fff3e0; color: #e65100; }
+  .tag.gumroad { background: #ffe4f1; color: #c2185b; }
+  .tag.manual { background: #dbeafe; color: #1e40af; }
+  .tag.goal { background: #d1fae5; color: #065f46; }
+
+  /* Provider grid */
+  .provider-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 12px; }
+  .provider-card { background: #fafbff; border: 1px solid #e0dce8; border-radius: 10px; padding: 14px 16px; }
+  .provider-card h4 { color: #1a1a2e; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .provider-card h4 .dot { border-radius: 50%; display: inline-block; height: 10px; margin-right: 6px; vertical-align: middle; width: 10px; }
+  .provider-card p { color: #555; font-size: 12px; line-height: 1.5; margin: 0 0 6px; }
+  .provider-card code { font-size: 11px; }
+
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 40px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Dashboard Schema</h1>
+  <p class="subtitle">The normalized revenue, expense, and payout data that powers the Dashboard, Goals, and Export features. All platform data (Stripe, Etsy, Gumroad, PayPal, Shopify, Manual) funnels through these tables. Provider-specific detail lives in 1:1 subtables on <code style="background:rgba(255,255,255,0.15);color:#fff;">Revenue</code>.</p>
+  <p class="doc-date">Schema: <code style="background:rgba(255,255,255,0.15);color:#fff;">app</code> (revenue/expense/payout/goal tables) · Siblings: <a href="Authentication_Schema.html">auth</a> · <a href="Commerce_Schema.html">commerce</a> · <a href="Platform_and_Shop_Schema.html">platform &amp; shop</a></p>
+</div>
+
+<div class="content">
+
+  <div class="section">
+    <h2>Overview</h2>
+    <p>The dashboard layer is the <strong>normalization point</strong> for all financial data. The sync worker (future) or Manual Entry module writes rows here with a common shape — <code>GrossAmount</code>, <code>NetAmount</code>, <code>FeeAmount</code>, currency, date, platform — and the dashboard reads only from these tables. Provider subtables hold the raw detail for drill-down but never carry numbers the dashboard totals from.</p>
+    <ul>
+      <li><strong>Revenue</strong> (<code>Revenue</code> + <code>RevenueEtsy</code> / <code>RevenueGumroad</code> / <code>RevenueManual</code> / <code>RevenueStripe</code>) — normalized sales; provider detail in 1:1 subtables</li>
+      <li><strong>Expense</strong> — platform fees not tied to a specific sale (listing fees, ad spend, subscription fees), plus manual expenses</li>
+      <li><strong>Payout</strong> — platform disbursements to the user's bank (one payout covers many sales), plus manual payouts</li>
+      <li><strong>Goal</strong> / <strong>GoalType</strong> — user-defined revenue targets with computed progress (no denormalized total — queries <code>Revenue</code> live)</li>
+    </ul>
+
+    <div class="callout success">
+      <p><strong>Dashboard totals come from <code>Revenue</code>.</strong> Summary cards, charts, platform breakdowns, recent transactions — all computed from <code>app.Revenue</code>. Provider tables exist for drill-down, not aggregation.</p>
+    </div>
+    <div class="callout warn">
+      <p><strong>No FKs between <code>Revenue</code>, <code>Expense</code>, and <code>Payout</code>.</strong> They're parallel. One payout covers many sales (batched by platform); a fee-only expense may have no parent sale. Joining them happens in queries, not via foreign keys.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Entity Relationship Diagram</h2>
+    <p>The three transaction tables (Revenue, Expense, Payout) are parallel peers. Each has a nullable <code>ShopConnectionId</code> for per-shop breakdowns (null for Manual Entry). Revenue is the only one with provider-specific subtables — Expense and Payout don't have enough per-provider variation to justify them (yet).</p>
+
+    <div class="erd">
+      <svg viewBox="0 0 1100 720" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+        <defs>
+          <marker id="arrow-grey" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
+          </marker>
+          <marker id="arrow-green" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#27ae60"/>
+          </marker>
+          <marker id="arrow-stripe" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#635bff"/>
+          </marker>
+          <marker id="arrow-etsy" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#f56400"/>
+          </marker>
+          <marker id="arrow-gumroad" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#c2185b"/>
+          </marker>
+          <marker id="arrow-manual" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#1e40af"/>
+          </marker>
+          <filter id="shadow" x="-4%" y="-4%" width="108%" height="116%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#6c5ce7" flood-opacity="0.18"/>
+          </filter>
+        </defs>
+
+        <!-- Zones -->
+        <rect x="20" y="20" width="1060" height="140" rx="12" fill="#ede9ff" opacity="0.42"/>
+        <text x="40" y="44" font-size="11" font-weight="600" fill="#5b21b6" opacity="0.85">UPSTREAM (external reference)</text>
+
+        <rect x="20" y="190" width="1060" height="240" rx="12" fill="#d1fae5" opacity="0.3"/>
+        <text x="40" y="214" font-size="11" font-weight="600" fill="#065f46" opacity="0.9">DASHBOARD CORE — Revenue / Expense / Payout</text>
+
+        <rect x="20" y="460" width="820" height="140" rx="12" fill="#fff3e0" opacity="0.3"/>
+        <text x="40" y="484" font-size="11" font-weight="600" fill="#e65100" opacity="0.9">PROVIDER SUBTABLES (1:1 on Revenue)</text>
+
+        <rect x="860" y="460" width="220" height="240" rx="12" fill="#ede9ff" opacity="0.45"/>
+        <text x="880" y="484" font-size="11" font-weight="600" fill="#5b21b6" opacity="0.85">GOALS</text>
+
+        <!-- auth.User -->
+        <rect x="60" y="60" width="200" height="74" rx="10" fill="#6c5ce7" filter="url(#shadow)"/>
+        <text x="160" y="86" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">auth.User</text>
+        <text x="160" y="106" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Id (PK)</text>
+        <text x="160" y="123" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.7)" font-style="italic">external ref</text>
+
+        <!-- ShopConnection -->
+        <rect x="420" y="60" width="260" height="74" rx="10" fill="#27ae60" filter="url(#shadow)"/>
+        <text x="550" y="86" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">app.ShopConnection</text>
+        <text x="550" y="106" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Id (PK) · ShopName</text>
+        <text x="550" y="123" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.7)" font-style="italic">per-shop source for dashboard</text>
+
+        <!-- Revenue (core) -->
+        <rect x="60" y="240" width="300" height="160" rx="10" fill="#065f46" filter="url(#shadow)"/>
+        <text x="210" y="266" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">app.Revenue</text>
+        <text x="210" y="286" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.9)">Id · UserId (FK) · ShopConnectionId (FK, nullable)</text>
+        <text x="210" y="304" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">Platform · PlatformTransactionId (nullable)</text>
+        <text x="210" y="322" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">GrossAmount · FeeAmount · NetAmount</text>
+        <text x="210" y="340" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">Currency · TransactionDate · Description</text>
+        <text x="210" y="358" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">IsDisputed · IsRefunded</text>
+        <text x="210" y="380" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.65)" font-style="italic">normalized sales from all platforms + manual</text>
+
+        <!-- Expense (core) -->
+        <rect x="400" y="240" width="300" height="160" rx="10" fill="#27ae60" filter="url(#shadow)"/>
+        <text x="550" y="266" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">app.Expense</text>
+        <text x="550" y="286" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.9)">Id · UserId (FK) · ShopConnectionId (FK, nullable)</text>
+        <text x="550" y="304" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">Platform · PlatformTransactionId (nullable)</text>
+        <text x="550" y="322" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">Amount · Currency · Category</text>
+        <text x="550" y="340" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">ExpenseDate · Description</text>
+        <text x="550" y="362" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.65)" font-style="italic">fees not tied to a sale +</text>
+        <text x="550" y="375" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.65)" font-style="italic">Manual Entry expenses</text>
+
+        <!-- Payout (core) -->
+        <rect x="740" y="240" width="300" height="160" rx="10" fill="#27ae60" filter="url(#shadow)"/>
+        <text x="890" y="266" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">app.Payout</text>
+        <text x="890" y="286" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.9)">Id · UserId (FK) · ShopConnectionId (FK, nullable)</text>
+        <text x="890" y="304" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">Platform · PlatformPayoutId (unique)</text>
+        <text x="890" y="322" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">Amount · Currency · Status</text>
+        <text x="890" y="340" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">PayoutDate · ExpectedArrivalDate</text>
+        <text x="890" y="362" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.65)" font-style="italic">disbursements to user's bank +</text>
+        <text x="890" y="375" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.65)" font-style="italic">Manual Entry payouts</text>
+
+        <!-- RevenueStripe -->
+        <rect x="50" y="510" width="180" height="80" rx="10" fill="#fff" stroke="#635bff" stroke-width="2" filter="url(#shadow)"/>
+        <rect x="50" y="510" width="52" height="16" rx="0" fill="#635bff"/>
+        <text x="76" y="522" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">STRIPE</text>
+        <text x="140" y="542" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a2e">RevenueStripe</text>
+        <text x="140" y="558" text-anchor="middle" font-size="9" fill="#555">BalanceTransactionId · RiskScore</text>
+        <text x="140" y="572" text-anchor="middle" font-size="9" fill="#555">PaymentMethod · ExchangeRate</text>
+        <text x="140" y="584" text-anchor="middle" font-size="8" fill="#999" font-style="italic">1:1 shared PK</text>
+
+        <!-- RevenueEtsy -->
+        <rect x="250" y="510" width="180" height="80" rx="10" fill="#fff" stroke="#f56400" stroke-width="2" filter="url(#shadow)"/>
+        <rect x="250" y="510" width="44" height="16" rx="0" fill="#f56400"/>
+        <text x="272" y="522" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">ETSY</text>
+        <text x="340" y="542" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a2e">RevenueEtsy</text>
+        <text x="340" y="558" text-anchor="middle" font-size="9" fill="#555">ReceiptId · ListingId</text>
+        <text x="340" y="572" text-anchor="middle" font-size="9" fill="#555">ShopCurrency · Adjusted G/F/N</text>
+        <text x="340" y="584" text-anchor="middle" font-size="8" fill="#999" font-style="italic">1:1 shared PK</text>
+
+        <!-- RevenueGumroad -->
+        <rect x="450" y="510" width="180" height="80" rx="10" fill="#fff" stroke="#c2185b" stroke-width="2" filter="url(#shadow)"/>
+        <rect x="450" y="510" width="68" height="16" rx="0" fill="#c2185b"/>
+        <text x="484" y="522" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">GUMROAD</text>
+        <text x="540" y="542" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a2e">RevenueGumroad</text>
+        <text x="540" y="558" text-anchor="middle" font-size="9" fill="#555">SaleId · LicenseKey</text>
+        <text x="540" y="572" text-anchor="middle" font-size="9" fill="#555">DiscoverFee</text>
+        <text x="540" y="584" text-anchor="middle" font-size="8" fill="#999" font-style="italic">1:1 shared PK</text>
+
+        <!-- RevenueManual -->
+        <rect x="650" y="510" width="180" height="80" rx="10" fill="#fff" stroke="#1e40af" stroke-width="2" filter="url(#shadow)"/>
+        <rect x="650" y="510" width="60" height="16" rx="0" fill="#1e40af"/>
+        <text x="680" y="522" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">MANUAL</text>
+        <text x="740" y="542" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a2e">RevenueManual</text>
+        <text x="740" y="558" text-anchor="middle" font-size="9" fill="#555">Category · Quantity · Notes</text>
+        <text x="740" y="572" text-anchor="middle" font-size="9" fill="#555">(user-entered detail)</text>
+        <text x="740" y="584" text-anchor="middle" font-size="8" fill="#999" font-style="italic">1:1 shared PK</text>
+
+        <!-- Goal + GoalType -->
+        <rect x="880" y="500" width="200" height="94" rx="10" fill="#5b21b6" filter="url(#shadow)"/>
+        <text x="980" y="524" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">app.Goal</text>
+        <text x="980" y="542" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.9)">Id · UserId (FK) · GoalTypeId (FK)</text>
+        <text x="980" y="558" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">TargetAmount · StartDate · EndDate</text>
+        <text x="980" y="574" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">Platform (nullable) · Status</text>
+        <text x="980" y="588" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.65)" font-style="italic">no stored total</text>
+
+        <rect x="880" y="610" width="200" height="76" rx="10" fill="#8b5cf6" filter="url(#shadow)"/>
+        <text x="980" y="634" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">app.GoalType</text>
+        <text x="980" y="652" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Id (PK) · Name</text>
+        <text x="980" y="670" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.65)" font-style="italic">lookup (seed data)</text>
+
+        <!-- Relationships -->
+        <!-- User → Revenue -->
+        <line x1="160" y1="134" x2="160" y2="240" stroke="#a09cae" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-grey)"/>
+        <text x="170" y="200" font-size="10" font-weight="600" fill="#a09cae">1 : N</text>
+
+        <!-- User → Expense -->
+        <line x1="240" y1="134" x2="500" y2="240" stroke="#a09cae" stroke-width="1.2" stroke-dasharray="2,3" opacity="0.6"/>
+        <!-- User → Payout -->
+        <line x1="260" y1="134" x2="820" y2="240" stroke="#a09cae" stroke-width="1.2" stroke-dasharray="2,3" opacity="0.6"/>
+        <text x="450" y="195" font-size="9" fill="#a09cae" font-style="italic">User → Expense / Payout (same 1:N pattern)</text>
+
+        <!-- ShopConnection → Revenue / Expense / Payout -->
+        <line x1="500" y1="134" x2="260" y2="240" stroke="#27ae60" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+        <line x1="550" y1="134" x2="550" y2="240" stroke="#27ae60" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+        <line x1="600" y1="134" x2="840" y2="240" stroke="#27ae60" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+        <text x="420" y="170" font-size="9" font-weight="600" fill="#27ae60">1 : N · FK (nullable, Restrict)</text>
+        <text x="420" y="182" font-size="9" fill="#27ae60" font-style="italic">null for Manual entries</text>
+
+        <!-- Revenue → provider subtables -->
+        <line x1="140" y1="400" x2="140" y2="510" stroke="#635bff" stroke-width="1.8" marker-end="url(#arrow-stripe)"/>
+        <line x1="200" y1="400" x2="340" y2="510" stroke="#f56400" stroke-width="1.8" marker-end="url(#arrow-etsy)"/>
+        <line x1="260" y1="400" x2="540" y2="510" stroke="#c2185b" stroke-width="1.8" marker-end="url(#arrow-gumroad)"/>
+        <line x1="320" y1="400" x2="740" y2="510" stroke="#1e40af" stroke-width="1.8" marker-end="url(#arrow-manual)"/>
+        <text x="350" y="450" font-size="10" font-weight="700" fill="#5b21b6">1 : 1 (shared PK, exactly one per Revenue row)</text>
+
+        <!-- Goal → User (implicit) -->
+        <line x1="980" y1="500" x2="260" y2="134" stroke="#a09cae" stroke-width="1" stroke-dasharray="2,3" opacity="0.35"/>
+        <text x="870" y="496" font-size="9" fill="#a09cae" font-style="italic">Goal.UserId → auth.User</text>
+
+        <!-- Goal → GoalType -->
+        <line x1="980" y1="594" x2="980" y2="610" stroke="#a09cae" stroke-width="1.6" marker-end="url(#arrow-grey)"/>
+        <text x="990" y="608" font-size="9" font-weight="600" fill="#a09cae">N : 1</text>
+
+        <!-- Goal → Revenue (queried live, no FK) -->
+        <line x1="880" y1="560" x2="360" y2="320" stroke="#a09cae" stroke-width="1.2" stroke-dasharray="2,3" opacity="0.55"/>
+        <text x="620" y="470" font-size="9" fill="#a09cae" font-style="italic">Goal progress queried from Revenue (no FK)</text>
+      </svg>
+      <div class="erd-label">Normalized transactions in the middle. Provider detail in 1:1 subtables. Goals reference Revenue via query, not FK.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>app.Revenue <span class="tag core">CORE</span></h2>
+    <p>Normalized revenue record. Every sale from every platform — and every Manual Entry — lands here with the same shape. Dashboard aggregation queries this table and nothing else.</p>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:220px;">Column</th><th style="width:180px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>Id</code></td><td>bigint identity</td><td>Primary key</td></tr>
+        <tr class="fk"><td>1</td><td><code>ShopConnectionId</code></td><td>bigint · nullable</td><td>FK → <code>ShopConnection</code>. Null for Manual Entry. Restrict on delete (preserves historical data if a shop is removed).</td></tr>
+        <tr class="fk"><td>2</td><td><code>UserId</code></td><td>bigint</td><td>FK → <code>auth.User</code></td></tr>
+        <tr><td>3</td><td><code>Currency</code></td><td>char(3)</td><td>ISO 4217</td></tr>
+        <tr><td>4</td><td><code>Description</code></td><td>nvarchar(500)</td><td>Human-readable line description</td></tr>
+        <tr><td>5</td><td><code>FeeAmount</code></td><td>decimal(18,2)</td><td>Per-sale platform fees (processing, transaction fees). Standalone fees (listing, ads) live on <code>Expense</code>.</td></tr>
+        <tr><td>6</td><td><code>GrossAmount</code></td><td>decimal(18,2)</td><td>Sale total before fees</td></tr>
+        <tr><td>7</td><td><code>IsDisputed</code></td><td>bit · default <code>false</code></td><td>Sale is under dispute</td></tr>
+        <tr><td>8</td><td><code>IsRefunded</code></td><td>bit · default <code>false</code></td><td>Sale was refunded</td></tr>
+        <tr><td>9</td><td><code>NetAmount</code></td><td>decimal(18,2)</td><td>Amount the user actually keeps (Gross − Fees)</td></tr>
+        <tr><td>10</td><td><code>Platform</code></td><td>nvarchar(50)</td><td>"Manual" / "Stripe" / "Etsy" / "Gumroad" / "PayPal" / "Shopify"</td></tr>
+        <tr><td>11</td><td><code>PlatformTransactionId</code></td><td>nvarchar(255) · nullable</td><td>Dedup key per platform. For Manual: <code>manual_{guid}</code>. Nullable to allow platforms that don't expose a stable ID (rare).</td></tr>
+        <tr><td>12</td><td><code>TransactionDate</code></td><td>datetime2</td><td>When the sale happened (platform-reported)</td></tr>
+        <tr><td>13-18</td><td><em>+ IsDeleted · IsVisible · audit</em></td><td>&mdash;</td><td>Standard <code>DefaultEntity</code> tail</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Indexes:</strong></p>
+    <ul>
+      <li><code>IX_Revenue_Platform_TransactionDate</code> (composite) — dashboard date-range + platform filter queries</li>
+      <li><code>IX_Revenue_UserId</code> · <code>IX_Revenue_ShopConnectionId</code></li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Revenue Provider Subtables <span class="tag subtable">1:1 SHARED PK</span></h2>
+    <p>Each subtable is 1:1 with <code>Revenue</code>. Platform-specific detail for drill-down displays. C# property stays <code>Id</code>; DB column is renamed to <code>RevenueId</code> via <code>HasColumnName()</code>.</p>
+
+    <div class="provider-grid">
+      <div class="provider-card">
+        <h4><span class="dot" style="background:#635bff;"></span>RevenueStripe <span class="tag stripe">STRIPE</span></h4>
+        <p>Stripe balance-transaction detail.</p>
+        <p>Fields: <code>BalanceTransactionId</code>, <code>PaymentMethod</code>, <code>RiskScore</code> (nullable), <code>ExchangeRate</code> (nullable).</p>
+      </div>
+      <div class="provider-card">
+        <h4><span class="dot" style="background:#f56400;"></span>RevenueEtsy <span class="tag etsy">ETSY</span></h4>
+        <p>Etsy receipt detail with currency-adjusted amounts.</p>
+        <p>Fields: <code>ReceiptId</code>, <code>ListingId</code>, <code>ShopCurrency</code>, <code>AdjustedGross</code> / <code>AdjustedFees</code> / <code>AdjustedNet</code> (nullable).</p>
+      </div>
+      <div class="provider-card">
+        <h4><span class="dot" style="background:#c2185b;"></span>RevenueGumroad <span class="tag gumroad">GUMROAD</span></h4>
+        <p>Gumroad sale detail.</p>
+        <p>Fields: <code>SaleId</code>, <code>LicenseKey</code> (nullable), <code>DiscoverFee</code> (nullable).</p>
+      </div>
+      <div class="provider-card">
+        <h4><span class="dot" style="background:#1e40af;"></span>RevenueManual <span class="tag manual">MANUAL</span></h4>
+        <p>User-entered sales (Manual Entry module).</p>
+        <p>Fields: <code>Category</code> (Sale / Service / Freelance / Consulting / Digital Product / Physical Product / Other), <code>Quantity</code> (default 1), <code>Notes</code> (nullable).</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><strong>Exactly one subtable per <code>Revenue</code> row.</strong> The platform that produced the sale determines which subtable carries the detail. Queries drilling into a sale join to the matching subtable based on <code>Revenue.Platform</code>.</p>
+    </div>
+
+    <div class="callout warn">
+      <p><strong>No provider subtables for PayPal or Shopify yet.</strong> They'll follow the same shared-PK pattern when those spokes are built. The <code>Revenue</code> core fields cover most needs — subtables exist only when the provider has unique detail worth preserving for drill-down.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>app.Expense <span class="tag core">CORE</span></h2>
+    <p>Platform fees not tied to a specific sale (listing fees, ad spend, subscription fees, etc.) <em>and</em> user-created manual expenses (entered via the Manual Entry module).</p>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:220px;">Column</th><th style="width:180px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>Id</code></td><td>bigint identity</td><td>Primary key</td></tr>
+        <tr class="fk"><td>1</td><td><code>ShopConnectionId</code></td><td>bigint · nullable</td><td>FK → <code>ShopConnection</code>. Null for manual entries. Restrict.</td></tr>
+        <tr class="fk"><td>2</td><td><code>UserId</code></td><td>bigint</td><td>FK → <code>auth.User</code></td></tr>
+        <tr><td>3</td><td><code>Amount</code></td><td>decimal(18,2)</td><td>Expense amount</td></tr>
+        <tr><td>4</td><td><code>Category</code></td><td>nvarchar(50)</td><td>Listing Fee / Ad Fee / Subscription Fee / Processing Fee / Shipping Label / Other</td></tr>
+        <tr><td>5</td><td><code>Currency</code></td><td>char(3)</td><td>ISO 4217</td></tr>
+        <tr><td>6</td><td><code>Description</code></td><td>nvarchar(500)</td><td>Human-readable detail</td></tr>
+        <tr><td>7</td><td><code>ExpenseDate</code></td><td>datetime2</td><td>When the expense occurred</td></tr>
+        <tr><td>8</td><td><code>Platform</code></td><td>nvarchar(50)</td><td>Source platform (same value set as Revenue)</td></tr>
+        <tr><td>9</td><td><code>PlatformTransactionId</code></td><td>nvarchar(255) · nullable</td><td>Dedup key. For manual: <code>manual_{guid}</code>.</td></tr>
+        <tr><td>10-15</td><td><em>+ IsDeleted · IsVisible · audit</em></td><td>&mdash;</td><td>Standard tail</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Indexes:</strong> <code>IX_Expense_Platform_ExpenseDate</code> (composite), <code>IX_Expense_UserId</code>, <code>IX_Expense_ShopConnectionId</code>.</p>
+    <p><strong>Parallel to Revenue:</strong> <code>Revenue.FeeAmount</code> = per-sale fees attached to a transaction. <code>Expense.Amount</code> = standalone platform fees (listing, ads) or user-entered expenses. No FK between them — they're queried side-by-side by the dashboard.</p>
+  </div>
+
+  <div class="section">
+    <h2>app.Payout <span class="tag core">CORE</span></h2>
+    <p>Platform disbursements to the user's bank account, and user-created manual payouts. One payout row typically covers many sales (batched by platform).</p>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:220px;">Column</th><th style="width:180px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>Id</code></td><td>bigint identity</td><td>Primary key</td></tr>
+        <tr class="fk"><td>1</td><td><code>ShopConnectionId</code></td><td>bigint · nullable</td><td>FK → <code>ShopConnection</code>. Null for manual. Restrict.</td></tr>
+        <tr class="fk"><td>2</td><td><code>UserId</code></td><td>bigint</td><td>FK → <code>auth.User</code></td></tr>
+        <tr><td>3</td><td><code>Amount</code></td><td>decimal(18,2)</td><td>Payout amount</td></tr>
+        <tr><td>4</td><td><code>Currency</code></td><td>char(3)</td><td>ISO 4217</td></tr>
+        <tr><td>5</td><td><code>ExpectedArrivalDate</code></td><td>datetime2 · nullable</td><td>Platform's ETA for bank arrival (for cash-flow view)</td></tr>
+        <tr><td>6</td><td><code>PayoutDate</code></td><td>datetime2</td><td>When the platform initiated the payout</td></tr>
+        <tr><td>7</td><td><code>Platform</code></td><td>nvarchar(50)</td><td>Source platform</td></tr>
+        <tr><td>8</td><td><code>PlatformPayoutId</code></td><td>nvarchar(255)</td><td>Dedup key. <strong>Unique index</strong> across the table. Manual uses <code>manual_{guid}</code>.</td></tr>
+        <tr><td>9</td><td><code>Status</code></td><td>nvarchar(20)</td><td>Pending / In Transit / Paid / Failed / Cancelled</td></tr>
+        <tr><td>10-15</td><td><em>+ IsDeleted · IsVisible · audit</em></td><td>&mdash;</td><td>Standard tail</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Indexes:</strong> <code>UQ_Payout_PlatformPayoutId</code>, <code>IX_Payout_Platform_PayoutDate</code> (composite), <code>IX_Payout_UserId</code>, <code>IX_Payout_ShopConnectionId</code>.</p>
+    <p><strong>Design:</strong> No FK to <code>Revenue</code> — one payout covers many sales (batched by platform). Joining happens in queries via <code>(UserId, Platform, date range)</code>. The table enables a cash-flow view: <em>earned</em> (Revenue), <em>received</em> (Payout with Status=Paid), <em>pending</em> (Payout with Status=Pending / In Transit).</p>
+  </div>
+
+  <div class="section">
+    <h2>app.Goal &amp; app.GoalType <span class="tag goal">GOALS</span></h2>
+
+    <h3>app.GoalType</h3>
+    <p>Lookup table for goal categories. Seeded with a fixed set of options.</p>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:200px;">Column</th><th style="width:140px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>Id</code></td><td>bigint identity</td><td>Primary key</td></tr>
+        <tr><td>1</td><td><code>Name</code></td><td>nvarchar(100)</td><td>"Monthly Revenue Target" · "Yearly Revenue Target" · "Platform Monthly Target" · "Growth Rate Target"</td></tr>
+      </tbody>
+    </table>
+
+    <h3>app.Goal</h3>
+    <p>User-defined revenue target. Progress is <strong>not stored</strong> — it's computed live by querying <code>Revenue</code>.</p>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:200px;">Column</th><th style="width:140px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>Id</code></td><td>bigint identity</td><td>Primary key</td></tr>
+        <tr class="fk"><td>1</td><td><code>GoalTypeId</code></td><td>bigint</td><td>FK → <code>GoalType</code></td></tr>
+        <tr class="fk"><td>2</td><td><code>UserId</code></td><td>bigint</td><td>FK → <code>auth.User</code></td></tr>
+        <tr><td>3</td><td><code>EndDate</code></td><td>datetime2 · nullable</td><td>When the goal window ends (null = open-ended)</td></tr>
+        <tr><td>4</td><td><code>Platform</code></td><td>nvarchar(50) · nullable</td><td>Optional filter for platform-specific goals (null = all platforms)</td></tr>
+        <tr><td>5</td><td><code>StartDate</code></td><td>datetime2</td><td>When the goal window begins</td></tr>
+        <tr><td>6</td><td><code>Status</code></td><td>nvarchar(20)</td><td>Active / Completed / Cancelled</td></tr>
+        <tr><td>7</td><td><code>TargetAmount</code></td><td>decimal(18,2)</td><td>Target revenue for this goal</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Progress query:</strong> <code>SUM(NetAmount) FROM app.Revenue WHERE UserId = {user} AND TransactionDate BETWEEN {StartDate} AND {EndDate} [AND Platform = {Platform}]</code>. Computed on demand — no denormalized total, no trigger, no stale data.</p>
+    <p><strong>Indexes:</strong> <code>IX_Goal_UserId</code>, <code>IX_Goal_GoalTypeId</code>.</p>
+  </div>
+
+  <div class="section">
+    <h2>Design Notes</h2>
+
+    <h3>Parallel tables, no FKs between them</h3>
+    <p>Revenue, Expense, and Payout are three parallel lenses on the same financial reality. They're queried side-by-side by the dashboard (net revenue view), not joined via FKs. One payout covers many sales (batched by platform); a fee-only expense has no parent sale. Creating FKs would force artificial pairings.</p>
+
+    <h3>Dedup keys</h3>
+    <p><code>PlatformTransactionId</code> (on Revenue / Expense) and <code>PlatformPayoutId</code> (on Payout — unique) are the dedup keys for sync. Manual entries synthesize a <code>manual_{guid}</code> value so they never collide with real platform IDs.</p>
+
+    <h3>Restrict on <code>ShopConnectionId</code></h3>
+    <p>All three tables use <code>DeleteBehavior.Restrict</code> on the <code>ShopConnection</code> FK. Historical revenue/expense/payout data survives a shop being removed — the shop row itself can't be hard-deleted while any financial row references it (consistent with the "users can pause but not disconnect" rule).</p>
+
+    <h3>Manual Entry semantics</h3>
+    <p>The Manual Entry module writes <code>Platform = "Manual"</code> rows with <code>ShopConnectionId = null</code>. Per-shop breakdowns skip these rows (the "which shop?" filter is <code>IS NOT NULL</code>); platform breakdowns include "Manual" as a bucket alongside the real platforms.</p>
+
+    <h3>Sample data for new users</h3>
+    <p>Users with no connected platforms and no Manual Entry subscription see <strong>sample data</strong> on the dashboard (from <code>Models/SampleData/DashboardDataset</code>). The moment they connect a platform or activate the Manual Entry module, the flag flips and the dashboard reads from the real tables. There is never a mix of sample and real data.</p>
+
+    <h3>Shared-PK convention on Revenue subtables</h3>
+    <p><code>RevenueStripe</code> / <code>RevenueEtsy</code> / <code>RevenueGumroad</code> / <code>RevenueManual</code> all use <code>Revenue.Id</code> as their own PK. C# property stays <code>Id</code>; DB column is <code>RevenueId</code>. <code>ValueGeneratedNever()</code>, <code>HasForeignKey&lt;T&gt;(e =&gt; e.Id)</code>. Same pattern used on <code>ShopConnectionEtsy</code>, <code>BillingStripe</code>, <code>SubscriptionStripe</code>, and every provider auth table.</p>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli — Internal Documentation · Schema: <code>app</code> (dashboard tables)
+  </div>
+
+</div>
+
+</body>
+</html>

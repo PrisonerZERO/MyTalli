@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Authentication Schema</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.6; padding: 0; }
+
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; overflow: hidden; padding: 48px 32px; position: relative; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 240px; position: absolute; right: -60px; top: -100px; width: 240px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 160px; left: 35%; position: absolute; top: 60px; width: 160px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.85); font-size: 15px; margin-top: 8px; max-width: 760px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.55); font-size: 12px; margin-top: 14px; position: relative; z-index: 1; }
+  .header a { color: #fff; text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,0.4); }
+  .header a:hover { border-bottom-color: rgba(255,255,255,0.9); }
+
+  .content { margin: 0 auto; max-width: 1200px; padding: 40px 32px 80px; }
+
+  .section { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(108,92,231,0.08); margin-bottom: 24px; padding: 28px 32px; }
+  .section h2 { border-bottom: 2px solid #f0edff; color: #1a1a2e; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 14px; padding-bottom: 12px; }
+  .section h3 { color: #6c5ce7; font-size: 15px; font-weight: 600; margin: 20px 0 10px; }
+  .section p { color: #555; font-size: 14px; margin-bottom: 12px; }
+  .section p:last-child { margin-bottom: 0; }
+  .section ul { color: #555; font-size: 14px; margin: 0 0 12px 20px; }
+  .section li { margin-bottom: 4px; }
+  code { background: #f0edff; border-radius: 4px; color: #6c5ce7; font-family: 'Consolas', monospace; font-size: 0.88em; padding: 1px 6px; }
+
+  .callout { background: #fafbff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin: 16px 0; padding: 14px 18px; }
+  .callout.warn { border-left-color: #f5c842; }
+  .callout.success { border-left-color: #27ae60; }
+  .callout p { color: #555; font-size: 13px; margin: 0; }
+  .callout strong { color: #1a1a2e; }
+
+  .erd { padding: 12px 0 4px; position: relative; }
+  .erd svg { display: block; height: auto; width: 100%; }
+  .erd-label { color: #999; font-size: 13px; font-style: italic; margin-top: 10px; text-align: center; }
+
+  table { border-collapse: collapse; font-size: 13px; margin: 14px 0 8px; width: 100%; }
+  th { background: #f0edff; border-bottom: 2px solid #e0dce8; color: #1a1a2e; font-weight: 600; padding: 10px 12px; text-align: left; white-space: nowrap; }
+  td { border-bottom: 1px solid #f0edff; color: #555; padding: 8px 12px; vertical-align: top; }
+  td code { background: #f0edff; color: #6c5ce7; font-family: 'Consolas', monospace; }
+  tr:hover td { background: #faf9ff; }
+  tr.pk td code { background: #ede9ff; color: #5b21b6; font-weight: 600; }
+  tr.fk td code { background: #dbeafe; color: #1e40af; font-weight: 600; }
+
+  .tag { border-radius: 4px; display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 7px; text-transform: uppercase; vertical-align: middle; }
+  .tag.core { background: #ede9ff; color: #5b21b6; }
+  .tag.provider { background: #fff3e0; color: #e65100; }
+  .tag.google { background: #ffe8e8; color: #c0392b; }
+  .tag.apple { background: #e0e0e0; color: #333; }
+  .tag.microsoft { background: #d6e4ff; color: #1e40af; }
+
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 40px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Authentication Schema</h1>
+  <p class="subtitle">OAuth-only identity. A <code style="background:rgba(255,255,255,0.15);color:#fff;">User</code> is the core identity; each connected provider (Google, Apple, Microsoft) gets its own <strong>1:1 subtable</strong> with a shared primary key. Adding a provider means adding a table — no new columns on existing ones.</p>
+  <p class="doc-date">Schema: <code style="background:rgba(255,255,255,0.15);color:#fff;">auth</code> · Siblings: <a href="Commerce_Schema.html">commerce</a> · <a href="Platform_and_Shop_Schema.html">platform &amp; shop</a> · <a href="Dashboard_Schema.html">dashboard</a></p>
+</div>
+
+<div class="content">
+
+  <div class="section">
+    <h2>Overview</h2>
+    <p>MyTalli has <strong>no local passwords</strong>. All sign-in is delegated to external OAuth providers. The schema reflects that: each provider is a peer table that references <code>User</code> via a shared PK — there are no provider-specific columns on the <code>User</code> table itself.</p>
+    <ul>
+      <li><strong>Core identity:</strong> <code>User</code> — one row per person, provider-agnostic</li>
+      <li><strong>Provider auth tables:</strong> <code>UserAuthenticationGoogle</code> · <code>UserAuthenticationApple</code> · <code>UserAuthenticationMicrosoft</code></li>
+      <li><strong>Authorization:</strong> <code>UserRole</code> — 1:N, role names are string constants (no lookup table)</li>
+      <li><strong>View:</strong> <code>vAuthenticatedUser</code> — unified view of (user, provider, email) across all auth providers</li>
+    </ul>
+    <div class="callout success">
+      <p><strong>Provider isolation.</strong> Adding Twitch, GitHub, LinkedIn, or any other OAuth provider = new <code>UserAuthentication{X}</code> table with the same shared-PK pattern. Zero changes to <code>User</code> or any other existing table.</p>
+    </div>
+    <div class="callout warn">
+      <p><strong>Email is <em>not</em> stored on <code>User</code>.</strong> It lives on each provider's auth table. The user's "primary" email is resolved via their <code>PreferredProvider</code>. This matters for duplicate prevention and account consolidation — see the Design Notes section below.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Entity Relationship Diagram</h2>
+    <p>Each provider table is a 1:1 extension of <code>User</code> with a shared PK. <code>UserRole</code> is 1:N from <code>User</code>. The dashed box marks the unified view.</p>
+
+    <div class="erd">
+      <svg viewBox="0 0 1100 680" xmlns="http://www.w3.org/2000/svg" style="font-family: 'DM Sans', sans-serif;">
+        <defs>
+          <marker id="arrow-grey" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a09cae"/>
+          </marker>
+          <marker id="arrow-google" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+          </marker>
+          <marker id="arrow-apple" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+          </marker>
+          <marker id="arrow-microsoft" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#1e40af"/>
+          </marker>
+          <filter id="shadow" x="-4%" y="-4%" width="108%" height="116%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#6c5ce7" flood-opacity="0.18"/>
+          </filter>
+        </defs>
+
+        <!-- Zones -->
+        <rect x="20" y="20" width="1060" height="180" rx="12" fill="#ede9ff" opacity="0.42"/>
+        <text x="40" y="44" font-size="11" font-weight="600" fill="#5b21b6" opacity="0.85">CORE IDENTITY</text>
+
+        <rect x="20" y="230" width="1060" height="260" rx="12" fill="#fff3e0" opacity="0.3"/>
+        <text x="40" y="254" font-size="11" font-weight="600" fill="#e65100" opacity="0.9">PROVIDER AUTH TABLES (1:1 shared PK)</text>
+
+        <rect x="20" y="520" width="1060" height="140" rx="12" fill="#f0edff" opacity="0.5"/>
+        <text x="40" y="544" font-size="11" font-weight="600" fill="#6c5ce7" opacity="0.85">AUTHORIZATION &amp; VIEWS</text>
+
+        <!-- User (core) -->
+        <rect x="400" y="70" width="300" height="118" rx="10" fill="#6c5ce7" filter="url(#shadow)"/>
+        <text x="550" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">auth.User</text>
+        <text x="550" y="117" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.9)">Id (PK) · DisplayName · FirstName · LastName</text>
+        <text x="550" y="133" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.8)">CreatedAt · LastLoginAt</text>
+        <text x="550" y="149" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.8)">InitialProvider · PreferredProvider</text>
+        <text x="550" y="167" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.7)" font-style="italic">UserPreferences (JSON)</text>
+        <text x="550" y="181" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.55)" font-style="italic">email lives on provider tables</text>
+
+        <!-- Google -->
+        <rect x="60" y="280" width="300" height="170" rx="10" fill="#fff" stroke="#c0392b" stroke-width="2.5" filter="url(#shadow)"/>
+        <rect x="60" y="280" width="64" height="18" rx="0" fill="#c0392b"/>
+        <text x="92" y="293" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">GOOGLE</text>
+        <text x="210" y="316" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">auth.UserAuthenticationGoogle</text>
+        <line x1="75" y1="328" x2="345" y2="328" stroke="#e0dce8" stroke-width="1"/>
+        <text x="85" y="348" font-size="11" font-weight="600" fill="#5b21b6">UserId (PK+FK · C# Id)</text>
+        <text x="85" y="366" font-size="11" fill="#1a1a2e">GoogleId · <span style="fill:#555;">unique</span></text>
+        <text x="85" y="384" font-size="11" fill="#1a1a2e">Email · DisplayName</text>
+        <text x="85" y="402" font-size="11" fill="#1a1a2e">FirstName · LastName</text>
+        <text x="85" y="420" font-size="11" fill="#1a1a2e">AvatarUrl · Locale</text>
+        <text x="85" y="438" font-size="11" fill="#1a1a2e">EmailVerified</text>
+
+        <!-- Apple -->
+        <rect x="400" y="280" width="300" height="170" rx="10" fill="#fff" stroke="#333" stroke-width="2.5" filter="url(#shadow)"/>
+        <rect x="400" y="280" width="56" height="18" rx="0" fill="#333"/>
+        <text x="428" y="293" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">APPLE</text>
+        <text x="550" y="316" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">auth.UserAuthenticationApple</text>
+        <line x1="415" y1="328" x2="685" y2="328" stroke="#e0dce8" stroke-width="1"/>
+        <text x="425" y="348" font-size="11" font-weight="600" fill="#5b21b6">UserId (PK+FK · C# Id)</text>
+        <text x="425" y="366" font-size="11" fill="#1a1a2e">AppleId · <span style="fill:#555;">unique</span></text>
+        <text x="425" y="384" font-size="11" fill="#1a1a2e">Email · DisplayName</text>
+        <text x="425" y="402" font-size="11" fill="#1a1a2e">FirstName · LastName</text>
+        <text x="425" y="420" font-size="11" fill="#1a1a2e">IsPrivateRelay</text>
+        <text x="425" y="438" font-size="9" fill="#999" font-style="italic">Apple's privacy-relay email flag</text>
+
+        <!-- Microsoft -->
+        <rect x="740" y="280" width="300" height="170" rx="10" fill="#fff" stroke="#1e40af" stroke-width="2.5" filter="url(#shadow)"/>
+        <rect x="740" y="280" width="88" height="18" rx="0" fill="#1e40af"/>
+        <text x="784" y="293" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">MICROSOFT</text>
+        <text x="890" y="316" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">auth.UserAuthenticationMicrosoft</text>
+        <line x1="755" y1="328" x2="1025" y2="328" stroke="#e0dce8" stroke-width="1"/>
+        <text x="765" y="348" font-size="11" font-weight="600" fill="#5b21b6">UserId (PK+FK · C# Id)</text>
+        <text x="765" y="366" font-size="11" fill="#1a1a2e">MicrosoftId · <span style="fill:#555;">unique</span></text>
+        <text x="765" y="384" font-size="11" fill="#1a1a2e">Email · DisplayName</text>
+        <text x="765" y="402" font-size="11" fill="#1a1a2e">FirstName · LastName</text>
+
+        <!-- UserRole -->
+        <rect x="80" y="560" width="300" height="80" rx="10" fill="#6c5ce7" filter="url(#shadow)"/>
+        <text x="230" y="584" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">auth.UserRole</text>
+        <text x="230" y="604" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Id (PK) · UserId (FK) · Role</text>
+        <text x="230" y="622" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.7)" font-style="italic">UQ on (UserId, Role) · role strings in Roles.cs</text>
+
+        <!-- vAuthenticatedUser -->
+        <rect x="440" y="560" width="340" height="80" rx="10" fill="#fff" stroke="#6c5ce7" stroke-width="2" stroke-dasharray="5,4"/>
+        <text x="610" y="584" text-anchor="middle" font-size="13" font-weight="700" fill="#6c5ce7">auth.vAuthenticatedUser (VIEW)</text>
+        <text x="610" y="604" text-anchor="middle" font-size="11" fill="#555">UserId · Email · DisplayName · Provider</text>
+        <text x="610" y="622" text-anchor="middle" font-size="10" fill="#999" font-style="italic">UNION across all provider auth tables (read-only)</text>
+
+        <!-- Relationships -->
+        <!-- User → Google -->
+        <line x1="450" y1="188" x2="210" y2="280" stroke="#c0392b" stroke-width="2" marker-end="url(#arrow-google)"/>
+        <text x="250" y="240" font-size="10" font-weight="700" fill="#c0392b">1 : 1</text>
+
+        <!-- User → Apple -->
+        <line x1="550" y1="188" x2="550" y2="280" stroke="#333" stroke-width="2" marker-end="url(#arrow-apple)"/>
+        <text x="560" y="236" font-size="10" font-weight="700" fill="#333">1 : 1</text>
+
+        <!-- User → Microsoft -->
+        <line x1="650" y1="188" x2="890" y2="280" stroke="#1e40af" stroke-width="2" marker-end="url(#arrow-microsoft)"/>
+        <text x="810" y="240" font-size="10" font-weight="700" fill="#1e40af">1 : 1</text>
+
+        <!-- User → UserRole -->
+        <line x1="440" y1="188" x2="230" y2="560" stroke="#a09cae" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-grey)"/>
+        <text x="270" y="420" font-size="10" font-weight="700" fill="#a09cae">1 : N</text>
+
+        <!-- User → vAuthenticatedUser (conceptual) -->
+        <line x1="600" y1="188" x2="610" y2="560" stroke="#a09cae" stroke-width="1.2" stroke-dasharray="2,3" opacity="0.6"/>
+        <text x="620" y="460" font-size="9" fill="#999" font-style="italic">VIEW reads from</text>
+        <text x="620" y="472" font-size="9" fill="#999" font-style="italic">all auth tables</text>
+      </svg>
+      <div class="erd-label">Each provider is a peer 1:1 extension of User. Adding a new provider means adding a new table, not new columns.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>auth.User <span class="tag core">CORE</span></h2>
+    <p>The provider-agnostic identity. This table <strong>has no email column</strong> — email always lives on a provider auth table.</p>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:220px;">Column</th><th style="width:180px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>Id</code></td><td>bigint identity</td><td>Primary key</td></tr>
+        <tr><td>1</td><td><code>DisplayName</code></td><td>nvarchar(200)</td><td>Name shown in UI; fallback is email prefix (see Missing Name Fallback rules in CLAUDE.md).</td></tr>
+        <tr><td>2</td><td><code>FirstName</code></td><td>nvarchar(100)</td><td>Used for greetings</td></tr>
+        <tr><td>3</td><td><code>LastName</code></td><td>nvarchar(100)</td><td>Used for initials and legal-name display</td></tr>
+        <tr><td>4</td><td><code>InitialProvider</code></td><td>nvarchar(50)</td><td>Which provider they first signed in with. <strong>Never changes.</strong> Historical anchor.</td></tr>
+        <tr><td>5</td><td><code>PreferredProvider</code></td><td>nvarchar(50)</td><td>Which provider the user prefers. Starts = <code>InitialProvider</code>; can be changed in Settings. Email resolution goes through this.</td></tr>
+        <tr><td>6</td><td><code>CreatedAt</code></td><td>datetime2</td><td>When the User row was first created</td></tr>
+        <tr><td>7</td><td><code>LastLoginAt</code></td><td>datetime2</td><td>Updated on each successful sign-in</td></tr>
+        <tr><td>8</td><td><code>UserPreferences</code></td><td>nvarchar(max) · JSON</td><td>App settings as JSON — dark mode, email preferences, grid preferences, fun-greetings. See <code>UserPreferencesJsonSerializer</code>. Defaults to <code>'{}'</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><strong>Why JSON for preferences?</strong> App settings grow organically over time (new email types, new grid configs, new theme options). A JSON blob avoids contorting the <code>User</code> table with a new column per toggle. The serializer lives at <code>Domain/Components/JsonSerializers/User/UserPreferencesJsonSerializer.cs</code>.</p>
+    </div>
+
+    <p><strong>Audit sentinel:</strong> <code>CreateByUserId = 0</code> means "self-created" (the user created their own account). Avoids a second round-trip to self-stamp the generated Id. Only applies to rows created during OAuth sign-up.</p>
+  </div>
+
+  <div class="section">
+    <h2>Provider Auth Tables <span class="tag provider">1:1 shared PK</span></h2>
+    <p>Each provider table's C# property stays <code>Id</code>; the <strong>database column is renamed</strong> to <code>UserId</code> via <code>HasColumnName()</code> to show data lineage. <code>ValueGeneratedNever()</code> on the key.</p>
+
+    <h3>auth.UserAuthenticationGoogle <span class="tag google">GOOGLE</span></h3>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:220px;">Column</th><th style="width:160px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>UserId</code> <span style="color:#999;">(Id)</span></td><td>bigint</td><td>PK + FK → <code>User</code></td></tr>
+        <tr><td>1</td><td><code>GoogleId</code></td><td>nvarchar(255) · <strong>unique</strong></td><td>Google's <code>sub</code> claim</td></tr>
+        <tr><td>2</td><td><code>Email</code></td><td>nvarchar(320)</td><td>Google account email</td></tr>
+        <tr><td>3</td><td><code>DisplayName</code></td><td>nvarchar(200)</td><td>Google profile display name</td></tr>
+        <tr><td>4</td><td><code>FirstName</code></td><td>nvarchar(100)</td><td>From Google profile</td></tr>
+        <tr><td>5</td><td><code>LastName</code></td><td>nvarchar(100)</td><td>From Google profile</td></tr>
+        <tr><td>6</td><td><code>AvatarUrl</code></td><td>nvarchar(500) · nullable</td><td>Google profile picture URL</td></tr>
+        <tr><td>7</td><td><code>EmailVerified</code></td><td>bit</td><td>Google's verified-email flag</td></tr>
+        <tr><td>8</td><td><code>Locale</code></td><td>nvarchar(10)</td><td>e.g., <code>en-US</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>auth.UserAuthenticationApple <span class="tag apple">APPLE</span></h3>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:220px;">Column</th><th style="width:160px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>UserId</code> <span style="color:#999;">(Id)</span></td><td>bigint</td><td>PK + FK → <code>User</code></td></tr>
+        <tr><td>1</td><td><code>AppleId</code></td><td>nvarchar(255) · <strong>unique</strong></td><td>Apple's <code>sub</code> claim</td></tr>
+        <tr><td>2</td><td><code>Email</code></td><td>nvarchar(320)</td><td>May be Apple's private-relay address if <code>IsPrivateRelay</code> is true</td></tr>
+        <tr><td>3</td><td><code>DisplayName</code></td><td>nvarchar(200)</td><td>Apple only sends name on first sign-in. Later sign-ins don't include it.</td></tr>
+        <tr><td>4</td><td><code>FirstName</code></td><td>nvarchar(100)</td><td>First-sign-in only</td></tr>
+        <tr><td>5</td><td><code>LastName</code></td><td>nvarchar(100)</td><td>First-sign-in only</td></tr>
+        <tr><td>6</td><td><code>IsPrivateRelay</code></td><td>bit</td><td>True when <code>Email</code> is an <code>@privaterelay.appleid.com</code> address</td></tr>
+      </tbody>
+    </table>
+
+    <h3>auth.UserAuthenticationMicrosoft <span class="tag microsoft">MICROSOFT</span></h3>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:220px;">Column</th><th style="width:160px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>UserId</code> <span style="color:#999;">(Id)</span></td><td>bigint</td><td>PK + FK → <code>User</code></td></tr>
+        <tr><td>1</td><td><code>MicrosoftId</code></td><td>nvarchar(255) · <strong>unique</strong></td><td>Microsoft Entra ID <code>oid</code> claim</td></tr>
+        <tr><td>2</td><td><code>Email</code></td><td>nvarchar(320)</td><td>Microsoft account email</td></tr>
+        <tr><td>3</td><td><code>DisplayName</code></td><td>nvarchar(200)</td><td>From Entra profile</td></tr>
+        <tr><td>4</td><td><code>FirstName</code></td><td>nvarchar(100)</td><td>From Entra profile</td></tr>
+        <tr><td>5</td><td><code>LastName</code></td><td>nvarchar(100)</td><td>From Entra profile</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>auth.UserRole <span class="tag core">AUTHORIZATION</span></h2>
+    <p>Role assignments for authorization. No separate role lookup table — role names are string constants defined in <code>Domain/Framework/Roles.cs</code> (<code>Admin</code>, <code>User</code>). New roles are added by defining a new constant, not a new DB row.</p>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th style="width:200px;">Column</th><th style="width:140px;">Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="pk"><td>0</td><td><code>Id</code></td><td>bigint identity</td><td>Primary key</td></tr>
+        <tr class="fk"><td>1</td><td><code>UserId</code></td><td>bigint</td><td>FK → <code>User</code></td></tr>
+        <tr><td>2</td><td><code>Role</code></td><td>nvarchar(50)</td><td>Role name (e.g., <code>Admin</code>, <code>User</code>)</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Indexes &amp; constraints:</strong></p>
+    <ul>
+      <li><code>UQ_UserRole_UserId_Role</code> — prevents duplicate role assignments</li>
+      <li><code>IX_UserRole_UserId</code> — per-user role lookup</li>
+    </ul>
+    <p><strong>Self-healing:</strong> if a user signs in with no roles, the <code>User</code> role is automatically assigned during sign-in.</p>
+  </div>
+
+  <div class="section">
+    <h2>auth.vAuthenticatedUser <span class="tag core">VIEW</span></h2>
+    <p>A read-only SQL view that <code>UNION</code>s the provider auth tables into a single (UserId, Email, DisplayName, Provider) shape. Used by the Admin user list for cross-provider queries without 3 joins.</p>
+    <p>Defined in a migration SQL script (<code>Migrations/01_0/Views/00.auth.vAuthenticatedUser.sql</code>). Mapped as a keyless EF entity via <code>AuthenticatedUserConfiguration</code>.</p>
+    <div class="callout">
+      <p><strong>Not EF-managed for writes.</strong> Code queries the view via <code>TalliDbContext</code> directly (e.g., <code>GetAdminUserListCommand</code>), not through the <code>RepositoryAdapterAsync</code>. This is one of the rare exceptions to the adapter-only convention.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Design Notes</h2>
+
+    <h3>Duplicate prevention (same email, different provider)</h3>
+    <p>When a user signs in with a new provider using an <strong>email that already exists</strong> on another provider's auth table, the app detects this and links the new provider to the <strong>existing</strong> <code>User</code> record — no duplicate User row is created. See <code>EmailLookupService</code>.</p>
+    <ul>
+      <li><strong>Detection:</strong> during sign-in, query all provider auth tables for the incoming email</li>
+      <li><strong>Match found:</strong> create the new provider auth row pointing at the existing <code>User</code>. Update <code>LastLoginAt</code>.</li>
+      <li><strong>No match:</strong> create a new <code>User</code> + provider auth row (new account)</li>
+    </ul>
+
+    <h3>Account consolidation (different emails, same person)</h3>
+    <p>A user may have <strong>different emails</strong> on different providers (e.g., Google Gmail vs Microsoft work email). These correctly create separate <code>User</code> records — the app has no way to know they're the same person. Consolidation is a user-initiated action to merge two accounts they own. The schema supports it (move provider auth row to point at the kept <code>User</code>, migrate data, delete the orphan) but the UX flow is not yet built.</p>
+
+    <h3>Shared-PK convention</h3>
+    <p>Each provider auth table uses <code>User.Id</code> as its own PK — no separate identity column, no separate FK column. The C# property stays <code>Id</code> (so <code>IIdentifiable</code> works); the DB column is renamed to <code>UserId</code> via <code>HasColumnName()</code> to show data lineage. Enforced by <code>ValueGeneratedNever()</code> + <code>HasForeignKey&lt;T&gt;(e =&gt; e.Id)</code>.</p>
+
+    <h3>Adding a new OAuth provider</h3>
+    <ol>
+      <li>Create <code>Domain.Entities/Entities/UserAuthentication{X}.cs</code> inheriting <code>DefaultEntity</code></li>
+      <li>Create the matching <code>Domain.Data.EntityFramework/Configurations/Auth/UserAuthentication{X}Configuration.cs</code> with shared-PK setup</li>
+      <li>Add the provider to <code>Domain/Handlers/Authentication/{X}/</code> (payload + handler)</li>
+      <li>Wire up the OAuth middleware in <code>Configuration/AuthenticationConfiguration.cs</code></li>
+      <li>Register the provider in the <code>vAuthenticatedUser</code> UNION (update the view SQL)</li>
+    </ol>
+    <p>No schema changes to any existing table.</p>
+
+    <h3>No local passwords</h3>
+    <p>MyTalli does not store or manage passwords. There is no <code>PasswordHash</code>, <code>PasswordSalt</code>, <code>MfaSecret</code>, or similar column on <code>User</code>. If we ever add a first-party password fallback, it would be a new <code>UserAuthenticationLocal</code> table following the same 1:1 shared-PK pattern.</p>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli — Internal Documentation · Schema: <code>auth</code>
+  </div>
+
+</div>
+
+</body>
+</html>

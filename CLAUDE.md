@@ -325,17 +325,27 @@ My.Talli/
 ├── og-image.png                    # Social share image (1200×630) — source copy
 ├── setup-iis.ps1                   # IIS setup script for local dev
 ├── documentation/                  # Internal planning & reference documents
-│   ├── cost-report/                # Skill — branded financial/costing HTML document builder
-│   │   └── SKILL.md
-│   ├── scaling-plan/               # Skill — branded scaling/capacity planning HTML document builder
-│   │   └── SKILL.md
+│   ├── _backup/                    # Archived documents (superseded — kept for historical reference)
+│   │   └── MyTalli_ShopConnectionERD.html # Superseded by schemas/Platform_and_Shop_Schema.html
+│   ├── schemas/                    # Current-state schema reference docs (one per functional area)
+│   │   ├── Authentication_Schema.html   # auth.* tables — User, provider auth tables, UserRole, vAuthenticatedUser
+│   │   ├── Commerce_Schema.html         # commerce.* tables — Product, Order, Billing, Subscription + Stripe subtables
+│   │   ├── Dashboard_Schema.html        # app.Revenue / Expense / Payout / Goal + Revenue provider subtables
+│   │   └── Platform_and_Shop_Schema.html # app.PlatformConnection / ShopConnection / ShopConnectionEtsy
+│   ├── skills/                     # Claude Code skills local to this project
+│   │   ├── cost-report/            # Skill — branded financial/costing HTML document builder
+│   │   │   └── SKILL.md
+│   │   ├── scaling-plan/           # Skill — branded scaling/capacity planning HTML document builder
+│   │   │   └── SKILL.md
+│   │   └── uncle-robs-ninja-architecture/ # Skill — universal clean-code architecture principles (teach/enforce)
+│   │       └── SKILL.md
 │   ├── MyTalli_CostingPlan.html    # Infrastructure cost projections & optimization strategies
 │   ├── MyTalli_Kanban.html         # Active work kanban — backlog, next up, in progress, done
+│   ├── MyTalli_PlatformApprovals.html # Platform commercial-access / Partner-enrollment workflow & checklist
 │   ├── MyTalli_PlatformCapabilities.html # Platform API capabilities, data richness & integration roadmap
-│   ├── MyTalli_ScalingPlan.html    # Scaling strategy as user base grows (tiers, triggers, capacity)
-│   ├── MyTalli_ShopConnectionERD.html # ERD for ShopConnection + ShopConnectionEtsy sync-target layer
+│   ├── MyTalli_ScalingPlan.html    # Infrastructure scaling strategy (Blazor circuits, Azure App Service tiers)
 │   ├── MyTalli_SyncScalingPlan.html # Platform API rate-limit strategy, daily-baseline sync, 3-phase plan
-│   └── PlatformApiDataShapes.html  # Platform API data shapes, normalized schema, ERD (historical — pre-ShopConnection)
+│   └── PlatformApiDataShapes.html  # Platform API data shapes (historical snapshot — banner points to current schema docs)
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
 │   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
 │   ├── favicon.svg                 # Copied from favicon-concepts/favicon-c-growth.svg
