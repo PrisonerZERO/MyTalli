@@ -53,6 +53,85 @@
     </div>
 </section>
 
+@* Shop picker bar *@
+@if (HasModuleAccess)
+{
+    <div class="shop-bar">
+        <div class="shop-bar-left">
+            <span class="shop-bar-label">Shop</span>
+            @if (IsAddingShop)
+            {
+                <div class="shop-add-form" role="group" aria-label="Create new shop">
+                    <input class="shop-add-input" type="text" placeholder="Shop name…" maxlength="255" @bind="NewShopName" @bind:event="oninput" @onkeydown="HandleAddShopKeyDownAsync" @ref="NewShopNameRef" aria-label="New shop name" />
+                    <button class="shop-add-ok" @onclick="ConfirmAddShopAsync" disabled="@string.IsNullOrWhiteSpace(NewShopName)" aria-label="Create shop" title="Create">
+                        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                    </button>
+                    <button class="shop-add-cancel" @onclick="CancelAddShop" aria-label="Cancel" title="Cancel">
+                        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18" /><line x1="6" x2="18" y1="6" y2="18" /></svg>
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="shop-picker-wrap">
+                    <button class="shop-picker @(IsShopDropdownOpen ? "open" : "")" @onclick="ToggleShopDropdown" aria-haspopup="listbox" aria-expanded="@IsShopDropdownOpen">
+                        <span class="shop-picker-icon" aria-hidden="true">
+                            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5M5 9v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M9 21v-6h6v6" /></svg>
+                        </span>
+                        <span class="shop-picker-name">@ActiveShopName</span>
+                        <span class="shop-picker-caret" aria-hidden="true">
+                            @if (IsShopDropdownOpen)
+                            {
+                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15" /></svg>
+                            }
+                            else
+                            {
+                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg>
+                            }
+                        </span>
+                    </button>
+                    @if (IsShopDropdownOpen)
+                    {
+                        <div class="shop-dropdown" role="listbox" aria-label="Manual shops">
+                            @foreach (var shop in Shops)
+                            {
+                                <button class="shop-dropdown-item @(shop.Id == ActiveShopConnectionId ? "active" : "")" role="option" aria-selected="@(shop.Id == ActiveShopConnectionId)" @onclick="() => SelectShopAsync(shop.Id)">
+                                    <span>@shop.ShopName</span>
+                                    @if (shop.Id == ActiveShopConnectionId)
+                                    {
+                                        <span class="check" aria-hidden="true">
+                                            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                                        </span>
+                                    }
+                                </button>
+                            }
+                            <div class="shop-dropdown-divider"></div>
+                            <button class="shop-dropdown-item shop-dropdown-add" @onclick="StartAddShopAsync">
+                                <span class="plus" aria-hidden="true">
+                                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3" viewBox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19" /><line x1="5" x2="19" y1="12" y2="12" /></svg>
+                                </span>
+                                Add new shop…
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+        @if (IsAddingShop)
+        {
+            <span class="shop-bar-hint">Press <strong>Enter</strong> to create</span>
+        }
+        else
+        {
+            <span class="shop-bar-hint">New entries save to <strong>@ActiveShopName</strong></span>
+        }
+    </div>
+    @if (IsShopDropdownOpen)
+    {
+        <div class="shop-dropdown-backdrop" @onclick="CloseShopDropdown" aria-hidden="true"></div>
+    }
+}
+
 <!-- Spoke tabs -->
 <nav class="spoke-tabs" role="tablist" aria-label="Manual entry sections">
     <button class="spoke-tab @(ActiveTab == "overview" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "overview")" @onclick='() => SelectTab("overview")'>Overview</button>

@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Commands.Platforms;
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
 using Domain.Framework;
@@ -23,6 +24,9 @@ public class ManualEntryViewModel : ComponentBase
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
 	[Inject]
+	private CreateManualShopCommand CreateManualShopCommand { get; set; } = default!;
+
+	[Inject]
 	private ICurrentUserService CurrentUserService { get; set; } = default!;
 
 	[Inject]
@@ -32,10 +36,16 @@ public class ManualEntryViewModel : ComponentBase
 	private RepositoryAdapterAsync<MODELS.Payout, ENTITIES.Payout> PayoutAdapter { get; set; } = default!;
 
 	[Inject]
+	private RepositoryAdapterAsync<MODELS.PlatformConnection, ENTITIES.PlatformConnection> PlatformConnectionAdapter { get; set; } = default!;
+
+	[Inject]
 	private RepositoryAdapterAsync<MODELS.Revenue, ENTITIES.Revenue> RevenueAdapter { get; set; } = default!;
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.RevenueManual, ENTITIES.RevenueManual> RevenueManualAdapter { get; set; } = default!;
+
+	[Inject]
+	private RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> ShopConnectionAdapter { get; set; } = default!;
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
@@ -49,6 +59,10 @@ public class ManualEntryViewModel : ComponentBase
 	#endregion
 
 	#region <Properties>
+
+	public long? ActiveShopConnectionId { get; private set; }
+
+	public string ActiveShopName => Shops.FirstOrDefault(s => s.Id == ActiveShopConnectionId)?.ShopName ?? "My Manual Shop";
 
 	public string ActiveTab { get; private set; } = "revenue";
 
@@ -136,7 +150,13 @@ public class ManualEntryViewModel : ComponentBase
 
 	public bool HasModuleAccess { get; private set; }
 
+	public bool IsAddingShop { get; private set; }
+
 	public bool IsSampleData { get; private set; }
+
+	public bool IsShopDropdownOpen { get; private set; }
+
+	public string NewShopName { get; set; } = string.Empty;
 
 	// Revenue quick-entry fields
 	public string NewCategory { get; set; } = "Sale";
@@ -211,6 +231,8 @@ public class ManualEntryViewModel : ComponentBase
 		"Cancelled"
 	];
 
+	public List<MODELS.ShopConnection> Shops { get; private set; } = [];
+
 	public bool ShowEditNotes { get; private set; }
 
 	public string SortColumn { get; private set; } = "TransactionDate";
@@ -236,6 +258,8 @@ public class ManualEntryViewModel : ComponentBase
 	public decimal TotalPayouts => Payouts.Sum(p => p.Amount);
 
 	protected ElementReference ExpenseQuickEntryDescriptionRef;
+
+	protected ElementReference NewShopNameRef;
 
 	protected ElementReference PayoutQuickEntryAmountRef;
 
@@ -287,6 +311,7 @@ public class ManualEntryViewModel : ComponentBase
 
 		if (HasModuleAccess)
 		{
+			await LoadShopsAsync();
 			await LoadEntriesAsync();
 			await LoadExpensesAsync();
 			await LoadPayoutsAsync();
@@ -676,6 +701,79 @@ public class ManualEntryViewModel : ComponentBase
 		EditPayoutStatus = payout.Status;
 	}
 
+	// ── Shops ──
+
+	public void CancelAddShop()
+	{
+		IsAddingShop = false;
+		NewShopName = string.Empty;
+	}
+
+	public void CloseShopDropdown()
+	{
+		IsShopDropdownOpen = false;
+	}
+
+	public async Task ConfirmAddShopAsync()
+	{
+		if (_userId is null) return;
+
+		var name = (NewShopName ?? string.Empty).Trim();
+		if (name.Length == 0) return;
+
+		var shop = await CreateManualShopCommand.ExecuteAsync(_userId.Value, name);
+
+		Shops = Shops.Append(shop).OrderBy(s => s.ShopName, StringComparer.OrdinalIgnoreCase).ToList();
+		ActiveShopConnectionId = shop.Id;
+
+		IsAddingShop = false;
+		NewShopName = string.Empty;
+
+		await LoadEntriesAsync();
+		await LoadExpensesAsync();
+		await LoadPayoutsAsync();
+	}
+
+	public async Task HandleAddShopKeyDownAsync(KeyboardEventArgs e)
+	{
+		if (e.Key == "Enter")
+			await ConfirmAddShopAsync();
+		else if (e.Key == "Escape")
+			CancelAddShop();
+	}
+
+	public async Task SelectShopAsync(long shopId)
+	{
+		if (ActiveShopConnectionId == shopId)
+		{
+			IsShopDropdownOpen = false;
+			return;
+		}
+
+		ActiveShopConnectionId = shopId;
+		IsShopDropdownOpen = false;
+
+		await LoadEntriesAsync();
+		await LoadExpensesAsync();
+		await LoadPayoutsAsync();
+	}
+
+	public async Task StartAddShopAsync()
+	{
+		IsShopDropdownOpen = false;
+		IsAddingShop = true;
+		NewShopName = string.Empty;
+
+		await Task.Yield();
+		try { await NewShopNameRef.FocusAsync(); } catch { /* element may not be rendered yet */ }
+	}
+
+	public void ToggleShopDropdown()
+	{
+		if (IsAddingShop) return;
+		IsShopDropdownOpen = !IsShopDropdownOpen;
+	}
+
 	// ── Shared ──
 
 	public void SelectTab(string tab)
@@ -746,7 +844,15 @@ public class ManualEntryViewModel : ComponentBase
 
 	private async Task LoadEntriesAsync()
 	{
-		var revenues = await RevenueAdapter.FindAsync(r => r.UserId == _userId!.Value && r.Platform == "Manual");
+		if (ActiveShopConnectionId is null)
+		{
+			Entries = [];
+			CurrentPage = 1;
+			return;
+		}
+
+		var shopId = ActiveShopConnectionId.Value;
+		var revenues = await RevenueAdapter.FindAsync(r => r.UserId == _userId!.Value && r.Platform == "Manual" && r.ShopConnectionId == shopId);
 		var manuals = await RevenueManualAdapter.GetAllAsync();
 
 		var manualLookup = manuals.ToDictionary(m => m.Id);
@@ -760,14 +866,57 @@ public class ManualEntryViewModel : ComponentBase
 
 	private async Task LoadExpensesAsync()
 	{
-		var expenses = await ExpenseAdapter.FindAsync(e => e.UserId == _userId!.Value && e.Platform == "Manual");
+		if (ActiveShopConnectionId is null)
+		{
+			Expenses = [];
+			return;
+		}
+
+		var shopId = ActiveShopConnectionId.Value;
+		var expenses = await ExpenseAdapter.FindAsync(e => e.UserId == _userId!.Value && e.Platform == "Manual" && e.ShopConnectionId == shopId);
 		Expenses = expenses.Select(ToExpenseItem).ToList();
 	}
 
 	private async Task LoadPayoutsAsync()
 	{
-		var payouts = await PayoutAdapter.FindAsync(p => p.UserId == _userId!.Value && p.Platform == "Manual");
+		if (ActiveShopConnectionId is null)
+		{
+			Payouts = [];
+			return;
+		}
+
+		var shopId = ActiveShopConnectionId.Value;
+		var payouts = await PayoutAdapter.FindAsync(p => p.UserId == _userId!.Value && p.Platform == "Manual" && p.ShopConnectionId == shopId);
 		Payouts = payouts.Select(ToPayoutItem).ToList();
+	}
+
+	private async Task LoadShopsAsync()
+	{
+		if (_userId is null) return;
+
+		var manualPlatform = (await PlatformConnectionAdapter.FindAsync(p => p.UserId == _userId.Value && p.Platform == "Manual")).FirstOrDefault();
+
+		if (manualPlatform is null)
+		{
+			var shop = await CreateManualShopCommand.ExecuteAsync(_userId.Value, "My Manual Shop");
+			Shops = [shop];
+			ActiveShopConnectionId = shop.Id;
+			return;
+		}
+
+		var platformId = manualPlatform.Id;
+		var shops = await ShopConnectionAdapter.FindAsync(s => s.PlatformConnectionId == platformId);
+		Shops = shops.OrderBy(s => s.ShopName, StringComparer.OrdinalIgnoreCase).ToList();
+
+		if (Shops.Count == 0)
+		{
+			var shop = await CreateManualShopCommand.ExecuteAsync(_userId.Value, "My Manual Shop");
+			Shops = [shop];
+			ActiveShopConnectionId = shop.Id;
+			return;
+		}
+
+		ActiveShopConnectionId ??= Shops[0].Id;
 	}
 
 	private void ResetExpenseQuickEntry()
@@ -859,6 +1008,7 @@ public class ManualEntryViewModel : ComponentBase
 			Description = NewExpenseDescription,
 			ExpenseDate = NewExpenseDate,
 			Platform = "Manual",
+			ShopConnectionId = ActiveShopConnectionId,
 			UserId = _userId!.Value,
 		};
 	}
@@ -872,6 +1022,7 @@ public class ManualEntryViewModel : ComponentBase
 			PayoutDate = NewPayoutDate,
 			Platform = "Manual",
 			PlatformPayoutId = $"manual_{Guid.NewGuid():N}",
+			ShopConnectionId = ActiveShopConnectionId,
 			Status = NewPayoutStatus,
 			UserId = _userId!.Value,
 		};
@@ -887,6 +1038,7 @@ public class ManualEntryViewModel : ComponentBase
 			GrossAmount = grossAmount,
 			NetAmount = grossAmount - NewFeeAmount,
 			Platform = "Manual",
+			ShopConnectionId = ActiveShopConnectionId,
 			TransactionDate = NewTransactionDate,
 			UserId = _userId!.Value,
 		};

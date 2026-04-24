@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Entry — Shops Concept</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; }
+.page { margin: 0 auto; max-width: 1100px; padding: 40px 24px 80px; }
+.page-intro { margin-bottom: 32px; }
+.page-intro h1 { font-size: 26px; font-weight: 700; }
+.page-intro p { color: #555; font-size: 14px; margin-top: 6px; line-height: 1.6; }
+.page-intro p strong { color: #1a1a2e; }
+.scenes { display: flex; flex-direction: column; gap: 60px; }
+.scene { background: #fff; border: 2px solid #e0dce8; border-radius: 16px; overflow: hidden; }
+.scene-label { background: #1a1a2e; color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 1px; padding: 12px 22px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+.scene-label span.tag { background: #6c5ce7; border-radius: 6px; font-size: 11px; padding: 3px 10px; text-transform: uppercase; }
+.scene-note { background: #f8f7fc; border-bottom: 1px solid #e0dce8; color: #555; font-size: 13px; line-height: 1.6; padding: 14px 22px; }
+.scene-note strong { color: #1a1a2e; }
+
+/* Hero */
+.hero { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); padding: 24px 32px 60px; position: relative; overflow: hidden; }
+.deco { background: rgba(255,255,255,0.07); border-radius: 50%; position: absolute; }
+.deco-1 { height: 220px; right: 8%; top: -60px; width: 220px; }
+.deco-2 { height: 160px; left: 20%; top: 80px; width: 160px; }
+.hero-content { position: relative; z-index: 2; }
+.hero-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.hero-top h1 { color: #fff; font-size: 26px; font-weight: 700; }
+.hero-top p { color: rgba(255,255,255,0.8); font-size: 14px; margin-top: 4px; }
+.hero-stats { display: flex; gap: 32px; margin-top: 20px; }
+.hero-stat-num { color: #fff; font-size: 22px; font-weight: 700; display: inline-block; }
+.hero-stat-num.lav { color: #a78bfa; }
+.hero-stat-num.grn { color: #2ecc71; }
+.hero-stat-label { color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500; letter-spacing: 0.5px; margin-left: 6px; text-transform: uppercase; }
+
+/* Spoke tabs */
+.spoke-tabs { background: #5c5777; display: flex; gap: 0; padding: 0 24px; }
+.spoke-tab { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 14px 18px; position: relative; text-transform: uppercase; letter-spacing: 0.5px; }
+.spoke-tab.active { color: #fff; }
+.spoke-tab.active::after { background: #8b5cf6; bottom: 0; content: ''; height: 3px; left: 18px; position: absolute; right: 18px; }
+
+/* Shop selector bar */
+.shop-bar { align-items: center; background: #fff; border-bottom: 1px solid #e0dce8; display: flex; gap: 16px; justify-content: space-between; padding: 16px 24px; }
+.shop-bar-left { align-items: center; display: flex; gap: 12px; }
+.shop-bar-label { color: #999; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.shop-picker { align-items: center; background: #f8f7fc; border: 1px solid #e0dce8; border-radius: 10px; display: inline-flex; gap: 10px; padding: 8px 14px; cursor: pointer; position: relative; }
+.shop-picker:hover { border-color: #a78bfa; }
+.shop-picker.open { background: #fff; border-color: #6c5ce7; box-shadow: 0 0 0 3px rgba(108,92,231,0.15); }
+.shop-picker-icon { align-items: center; background: #f0edff; border-radius: 8px; color: #6c5ce7; display: flex; height: 28px; justify-content: center; width: 28px; }
+.shop-picker-icon svg { height: 15px; width: 15px; }
+.shop-picker-name { color: #1a1a2e; font-size: 14px; font-weight: 600; }
+.shop-picker-caret { color: #999; }
+.shop-picker-caret svg { height: 14px; width: 14px; }
+.shop-bar-hint { color: #999; font-size: 12px; }
+.shop-bar-hint strong { color: #6c5ce7; font-weight: 600; }
+
+/* Dropdown */
+.shop-dropdown { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; box-shadow: 0 12px 32px rgba(26,26,46,0.12); left: 0; padding: 8px; position: absolute; top: calc(100% + 6px); width: 280px; z-index: 10; }
+.shop-dropdown-item { align-items: center; background: transparent; border: none; border-radius: 8px; color: #1a1a2e; cursor: pointer; display: flex; font-family: inherit; font-size: 13px; gap: 10px; padding: 10px 12px; text-align: left; width: 100%; }
+.shop-dropdown-item:hover { background: #f8f7fc; }
+.shop-dropdown-item.active { background: #f0edff; color: #6c5ce7; font-weight: 600; }
+.shop-dropdown-item .dot { background: #27ae60; border-radius: 50%; height: 7px; width: 7px; }
+.shop-dropdown-item .check { color: #6c5ce7; margin-left: auto; }
+.shop-dropdown-item .check svg { height: 14px; width: 14px; }
+.shop-dropdown-divider { background: #f0edff; height: 1px; margin: 6px 4px; }
+.shop-dropdown-add { color: #6c5ce7; font-weight: 600; }
+.shop-dropdown-add .plus { align-items: center; background: #f0edff; border-radius: 6px; color: #6c5ce7; display: flex; height: 22px; justify-content: center; width: 22px; }
+.shop-dropdown-add .plus svg { height: 12px; width: 12px; }
+
+/* Add-new inline form */
+.shop-add-form { background: #fff; border: 1px solid #6c5ce7; border-radius: 10px; box-shadow: 0 0 0 3px rgba(108,92,231,0.15); display: flex; gap: 6px; padding: 6px; }
+.shop-add-input { background: transparent; border: none; color: #1a1a2e; flex: 1; font-family: inherit; font-size: 14px; font-weight: 600; outline: none; padding: 6px 10px; }
+.shop-add-input::placeholder { color: #bbb; font-weight: 400; }
+.shop-add-ok { background: #6c5ce7; border: none; border-radius: 8px; color: #fff; cursor: pointer; padding: 6px 10px; }
+.shop-add-ok svg { height: 14px; width: 14px; }
+.shop-add-cancel { background: transparent; border: 1px solid #e0dce8; border-radius: 8px; color: #999; cursor: pointer; padding: 6px 10px; }
+.shop-add-cancel svg { height: 14px; width: 14px; }
+
+/* Entry table */
+.table-wrap { background: #fff; margin: 0; padding: 24px; }
+.table-outer { border: 1px solid #e0dce8; border-radius: 12px; overflow: hidden; }
+table { border-collapse: collapse; width: 100%; }
+thead th { background: #f8f7fc; border-bottom: 2px solid #e0dce8; color: #999; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; padding: 12px 16px; text-align: left; text-transform: uppercase; white-space: nowrap; }
+th.right { text-align: right; }
+tbody td { border-bottom: 1px solid #f0edff; color: #555; font-size: 13px; padding: 12px 16px; }
+tbody tr:last-child td { border-bottom: none; }
+td.date { color: #999; white-space: nowrap; }
+td.desc { color: #1a1a2e; font-weight: 500; }
+td.money { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+td.fee { color: #e74c3c; }
+td.net { color: #27ae60; font-weight: 600; }
+.cat { border-radius: 20px; font-size: 11px; font-weight: 600; padding: 3px 12px; }
+.cat-sale { background: #e8f5e9; color: #27ae60; }
+.cat-service { background: #e3f2fd; color: #1565c0; }
+.cat-digital { background: #f0edff; color: #6c5ce7; }
+.cat-freelance { background: #f3e5f5; color: #7b1fa2; }
+.qe-row td { background: #faf9ff; }
+.qe-input { background: #fff; border: 1px solid #e0dce8; border-radius: 6px; color: #1a1a2e; font-family: inherit; font-size: 13px; padding: 6px 10px; width: 100%; }
+.qe-input.num { text-align: right; }
+.qe-add-btn { align-items: center; background: #6c5ce7; border: none; border-radius: 6px; color: #fff; cursor: pointer; display: inline-flex; height: 30px; justify-content: center; width: 30px; }
+.qe-add-btn svg { height: 14px; width: 14px; }
+
+/* Overview cards section (showing grouping) */
+.dash-preview { background: #f8f7fc; border-top: 1px solid #e0dce8; padding: 24px; }
+.dash-preview h3 { color: #1a1a2e; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+.shop-cards { display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr); }
+.shop-card { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; padding: 16px; }
+.shop-card-name { align-items: center; color: #1a1a2e; display: flex; font-size: 13px; font-weight: 600; gap: 8px; }
+.shop-card-name .badge { background: #f0edff; border-radius: 6px; color: #6c5ce7; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 6px; text-transform: uppercase; }
+.shop-card-num { color: #1a1a2e; font-size: 22px; font-weight: 700; margin-top: 8px; }
+.shop-card-sub { color: #999; font-size: 12px; margin-top: 2px; }
+
+/* Diagram — how it maps to the DB */
+.diagram { background: #fff; border: 2px solid #e0dce8; border-radius: 16px; margin-top: 40px; padding: 32px; }
+.diagram h2 { color: #1a1a2e; font-size: 18px; font-weight: 700; }
+.diagram p.sub { color: #555; font-size: 14px; line-height: 1.6; margin-top: 8px; }
+.diagram-grid { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin-top: 24px; }
+.table-card { background: #faf9ff; border: 1px solid #e0dce8; border-radius: 12px; overflow: hidden; }
+.table-card-head { align-items: center; background: #1a1a2e; color: #fff; display: flex; gap: 10px; padding: 10px 14px; }
+.table-card-head .schema { color: #a78bfa; font-size: 12px; font-weight: 500; }
+.table-card-head .name { font-size: 14px; font-weight: 700; }
+.table-card-body { padding: 10px 14px; }
+.table-card-row { align-items: center; color: #555; display: flex; font-size: 12px; gap: 10px; padding: 4px 0; }
+.table-card-row code { background: #f0edff; border-radius: 4px; color: #6c5ce7; font-family: 'SF Mono', Consolas, monospace; font-size: 11px; padding: 2px 6px; }
+.table-card-row .note { color: #999; font-size: 11px; }
+.arrow { align-items: center; color: #6c5ce7; display: flex; font-size: 20px; justify-content: center; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="page-intro">
+    <h1>Manual Entry — Manual Shops concept</h1>
+    <p>Today Manual Entry assumes <strong>one</strong> shop. This design lets users group their manual data into multiple <strong>"manual shops"</strong> (e.g., Weekend Market, Craft Fair Booth, Freelance). The shop lives on <code>app.ShopConnection</code> with <code>Platform = "Manual"</code> — so the existing per-shop <code>ShopConnectionId</code> FK on Revenue / Expense / Payout carries the grouping, and the Dashboard's per-shop breakdowns "just work" with no new plumbing.</p>
+    <p style="margin-top: 10px;">Below: three scenes of the Manual Entry page showing how the shop picker behaves, followed by a small schema diagram.</p>
+</div>
+
+<div class="scenes">
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- SCENE 1 — Default collapsed -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="scene">
+        <div class="scene-label"><span>Scene 1 — Default state</span><span class="tag">Viewing one shop</span></div>
+        <div class="scene-note">A <strong>shop picker</strong> sits between the hero and the spoke tabs. The selected shop <strong>filters</strong> the data below <strong>AND stamps new entries</strong> with that shop's <code>ShopConnectionId</code>. The hero stats scope to the current shop.</div>
+
+        <!-- Hero -->
+        <div class="hero">
+            <div class="deco deco-1"></div>
+            <div class="deco deco-2"></div>
+            <div class="hero-content">
+                <div class="hero-top">
+                    <div>
+                        <h1>Manual Entry</h1>
+                        <p>Record revenue from any source</p>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <div><span class="hero-stat-num lav">12</span><span class="hero-stat-label">Entries</span></div>
+                    <div><span class="hero-stat-num grn">$1,840.00</span><span class="hero-stat-label">Gross</span></div>
+                    <div><span class="hero-stat-num">$1,712.50</span><span class="hero-stat-label">Net</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shop picker bar -->
+        <div class="shop-bar">
+            <div class="shop-bar-left">
+                <span class="shop-bar-label">Shop</span>
+                <div class="shop-picker">
+                    <div class="shop-picker-icon">
+                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5M5 9v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M9 21v-6h6v6" /></svg>
+                    </div>
+                    <span class="shop-picker-name">Weekend Market</span>
+                    <span class="shop-picker-caret">
+                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg>
+                    </span>
+                </div>
+            </div>
+            <span class="shop-bar-hint">New entries will be saved to <strong>Weekend Market</strong></span>
+        </div>
+
+        <!-- Spoke tabs -->
+        <nav class="spoke-tabs">
+            <button class="spoke-tab">Overview</button>
+            <button class="spoke-tab active">Revenue</button>
+            <button class="spoke-tab">Expenses</button>
+            <button class="spoke-tab">Payouts</button>
+        </nav>
+
+        <!-- Table -->
+        <div class="table-wrap">
+            <div class="table-outer">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th class="right">Qty</th>
+                            <th class="right">Price</th>
+                            <th class="right">Fees</th>
+                            <th class="right">Net</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="qe-row">
+                            <td><input class="qe-input" type="date" value="2026-04-24"></td>
+                            <td><input class="qe-input" type="text" placeholder="Description..."></td>
+                            <td><input class="qe-input" type="text" value="Sale"></td>
+                            <td><input class="qe-input num" type="number" value="1"></td>
+                            <td><input class="qe-input num" type="number" placeholder="0.00"></td>
+                            <td><input class="qe-input num" type="number" placeholder="0.00"></td>
+                            <td class="money">$0.00</td>
+                            <td><button class="qe-add-btn"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19" /><line x1="5" x2="19" y1="12" y2="12" /></svg></button></td>
+                        </tr>
+                        <tr>
+                            <td class="date">Apr 22</td>
+                            <td class="desc">Ceramic mug set — 4 pcs</td>
+                            <td><span class="cat cat-sale">Sale</span></td>
+                            <td class="money">1</td>
+                            <td class="money">$180.00</td>
+                            <td class="money fee">-$12.00</td>
+                            <td class="money net">$168.00</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td class="date">Apr 20</td>
+                            <td class="desc">Painted wood sign</td>
+                            <td><span class="cat cat-sale">Sale</span></td>
+                            <td class="money">1</td>
+                            <td class="money">$65.00</td>
+                            <td class="money fee">—</td>
+                            <td class="money net">$65.00</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td class="date">Apr 19</td>
+                            <td class="desc">Hand-thrown planter</td>
+                            <td><span class="cat cat-sale">Sale</span></td>
+                            <td class="money">2</td>
+                            <td class="money">$45.00</td>
+                            <td class="money fee">—</td>
+                            <td class="money net">$90.00</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- SCENE 2 — Dropdown open -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="scene">
+        <div class="scene-label"><span>Scene 2 — Dropdown open</span><span class="tag">Switch or add</span></div>
+        <div class="scene-note">Clicking the picker opens the list. Existing manual shops are shown with the active one checked. <strong>"+ Add new shop…"</strong> at the bottom creates a new shop inline — no separate management page, no modal.</div>
+
+        <div class="hero">
+            <div class="deco deco-1"></div>
+            <div class="deco deco-2"></div>
+            <div class="hero-content">
+                <div class="hero-top">
+                    <div>
+                        <h1>Manual Entry</h1>
+                        <p>Record revenue from any source</p>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <div><span class="hero-stat-num lav">12</span><span class="hero-stat-label">Entries</span></div>
+                    <div><span class="hero-stat-num grn">$1,840.00</span><span class="hero-stat-label">Gross</span></div>
+                    <div><span class="hero-stat-num">$1,712.50</span><span class="hero-stat-label">Net</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shop-bar">
+            <div class="shop-bar-left">
+                <span class="shop-bar-label">Shop</span>
+                <div class="shop-picker open">
+                    <div class="shop-picker-icon">
+                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5M5 9v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M9 21v-6h6v6" /></svg>
+                    </div>
+                    <span class="shop-picker-name">Weekend Market</span>
+                    <span class="shop-picker-caret">
+                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15" /></svg>
+                    </span>
+                    <!-- Dropdown -->
+                    <div class="shop-dropdown">
+                        <button class="shop-dropdown-item"><span class="dot"></span>All manual shops</button>
+                        <div class="shop-dropdown-divider"></div>
+                        <button class="shop-dropdown-item active">Weekend Market<span class="check"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg></span></button>
+                        <button class="shop-dropdown-item">Craft Fair Booth</button>
+                        <button class="shop-dropdown-item">Freelance Illustration</button>
+                        <div class="shop-dropdown-divider"></div>
+                        <button class="shop-dropdown-item shop-dropdown-add"><span class="plus"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3" viewBox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19" /><line x1="5" x2="19" y1="12" y2="12" /></svg></span>Add new shop…</button>
+                    </div>
+                </div>
+            </div>
+            <span class="shop-bar-hint">Pick a shop or create one</span>
+        </div>
+
+        <nav class="spoke-tabs">
+            <button class="spoke-tab">Overview</button>
+            <button class="spoke-tab active">Revenue</button>
+            <button class="spoke-tab">Expenses</button>
+            <button class="spoke-tab">Payouts</button>
+        </nav>
+
+        <div class="table-wrap">
+            <div class="table-outer">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th class="right">Qty</th>
+                            <th class="right">Price</th>
+                            <th class="right">Fees</th>
+                            <th class="right">Net</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="date">Apr 22</td>
+                            <td class="desc">Ceramic mug set — 4 pcs</td>
+                            <td><span class="cat cat-sale">Sale</span></td>
+                            <td class="money">1</td>
+                            <td class="money">$180.00</td>
+                            <td class="money fee">-$12.00</td>
+                            <td class="money net">$168.00</td>
+                        </tr>
+                        <tr>
+                            <td class="date">Apr 20</td>
+                            <td class="desc">Painted wood sign</td>
+                            <td><span class="cat cat-sale">Sale</span></td>
+                            <td class="money">1</td>
+                            <td class="money">$65.00</td>
+                            <td class="money fee">—</td>
+                            <td class="money net">$65.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- SCENE 3 — Inline-create -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="scene">
+        <div class="scene-label"><span>Scene 3 — Inline create</span><span class="tag">Create new shop</span></div>
+        <div class="scene-note">Clicking "+ Add new shop…" replaces the picker with an inline text field. Typing a name + <strong>Enter</strong> creates the <code>ShopConnection</code> row (Platform=Manual, tokens null) and selects it. No extra page to visit.</div>
+
+        <div class="hero">
+            <div class="deco deco-1"></div>
+            <div class="deco deco-2"></div>
+            <div class="hero-content">
+                <div class="hero-top">
+                    <div>
+                        <h1>Manual Entry</h1>
+                        <p>Record revenue from any source</p>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <div><span class="hero-stat-num lav">0</span><span class="hero-stat-label">Entries</span></div>
+                    <div><span class="hero-stat-num grn">$0.00</span><span class="hero-stat-label">Gross</span></div>
+                    <div><span class="hero-stat-num">$0.00</span><span class="hero-stat-label">Net</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shop-bar">
+            <div class="shop-bar-left">
+                <span class="shop-bar-label">Shop</span>
+                <div class="shop-add-form">
+                    <input class="shop-add-input" type="text" value="Etsy (pre-connect)" placeholder="Shop name…">
+                    <button class="shop-add-ok" aria-label="Create shop"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg></button>
+                    <button class="shop-add-cancel" aria-label="Cancel"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18" /><line x1="6" x2="18" y1="6" y2="18" /></svg></button>
+                </div>
+            </div>
+            <span class="shop-bar-hint">Press <strong>Enter</strong> to create</span>
+        </div>
+
+        <nav class="spoke-tabs">
+            <button class="spoke-tab">Overview</button>
+            <button class="spoke-tab active">Revenue</button>
+            <button class="spoke-tab">Expenses</button>
+            <button class="spoke-tab">Payouts</button>
+        </nav>
+
+        <div class="dash-preview">
+            <h3>Dashboard per-shop breakdown (preview — after 3 shops created)</h3>
+            <div class="shop-cards">
+                <div class="shop-card">
+                    <div class="shop-card-name">Weekend Market<span class="badge">Manual</span></div>
+                    <div class="shop-card-num">$1,840.00</div>
+                    <div class="shop-card-sub">12 sales · 30d</div>
+                </div>
+                <div class="shop-card">
+                    <div class="shop-card-name">Craft Fair Booth<span class="badge">Manual</span></div>
+                    <div class="shop-card-num">$620.00</div>
+                    <div class="shop-card-sub">4 sales · 30d</div>
+                </div>
+                <div class="shop-card">
+                    <div class="shop-card-name">Freelance Illustration<span class="badge">Manual</span></div>
+                    <div class="shop-card-num">$2,400.00</div>
+                    <div class="shop-card-sub">3 invoices · 30d</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /scenes -->
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- Schema diagram -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="diagram">
+    <h2>How it maps to the database</h2>
+    <p class="sub">Zero new tables. A manual shop is just a <code style="background:#f0edff;border-radius:4px;color:#6c5ce7;font-family:Consolas,monospace;font-size:12px;padding:2px 6px;">ShopConnection</code> row with <code style="background:#f0edff;border-radius:4px;color:#6c5ce7;font-family:Consolas,monospace;font-size:12px;padding:2px 6px;">Platform = "Manual"</code>. The existing <code style="background:#f0edff;border-radius:4px;color:#6c5ce7;font-family:Consolas,monospace;font-size:12px;padding:2px 6px;">ShopConnectionId</code> FK on Revenue/Expense/Payout carries the grouping — nothing else changes.</p>
+    <div class="diagram-grid">
+        <div>
+            <div class="table-card">
+                <div class="table-card-head"><span class="schema">app.</span><span class="name">PlatformConnection</span></div>
+                <div class="table-card-body">
+                    <div class="table-card-row"><code>Platform</code><span>"Manual"</span><span class="note">(one row per user)</span></div>
+                    <div class="table-card-row"><code>ConnectionStatus</code><span>"active"</span></div>
+                </div>
+            </div>
+            <div style="text-align:center;color:#a78bfa;font-size:22px;margin:8px 0;">↓ 1:N</div>
+            <div class="table-card">
+                <div class="table-card-head"><span class="schema">app.</span><span class="name">ShopConnection</span></div>
+                <div class="table-card-body">
+                    <div class="table-card-row"><code>Platform</code><span>"Manual"</span></div>
+                    <div class="table-card-row"><code>ShopName</code><span>"Weekend Market"</span></div>
+                    <div class="table-card-row"><code>AccessToken</code><span class="note">(null — no OAuth)</span></div>
+                    <div class="table-card-row"><code>IsEnabled</code><span>true</span></div>
+                    <div class="table-card-row"><code>Status</code><span>"Completed"</span></div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="table-card">
+                <div class="table-card-head"><span class="schema">app.</span><span class="name">Revenue  ·  Expense  ·  Payout</span></div>
+                <div class="table-card-body">
+                    <div class="table-card-row"><code>ShopConnectionId</code><span>→ Weekend Market</span></div>
+                    <div class="table-card-row"><code>Platform</code><span>"Manual"</span></div>
+                    <div class="table-card-row"><code>PlatformTransactionId</code><span>"manual_&#123;guid&#125;"</span></div>
+                </div>
+            </div>
+            <div style="background:#f0edff;border:1px solid #e0dce8;border-radius:12px;margin-top:16px;padding:14px 16px;">
+                <div style="color:#1a1a2e;font-size:13px;font-weight:700;margin-bottom:6px;">What this unlocks for free</div>
+                <ul style="color:#555;font-size:12px;line-height:1.7;list-style:none;padding:0;">
+                    <li>• Dashboard per-shop breakdown groups manual shops alongside Etsy/Stripe</li>
+                    <li>• Goals can target a specific manual shop (via the existing Platform filter pattern)</li>
+                    <li>• Rename once → every row rolls up to the new name</li>
+                    <li>• Future: convert a manual shop into a connected one without touching history</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div><!-- /page -->
+</body>
+</html>
