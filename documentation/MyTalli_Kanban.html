@@ -98,13 +98,13 @@
   <div class="intro">
     <div class="intro-left">
       <h2>Current focus: Sync Pipeline</h2>
-      <p>Schema layer built (<code>ShopConnection</code>, <code>ShopConnectionEtsy</code>, FKs on Revenue/Expense/Payout). Etsy OAuth callback shipped. Next concrete step is the Daily Sync Worker and incremental pull logic.</p>
+      <p>Schema layer built (<code>ShopConnection</code>, <code>ShopConnectionEtsy</code>, FKs on Revenue/Expense/Payout). Etsy OAuth callback shipped. Sync worker infrastructure (<code>ShopSyncWorker</code>, <code>TokenRefreshWorker</code>, <code>EtsySyncService</code>) is code-complete but has never been run against a live Etsy shop. Next concrete step is a live-run shakedown.</p>
     </div>
     <div class="intro-metrics">
       <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
-      <span class="metric"><span class="metric-value">6</span><span class="metric-label">Next<br>up</span></span>
+      <span class="metric"><span class="metric-value">4</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">11</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">12</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -208,26 +208,14 @@
     <div class="lane next">
       <div class="lane-header">
         <h3>Next Up</h3>
-        <span class="lane-count">8</span>
+        <span class="lane-count">4</span>
       </div>
       <div class="lane-body">
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Daily Sync Worker</h4>
-          <p>Background service: pick eligible ShopConnection rows, refresh tokens lazily, pull incremental data, upsert Revenue.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Token Keepalive Worker</h4>
-          <p>Daily pass that refreshes tokens approaching expiry for rolling-refresh platforms (Etsy, Shopify). Keeps dormant connections alive.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Incremental sync logic</h4>
-          <p>After first backfill, only pull <code>created_at &gt;= LastSyncDateTime</code>. Keeps steady-state at ~1 call per shop per sync.</p>
+          <h4>Sync worker live-run verification</h4>
+          <p>Worker infrastructure is code-complete but has never been exercised. Connect a real Etsy test shop, let <code>ShopSyncWorker</code> tick, verify receipts flow into <code>app.Revenue</code>/<code>app.RevenueEtsy</code>, confirm status transitions + <code>LastSyncDateTime</code> update, check Elmah is clean.</p>
         </div>
 
         <div class="card">
@@ -266,9 +254,16 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">11</span>
+        <span class="lane-count">12</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Sync worker infrastructure (code-complete)</h4>
+          <p><code>ShopSyncWorker</code> BackgroundService polls every 5 min, dispatches per platform via <code>IPlatformSyncService</code>, exponential backoff to 24hr cap. <code>EtsySyncService</code> pulls receipts with pagination + inline token refresh. <code>TokenRefreshWorker</code> handles proactive refresh. Incremental sync uses <code>LastSyncDateTime</code> as the floor with 90-day initial backfill. Commands: <code>RefreshShopTokensCommand</code>, <code>UpdateShopSyncStateCommand</code>, <code>UpsertEtsyRevenueCommand</code>. All DI wired. <em>Note: never run against a live Etsy shop yet — see "Sync worker live-run verification" in Next Up.</em></p>
+          <span class="done-date">Apr 24 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
