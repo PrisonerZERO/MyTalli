@@ -97,14 +97,14 @@
 
   <div class="intro">
     <div class="intro-left">
-      <h2>Current focus: Sync Pipeline</h2>
-      <p>Schema layer built (<code>ShopConnection</code>, <code>ShopConnectionEtsy</code>, FKs on Revenue/Expense/Payout). Etsy OAuth callback shipped. Sync worker infrastructure (<code>ShopSyncWorker</code>, <code>TokenRefreshWorker</code>, <code>EtsySyncService</code>) is code-complete but has never been run against a live Etsy shop. Next concrete step is a live-run shakedown.</p>
+      <h2>Current focus: Etsy end-to-end</h2>
+      <p>Etsy is now wired end-to-end in code: OAuth connection, 8 new Expense/Payout subtables (one per platform), sync worker infrastructure (<code>ShopSyncWorker</code>, <code>TokenRefreshWorker</code>, <code>EtsySyncService</code>), a seed script for fake data, and the <code>/platforms/etsy</code> dashboard with Overview / Revenue / Expenses / Payouts tabs. The worker still has not been run against a live Etsy shop — next concrete step is the live-run shakedown.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">4</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">12</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">14</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -118,27 +118,20 @@
     <div class="lane backlog">
       <div class="lane-header">
         <h3>Backlog</h3>
-        <span class="lane-count">12</span>
+        <span class="lane-count">11</span>
       </div>
       <div class="lane-body">
 
         <div class="card">
           <div class="card-tags"><span class="tag nav">Nav</span></div>
           <h4>Stripe spoke page</h4>
-          <p>Platform detail page with Overview / Revenue / Expenses / Payouts tabs. Orange swoosh tint.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag nav">Nav</span></div>
-          <h4>Etsy spoke page</h4>
-          <p>Platform detail page. Blocked until sync pipeline delivers real Etsy data.</p>
-          <span class="blocked">Blocked: sync pipeline</span>
+          <p>Platform detail page with Overview / Revenue / Expenses / Payouts tabs. Mirrors the Etsy spoke pattern; uses <code>RevenueStripe</code> + <code>ExpenseStripe</code> + <code>PayoutStripe</code> for drill-down.</p>
         </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag nav">Nav</span></div>
           <h4>Gumroad / PayPal / Shopify spoke pages</h4>
-          <p>Same spoke pattern for remaining platforms. Builds once sync pipeline is proven on Stripe + Etsy.</p>
+          <p>Same spoke pattern as Etsy for remaining platforms. Gumroad and Shopify already have their Expense/Payout subtables; PayPal pending.</p>
         </div>
 
         <div class="card">
@@ -254,9 +247,23 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">12</span>
+        <span class="lane-count">14</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Etsy spoke page</h4>
+          <p><code>/platforms/etsy</code> dashboard with hero swoosh, 4-tab bar (Overview / Revenue / Expenses / Payouts), shop + period filters, pagination. Wired to <code>Revenue</code> ⨝ <code>RevenueEtsy</code>, <code>Expense</code> ⨝ <code>ExpenseEtsy</code>, <code>Payout</code> ⨝ <code>PayoutEtsy</code> via <code>RepositoryAdapterAsync</code>. Entry points: "View dashboard →" on Platforms page + sidebar Dashboard sub-link under the Etsy dot.</p>
+          <span class="done-date">Apr 24 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Expense &amp; Payout subtables (all platforms)</h4>
+          <p>8 new tables following the existing <code>RevenueX</code> pattern: <code>ExpenseEtsy</code> / <code>ExpenseStripe</code> / <code>ExpenseGumroad</code> / <code>ExpenseManual</code> + matching <code>PayoutX</code> set. Shared-PK 1:1 with parent, cascade delete. Migration <code>20260424160653_AddExpenseAndPayoutSubtables</code> applied locally. <code>SeedFakeEtsyData.sql</code> updated to populate the new Etsy subtables.</p>
+          <span class="done-date">Apr 24 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
