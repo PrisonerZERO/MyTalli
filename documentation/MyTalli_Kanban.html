@@ -101,7 +101,7 @@
       <p>Schema layer built (<code>ShopConnection</code>, <code>ShopConnectionEtsy</code>, FKs on Revenue/Expense/Payout). Etsy OAuth callback shipped. Next concrete step is the Daily Sync Worker and incremental pull logic.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">6</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
       <span class="metric"><span class="metric-value">11</span><span class="metric-label">Recently<br>done</span></span>
@@ -151,6 +151,12 @@
           <div class="card-tags"><span class="tag sync">Sync</span></div>
           <h4>Webhook ingestion (Phase 2 scaling)</h4>
           <p>Etsy + Stripe + PayPal + Shopify webhook endpoints. Triggered when Etsy daily quota approaches 70%. See SyncScalingPlan.html.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Worker Run History</h4>
+          <p>New <code>SyncRun</code> log table — one row per execution (start/end, records pulled, outcome, error). Enables trend/throughput admin reports beyond current point-in-time state.</p>
         </div>
 
         <div class="card">

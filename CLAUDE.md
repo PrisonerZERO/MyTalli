@@ -948,6 +948,16 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 
 ## Rules
 
+### Active Feature Branch Only — No Worktrees, No Side Branches
+
+- **HARD RULE — no exceptions.** All MyTalli work happens directly on the user's active feature branch (currently `development_ROBERT`) in the main checkout at `C:\Users\Robert\source\repos\MyTalli`.
+- **Never** create, accept, or work inside a git worktree (`.claude/worktrees/*`).
+- **Never** commit to a `claude/*` or other auto-generated side branch.
+- The feature branch **is** the workspace — the user is the sole developer and does not merge from hidden branches. Side branches silently drift, cause schema refactors to be missed, and waste work.
+- **At the start of every session**, verify the current working directory and branch. If you are in a worktree or on a `claude/*` branch, **stop and tell the user before doing any work** — propose switching to the feature branch in the main checkout and wait for confirmation. Do not silently accept the worktree.
+- All file edits must use absolute paths under `C:\Users\Robert\source\repos\MyTalli\...` on the active feature branch.
+- Do not propose "merge the worktree back" as a fix. The correct fix is always: abandon the worktree, redo the work on the feature branch.
+
 ### Task Completion
 
 - Before declaring a task complete, verify all Rules in this section have been followed.
