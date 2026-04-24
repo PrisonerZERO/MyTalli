@@ -88,7 +88,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application features & revenue | Expense, Goal, GoalType, Milestone (legacy), Payout, PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, ShopConnection, ShopConnectionEtsy, Suggestion, SuggestionVote |
+| `app` | Application features & revenue | Expense, ExpenseEtsy, ExpenseGumroad, ExpenseManual, ExpenseStripe, Goal, GoalType, Milestone (legacy), Payout, PayoutEtsy, PayoutGumroad, PayoutManual, PayoutStripe, PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, ShopConnection, ShopConnectionEtsy, Suggestion, SuggestionVote |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
@@ -100,6 +100,18 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - Indexes: `IX_Expense_UserId`, `IX_Expense_ShopConnectionId`
 - FK behavior: `FK_Expense_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
 - Design: Parallel to Revenue — both queried by dashboard, no FK between them. `Revenue.FeeAmount` = per-sale fees; `Expense.Amount` = standalone platform fees or manual expenses. Actively used by Manual Entry module for full CRUD. Per-shop breakdowns group by `ShopConnectionId`.
+
+**`app.ExpenseEtsy`** — Etsy-specific expense detail (1-to-1 with Expense, shared PK)
+- `ExpenseId` (PK/FK → Expense, C# property: `Id`), `AdCampaignId` (nullable long — promoted listing campaign that generated the fee), `LedgerEntryId` (long — Etsy's ledger-entry identifier), `ListingId` (nullable long — listing that generated the fee, when applicable)
+
+**`app.ExpenseGumroad`** — Gumroad-specific expense detail (1-to-1 with Expense, shared PK)
+- `ExpenseId` (PK/FK → Expense, C# property: `Id`), `SubscriptionPlanId` (nullable string 100 — Gumroad plan that the subscription fee was charged against)
+
+**`app.ExpenseManual`** — Manual Entry expense detail (1-to-1 with Expense, shared PK)
+- `ExpenseId` (PK/FK → Expense, C# property: `Id`), `Notes` (nullable)
+
+**`app.ExpenseStripe`** — Stripe-specific expense detail (1-to-1 with Expense, shared PK)
+- `ExpenseId` (PK/FK → Expense, C# property: `Id`), `BalanceTransactionId` (string 255), `FeeType` (string 50 — e.g., "application_fee", "refund_failure_fee")
 
 **`app.Goal`** — user revenue goals (1:N from User, 1:N from GoalType)
 - `Id` (PK), `UserId` (FK → auth.User), `GoalTypeId` (FK → GoalType), `EndDate` (nullable datetime), `Platform` (nullable string 50 — optional filter for platform-specific goals), `StartDate` (datetime), `Status` (string 20), `TargetAmount` (decimal 18,2)
@@ -126,6 +138,18 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - Indexes: `IX_Payout_UserId`, `IX_Payout_ShopConnectionId`
 - FK behavior: `FK_Payout_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
 - Design: No FK to Revenue — one payout covers many sales (batched). Enables cash flow view: earned vs received vs pending. Actively used by Manual Entry module for full CRUD. Per-shop breakdowns group by `ShopConnectionId`.
+
+**`app.PayoutEtsy`** — Etsy-specific payout detail (1-to-1 with Payout, shared PK)
+- `PayoutId` (PK/FK → Payout, C# property: `Id`), `LedgerEntryId` (long — Etsy's ledger-entry identifier for the disbursement), `ShopCurrency` (char 3, ISO 4217)
+
+**`app.PayoutGumroad`** — Gumroad-specific payout detail (1-to-1 with Payout, shared PK)
+- `PayoutId` (PK/FK → Payout, C# property: `Id`), `PayoutMethod` (string 20 — e.g., "bank", "paypal")
+
+**`app.PayoutManual`** — Manual Entry payout detail (1-to-1 with Payout, shared PK)
+- `PayoutId` (PK/FK → Payout, C# property: `Id`), `Notes` (nullable)
+
+**`app.PayoutStripe`** — Stripe-specific payout detail (1-to-1 with Payout, shared PK)
+- `PayoutId` (PK/FK → Payout, C# property: `Id`), `PayoutMethod` (string 20 — "standard", "instant"), `StatementDescriptor` (nullable string 500), `StripePayoutId` (string 255)
 
 **`app.Revenue`** — normalized revenue record from all platforms (API-sourced and manual entry)
 - `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the sale came from for per-shop breakdowns; null for manual entries), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (nullable, unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
