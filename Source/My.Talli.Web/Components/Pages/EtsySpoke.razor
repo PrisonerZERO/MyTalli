@@ -1,0 +1,429 @@
+@page "/platforms/etsy"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits My.Talli.Web.ViewModels.Pages.EtsySpokeViewModel
+@rendermode InteractiveServer
+
+<PageTitle>@PageTitle — MyTalli</PageTitle>
+
+@* ── Hero swoosh ── *@
+<section class="hero etsy-hero" aria-label="Etsy overview">
+    <div class="hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="etsySwooshGrad" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#6c5ce7" />
+                    <stop offset="50%" stop-color="#7c4dd8" />
+                    <stop offset="100%" stop-color="#8b5cf6" />
+                </linearGradient>
+            </defs>
+            <path d="M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z" fill="url(#etsySwooshGrad)" />
+        </svg>
+    </div>
+
+    <div class="hero-content">
+        <div class="hero-top">
+            <nav class="hero-breadcrumb" aria-label="Breadcrumb">
+                <a href="/platforms">Platforms</a>
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" /></svg>
+                <span class="current">Etsy</span>
+            </nav>
+            <ul class="hero-nav">
+                <li><My.Talli.Web.Components.Shared.UserProfileButton @rendermode="InteractiveServer" /></li>
+            </ul>
+        </div>
+
+        <div class="hero-title-row">
+            <div class="hero-logo" aria-hidden="true">
+                <svg viewBox="0 0 32 32" fill="none">
+                    <path d="M16 2 L4 8 L4 24 L16 30 L28 24 L28 8 Z" fill="#f56400" />
+                    <text x="16" y="21" text-anchor="middle" font-family="DM Sans" font-weight="700" font-size="14" fill="#fff">E</text>
+                </svg>
+            </div>
+            <div>
+                <h1>Etsy</h1>
+                <p class="hero-subtitle">
+                    @if (Shops.Count == 0)
+                    {
+                        <span>No shops connected yet</span>
+                    }
+                    else
+                    {
+                        <span>@Shops.Count shop@(Shops.Count == 1 ? "" : "s") connected</span>
+                        if (LastSyncDateTime.HasValue)
+                        {
+                            <span> · last synced @EtsySpokeViewModel.GetRelativeTime(LastSyncDateTime.Value)</span>
+                        }
+                    }
+                </p>
+            </div>
+        </div>
+
+        <div class="hero-stats" role="group" aria-label="Etsy summary statistics">
+            <div class="hero-stat">
+                <span class="hero-stat-num">@Shops.Count</span>
+                <span class="hero-stat-label">@(Shops.Count == 1 ? "Shop" : "Shops")</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">@Net30d.ToString("C2")</span>
+                <span class="hero-stat-label">Net revenue (30d)</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">@Expenses30d.ToString("C2")</span>
+                <span class="hero-stat-label">Expenses (30d)</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ── Spoke tabs ── *@
+<nav class="spoke-tabs" role="tablist" aria-label="Etsy sections">
+    <button class="spoke-tab @(ActiveTab == "overview" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "overview")" @onclick='() => SelectTab("overview")'>Overview</button>
+    <button class="spoke-tab @(ActiveTab == "revenue" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "revenue")" @onclick='() => SelectTab("revenue")'>Revenue</button>
+    <button class="spoke-tab @(ActiveTab == "expenses" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "expenses")" @onclick='() => SelectTab("expenses")'>Expenses</button>
+    <button class="spoke-tab @(ActiveTab == "payouts" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "payouts")" @onclick='() => SelectTab("payouts")'>Payouts</button>
+</nav>
+
+@if (IsLoading)
+{
+    <div class="etsy-loading" role="status">Loading Etsy data…</div>
+}
+else if (!HasAnyConnectedShop)
+{
+    <div class="etsy-empty" role="status">
+        <h2>No Etsy shop connected</h2>
+        <p>Connect your Etsy shop from the Platforms page to start tracking revenue, expenses, and payouts here.</p>
+        <a class="etsy-empty-cta" href="/platforms">Go to Platforms →</a>
+    </div>
+}
+else
+{
+    @* ── OVERVIEW TAB ── *@
+    @if (ActiveTab == "overview")
+    {
+        <div role="tabpanel" aria-label="Overview">
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <div class="kpi-label">Revenue (30d)</div>
+                    <div class="kpi-value">@OverviewRevenue30d.ToString("C2")</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Expenses (30d)</div>
+                    <div class="kpi-value">@OverviewExpenses30d.ToString("C2")</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Net (30d)</div>
+                    <div class="kpi-value kpi-positive">@OverviewNet30d.ToString("C2")</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Next payout</div>
+                    @if (OverviewNextPayout is not null)
+                    {
+                        <div class="kpi-value">@OverviewNextPayout.Amount.ToString("C2")</div>
+                        <div class="kpi-sub">@(OverviewNextPayout.ExpectedArrivalDate?.ToString("MMM d") ?? "In transit")</div>
+                    }
+                    else
+                    {
+                        <div class="kpi-value kpi-muted">—</div>
+                        <div class="kpi-sub">None in transit</div>
+                    }
+                </div>
+            </div>
+
+            <div class="section-grid">
+                <div class="section-card">
+                    <h3>Shops</h3>
+                    @if (Shops.Count == 0)
+                    {
+                        <p class="section-empty">No shops connected.</p>
+                    }
+                    else
+                    {
+                        @foreach (var shop in Shops)
+                        {
+                            var shopRevenue = RevenueItems.Where(r => r.ShopConnectionId == shop.ShopConnectionId && !r.IsRefunded && !r.IsDisputed).Sum(r => r.NetAmount);
+                            var maxRevenue = Shops.Max(s => RevenueItems.Where(r => r.ShopConnectionId == s.ShopConnectionId && !r.IsRefunded && !r.IsDisputed).Sum(r => r.NetAmount));
+                            var pct = maxRevenue > 0 ? (int)(shopRevenue / maxRevenue * 100) : 0;
+                            <div class="shop-row">
+                                <div class="shop-info">
+                                    <div class="shop-name">@shop.ShopName</div>
+                                    <div class="shop-sub">@shop.SaleCount sale@(shop.SaleCount == 1 ? "" : "s")</div>
+                                </div>
+                                <div class="shop-bar-track"><div class="shop-bar-fill" style="width:@(pct)%"></div></div>
+                                <div class="shop-amount">@shopRevenue.ToString("C0")</div>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <div class="section-card">
+                    <h3>Top listings (all time)</h3>
+                    @{
+                        var listings = TopListings().ToList();
+                    }
+                    @if (listings.Count == 0)
+                    {
+                        <p class="section-empty">No listings yet.</p>
+                    }
+                    else
+                    {
+                        @foreach (var listing in listings)
+                        {
+                            <div class="listing-row">
+                                <div class="listing-info">
+                                    <div class="listing-title">@listing.Title</div>
+                                    <div class="listing-sub">Listing #@listing.ListingId · @listing.Count sold</div>
+                                </div>
+                                <div class="listing-amount">@listing.Revenue.ToString("C2")</div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    @* ── REVENUE TAB ── *@
+    @if (ActiveTab == "revenue")
+    {
+        <div role="tabpanel" aria-label="Revenue">
+            <div class="filter-bar">
+                <span class="filter-label">Shop:</span>
+                <div class="filter-pills" role="group" aria-label="Shop filter">
+                    <button class="filter-pill @(SelectedShopId == null ? "active" : "")" @onclick="() => SelectShop(null)">All</button>
+                    @foreach (var shop in Shops)
+                    {
+                        var id = shop.ShopConnectionId;
+                        <button class="filter-pill @(SelectedShopId == id ? "active" : "")" @onclick="() => SelectShop(id)">@shop.ShopName</button>
+                    }
+                </div>
+                <div class="filter-pills" style="margin-left:auto;" role="group" aria-label="Time period filter">
+                    <button class="filter-pill @(Period == "7D" ? "active" : "")" @onclick='() => SelectPeriod("7D")'>7D</button>
+                    <button class="filter-pill @(Period == "30D" ? "active" : "")" @onclick='() => SelectPeriod("30D")'>30D</button>
+                    <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
+                    <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                </div>
+            </div>
+
+            @{
+                var revenueView = GetVisibleRevenueItems();
+            }
+            <div class="grid-card">
+                <div class="grid-header">
+                    <h3>Sales</h3>
+                    <span class="grid-meta">@revenueView.Count rows · @revenueView.Sum(r => r.GrossAmount).ToString("C2") gross</span>
+                </div>
+                @if (revenueView.Count == 0)
+                {
+                    <p class="grid-empty">No sales in this window.</p>
+                }
+                else
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Receipt / Listing</th>
+                                <th>Status</th>
+                                <th class="num">Gross</th>
+                                <th class="num">Fee</th>
+                                <th class="num">Net</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in GetPagedRevenueItems())
+                            {
+                                <tr>
+                                    <td class="cell-date">@item.TransactionDate.ToLocalTime().ToString("MMM d, h:mmt").ToLower()</td>
+                                    <td class="cell-desc">@item.Description</td>
+                                    <td class="cell-id">R#@item.ReceiptId · L#@item.ListingId</td>
+                                    <td><span class="badge @item.StatusCss">@item.StatusLabel</span></td>
+                                    <td class="num">@item.GrossAmount.ToString("C2")</td>
+                                    <td class="num">@item.FeeAmount.ToString("C2")</td>
+                                    <td class="num">@item.NetAmount.ToString("C2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="grid-footer">
+                        <span class="grid-pagination">@PagedStart()–@PagedEnd(revenueView.Count) of @revenueView.Count</span>
+                        <div class="grid-pages">
+                            <button class="grid-page-btn" disabled="@(CurrentPage == 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
+                            @for (var i = 1; i <= GetTotalPageCount(); i++)
+                            {
+                                var pageNum = i;
+                                <button class="grid-page-btn @(pageNum == CurrentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
+                            }
+                            <button class="grid-page-btn" disabled="@(CurrentPage == GetTotalPageCount())" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @* ── EXPENSES TAB ── *@
+    @if (ActiveTab == "expenses")
+    {
+        <div role="tabpanel" aria-label="Expenses">
+            <div class="filter-bar">
+                <span class="filter-label">Shop:</span>
+                <div class="filter-pills" role="group" aria-label="Shop filter">
+                    <button class="filter-pill @(SelectedShopId == null ? "active" : "")" @onclick="() => SelectShop(null)">All</button>
+                    @foreach (var shop in Shops)
+                    {
+                        var id = shop.ShopConnectionId;
+                        <button class="filter-pill @(SelectedShopId == id ? "active" : "")" @onclick="() => SelectShop(id)">@shop.ShopName</button>
+                    }
+                </div>
+                <span class="filter-label" style="margin-left:12px;">Category:</span>
+                <div class="filter-pills" role="group" aria-label="Expense category filter">
+                    <button class="filter-pill @(ExpenseCategoryFilter == "all" ? "active" : "")" @onclick='() => SelectExpenseCategory("all")'>All</button>
+                    <button class="filter-pill @(ExpenseCategoryFilter == "listing" ? "active" : "")" @onclick='() => SelectExpenseCategory("listing")'>Listing</button>
+                    <button class="filter-pill @(ExpenseCategoryFilter == "ad" ? "active" : "")" @onclick='() => SelectExpenseCategory("ad")'>Ad</button>
+                    <button class="filter-pill @(ExpenseCategoryFilter == "subscription" ? "active" : "")" @onclick='() => SelectExpenseCategory("subscription")'>Subscription</button>
+                </div>
+                <div class="filter-pills" style="margin-left:auto;" role="group" aria-label="Time period filter">
+                    <button class="filter-pill @(Period == "7D" ? "active" : "")" @onclick='() => SelectPeriod("7D")'>7D</button>
+                    <button class="filter-pill @(Period == "30D" ? "active" : "")" @onclick='() => SelectPeriod("30D")'>30D</button>
+                    <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
+                    <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                </div>
+            </div>
+
+            @{
+                var expenseView = GetVisibleExpenseItems();
+            }
+            <div class="grid-card">
+                <div class="grid-header">
+                    <h3>Platform fees</h3>
+                    <span class="grid-meta">@expenseView.Count rows · @expenseView.Sum(e => e.Amount).ToString("C2")</span>
+                </div>
+                @if (expenseView.Count == 0)
+                {
+                    <p class="grid-empty">No expenses in this window.</p>
+                }
+                else
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Listing</th>
+                                <th>Campaign</th>
+                                <th>Ledger</th>
+                                <th class="num">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in GetPagedExpenseItems())
+                            {
+                                <tr>
+                                    <td class="cell-date">@item.ExpenseDate.ToLocalTime().ToString("MMM d")</td>
+                                    <td><span class="badge @item.CategoryCss">@item.Category.Replace(" Fee", "")</span></td>
+                                    <td class="cell-desc">@item.Description</td>
+                                    <td class="cell-id">@(item.ListingId.HasValue ? $"L#{item.ListingId}" : "—")</td>
+                                    <td class="cell-id">@(item.AdCampaignId.HasValue ? $"C#{item.AdCampaignId}" : "—")</td>
+                                    <td class="cell-id">@(item.LedgerEntryId.HasValue ? $"E#{item.LedgerEntryId}" : "—")</td>
+                                    <td class="num">@item.Amount.ToString("C2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="grid-footer">
+                        <span class="grid-pagination">@PagedStart()–@PagedEnd(expenseView.Count) of @expenseView.Count</span>
+                        <div class="grid-pages">
+                            <button class="grid-page-btn" disabled="@(CurrentPage == 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
+                            @for (var i = 1; i <= GetTotalPageCount(); i++)
+                            {
+                                var pageNum = i;
+                                <button class="grid-page-btn @(pageNum == CurrentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
+                            }
+                            <button class="grid-page-btn" disabled="@(CurrentPage == GetTotalPageCount())" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @* ── PAYOUTS TAB ── *@
+    @if (ActiveTab == "payouts")
+    {
+        <div role="tabpanel" aria-label="Payouts">
+            <div class="filter-bar">
+                <span class="filter-label">Shop:</span>
+                <div class="filter-pills" role="group" aria-label="Shop filter">
+                    <button class="filter-pill @(SelectedShopId == null ? "active" : "")" @onclick="() => SelectShop(null)">All</button>
+                    @foreach (var shop in Shops)
+                    {
+                        var id = shop.ShopConnectionId;
+                        <button class="filter-pill @(SelectedShopId == id ? "active" : "")" @onclick="() => SelectShop(id)">@shop.ShopName</button>
+                    }
+                </div>
+                <span class="filter-label" style="margin-left:12px;">Status:</span>
+                <div class="filter-pills" role="group" aria-label="Payout status filter">
+                    <button class="filter-pill @(PayoutStatusFilter == "all" ? "active" : "")" @onclick='() => SelectPayoutStatus("all")'>All</button>
+                    <button class="filter-pill @(PayoutStatusFilter == "intransit" ? "active" : "")" @onclick='() => SelectPayoutStatus("intransit")'>In Transit</button>
+                    <button class="filter-pill @(PayoutStatusFilter == "paid" ? "active" : "")" @onclick='() => SelectPayoutStatus("paid")'>Paid</button>
+                </div>
+            </div>
+
+            @{
+                var payoutView = GetVisiblePayoutItems();
+            }
+            <div class="grid-card">
+                <div class="grid-header">
+                    <h3>Disbursements</h3>
+                    <span class="grid-meta">@payoutView.Count rows · @PayoutItems.Count(p => p.Status == "In Transit") in transit</span>
+                </div>
+                @if (payoutView.Count == 0)
+                {
+                    <p class="grid-empty">No payouts yet.</p>
+                }
+                else
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Payout date</th>
+                                <th>Status</th>
+                                <th>Shop</th>
+                                <th>Expected arrival</th>
+                                <th>Ledger</th>
+                                <th class="num">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in GetPagedPayoutItems())
+                            {
+                                <tr>
+                                    <td class="cell-date">@item.PayoutDate.ToLocalTime().ToString("MMM d")</td>
+                                    <td><span class="badge @item.StatusCss">@item.Status</span></td>
+                                    <td class="cell-desc">@item.ShopName</td>
+                                    <td class="cell-date">@(item.ExpectedArrivalDate?.ToLocalTime().ToString("MMM d") ?? "—")</td>
+                                    <td class="cell-id">@(item.LedgerEntryId.HasValue ? $"E#{item.LedgerEntryId}" : "—")</td>
+                                    <td class="num">@item.Amount.ToString("C2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="grid-footer">
+                        <span class="grid-pagination">@PagedStart()–@PagedEnd(payoutView.Count) of @payoutView.Count</span>
+                        <div class="grid-pages">
+                            <button class="grid-page-btn" disabled="@(CurrentPage == 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
+                            @for (var i = 1; i <= GetTotalPageCount(); i++)
+                            {
+                                var pageNum = i;
+                                <button class="grid-page-btn @(pageNum == CurrentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
+                            }
+                            <button class="grid-page-btn" disabled="@(CurrentPage == GetTotalPageCount())" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
