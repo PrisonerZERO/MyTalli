@@ -1,12 +1,14 @@
 /* ============================================================================
    SeedFakeEtsyData.sql
    ----------------------------------------------------------------------------
-   Seeds synthetic Etsy-sourced Revenue, RevenueEtsy, Expense, and Payout rows
-   for a given user so the UI/UX can be exercised without a real Etsy sync.
+   Seeds synthetic Etsy-sourced Revenue, RevenueEtsy, Expense, ExpenseEtsy,
+   Payout, and PayoutEtsy rows for a given user so the UI/UX can be exercised
+   without a real Etsy sync.
 
    Re-runnable: on each run, any previously-seeded fake rows (identified by a
    'fake_etsy_' prefix on PlatformTransactionId / PlatformPayoutId) are deleted
-   and fresh rows are inserted.
+   and fresh rows are inserted. Child subtable rows (RevenueEtsy, ExpenseEtsy,
+   PayoutEtsy) cascade-delete automatically via their FK constraints.
 
    The fake Etsy ShopConnection gets NextSyncDateTime = 9999-12-31 so the real
    ShopSyncWorker never tries to call the Etsy API with placeholder tokens.
@@ -317,6 +319,25 @@ BEGIN TRY
 
     PRINT CONCAT('  Inserted ', @ExpensesInserted, ' Expense rows.');
 
+    /* ExpenseEtsy — 1:1 with every fake Etsy expense (PK column: ExpenseId).
+       - AdCampaignId + ListingId are populated only for Ad Fee rows
+         (listing fees are batch-level, subscription fees aren't listing-scoped).
+       - LedgerEntryId is populated for every row. */
+    INSERT INTO app.ExpenseEtsy
+        (ExpenseId, AdCampaignId, LedgerEntryId, ListingId,
+         IsDeleted, IsVisible, CreateByUserId, CreatedOnDateTime)
+    SELECT
+        e.Id,
+        CASE WHEN e.Category = N'Ad Fee' THEN 3000000000 + (ABS(CHECKSUM(NEWID())) % 99999999) ELSE NULL END,
+        4000000000 + (ABS(CHECKSUM(NEWID())) % 99999999),
+        CASE WHEN e.Category = N'Ad Fee' THEN 1000000000 + (ABS(CHECKSUM(NEWID())) % 99999999) ELSE NULL END,
+        0, 1, @UserId, e.CreatedOnDateTime
+    FROM app.Expense e
+    WHERE e.UserId = @UserId
+      AND e.PlatformTransactionId LIKE @FakeSentinel + '%';
+
+    PRINT CONCAT('  Inserted ', @ExpensesInserted, ' ExpenseEtsy detail rows.');
+
     /* ========================================================================
        8. INSERT PAYOUT ROWS
        Weekly disbursements. Most recent is 'In Transit', the rest are 'Paid'.
@@ -373,6 +394,21 @@ BEGIN TRY
     SET @PayoutsInserted = @@ROWCOUNT;
     PRINT CONCAT('  Inserted ', @PayoutsInserted, ' Payout rows.');
 
+    /* PayoutEtsy — 1:1 with every fake Etsy payout (PK column: PayoutId). */
+    INSERT INTO app.PayoutEtsy
+        (PayoutId, LedgerEntryId, ShopCurrency,
+         IsDeleted, IsVisible, CreateByUserId, CreatedOnDateTime)
+    SELECT
+        p.Id,
+        5000000000 + (ABS(CHECKSUM(NEWID())) % 99999999),
+        N'USD',
+        0, 1, @UserId, p.CreatedOnDateTime
+    FROM app.Payout p
+    WHERE p.UserId = @UserId
+      AND p.PlatformPayoutId LIKE @FakeSentinel + '%';
+
+    PRINT CONCAT('  Inserted ', @PayoutsInserted, ' PayoutEtsy detail rows.');
+
     COMMIT TRAN;
 
     /* ========================================================================
@@ -383,9 +419,9 @@ BEGIN TRY
     PRINT '=== Fake Etsy data seeded successfully ===';
     PRINT CONCAT('  UserId:            ', @UserId);
     PRINT CONCAT('  ShopConnectionId:  ', @ShopConnectionId);
-    PRINT CONCAT('  Revenue rows:      ', @RevenueInserted);
-    PRINT CONCAT('  Expense rows:      ', @ExpensesInserted);
-    PRINT CONCAT('  Payout rows:       ', @PayoutsInserted);
+    PRINT CONCAT('  Revenue + RevenueEtsy: ', @RevenueInserted);
+    PRINT CONCAT('  Expense + ExpenseEtsy: ', @ExpensesInserted);
+    PRINT CONCAT('  Payout  + PayoutEtsy:  ', @PayoutsInserted);
 
 END TRY
 BEGIN CATCH
