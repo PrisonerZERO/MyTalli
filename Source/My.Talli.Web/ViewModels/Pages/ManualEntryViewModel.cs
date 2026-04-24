@@ -30,6 +30,9 @@ public class ManualEntryViewModel : ComponentBase
 	private ICurrentUserService CurrentUserService { get; set; } = default!;
 
 	[Inject]
+	private RenameManualShopCommand RenameManualShopCommand { get; set; } = default!;
+
+	[Inject]
 	private RepositoryAdapterAsync<MODELS.Expense, ENTITIES.Expense> ExpenseAdapter { get; set; } = default!;
 
 	[Inject]
@@ -110,6 +113,8 @@ public class ManualEntryViewModel : ComponentBase
 
 	public long? EditingId { get; private set; }
 
+	public long? EditingShopId { get; private set; }
+
 	public string EditNotes { get; set; } = string.Empty;
 
 	public decimal EditPayoutAmount { get; set; }
@@ -121,6 +126,8 @@ public class ManualEntryViewModel : ComponentBase
 	public string EditPayoutStatus { get; set; } = "Pending";
 
 	public int EditQuantity { get; set; } = 1;
+
+	public string EditShopName { get; set; } = string.Empty;
 
 	public DateTime EditTransactionDate { get; set; } = DateTime.Today;
 
@@ -256,6 +263,8 @@ public class ManualEntryViewModel : ComponentBase
 	public int TotalPayoutPages => Math.Max(1, (int)Math.Ceiling((double)Payouts.Count / PageSize));
 
 	public decimal TotalPayouts => Payouts.Sum(p => p.Amount);
+
+	protected ElementReference EditShopNameRef;
 
 	protected ElementReference ExpenseQuickEntryDescriptionRef;
 
@@ -709,6 +718,12 @@ public class ManualEntryViewModel : ComponentBase
 		NewShopName = string.Empty;
 	}
 
+	public void CancelEditShop()
+	{
+		EditingShopId = null;
+		EditShopName = string.Empty;
+	}
+
 	public void CloseShopDropdown()
 	{
 		IsShopDropdownOpen = false;
@@ -734,12 +749,40 @@ public class ManualEntryViewModel : ComponentBase
 		await LoadPayoutsAsync();
 	}
 
+	public async Task ConfirmEditShopAsync()
+	{
+		if (_userId is null || EditingShopId is null) return;
+
+		var name = (EditShopName ?? string.Empty).Trim();
+		if (name.Length == 0) return;
+
+		var updated = await RenameManualShopCommand.ExecuteAsync(_userId.Value, EditingShopId.Value, name);
+		if (updated is null) return;
+
+		var local = Shops.FirstOrDefault(s => s.Id == updated.Id);
+		if (local is not null)
+			local.ShopName = updated.ShopName;
+
+		Shops = Shops.OrderBy(s => s.ShopName, StringComparer.OrdinalIgnoreCase).ToList();
+
+		EditingShopId = null;
+		EditShopName = string.Empty;
+	}
+
 	public async Task HandleAddShopKeyDownAsync(KeyboardEventArgs e)
 	{
 		if (e.Key == "Enter")
 			await ConfirmAddShopAsync();
 		else if (e.Key == "Escape")
 			CancelAddShop();
+	}
+
+	public async Task HandleEditShopKeyDownAsync(KeyboardEventArgs e)
+	{
+		if (e.Key == "Enter")
+			await ConfirmEditShopAsync();
+		else if (e.Key == "Escape")
+			CancelEditShop();
 	}
 
 	public async Task SelectShopAsync(long shopId)
@@ -766,6 +809,18 @@ public class ManualEntryViewModel : ComponentBase
 
 		await Task.Yield();
 		try { await NewShopNameRef.FocusAsync(); } catch { /* element may not be rendered yet */ }
+	}
+
+	public async Task StartEditShopAsync(long shopId)
+	{
+		var shop = Shops.FirstOrDefault(s => s.Id == shopId);
+		if (shop is null) return;
+
+		EditingShopId = shopId;
+		EditShopName = shop.ShopName;
+
+		await Task.Yield();
+		try { await EditShopNameRef.FocusAsync(); } catch { /* element may not be rendered yet */ }
 	}
 
 	public void ToggleShopDropdown()
