@@ -30,11 +30,19 @@ public class ContainerRegistry : ServiceRegistry
 		For<IEntityMapper<MODELS.Billing, ENTITIES.Billing>>().Use<BillingMapper>();
 		For<IEntityMapper<MODELS.BillingStripe, ENTITIES.BillingStripe>>().Use<BillingStripeMapper>();
 		For<IEntityMapper<MODELS.Expense, ENTITIES.Expense>>().Use<ExpenseMapper>();
+		For<IEntityMapper<MODELS.ExpenseEtsy, ENTITIES.ExpenseEtsy>>().Use<ExpenseEtsyMapper>();
+		For<IEntityMapper<MODELS.ExpenseGumroad, ENTITIES.ExpenseGumroad>>().Use<ExpenseGumroadMapper>();
+		For<IEntityMapper<MODELS.ExpenseManual, ENTITIES.ExpenseManual>>().Use<ExpenseManualMapper>();
+		For<IEntityMapper<MODELS.ExpenseStripe, ENTITIES.ExpenseStripe>>().Use<ExpenseStripeMapper>();
 		For<IEntityMapper<MODELS.Goal, ENTITIES.Goal>>().Use<GoalMapper>();
 		For<IEntityMapper<MODELS.GoalType, ENTITIES.GoalType>>().Use<GoalTypeMapper>();
 		For<IEntityMapper<MODELS.Order, ENTITIES.Order>>().Use<OrderMapper>();
 		For<IEntityMapper<MODELS.OrderItem, ENTITIES.OrderItem>>().Use<OrderItemMapper>();
 		For<IEntityMapper<MODELS.Payout, ENTITIES.Payout>>().Use<PayoutMapper>();
+		For<IEntityMapper<MODELS.PayoutEtsy, ENTITIES.PayoutEtsy>>().Use<PayoutEtsyMapper>();
+		For<IEntityMapper<MODELS.PayoutGumroad, ENTITIES.PayoutGumroad>>().Use<PayoutGumroadMapper>();
+		For<IEntityMapper<MODELS.PayoutManual, ENTITIES.PayoutManual>>().Use<PayoutManualMapper>();
+		For<IEntityMapper<MODELS.PayoutStripe, ENTITIES.PayoutStripe>>().Use<PayoutStripeMapper>();
 		For<IEntityMapper<MODELS.Product, ENTITIES.Product>>().Use<ProductMapper>();
 		For<IEntityMapper<MODELS.ProductType, ENTITIES.ProductType>>().Use<ProductTypeMapper>();
 		For<IEntityMapper<MODELS.PlatformConnection, ENTITIES.PlatformConnection>>().Use<PlatformConnectionMapper>();
@@ -67,7 +75,10 @@ public class ContainerRegistry : ServiceRegistry
 		// Commands — AddScoped registers with IServiceProviderIsService so Minimal API parameter binding recognizes them as DI services
 		this.AddScoped<ConnectEtsyCommand>();
 		this.AddScoped<FindActiveSubscriptionWithStripeCommand>();
+		this.AddScoped<RefreshShopTokensCommand>();
 		this.AddScoped<UpdateLocalSubscriptionCommand>();
+		this.AddScoped<UpdateShopSyncStateCommand>();
+		this.AddScoped<UpsertEtsyRevenueCommand>();
 	}
 
 	#endregion

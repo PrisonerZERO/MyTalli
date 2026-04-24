@@ -29,6 +29,8 @@ public class ShopConnection : DefaultModel
 
 	public string? RefreshToken { get; set; }
 
+	public DateTime? RefreshTokenExpiryDateTime { get; set; }
+
 	public string ShopName { get; set; } = string.Empty;
 
 	public string Status { get; set; } = string.Empty;

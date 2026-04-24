@@ -278,6 +278,187 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("Expense", "app");
                 });
 
+            modelBuilder.Entity("My.Talli.Domain.Entities.ExpenseEtsy", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ExpenseId")
+                        .HasColumnOrder(0);
+
+                    b.Property<long?>("AdCampaignId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(4);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(5);
+
+                    b.Property<long>("LedgerEntryId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(2);
+
+                    b.Property<long?>("ListingId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(3);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(8);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(9);
+
+                    b.HasKey("Id")
+                        .HasName("PK_ExpenseEtsy");
+
+                    b.ToTable("ExpenseEtsy", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.ExpenseGumroad", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ExpenseId")
+                        .HasColumnOrder(0);
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(4);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(2);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("SubscriptionPlanId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(1);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
+
+                    b.HasKey("Id")
+                        .HasName("PK_ExpenseGumroad");
+
+                    b.ToTable("ExpenseGumroad", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.ExpenseManual", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ExpenseId")
+                        .HasColumnOrder(0);
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(4);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(2);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(1);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
+
+                    b.HasKey("Id")
+                        .HasName("PK_ExpenseManual");
+
+                    b.ToTable("ExpenseManual", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.ExpenseStripe", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ExpenseId")
+                        .HasColumnOrder(0);
+
+                    b.Property<string>("BalanceTransactionId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnOrder(1);
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(5);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(6);
+
+                    b.Property<string>("FeeType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(2);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(4);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(7);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
+
+                    b.HasKey("Id")
+                        .HasName("PK_ExpenseStripe");
+
+                    b.ToTable("ExpenseStripe", "app");
+                });
+
             modelBuilder.Entity("My.Talli.Domain.Entities.Goal", b =>
                 {
                     b.Property<long>("Id")
@@ -608,6 +789,192 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasDatabaseName("IX_Payout_Platform_PayoutDate");
 
                     b.ToTable("Payout", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.PayoutEtsy", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PayoutId")
+                        .HasColumnOrder(0);
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(5);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(6);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(4);
+
+                    b.Property<long>("LedgerEntryId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("ShopCurrency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nchar(3)")
+                        .HasColumnOrder(2)
+                        .IsFixedLength();
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(7);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
+
+                    b.HasKey("Id")
+                        .HasName("PK_PayoutEtsy");
+
+                    b.ToTable("PayoutEtsy", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.PayoutGumroad", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PayoutId")
+                        .HasColumnOrder(0);
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(4);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(2);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("PayoutMethod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnOrder(1);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
+
+                    b.HasKey("Id")
+                        .HasName("PK_PayoutGumroad");
+
+                    b.ToTable("PayoutGumroad", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.PayoutManual", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PayoutId")
+                        .HasColumnOrder(0);
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(4);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(2);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(1);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
+
+                    b.HasKey("Id")
+                        .HasName("PK_PayoutManual");
+
+                    b.ToTable("PayoutManual", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.PayoutStripe", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PayoutId")
+                        .HasColumnOrder(0);
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(4);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("PayoutMethod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("StatementDescriptor")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("StripePayoutId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnOrder(3);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(8);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(9);
+
+                    b.HasKey("Id")
+                        .HasName("PK_PayoutStripe");
+
+                    b.ToTable("PayoutStripe", "app");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.PlatformConnection", b =>
@@ -1179,11 +1546,11 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(18);
+                        .HasColumnOrder(19);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(19);
+                        .HasColumnOrder(20);
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -1193,7 +1560,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
-                        .HasColumnOrder(16);
+                        .HasColumnOrder(17);
 
                     b.Property<bool>("IsEnabled")
                         .ValueGeneratedOnAdd()
@@ -1203,7 +1570,7 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit")
-                        .HasColumnOrder(17);
+                        .HasColumnOrder(18);
 
                     b.Property<string>("LastErrorMessage")
                         .HasMaxLength(2000)
@@ -1238,29 +1605,33 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnOrder(12);
 
+                    b.Property<DateTime?>("RefreshTokenExpiryDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(13);
+
                     b.Property<string>("ShopName")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(14);
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
-                        .HasColumnOrder(14);
+                        .HasColumnOrder(15);
 
                     b.Property<DateTime?>("TokenExpiryDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(15);
+                        .HasColumnOrder(16);
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(20);
+                        .HasColumnOrder(21);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(21);
+                        .HasColumnOrder(22);
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
@@ -2037,6 +2408,54 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("My.Talli.Domain.Entities.ExpenseEtsy", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.Expense", "Expense")
+                        .WithOne()
+                        .HasForeignKey("My.Talli.Domain.Entities.ExpenseEtsy", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ExpenseEtsy_Expense");
+
+                    b.Navigation("Expense");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.ExpenseGumroad", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.Expense", "Expense")
+                        .WithOne()
+                        .HasForeignKey("My.Talli.Domain.Entities.ExpenseGumroad", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ExpenseGumroad_Expense");
+
+                    b.Navigation("Expense");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.ExpenseManual", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.Expense", "Expense")
+                        .WithOne()
+                        .HasForeignKey("My.Talli.Domain.Entities.ExpenseManual", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ExpenseManual_Expense");
+
+                    b.Navigation("Expense");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.ExpenseStripe", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.Expense", "Expense")
+                        .WithOne()
+                        .HasForeignKey("My.Talli.Domain.Entities.ExpenseStripe", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ExpenseStripe_Expense");
+
+                    b.Navigation("Expense");
+                });
+
             modelBuilder.Entity("My.Talli.Domain.Entities.Goal", b =>
                 {
                     b.HasOne("My.Talli.Domain.Entities.GoalType", "GoalType")
@@ -2109,6 +2528,54 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.Navigation("ShopConnection");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.PayoutEtsy", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.Payout", "Payout")
+                        .WithOne()
+                        .HasForeignKey("My.Talli.Domain.Entities.PayoutEtsy", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PayoutEtsy_Payout");
+
+                    b.Navigation("Payout");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.PayoutGumroad", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.Payout", "Payout")
+                        .WithOne()
+                        .HasForeignKey("My.Talli.Domain.Entities.PayoutGumroad", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PayoutGumroad_Payout");
+
+                    b.Navigation("Payout");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.PayoutManual", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.Payout", "Payout")
+                        .WithOne()
+                        .HasForeignKey("My.Talli.Domain.Entities.PayoutManual", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PayoutManual_Payout");
+
+                    b.Navigation("Payout");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.PayoutStripe", b =>
+                {
+                    b.HasOne("My.Talli.Domain.Entities.Payout", "Payout")
+                        .WithOne()
+                        .HasForeignKey("My.Talli.Domain.Entities.PayoutStripe", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PayoutStripe_Payout");
+
+                    b.Navigation("Payout");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.PlatformConnection", b =>

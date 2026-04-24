@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Worker Processes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.6; padding: 0; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; overflow: hidden; padding: 48px; position: relative; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 200px; position: absolute; right: -40px; top: -60px; width: 200px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 120px; left: 30%; position: absolute; top: 80px; width: 120px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.8); font-size: 15px; margin-top: 6px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 12px; position: relative; z-index: 1; }
+
+  /* Content */
+  .content { margin: 0 auto; max-width: 900px; padding: 48px 32px 80px; }
+
+  /* Section */
+  .section { margin-bottom: 40px; }
+  .section-tag { background: #f0edff; border-radius: 20px; color: #6c5ce7; display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 12px; padding: 6px 16px; text-transform: uppercase; }
+  .section h2 { color: #1a1a2e; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .section p { color: #555; font-size: 15px; margin-bottom: 14px; }
+
+  /* Diagram */
+  .diagram { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 16px; overflow: hidden; padding: 20px; }
+  .diagram svg { display: block; height: auto; max-width: 100%; }
+  .diagram-caption { color: #999; font-size: 12px; margin-top: 8px; text-align: center; }
+
+  /* Cards */
+  .card { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 14px; padding: 20px 24px; }
+  .card h3 { color: #1a1a2e; font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .card p { color: #555; font-size: 14px; margin-bottom: 0; }
+  .card .label { background: #f0edff; border-radius: 6px; color: #6c5ce7; display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-left: 8px; padding: 2px 8px; text-transform: uppercase; vertical-align: middle; }
+
+  /* Callout */
+  .callout { background: #fff; border-left: 4px solid #6c5ce7; border-radius: 0 8px 8px 0; margin-bottom: 14px; padding: 16px 20px; }
+  .callout.warning { border-left-color: #f5c842; }
+  .callout.danger { border-left-color: #e74c3c; }
+  .callout strong { color: #1a1a2e; }
+  .callout p { color: #555; font-size: 14px; margin: 0; }
+  .callout ul { color: #555; font-size: 14px; margin: 8px 0 0 20px; }
+  .callout li { margin-bottom: 4px; }
+
+  /* Reason list */
+  .reason-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .reason-grid { grid-template-columns: 1fr 1fr; } }
+  .reason { background: #fafbff; border: 1px solid #e0dce8; border-radius: 10px; padding: 14px 16px; }
+  .reason-num { align-items: center; background: #6c5ce7; border-radius: 50%; color: #fff; display: inline-flex; font-size: 11px; font-weight: 700; height: 22px; justify-content: center; margin-right: 8px; width: 22px; }
+  .reason h4 { color: #1a1a2e; display: inline-block; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .reason p { color: #555; font-size: 13px; margin: 4px 0 0 30px; }
+
+  /* Tables */
+  .table-wrap { border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 12px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th { background: #f0edff; color: #6c5ce7; font-size: 11px; font-weight: 600; letter-spacing: 1px; padding: 10px 14px; text-align: left; text-transform: uppercase; }
+  td { border-top: 1px solid #f0edff; color: #555; font-size: 13px; padding: 10px 14px; vertical-align: top; }
+  td strong { color: #1a1a2e; }
+  tr:hover td { background: #faf9ff; }
+  code { background: #f0edff; border-radius: 4px; color: #6c5ce7; font-family: 'DM Sans', monospace; font-size: 12px; padding: 1px 6px; }
+
+  /* Footer */
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 48px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Worker Processes</h1>
+  <p class="subtitle">How background work runs — two workers, in-process, paced.</p>
+  <p class="doc-date">Last updated: April 2026</p>
+</div>
+
+<div class="content">
+
+  <!-- Intro -->
+  <div class="section">
+    <p>MyTalli runs two background workers inside the Blazor web app process. They keep platform OAuth tokens alive and pull revenue data from connected shops on a daily cadence. This doc captures the decisions behind that shape &mdash; what the workers do, why they aren&rsquo;t two dozen of them, and why pacing is non-negotiable.</p>
+  </div>
+
+  <!-- Diagram -->
+  <div class="section">
+    <span class="section-tag">Architecture</span>
+    <h2>How it fits together</h2>
+    <div class="diagram">
+      <svg viewBox="0 0 820 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Worker architecture diagram">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#6c5ce7" />
+          </marker>
+          <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#999" />
+          </marker>
+        </defs>
+
+        <!-- User -->
+        <rect x="20" y="180" width="110" height="60" rx="10" fill="#fff" stroke="#e0dce8" stroke-width="2"/>
+        <text x="75" y="207" text-anchor="middle" font-family="DM Sans" font-size="13" font-weight="600" fill="#1a1a2e">Users</text>
+        <text x="75" y="224" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#999">web browser</text>
+
+        <!-- Azure App Service boundary -->
+        <rect x="175" y="40" width="430" height="360" rx="14" fill="#faf9ff" stroke="#6c5ce7" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="390" y="64" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#6c5ce7" letter-spacing="1">AZURE APP SERVICE &mdash; ONE PROCESS</text>
+
+        <!-- Blazor HTTP pipeline -->
+        <rect x="205" y="90" width="370" height="80" rx="10" fill="#fff" stroke="#e0dce8" stroke-width="2"/>
+        <text x="390" y="116" text-anchor="middle" font-family="DM Sans" font-size="14" font-weight="600" fill="#1a1a2e">Blazor Server + HTTP endpoints</text>
+        <text x="390" y="136" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#999">Kestrel, request pipeline, scoped DI per circuit</text>
+        <text x="390" y="152" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#999">(an IHostedService itself)</text>
+
+        <!-- TokenRefreshWorker -->
+        <rect x="205" y="195" width="175" height="90" rx="10" fill="#fff" stroke="#6c5ce7" stroke-width="2"/>
+        <text x="292" y="220" text-anchor="middle" font-family="DM Sans" font-size="13" font-weight="600" fill="#1a1a2e">TokenRefreshWorker</text>
+        <text x="292" y="240" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#555">every 6 hours</text>
+        <text x="292" y="256" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#555">refresh tokens &lt; 30d from</text>
+        <text x="292" y="270" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#555">expiry, 250ms per shop</text>
+
+        <!-- ShopSyncWorker -->
+        <rect x="400" y="195" width="175" height="90" rx="10" fill="#fff" stroke="#6c5ce7" stroke-width="2"/>
+        <text x="487" y="220" text-anchor="middle" font-family="DM Sans" font-size="13" font-weight="600" fill="#1a1a2e">ShopSyncWorker</text>
+        <text x="487" y="240" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#555">every 5 min, daily per shop</text>
+        <text x="487" y="256" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#555">pull receipts into Revenue,</text>
+        <text x="487" y="270" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#555">500ms per shop</text>
+
+        <!-- Shared thread pool label -->
+        <rect x="205" y="310" width="370" height="50" rx="10" fill="#f0edff" stroke="#e0dce8" stroke-width="1"/>
+        <text x="390" y="332" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#6c5ce7">Shared .NET thread pool &amp; DI container</text>
+        <text x="390" y="350" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#777">async releases threads &mdash; workers idle 99.999% of the time</text>
+
+        <!-- Etsy API (external) -->
+        <rect x="660" y="100" width="140" height="80" rx="10" fill="#fff" stroke="#f56400" stroke-width="2"/>
+        <text x="730" y="128" text-anchor="middle" font-family="DM Sans" font-size="13" font-weight="600" fill="#f56400">Etsy API</text>
+        <text x="730" y="148" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#999">10 QPS, 10,000 QPD</text>
+        <text x="730" y="162" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#999">shared across the app</text>
+
+        <!-- SQL Server (external) -->
+        <rect x="660" y="220" width="140" height="80" rx="10" fill="#fff" stroke="#003087" stroke-width="2"/>
+        <text x="730" y="248" text-anchor="middle" font-family="DM Sans" font-size="13" font-weight="600" fill="#003087">SQL Server</text>
+        <text x="730" y="268" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#999">app.Revenue,</text>
+        <text x="730" y="281" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#999">app.ShopConnection</text>
+
+        <!-- Arrows -->
+        <!-- Users -> Blazor -->
+        <line x1="133" y1="210" x2="202" y2="130" stroke="#999" stroke-width="2" marker-end="url(#arrow-gray)"/>
+
+        <!-- TokenRefreshWorker -> Etsy -->
+        <line x1="380" y1="220" x2="657" y2="135" stroke="#6c5ce7" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- ShopSyncWorker -> Etsy -->
+        <line x1="575" y1="220" x2="660" y2="150" stroke="#6c5ce7" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- ShopSyncWorker -> SQL -->
+        <line x1="575" y1="260" x2="660" y2="255" stroke="#6c5ce7" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- TokenRefreshWorker -> SQL -->
+        <line x1="380" y1="270" x2="660" y2="275" stroke="#6c5ce7" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- Blazor -> SQL (dashed) -->
+        <line x1="575" y1="130" x2="660" y2="235" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow-gray)"/>
+      </svg>
+      <p class="diagram-caption">One Azure process hosts Blazor + both workers. Purple arrows = worker traffic. Gray arrows = web traffic.</p>
+    </div>
+  </div>
+
+  <!-- The two workers -->
+  <div class="section">
+    <span class="section-tag">The Workers</span>
+    <h2>Two workers, different jobs</h2>
+
+    <div class="card">
+      <h3>TokenRefreshWorker <span class="label">every 6h</span></h3>
+      <p>Keeps OAuth refresh tokens alive. Etsy&rsquo;s refresh token expires in 90 days; if a user doesn&rsquo;t sync in that window, the connection dies. This worker proactively refreshes any shop whose refresh token is less than 30 days from expiry. Each refresh rotates the token and resets the 90-day clock.</p>
+    </div>
+
+    <div class="card">
+      <h3>ShopSyncWorker <span class="label">every 5 min, daily per shop</span></h3>
+      <p>Pulls new receipts from connected shops into <code>app.Revenue</code> and <code>app.RevenueEtsy</code>. Loops every 5 minutes, but each shop only syncs once every 24 hours. If access tokens are expired, refreshes inline before the call. On failure, records the error and backs off exponentially.</p>
+    </div>
+  </div>
+
+  <!-- Why not simultaneous -->
+  <div class="section">
+    <span class="section-tag">Decision</span>
+    <h2>Why not &ldquo;sync everyone simultaneously&rdquo;?</h2>
+    <p>The first instinct is to fan out &mdash; one task per connected shop, go. That would break the app in four separate ways, any one of which forces the same answer: pace.</p>
+
+    <div class="reason-grid">
+      <div class="reason">
+        <span class="reason-num">1</span>
+        <h4>App-wide rate limits</h4>
+        <p>Etsy&rsquo;s 10 QPS and 10,000 QPD are shared across all of MyTalli. Fan-out blows the limit in a single second; the whole daily quota can burn in one minute.</p>
+      </div>
+      <div class="reason">
+        <span class="reason-num">2</span>
+        <h4>Single Azure instance</h4>
+        <p>One process, one thread pool. Spawning hundreds of concurrent HTTP calls + DB writes starves HTTP threads and can OOM the box.</p>
+      </div>
+      <div class="reason">
+        <span class="reason-num">3</span>
+        <h4>DB contention</h4>
+        <p>Concurrent bulk writes to <code>app.Revenue</code> indexes cause lock waits. The web app, hitting the same tables, gets slower for every user.</p>
+      </div>
+      <div class="reason">
+        <span class="reason-num">4</span>
+        <h4>Failure blast radius</h4>
+        <p>If Etsy&rsquo;s API hiccups, a paced worker stalls one shop. An unpaced worker fails N shops in lockstep &mdash; all backing off to the same retry moment, causing a thundering herd on recovery.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Sync Now -->
+  <div class="section">
+    <span class="section-tag">Decision</span>
+    <h2>No &ldquo;Sync Now&rdquo; button &mdash; deliberately</h2>
+    <div class="callout">
+      <p>Users can pause or resume a shop but <strong>cannot trigger an on-demand sync</strong>. On a shared quota, even with per-user cooldowns, manual refreshes aggregate into real quota pressure for work that almost never finds new data (side-hustle sales are sporadic &mdash; 0&ndash;5 per shop per day).</p>
+      <p style="margin-top: 8px;">The freshness story in Phase 2 is webhooks, not a button. Etsy&rsquo;s <code>order.paid</code> / <code>order.shipped</code> events deliver better freshness than any polling UI could, at lower quota cost.</p>
+    </div>
+  </div>
+
+  <!-- Same process -->
+  <div class="section">
+    <span class="section-tag">Decision</span>
+    <h2>Why in the web-app process (for now)</h2>
+    <p>Both workers are registered via <code>AddHostedService&lt;T&gt;()</code> and run inside the same Azure App Service instance as Blazor. This trades some future flexibility for present simplicity.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Staying in-process buys us</th>
+            <th>A separate worker project would buy us</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>One DI container, one deployment, zero setup cost</td>
+            <td>Horizontal scale-out without workers fighting each other for the same shops</td>
+          </tr>
+          <tr>
+            <td>Worker is self-contained &mdash; cut-and-paste to a new Program.cs later</td>
+            <td>Independent deploy cadence for workers vs. web</td>
+          </tr>
+          <tr>
+            <td>Async work is nearly free on the shared thread pool</td>
+            <td>Worker survives when the web app cold-starts, restarts, or sleeps</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warning">
+      <p><strong>When to extract:</strong></p>
+      <ul>
+        <li>Web app scales to <strong>2+ instances</strong> &mdash; must extract, or add a SQL-based distributed lock (<code>sp_getapplock</code>), or both workers race</li>
+        <li>Worker takes &gt;1s of CPU per burst &mdash; visible request latency spikes</li>
+        <li>Need to redeploy workers without touching web</li>
+      </ul>
+    </div>
+
+    <div class="callout danger">
+      <p><strong>Azure gotcha:</strong> App Service <strong>Always On</strong> must be enabled. Without it, the process is paged out after ~20 minutes of idle web traffic and the workers stop running.</p>
+    </div>
+  </div>
+
+  <!-- Thread interference -->
+  <div class="section">
+    <span class="section-tag">Concern</span>
+    <h2>Do workers interfere with web threads?</h2>
+    <p>In theory they share the .NET thread pool with the web app &mdash; so, yes, it&rsquo;s possible. In practice, async I/O releases the thread while waiting on the network or database, so the workers hold zero threads 99.999% of the time.</p>
+
+    <div class="callout">
+      <p><strong>What would actually hurt:</strong></p>
+      <ul>
+        <li><code>Thread.Sleep</code> instead of <code>await Task.Delay</code></li>
+        <li>CPU-heavy work in a tight loop (parsing huge JSON, image processing)</li>
+        <li>Sync I/O via <code>.Result</code> or <code>.Wait()</code></li>
+        <li>Shared locks that the web path also touches</li>
+      </ul>
+      <p style="margin-top: 8px;">Sync workload per Etsy shop is ~50ms of CPU on ~1MB of JSON &mdash; a rounding error even at 5,000 shops spread across the day.</p>
+    </div>
+  </div>
+
+  <!-- Pacing rules -->
+  <div class="section">
+    <span class="section-tag">Rules</span>
+    <h2>Pacing is non-negotiable</h2>
+    <p>Four independent constraints converge on the same answer: pace every call. The numbers below are what both workers ship with today.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Lever</th>
+            <th>Token refresh worker</th>
+            <th>Shop sync worker</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Loop interval</strong></td>
+            <td>every 6 hours</td>
+            <td>every 5 minutes (scans queue)</td>
+          </tr>
+          <tr>
+            <td><strong>Per-shop delay</strong></td>
+            <td>250ms</td>
+            <td>500ms</td>
+          </tr>
+          <tr>
+            <td><strong>Per-page delay</strong></td>
+            <td>&mdash;</td>
+            <td>200ms (pagination within a shop)</td>
+          </tr>
+          <tr>
+            <td><strong>Success cadence</strong></td>
+            <td>rotate once the 30-day window hits</td>
+            <td><code>NextSyncDateTime = now + 24h</code></td>
+          </tr>
+          <tr>
+            <td><strong>Failure backoff</strong></td>
+            <td>log &amp; retry next loop</td>
+            <td>5 min &times; 2<sup>N</sup>, capped at 24h</td>
+          </tr>
+          <tr>
+            <td><strong>Stagger</strong></td>
+            <td>&mdash;</td>
+            <td>randomize <code>NextSyncDateTime</code> at connect time so shops don&rsquo;t bunch at midnight</td>
+          </tr>
+          <tr>
+            <td><strong>Batch cap per pass</strong></td>
+            <td>no cap (typically tiny)</td>
+            <td>50 shops per pass</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    MyTalli &mdash; Internal architecture note &mdash; revisit when scaling to multiple App Service instances.
+  </div>
+
+</div>
+</body>
+</html>

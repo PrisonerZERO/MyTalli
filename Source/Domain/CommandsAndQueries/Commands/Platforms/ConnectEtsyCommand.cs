@@ -12,6 +12,7 @@ public class ConnectEtsyCommand
     #region <Constants>
 
     private const string EtsyPlatformName = "Etsy";
+    private const int EtsyRefreshTokenLifetimeDays = 90;
 
     #endregion
 
@@ -77,7 +78,9 @@ public class ConnectEtsyCommand
     private async Task<bool> UpsertShopAsync(long userId, long platformConnectionId, EtsyTokenResponse tokens, string platformAccountId, EtsyShop shop)
     {
         var platformShopId = shop.ShopId.ToString();
-        var expiry = DateTime.UtcNow.AddSeconds(tokens.ExpiresIn);
+        var now = DateTime.UtcNow;
+        var accessExpiry = now.AddSeconds(tokens.ExpiresIn);
+        var refreshExpiry = now.AddDays(EtsyRefreshTokenLifetimeDays);
         var existing = (await _shopConnectionAdapter.FindAsync(s => s.PlatformConnectionId == platformConnectionId && s.PlatformShopId == platformShopId)).FirstOrDefault();
         var wasNewShop = existing is null;
 
@@ -89,14 +92,15 @@ public class ConnectEtsyCommand
                 ConsecutiveFailures = 0,
                 IsActive = true,
                 IsEnabled = true,
-                NextSyncDateTime = DateTime.UtcNow,
+                NextSyncDateTime = now,
                 PlatformAccountId = platformAccountId,
                 PlatformConnectionId = platformConnectionId,
                 PlatformShopId = platformShopId,
                 RefreshToken = tokens.RefreshToken,
+                RefreshTokenExpiryDateTime = refreshExpiry,
                 ShopName = shop.ShopName ?? string.Empty,
                 Status = "Pending",
-                TokenExpiryDateTime = expiry,
+                TokenExpiryDateTime = accessExpiry,
                 UserId = userId
             });
         }
@@ -106,8 +110,9 @@ public class ConnectEtsyCommand
             existing.IsActive = true;
             existing.PlatformAccountId = platformAccountId;
             existing.RefreshToken = tokens.RefreshToken;
+            existing.RefreshTokenExpiryDateTime = refreshExpiry;
             existing.ShopName = shop.ShopName ?? existing.ShopName;
-            existing.TokenExpiryDateTime = expiry;
+            existing.TokenExpiryDateTime = accessExpiry;
             await _shopConnectionAdapter.UpdateAsync(existing);
         }
 

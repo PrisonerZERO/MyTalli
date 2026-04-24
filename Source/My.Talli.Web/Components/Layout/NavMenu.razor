@@ -28,6 +28,13 @@
                     <span class="platform-dot" style="background:@platform.BrandColor" aria-hidden="true"></span>
                     @platform.Name
                 </NavLink>
+
+                @if (platform.Name == "Etsy")
+                {
+                    <NavLink class="nav-link nav-sub-link nav-sub-child" href="platforms/etsy">
+                        Dashboard
+                    </NavLink>
+                }
             }
 
             <a class="nav-connect-link" href="platforms">

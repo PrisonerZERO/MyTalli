@@ -25,6 +25,14 @@ public class TalliDbContext : DbContext
 
     public DbSet<Expense> Expenses { get; set; } = null!;
 
+    public DbSet<ExpenseEtsy> ExpenseEtsys { get; set; } = null!;
+
+    public DbSet<ExpenseGumroad> ExpenseGumroads { get; set; } = null!;
+
+    public DbSet<ExpenseManual> ExpenseManuals { get; set; } = null!;
+
+    public DbSet<ExpenseStripe> ExpenseStripes { get; set; } = null!;
+
     public DbSet<Goal> Goals { get; set; } = null!;
 
     public DbSet<GoalType> GoalTypes { get; set; } = null!;
@@ -34,6 +42,14 @@ public class TalliDbContext : DbContext
     public DbSet<OrderItem> OrderItems { get; set; } = null!;
 
     public DbSet<Payout> Payouts { get; set; } = null!;
+
+    public DbSet<PayoutEtsy> PayoutEtsys { get; set; } = null!;
+
+    public DbSet<PayoutGumroad> PayoutGumroads { get; set; } = null!;
+
+    public DbSet<PayoutManual> PayoutManuals { get; set; } = null!;
+
+    public DbSet<PayoutStripe> PayoutStripes { get; set; } = null!;
 
     public DbSet<Product> Products { get; set; } = null!;
 

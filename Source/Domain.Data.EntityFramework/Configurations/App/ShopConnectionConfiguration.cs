@@ -28,15 +28,16 @@ public class ShopConnectionConfiguration : IEntityTypeConfiguration<ShopConnecti
 		builder.Property(e => e.PlatformAccountId).HasMaxLength(255).IsRequired().HasColumnOrder(10);
 		builder.Property(e => e.PlatformShopId).HasMaxLength(255).IsRequired().HasColumnOrder(11);
 		builder.Property(e => e.RefreshToken).HasColumnOrder(12);
-		builder.Property(e => e.ShopName).HasMaxLength(255).IsRequired().HasColumnOrder(13);
-		builder.Property(e => e.Status).HasMaxLength(20).IsRequired().HasColumnOrder(14);
-		builder.Property(e => e.TokenExpiryDateTime).HasColumnOrder(15);
-		builder.Property(e => e.IsDeleted).HasColumnOrder(16);
-		builder.Property(e => e.IsVisible).HasColumnOrder(17);
-		builder.Property(e => e.CreateByUserId).HasColumnOrder(18);
-		builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(19);
-		builder.Property(e => e.UpdatedByUserId).HasColumnOrder(20);
-		builder.Property(e => e.UpdatedOnDate).HasColumnOrder(21);
+		builder.Property(e => e.RefreshTokenExpiryDateTime).HasColumnOrder(13);
+		builder.Property(e => e.ShopName).HasMaxLength(255).IsRequired().HasColumnOrder(14);
+		builder.Property(e => e.Status).HasMaxLength(20).IsRequired().HasColumnOrder(15);
+		builder.Property(e => e.TokenExpiryDateTime).HasColumnOrder(16);
+		builder.Property(e => e.IsDeleted).HasColumnOrder(17);
+		builder.Property(e => e.IsVisible).HasColumnOrder(18);
+		builder.Property(e => e.CreateByUserId).HasColumnOrder(19);
+		builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(20);
+		builder.Property(e => e.UpdatedByUserId).HasColumnOrder(21);
+		builder.Property(e => e.UpdatedOnDate).HasColumnOrder(22);
 
 		builder.HasIndex(e => e.PlatformConnectionId).HasDatabaseName("IX_ShopConnection_PlatformConnectionId");
 		builder.HasIndex(e => e.UserId).HasDatabaseName("IX_ShopConnection_UserId");

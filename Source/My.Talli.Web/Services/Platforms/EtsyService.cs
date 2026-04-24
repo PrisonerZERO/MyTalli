@@ -10,6 +10,7 @@ public class EtsyService
 {
     #region <Constants>
 
+    public const string ShopReceiptsUrlTemplate = "https://openapi.etsy.com/v3/application/shops/{0}/receipts";
     public const string TokenUrl = "https://api.etsy.com/v3/public/oauth/token";
     public const string UserShopsUrlTemplate = "https://openapi.etsy.com/v3/application/users/{0}/shops";
 
@@ -67,6 +68,30 @@ public class EtsyService
         return payload;
     }
 
+    public async Task<EtsyTokenResponse> RefreshTokensAsync(string refreshToken, CancellationToken cancellationToken)
+    {
+        var form = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["grant_type"] = "refresh_token",
+            ["client_id"] = _settings.ClientId,
+            ["refresh_token"] = refreshToken
+        });
+
+        var response = await _httpClient.PostAsync(TokenUrl, form, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogWarning("Etsy token refresh failed: {Status} {Body}", response.StatusCode, body);
+            throw new InvalidOperationException($"Etsy token refresh failed with status {(int)response.StatusCode}.");
+        }
+
+        var payload = await response.Content.ReadFromJsonAsync<EtsyTokenResponse>(cancellationToken);
+        if (payload is null || string.IsNullOrEmpty(payload.AccessToken))
+            throw new InvalidOperationException("Etsy token refresh returned an empty response.");
+
+        return payload;
+    }
+
     public async Task<List<EtsyShop>> GetShopsAsync(string etsyUserId, string accessToken)
     {
         var url = string.Format(UserShopsUrlTemplate, etsyUserId);
@@ -84,6 +109,38 @@ public class EtsyService
 
         var shop = await response.Content.ReadFromJsonAsync<EtsyShop>();
         return shop is null || shop.ShopId == 0 ? [] : [shop];
+    }
+
+    public async Task<EtsyReceiptsResponse> GetReceiptsAsync(long shopId, string accessToken, long? minCreated, int limit, int offset, CancellationToken cancellationToken)
+    {
+        var baseUrl = string.Format(ShopReceiptsUrlTemplate, shopId);
+        var queryParams = new List<string>
+        {
+            $"limit={limit}",
+            $"offset={offset}",
+            "was_paid=true",
+            "sort_on=created",
+            "sort_order=asc"
+        };
+
+        if (minCreated.HasValue)
+            queryParams.Add($"min_created={minCreated.Value}");
+
+        var url = $"{baseUrl}?{string.Join("&", queryParams)}";
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Add("x-api-key", $"{_settings.ClientId}:{_settings.ClientSecret}");
+
+        var response = await _httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogWarning("Etsy receipts fetch failed for shop {ShopId}: {Status} {Body}", shopId, response.StatusCode, body);
+            throw new InvalidOperationException($"Etsy receipts fetch failed with status {(int)response.StatusCode}.");
+        }
+
+        var payload = await response.Content.ReadFromJsonAsync<EtsyReceiptsResponse>(cancellationToken);
+        return payload ?? new EtsyReceiptsResponse();
     }
 
     #endregion
