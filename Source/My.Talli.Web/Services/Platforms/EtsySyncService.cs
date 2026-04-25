@@ -9,8 +9,8 @@ public class EtsySyncService : IPlatformSyncService
 {
     #region <Constants>
 
-    private const int PageLimit = 100;
     private const int InitialBackfillDays = 90;
+    private const int PageLimit = 100;
     private static readonly TimeSpan AccessTokenSafetyMargin = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan PerPageDelay = TimeSpan.FromMilliseconds(200);
 
@@ -22,18 +22,22 @@ public class EtsySyncService : IPlatformSyncService
     private readonly EtsyTokenRefresher _etsyTokenRefresher;
     private readonly ILogger<EtsySyncService> _logger;
     private readonly RefreshShopTokensCommand _refreshShopTokensCommand;
+    private readonly UpsertEtsyExpenseCommand _upsertEtsyExpenseCommand;
+    private readonly UpsertEtsyPayoutCommand _upsertEtsyPayoutCommand;
     private readonly UpsertEtsyRevenueCommand _upsertEtsyRevenueCommand;
 
     #endregion
 
     #region <Constructors>
 
-    public EtsySyncService(EtsyService etsyService, EtsyTokenRefresher etsyTokenRefresher, ILogger<EtsySyncService> logger, RefreshShopTokensCommand refreshShopTokensCommand, UpsertEtsyRevenueCommand upsertEtsyRevenueCommand)
+    public EtsySyncService(EtsyService etsyService, EtsyTokenRefresher etsyTokenRefresher, ILogger<EtsySyncService> logger, RefreshShopTokensCommand refreshShopTokensCommand, UpsertEtsyExpenseCommand upsertEtsyExpenseCommand, UpsertEtsyPayoutCommand upsertEtsyPayoutCommand, UpsertEtsyRevenueCommand upsertEtsyRevenueCommand)
     {
         _etsyService = etsyService;
         _etsyTokenRefresher = etsyTokenRefresher;
         _logger = logger;
         _refreshShopTokensCommand = refreshShopTokensCommand;
+        _upsertEtsyExpenseCommand = upsertEtsyExpenseCommand;
+        _upsertEtsyPayoutCommand = upsertEtsyPayoutCommand;
         _upsertEtsyRevenueCommand = upsertEtsyRevenueCommand;
     }
 
@@ -55,6 +59,14 @@ public class EtsySyncService : IPlatformSyncService
         var minCreated = BuildMinCreatedTimestamp(shop);
         var shopId = long.Parse(shop.PlatformShopId);
 
+        await SyncReceiptsAsync(shop, shopId, accessToken, minCreated, result, cancellationToken);
+        await SyncLedgerAsync(shop, shopId, accessToken, minCreated, result, cancellationToken);
+
+        return result;
+    }
+
+    private async Task SyncReceiptsAsync(ShopConnection shop, long shopId, string accessToken, long minCreated, PlatformSyncResult result, CancellationToken cancellationToken)
+    {
         var offset = 0;
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -65,7 +77,7 @@ public class EtsySyncService : IPlatformSyncService
             if (page.Results.Count == 0)
                 break;
 
-            var inputs = BuildInputs(page.Results);
+            var inputs = BuildRevenueInputs(page.Results);
             if (inputs.Count > 0)
             {
                 var inserted = await _upsertEtsyRevenueCommand.ExecuteAsync(shop.UserId, shop.Id, inputs);
@@ -84,8 +96,42 @@ public class EtsySyncService : IPlatformSyncService
             try { await Task.Delay(PerPageDelay, cancellationToken); }
             catch (TaskCanceledException) { break; }
         }
+    }
 
-        return result;
+    private async Task SyncLedgerAsync(ShopConnection shop, long shopId, string accessToken, long minCreated, PlatformSyncResult result, CancellationToken cancellationToken)
+    {
+        var offset = 0;
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var page = await _etsyService.GetLedgerEntriesAsync(shopId, accessToken, minCreated, PageLimit, offset, cancellationToken);
+            result.LedgerPagesFetched++;
+            result.LedgerEntriesProcessed += page.Results.Count;
+
+            if (page.Results.Count == 0)
+                break;
+
+            var expenseInputs = BuildExpenseInputs(page.Results);
+            if (expenseInputs.Count > 0)
+            {
+                var inserted = await _upsertEtsyExpenseCommand.ExecuteAsync(shop.UserId, shop.Id, expenseInputs);
+                result.NewExpenseRowCount += inserted;
+            }
+
+            var payoutInputs = BuildPayoutInputs(page.Results);
+            if (payoutInputs.Count > 0)
+            {
+                var inserted = await _upsertEtsyPayoutCommand.ExecuteAsync(shop.UserId, shop.Id, payoutInputs);
+                result.NewPayoutRowCount += inserted;
+            }
+
+            if (page.Results.Count < PageLimit)
+                break;
+
+            offset += PageLimit;
+
+            try { await Task.Delay(PerPageDelay, cancellationToken); }
+            catch (TaskCanceledException) { break; }
+        }
     }
 
     private async Task<string> EnsureFreshAccessTokenAsync(ShopConnection shop, CancellationToken cancellationToken)
@@ -118,7 +164,7 @@ public class EtsySyncService : IPlatformSyncService
         return new DateTimeOffset(DateTime.SpecifyKind(floor, DateTimeKind.Utc)).ToUnixTimeSeconds();
     }
 
-    private static List<EtsyRevenueInput> BuildInputs(IEnumerable<EtsyReceipt> receipts)
+    private static List<EtsyRevenueInput> BuildRevenueInputs(IEnumerable<EtsyReceipt> receipts)
     {
         var inputs = new List<EtsyRevenueInput>();
 
@@ -158,6 +204,103 @@ public class EtsySyncService : IPlatformSyncService
         }
 
         return inputs;
+    }
+
+    private static List<EtsyExpenseInput> BuildExpenseInputs(IEnumerable<EtsyLedgerEntry> entries)
+    {
+        var inputs = new List<EtsyExpenseInput>();
+
+        foreach (var entry in entries)
+        {
+            if (!IsExpenseEntryType(entry.LedgerEntryType))
+                continue;
+
+            inputs.Add(new EtsyExpenseInput
+            {
+                Amount = Math.Abs(entry.Amount),
+                Category = MapExpenseCategory(entry.LedgerEntryType),
+                Currency = entry.Currency,
+                Description = entry.Description ?? entry.LedgerEntryType ?? string.Empty,
+                ExpenseDate = DateTimeOffset.FromUnixTimeSeconds(entry.CreateDate).UtcDateTime,
+                LedgerEntryId = entry.EntryId
+            });
+        }
+
+        return inputs;
+    }
+
+    private static List<EtsyPayoutInput> BuildPayoutInputs(IEnumerable<EtsyLedgerEntry> entries)
+    {
+        var inputs = new List<EtsyPayoutInput>();
+
+        foreach (var entry in entries)
+        {
+            if (!IsPayoutEntryType(entry.LedgerEntryType))
+                continue;
+
+            inputs.Add(new EtsyPayoutInput
+            {
+                Amount = Math.Abs(entry.Amount),
+                Currency = entry.Currency,
+                LedgerEntryId = entry.EntryId,
+                PayoutDate = DateTimeOffset.FromUnixTimeSeconds(entry.CreateDate).UtcDateTime,
+                ShopCurrency = entry.Currency,
+                Status = "Paid"
+            });
+        }
+
+        return inputs;
+    }
+
+    private static bool IsExpenseEntryType(string? entryType)
+    {
+        if (string.IsNullOrEmpty(entryType))
+            return false;
+
+        if (entryType.Contains("Fee", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return entryType.Equals("Postage Label", StringComparison.OrdinalIgnoreCase)
+            || entryType.Equals("Shipping Label", StringComparison.OrdinalIgnoreCase)
+            || entryType.Equals("Tax", StringComparison.OrdinalIgnoreCase)
+            || entryType.Equals("VAT", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsPayoutEntryType(string? entryType)
+    {
+        if (string.IsNullOrEmpty(entryType))
+            return false;
+
+        return entryType.Equals("Payment", StringComparison.OrdinalIgnoreCase)
+            || entryType.Equals("Disbursement", StringComparison.OrdinalIgnoreCase)
+            || entryType.Equals("Withdrawal", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string MapExpenseCategory(string? entryType)
+    {
+        if (string.IsNullOrEmpty(entryType))
+            return "Other";
+
+        if (entryType.Equals("Listing Fee", StringComparison.OrdinalIgnoreCase))
+            return "Listing Fee";
+
+        if (entryType.Contains("Promoted", StringComparison.OrdinalIgnoreCase) ||
+            entryType.Contains("Marketing", StringComparison.OrdinalIgnoreCase) ||
+            entryType.Contains("Ad", StringComparison.OrdinalIgnoreCase))
+            return "Ad Fee";
+
+        if (entryType.Contains("Subscription", StringComparison.OrdinalIgnoreCase))
+            return "Subscription Fee";
+
+        if (entryType.Contains("Processing", StringComparison.OrdinalIgnoreCase) ||
+            entryType.Contains("Transaction", StringComparison.OrdinalIgnoreCase))
+            return "Processing Fee";
+
+        if (entryType.Contains("Postage", StringComparison.OrdinalIgnoreCase) ||
+            entryType.Contains("Shipping", StringComparison.OrdinalIgnoreCase))
+            return "Shipping Label";
+
+        return "Other";
     }
 
     #endregion
