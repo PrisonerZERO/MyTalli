@@ -95,7 +95,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 ### Schema: `app`
 
 **`app.Expense`** — platform fees not tied to a specific sale (listing fees, ad fees, subscription fees, etc.), and user-created manual expenses (entered via Manual Entry module)
-- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the expense came from for per-shop breakdowns; null for manual entries), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Category` (string 50 — Listing Fee, Ad Fee, Subscription Fee, Processing Fee, Shipping Label, Other), `Currency` (string 3), `Description` (string 500), `ExpenseDate` (datetime), `Platform` (string 50), `PlatformTransactionId` (nullable string 255 — dedup key, `manual_{guid}` for manual entries)
+- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the expense came from for per-shop breakdowns. Always populated for Manual entries: every Manual expense is stamped with a Manual ShopConnection row. Stays nullable on the column because non-Manual platforms may insert rows before a ShopConnection exists.), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Category` (string 50 — Listing Fee, Ad Fee, Subscription Fee, Processing Fee, Shipping Label, Other), `Currency` (string 3), `Description` (string 500), `ExpenseDate` (datetime), `Platform` (string 50), `PlatformTransactionId` (nullable string 255 — dedup key, `manual_{guid}` for manual entries)
 - Composite index on `(Platform, ExpenseDate)` for dashboard queries
 - Indexes: `IX_Expense_UserId`, `IX_Expense_ShopConnectionId`
 - FK behavior: `FK_Expense_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
@@ -127,12 +127,13 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - `MilestoneStatuses.cs` and `MilestoneGroups.cs` (formerly in `Domain/Framework/`) have been removed.
 
 **`app.PlatformConnection`** — bookkeeping row marking that a user has connected a given platform (one row per user per connected platform). OAuth tokens live on `ShopConnection`, not here — each shop carries its own login's tokens so multi-login platforms (e.g., Etsy, where each seller account owns exactly one shop) can have many shops under a single user.
-- `Id` (PK), `UserId` (FK → auth.User), `ConnectionStatus` (string 50 — active, expired, revoked), `Platform` (string 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify")
+- `Id` (PK), `UserId` (FK → auth.User), `ConnectionStatus` (string 50 — active, expired, revoked), `Platform` (string 50 — "Stripe", "Etsy", "Gumroad", "PayPal", "Shopify", "Manual")
 - Unique constraint on `(UserId, Platform)` — one connection per user per platform
 - Index: `IX_PlatformConnection_UserId`
+- **Manual platform** — `Platform = "Manual"` is a virtual platform with no OAuth flow. Created on-demand the first time a user opens Manual Entry. The matching `ShopConnection` rows hold the user's manual shops (e.g., "Weekend Market", "Craft Fair Booth") so the existing per-shop FK on Revenue/Expense/Payout carries the grouping with no schema branching.
 
 **`app.Payout`** — platform disbursements to user's bank account, and user-created manual payouts (entered via Manual Entry module)
-- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the payout came from for per-shop breakdowns; null for manual entries), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Currency` (string 3), `ExpectedArrivalDate` (nullable datetime), `PayoutDate` (datetime), `Platform` (string 50), `PlatformPayoutId` (string 255 — dedup key, `manual_{guid}` for manual entries), `Status` (string 20 — Pending, In Transit, Paid, Failed, Cancelled)
+- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the payout came from for per-shop breakdowns. Always populated for Manual entries: every Manual payout is stamped with a Manual ShopConnection row. Stays nullable on the column because non-Manual platforms may insert rows before a ShopConnection exists.), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Currency` (string 3), `ExpectedArrivalDate` (nullable datetime), `PayoutDate` (datetime), `Platform` (string 50), `PlatformPayoutId` (string 255 — dedup key, `manual_{guid}` for manual entries), `Status` (string 20 — Pending, In Transit, Paid, Failed, Cancelled)
 - Composite index on `(Platform, PayoutDate)` for dashboard queries
 - Unique index on `PlatformPayoutId` for dedup
 - Indexes: `IX_Payout_UserId`, `IX_Payout_ShopConnectionId`
@@ -152,7 +153,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - `PayoutId` (PK/FK → Payout, C# property: `Id`), `PayoutMethod` (string 20 — "standard", "instant"), `StatementDescriptor` (nullable string 500), `StripePayoutId` (string 255)
 
 **`app.Revenue`** — normalized revenue record from all platforms (API-sourced and manual entry)
-- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the sale came from for per-shop breakdowns; null for manual entries), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (nullable, unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
+- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the sale came from for per-shop breakdowns. Always populated for Manual entries: every Manual revenue row is stamped with a Manual ShopConnection row. Stays nullable on the column because non-Manual platforms may insert rows before a ShopConnection exists.), `UserId` (FK → auth.User), `Currency` (3-char ISO), `Description`, `FeeAmount` (decimal 18,2), `GrossAmount` (decimal 18,2), `NetAmount` (decimal 18,2), `Platform` ("Manual", "Stripe", "Etsy", etc.), `PlatformTransactionId` (nullable, unique per platform), `TransactionDate`, `IsDisputed`, `IsRefunded`
 - Composite index on `(Platform, TransactionDate)` for dashboard queries
 - Indexes: `IX_Revenue_UserId`, `IX_Revenue_ShopConnectionId`
 - FK behavior: `FK_Revenue_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
@@ -186,6 +187,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 - FK behavior: `FK_ShopConnection_PlatformConnection` Cascade; `FK_ShopConnection_User` Restrict (avoids multiple cascade path collision with `FK_PlatformConnection_User`)
 - Replaces the former `app.SyncQueue` table. The sync-queue fields (`Status`, `NextSyncDateTime`, `LastSyncDateTime`, `ConsecutiveFailures`, `LastErrorMessage`, `IsEnabled`) now live here, so there's one row per shop instead of one row per (user, platform).
 - Users can pause sync (`IsEnabled = false`) but cannot disconnect — connected shops permanently occupy a plan slot.
+- **Manual platform rows** — when a `ShopConnection` belongs to a `PlatformConnection` with `Platform = "Manual"`, the OAuth fields are inert: `AccessToken` is empty string (NOT NULL contract preserved), `RefreshToken` / `TokenExpiryDateTime` / `RefreshTokenExpiryDateTime` are null. `PlatformAccountId` and `PlatformShopId` use synthetic `"manual_{guid}"` values so the unique `(PlatformConnectionId, PlatformShopId)` constraint still holds. `Status = "Completed"` and `IsEnabled = true` so the row is dormant from the sync worker's perspective. The user's **manual shop name** is stored in `ShopName` and edited via the Manual Entry page picker. No schema branching, no new table.
 
 **`app.ShopConnectionEtsy`** — Etsy-specific 1-to-1 extension of ShopConnection (shared PK)
 - `ShopConnectionId` (PK/FK → ShopConnection, C# property: `Id`), `CountryCode` (char 2, ISO alpha-2), `IsVacationMode` (bool, default false — suppress "stale data" warnings when seller is on break), `ShopCurrency` (char 3, ISO 4217), `ShopUrl` (string, max 500 — deep-link target for the Platforms page)
@@ -406,7 +408,16 @@ My.Talli/
 │   ├── MyTalli_MobilePatterns_Dashboard_plus_Tabs.html # Mobile wireframes for Dashboard+Tabs nav pattern (3 treatments)
 │   ├── MyTalli_MobilePatterns_Hub_and_Spoke.html # Mobile wireframes for Hub & Spoke nav pattern (3 treatments)
 │   ├── MyTalli_MobilePatterns_Keyhole_Hybrid.html # Mobile wireframe — chosen pattern (Hub & Spoke + Keyhole Hybrid)
+│   ├── MyTalli_ManualEntry_Shops.html # Manual Shops picker concept — picker, dropdown, inline-create, schema diagram
 │   └── MyTalli_NavigationPatterns.html # Navigation IA wireframes — 4 patterns for grid/data organization
+├── sqlscripts/                     # Ad-hoc dev SQL scripts (git-ignored)
+│   ├── Reset_Etsy_TestData.sql      # Hard-delete Etsy Revenue/Expense/Payout for one user
+│   ├── Reset_Gumroad_TestData.sql   # Hard-delete Gumroad Revenue/Expense/Payout for one user
+│   ├── Reset_ManualEntry_TestData.sql # Hard-delete Manual Revenue/Expense/Payout (preserves Manual ShopConnection rows)
+│   ├── Reset_PayPal_TestData.sql    # Hard-delete PayPal Revenue/Expense/Payout (no subtables yet)
+│   ├── Reset_Shopify_TestData.sql   # Hard-delete Shopify Revenue/Expense/Payout (no subtables yet)
+│   ├── Reset_Stripe_TestData.sql    # Hard-delete Stripe Revenue/Expense/Payout for one user
+│   └── SeedFakeEtsyData.sql         # Seed synthetic Etsy receipts for local testing
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
@@ -455,8 +466,10 @@ My.Talli/
     │   │       │   └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
     │   │       └── Platforms/                  # namespace: My.Talli.Domain.Commands.Platforms
     │   │           ├── ConnectEtsyCommand.cs         # Upsert PlatformConnection + ShopConnection + ShopConnectionEtsy after OAuth
+    │   │           ├── CreateManualShopCommand.cs    # Upsert Manual PlatformConnection + insert a Manual ShopConnection row (synthetic IDs, empty tokens)
     │   │           ├── EtsyRevenueInput.cs           # DTO — one row per Etsy transaction, consumed by UpsertEtsyRevenueCommand
     │   │           ├── RefreshShopTokensCommand.cs   # Update a ShopConnection's tokens after a refresh; RecordFailureAsync for failed refreshes
+    │   │           ├── RenameManualShopCommand.cs    # Update ShopConnection.ShopName for a Manual shop (verifies user ownership)
     │   │           ├── UpdateShopSyncStateCommand.cs # Sync lifecycle — MarkInProgress / MarkCompleted / MarkFailed (touches sync fields only)
     │   │           └── UpsertEtsyRevenueCommand.cs   # Dedup by (UserId, Platform, PlatformTransactionId), insert Revenue + RevenueEtsy pairs
     │   ├── Mappers/
@@ -1044,6 +1057,16 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
   - `refreshed` — existing connection, only existing shop(s) refreshed (user authorized the same Etsy account again)
 - **Teach on failure, not upfront.** The "Add another shop" pre-flight dialog stays short on instructions. When the `refreshed` state fires, that's the teachable moment — the toast explains what happened *and* gives the recovery step (*"sign out of Etsy first, then click Connect another shop again"*). Don't front-load the dialog with recovery UX; users who breeze through don't need it, users who hit the wall get the instruction exactly when they're paying attention.
 - **Sync & token workers** — both run inside `My.Talli.Web` as `BackgroundService` hosted services (see **Background Workers** rule below). `TokenRefreshWorker` rotates expiring refresh tokens every 6h; `ShopSyncWorker` polls `ShopConnection.NextSyncDateTime` every 5 min and pulls new receipts into `app.Revenue` + `app.RevenueEtsy`. Architecture rationale (why two workers, why in-process, why paced) is documented in [documentation/MyTalli_WorkerProcesses.html](documentation/MyTalli_WorkerProcesses.html).
+
+### Manual Shops
+
+- **Manual = a virtual platform.** Manual entries are grouped under user-defined "Manual Shops" (e.g., "Weekend Market", "Craft Fair Booth", "Freelance Illustration"). Each manual shop is a `ShopConnection` row whose parent `PlatformConnection.Platform = "Manual"`. No new tables — the existing per-shop `ShopConnectionId` FK on Revenue/Expense/Payout carries the grouping, so per-shop dashboard breakdowns and goal targeting work for manual shops with no special-casing.
+- **Synthetic identity.** Manual `ShopConnection` rows hold synthetic values where the OAuth fields would be: `AccessToken = ""`, `RefreshToken = null`, `PlatformAccountId = "manual_{guid}"`, `PlatformShopId = "manual_{guid}"`. The synthetic IDs preserve the unique `(PlatformConnectionId, PlatformShopId)` constraint while making it obvious in queries that the row is non-OAuth. `Status = "Completed"` so the sync worker ignores them (`IsEnabled = true` is harmless because there's no sync target).
+- **First-visit bootstrap.** `ManualEntryViewModel.LoadShopsAsync` auto-creates a default shop named **"My Manual Shop"** the first time a user with module access opens `/manual-entry` and has zero Manual shops. Users are never forced through a "create your first shop" gate.
+- **Picker, dropdown, rename.** The Manual Entry hero is followed by a shop picker bar (between hero and spoke tabs). The dropdown lists existing shops with the active one checked, plus a **+ Add new shop…** action that swaps the picker into an inline-create form. A pencil button next to the picker swaps it into an inline-rename form for the active shop. Both forms use the same `<input>` + Save/Cancel pattern. Enter saves; Escape cancels.
+- **Stamping rule.** All Revenue/Expense/Payout rows inserted via Manual Entry MUST be stamped with `ShopConnectionId = ActiveShopConnectionId` and `Platform = "Manual"`. The viewmodel does this in `ToNewRevenue` / `ToNewExpense` / `ToNewPayout`. Loading the Revenue/Expense/Payout grids filters by `(UserId, Platform = "Manual", ShopConnectionId = ActiveShopConnectionId)`.
+- **Commands.** `CreateManualShopCommand` (upsert PlatformConnection + insert ShopConnection) and `RenameManualShopCommand` (update ShopName, verify user ownership). Live in `Domain/CommandsAndQueries/Commands/Platforms/`.
+- **Out of scope (intentionally).** No delete-shop UI yet — the FKs from Revenue/Expense/Payout are `Restrict`, so deletion needs a "what about the entries?" decision. No "All shops" aggregate view in the Manual Entry picker — Dashboard already provides the cross-shop view.
 
 ### Modal Behavior
 
