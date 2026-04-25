@@ -12,8 +12,10 @@ public static class EnumExtensions
     {
         var type = value.GetType();
         var fieldInfo = type.GetField(value.ToString());
-        var result = fieldInfo.GetCustomAttributes(typeof(StringValueAttribute), false) as StringValueAttribute[];
+        if (fieldInfo is null)
+            return string.Empty;
 
+        var result = fieldInfo.GetCustomAttributes(typeof(StringValueAttribute), false) as StringValueAttribute[];
         return result != null && result.Length > 0 ? result[0].StringValue : string.Empty;
     }
 
