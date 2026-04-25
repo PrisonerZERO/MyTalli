@@ -16,6 +16,9 @@ public class EtsySyncService : IPlatformSyncService
     private static readonly TimeSpan AccessTokenSafetyMargin = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan PerPageDelay = TimeSpan.FromMilliseconds(200);
 
+    private static readonly Dictionary<string, EtsyLedgerTypes> KnownLedgerTypes =
+        Enum.GetValues<EtsyLedgerTypes>().ToDictionary(t => t.ToStringValue(), t => t, StringComparer.OrdinalIgnoreCase);
+
     #endregion
 
     #region <Variables>
@@ -112,17 +115,17 @@ public class EtsySyncService : IPlatformSyncService
             if (page.Results.Count == 0)
                 break;
 
-            var expenseInputs = BuildExpenseInputs(page.Results);
-            if (expenseInputs.Count > 0)
+            var classified = ClassifyLedger(page.Results, shopId);
+
+            if (classified.ExpenseInputs.Count > 0)
             {
-                var inserted = await _upsertEtsyExpenseCommand.ExecuteAsync(shop.UserId, shop.Id, expenseInputs);
+                var inserted = await _upsertEtsyExpenseCommand.ExecuteAsync(shop.UserId, shop.Id, classified.ExpenseInputs);
                 result.NewExpenseRowCount += inserted;
             }
 
-            var payoutInputs = BuildPayoutInputs(page.Results);
-            if (payoutInputs.Count > 0)
+            if (classified.PayoutInputs.Count > 0)
             {
-                var inserted = await _upsertEtsyPayoutCommand.ExecuteAsync(shop.UserId, shop.Id, payoutInputs);
+                var inserted = await _upsertEtsyPayoutCommand.ExecuteAsync(shop.UserId, shop.Id, classified.PayoutInputs);
                 result.NewPayoutRowCount += inserted;
             }
 
@@ -208,102 +211,98 @@ public class EtsySyncService : IPlatformSyncService
         return inputs;
     }
 
-    private static List<EtsyExpenseInput> BuildExpenseInputs(IEnumerable<EtsyLedgerEntry> entries)
+    private LedgerClassification ClassifyLedger(IEnumerable<EtsyLedgerEntry> entries, long shopId)
     {
-        var inputs = new List<EtsyExpenseInput>();
+        var expenseInputs = new List<EtsyExpenseInput>();
+        var payoutInputs = new List<EtsyPayoutInput>();
 
         foreach (var entry in entries)
         {
-            if (!IsExpenseEntryType(entry.LedgerEntryType))
-                continue;
-
-            inputs.Add(new EtsyExpenseInput
+            if (!TryParseLedgerType(entry.LedgerEntryType, out var type))
             {
-                Amount = Math.Abs(entry.Amount),
-                Category = MapExpenseCategory(entry.LedgerEntryType),
-                Currency = entry.Currency,
-                Description = entry.Description ?? entry.LedgerEntryType ?? string.Empty,
-                ExpenseDate = DateTimeOffset.FromUnixTimeSeconds(entry.CreateDate).UtcDateTime,
-                LedgerEntryId = entry.EntryId
-            });
+                _logger.LogWarning("Etsy ledger entry type not recognized for shop {ShopId}: {Type}", shopId, entry.LedgerEntryType ?? "(null)");
+                continue;
+            }
+
+            switch (type)
+            {
+                case EtsyLedgerTypes.Sale:
+                case EtsyLedgerTypes.Refund:
+                    continue; // Handled by receipts
+
+                case EtsyLedgerTypes.Payment:
+                case EtsyLedgerTypes.Disbursement:
+                case EtsyLedgerTypes.Withdrawal:
+                    payoutInputs.Add(BuildPayoutInput(entry));
+                    continue;
+
+                case EtsyLedgerTypes.ListingFee:
+                case EtsyLedgerTypes.TransactionFee:
+                case EtsyLedgerTypes.ProcessingFee:
+                case EtsyLedgerTypes.PromotedListingFee:
+                case EtsyLedgerTypes.MarketingFee:
+                case EtsyLedgerTypes.SubscriptionFee:
+                case EtsyLedgerTypes.PostageLabel:
+                case EtsyLedgerTypes.ShippingLabel:
+                case EtsyLedgerTypes.Tax:
+                case EtsyLedgerTypes.Vat:
+                    expenseInputs.Add(BuildExpenseInput(entry, type));
+                    continue;
+            }
         }
 
-        return inputs;
+        return new LedgerClassification(expenseInputs, payoutInputs);
     }
 
-    private static List<EtsyPayoutInput> BuildPayoutInputs(IEnumerable<EtsyLedgerEntry> entries)
+    private static bool TryParseLedgerType(string? entryType, out EtsyLedgerTypes type)
     {
-        var inputs = new List<EtsyPayoutInput>();
-
-        foreach (var entry in entries)
-        {
-            if (!IsPayoutEntryType(entry.LedgerEntryType))
-                continue;
-
-            inputs.Add(new EtsyPayoutInput
-            {
-                Amount = Math.Abs(entry.Amount),
-                Currency = entry.Currency,
-                LedgerEntryId = entry.EntryId,
-                PayoutDate = DateTimeOffset.FromUnixTimeSeconds(entry.CreateDate).UtcDateTime,
-                ShopCurrency = entry.Currency,
-                Status = "Paid"
-            });
-        }
-
-        return inputs;
-    }
-
-    private static bool IsExpenseEntryType(string? entryType)
-    {
-        if (string.IsNullOrEmpty(entryType))
-            return false;
-
-        if (entryType.Contains("Fee", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(entryType) && KnownLedgerTypes.TryGetValue(entryType, out type))
             return true;
 
-        return entryType.Equals("Postage Label", StringComparison.OrdinalIgnoreCase)
-            || entryType.Equals("Shipping Label", StringComparison.OrdinalIgnoreCase)
-            || entryType.Equals("Tax", StringComparison.OrdinalIgnoreCase)
-            || entryType.Equals("VAT", StringComparison.OrdinalIgnoreCase);
+        type = default;
+        return false;
     }
 
-    private static bool IsPayoutEntryType(string? entryType)
+    private static EtsyExpenseInput BuildExpenseInput(EtsyLedgerEntry entry, EtsyLedgerTypes type)
     {
-        if (string.IsNullOrEmpty(entryType))
-            return false;
-
-        return entryType.Equals("Payment", StringComparison.OrdinalIgnoreCase)
-            || entryType.Equals("Disbursement", StringComparison.OrdinalIgnoreCase)
-            || entryType.Equals("Withdrawal", StringComparison.OrdinalIgnoreCase);
+        return new EtsyExpenseInput
+        {
+            Amount = Math.Abs(entry.Amount),
+            Category = MapExpenseCategory(type).ToStringValue(),
+            Currency = entry.Currency,
+            Description = entry.Description ?? entry.LedgerEntryType ?? string.Empty,
+            ExpenseDate = DateTimeOffset.FromUnixTimeSeconds(entry.CreateDate).UtcDateTime,
+            LedgerEntryId = entry.EntryId
+        };
     }
 
-    private static string MapExpenseCategory(string? entryType)
+    private static EtsyPayoutInput BuildPayoutInput(EtsyLedgerEntry entry)
     {
-        if (string.IsNullOrEmpty(entryType))
-            return ExpenseCategory.Other.ToStringValue();
-
-        if (entryType.Equals("Listing Fee", StringComparison.OrdinalIgnoreCase))
-            return ExpenseCategory.ListingFee.ToStringValue();
-
-        if (entryType.Contains("Promoted", StringComparison.OrdinalIgnoreCase) ||
-            entryType.Contains("Marketing", StringComparison.OrdinalIgnoreCase) ||
-            entryType.Contains("Ad", StringComparison.OrdinalIgnoreCase))
-            return ExpenseCategory.AdFee.ToStringValue();
-
-        if (entryType.Contains("Subscription", StringComparison.OrdinalIgnoreCase))
-            return ExpenseCategory.SubscriptionFee.ToStringValue();
-
-        if (entryType.Contains("Processing", StringComparison.OrdinalIgnoreCase) ||
-            entryType.Contains("Transaction", StringComparison.OrdinalIgnoreCase))
-            return ExpenseCategory.ProcessingFee.ToStringValue();
-
-        if (entryType.Contains("Postage", StringComparison.OrdinalIgnoreCase) ||
-            entryType.Contains("Shipping", StringComparison.OrdinalIgnoreCase))
-            return ExpenseCategory.ShippingLabel.ToStringValue();
-
-        return ExpenseCategory.Other.ToStringValue();
+        return new EtsyPayoutInput
+        {
+            Amount = Math.Abs(entry.Amount),
+            Currency = entry.Currency,
+            LedgerEntryId = entry.EntryId,
+            PayoutDate = DateTimeOffset.FromUnixTimeSeconds(entry.CreateDate).UtcDateTime,
+            ShopCurrency = entry.Currency,
+            Status = "Paid"
+        };
     }
+
+    private static ExpenseCategory MapExpenseCategory(EtsyLedgerTypes type) => type switch
+    {
+        EtsyLedgerTypes.ListingFee => ExpenseCategory.ListingFee,
+        EtsyLedgerTypes.PromotedListingFee => ExpenseCategory.AdFee,
+        EtsyLedgerTypes.MarketingFee => ExpenseCategory.AdFee,
+        EtsyLedgerTypes.SubscriptionFee => ExpenseCategory.SubscriptionFee,
+        EtsyLedgerTypes.TransactionFee => ExpenseCategory.ProcessingFee,
+        EtsyLedgerTypes.ProcessingFee => ExpenseCategory.ProcessingFee,
+        EtsyLedgerTypes.PostageLabel => ExpenseCategory.ShippingLabel,
+        EtsyLedgerTypes.ShippingLabel => ExpenseCategory.ShippingLabel,
+        _ => ExpenseCategory.Other
+    };
+
+    private record LedgerClassification(List<EtsyExpenseInput> ExpenseInputs, List<EtsyPayoutInput> PayoutInputs);
 
     #endregion
 }
