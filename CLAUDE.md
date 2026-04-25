@@ -761,12 +761,14 @@ My.Talli/
         │   │   ├── MyPlan.razor.css
         │   │   ├── Platforms.razor       # Platform connections (route: /platforms)
         │   │   ├── Platforms.razor.css
+        │   │   ├── Privacy.razor         # Privacy Policy (route: /privacy, LandingLayout, no scoped CSS — shared `.policy-*` in app.css)
         │   │   ├── Settings.razor        # Account settings (route: /settings)
         │   │   ├── Settings.razor.css
         │   │   ├── SignIn.razor          # Sign-in page (route: /signin)
         │   │   ├── SignIn.razor.css
         │   │   ├── SuggestionBox.razor       # Suggestion box (route: /suggestions)
         │   │   ├── SuggestionBox.razor.css
+        │   │   ├── Terms.razor           # Terms of Service (route: /terms, LandingLayout, no scoped CSS — shared `.policy-*` in app.css)
         │   │   ├── Unsubscribe.razor      # Email preference management (route: /unsubscribe?token=xxx)
         │   │   ├── Unsubscribe.razor.css
         │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
@@ -832,9 +834,11 @@ My.Talli/
         │   │   ├── ManualEntryViewModel.cs
         │   │   ├── MyPlanViewModel.cs
         │   │   ├── PlatformsViewModel.cs
+        │   │   ├── PrivacyViewModel.cs
         │   │   ├── SettingsViewModel.cs
         │   │   ├── SignInViewModel.cs
         │   │   ├── SuggestionBoxViewModel.cs
+        │   │   ├── TermsViewModel.cs
         │   │   └── UnsubscribeViewModel.cs
         │   └── Shared/
         │       ├── BrandHeaderViewModel.cs
@@ -1046,7 +1050,7 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 
 - **Every page** in the app (except the Landing Page) must include a purple gradient swoosh hero section for consistent branding.
 - Pages using `MainLayout` (sidebar pages like Dashboard, Suggestions) use an **inline swoosh** hero within the page markup.
-- Pages using `LandingLayout` (Sign-In, Error) use the **`BrandHeader`** component.
+- Pages using `LandingLayout` (Sign-In, Error, Privacy, Terms) use the **`BrandHeader`** component.
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
 - **Admin page is the reference implementation** for new sidebar pages. Match its SVG (`viewBox="0 0 1000 600"`, swoosh path, gradient fill), hero-bg (`height: calc(100% + 60px)`), and SVG CSS (`min-height: 280px`) exactly. Pages with hero stats use `margin: -32px -40px 0` and `padding: 24px 40px 40px`; pages without stats use `margin: -32px -40px 60px` and `padding: 24px 40px 48px`. **Exception:** Pages with spoke tabs (Dashboard, Manual Entry) use `margin: -32px -40px 0` and `padding: 24px 40px 120px` — the extra bottom padding gives the swoosh curve room to display before the tab bar.
 - **Hero stat numbers** use colorized `nth-child` styling: 1st stat → lavender `#a78bfa`, 2nd stat → contextual color (green `#2ecc71` for money/success, gold `#f5c842` for counts), 3rd stat → white `#fff`. Font size is `22px` on all pages — keep this consistent. Labels are `rgba(255, 255, 255, 0.6)` at `12px`.

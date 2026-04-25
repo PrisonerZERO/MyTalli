@@ -1,0 +1,222 @@
+@page "/terms"
+@layout Layout.LandingLayout
+@inherits My.Talli.Web.ViewModels.Pages.TermsViewModel
+
+<PageTitle>Terms of Service — MyTalli</PageTitle>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<div class="policy-page">
+    <BrandHeader>
+        <a class="back-link" href="@BackLinkHref">@BackLinkText</a>
+    </BrandHeader>
+
+    <main id="main">
+        <div class="policy-shell">
+            <h1 class="page-heading">Terms of Service</h1>
+            <p class="page-sub">The agreement between you and MyTalli — last updated @LastUpdated</p>
+
+            <div class="policy-card">
+                <p class="policy-effective"><strong>Effective:</strong> @EffectiveDate</p>
+
+                <p class="policy-intro">
+                    These terms are the agreement between you and MyTalli LLC ("MyTalli", "we", "us")
+                    when you use the MyTalli service. By creating an account or using MyTalli, you
+                    agree to these terms. If you do not agree, do not use the service.
+                </p>
+
+                <section aria-labelledby="what-mytalli-is">
+                    <h2 id="what-mytalli-is">What MyTalli is</h2>
+                    <p>
+                        MyTalli is a revenue dashboard. It connects to platforms you already use —
+                        Stripe, Etsy, Gumroad, PayPal, Shopify — and shows you the data they make
+                        available, in one place. It also lets you record manual revenue, expenses, and
+                        payouts that aren't tied to a connected platform.
+                    </p>
+                    <p>
+                        MyTalli is <strong>not</strong> a payment processor, a tax advisor, an
+                        accountant, an auditor, or a financial advisor. The data we display is read
+                        from third-party platforms; we display it as accurately as we can but do not
+                        guarantee it. Decisions you make based on that data are your own.
+                    </p>
+                </section>
+
+                <section aria-labelledby="eligibility">
+                    <h2 id="eligibility">Eligibility</h2>
+                    <p>
+                        You must be at least 18 years old to use MyTalli. If you connect a platform on
+                        behalf of a business, you represent that you have the authority to bind that
+                        business to these terms.
+                    </p>
+                </section>
+
+                <section aria-labelledby="account">
+                    <h2 id="account">Your account</h2>
+                    <p>
+                        You sign in with Google, Apple, or Microsoft. We do not store your password —
+                        keeping your sign-in provider account secure is your responsibility. One
+                        account per person; do not share an account.
+                    </p>
+                    <p>
+                        You are responsible for the activity on your account. If you suspect
+                        unauthorized access, email
+                        <a href="mailto:hello@mytalli.com">hello@mytalli.com</a> immediately.
+                    </p>
+                </section>
+
+                <section aria-labelledby="connected-platforms">
+                    <h2 id="connected-platforms">Connected platforms</h2>
+                    <p>
+                        When you connect a platform, you authorize MyTalli to read sales, fees, and
+                        payout data from your account on that platform. We do not write back —
+                        MyTalli will never create, edit, or delete anything on a connected platform.
+                    </p>
+                    <p>
+                        Each connected platform has its own terms of service that you remain bound by.
+                        We are not responsible for the accuracy, availability, or behavior of those
+                        platforms. If a platform changes or removes its API, your data may stop
+                        syncing through no fault of ours. You can pause or disconnect any platform
+                        from the Platforms page at any time.
+                    </p>
+                </section>
+
+                <section aria-labelledby="subscriptions">
+                    <h2 id="subscriptions">Subscriptions and billing</h2>
+                    <ul>
+                        <li>The free tier is available indefinitely with the limits stated on the pricing page.</li>
+                        <li>Paid plans renew automatically at the price and interval shown at checkout. Stripe handles all billing.</li>
+                        <li>You can cancel any time from My Plan. Your access continues until the end of the period you've already paid for.</li>
+                        <li>Charges are non-refundable except where required by law. We do not pro-rate refunds for partial periods.</li>
+                        <li>We may change pricing or plan limits with at least 30 days' notice by email. If you don't accept the change, you can cancel before it takes effect.</li>
+                        <li>If a payment fails, we will retry through Stripe and may pause Pro features until the issue is resolved.</li>
+                    </ul>
+                </section>
+
+                <section aria-labelledby="acceptable-use">
+                    <h2 id="acceptable-use">Acceptable use</h2>
+                    <p>You agree not to:</p>
+                    <ul>
+                        <li>Use MyTalli to facilitate any illegal activity or to launder funds.</li>
+                        <li>Reverse engineer, scrape, or attempt to extract data from MyTalli except through features we provide (such as CSV export).</li>
+                        <li>Probe, attack, overload, or otherwise interfere with the service.</li>
+                        <li>Use MyTalli to store data that does not belong to you or that you do not have authority to process.</li>
+                        <li>Resell or sublicense access to MyTalli without our written permission.</li>
+                    </ul>
+                    <p>
+                        We may suspend or terminate accounts that violate these rules, with or without
+                        notice depending on the severity.
+                    </p>
+                </section>
+
+                <section aria-labelledby="your-content">
+                    <h2 id="your-content">Your content</h2>
+                    <p>
+                        You retain ownership of everything you put into MyTalli — manual entries,
+                        notes, shop names, goals. By using the service, you grant us a limited license
+                        to host, process, and display that content for the purpose of providing the
+                        service to you. We don't claim any ownership of your data.
+                    </p>
+                </section>
+
+                <section aria-labelledby="availability">
+                    <h2 id="availability">Service availability</h2>
+                    <p>
+                        We aim to keep MyTalli running smoothly but do not promise uninterrupted
+                        availability. We may take the service down for maintenance, updates, or to
+                        respond to issues. The free tier carries no service-level agreement.
+                    </p>
+                </section>
+
+                <section aria-labelledby="disclaimers">
+                    <h2 id="disclaimers">Disclaimers</h2>
+                    <p>
+                        MYTALLI IS PROVIDED "AS IS" AND "AS AVAILABLE", WITHOUT WARRANTY OF ANY KIND,
+                        EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+                        PARTICULAR PURPOSE, OR NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE SERVICE
+                        WILL BE UNINTERRUPTED, ERROR-FREE, OR THAT THE DATA SHOWN IS COMPLETE OR
+                        ACCURATE. YOU ARE RESPONSIBLE FOR YOUR OWN TAX, ACCOUNTING, AND BUSINESS
+                        DECISIONS.
+                    </p>
+                </section>
+
+                <section aria-labelledby="liability">
+                    <h2 id="liability">Limitation of liability</h2>
+                    <p>
+                        TO THE MAXIMUM EXTENT PERMITTED BY LAW, MYTALLI WILL NOT BE LIABLE FOR ANY
+                        INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR FOR LOST
+                        PROFITS, REVENUES, OR DATA, ARISING OUT OF YOUR USE OF THE SERVICE.
+                    </p>
+                    <p>
+                        OUR TOTAL LIABILITY FOR ANY CLAIM ARISING OUT OF OR RELATING TO THESE TERMS
+                        OR THE SERVICE IS LIMITED TO THE GREATER OF (A) THE AMOUNT YOU PAID US IN THE
+                        TWELVE MONTHS BEFORE THE CLAIM AROSE, OR (B) ONE HUNDRED U.S. DOLLARS ($100).
+                    </p>
+                </section>
+
+                <section aria-labelledby="indemnification">
+                    <h2 id="indemnification">Indemnification</h2>
+                    <p>
+                        You agree to indemnify and hold MyTalli harmless from any claim, loss, or
+                        expense (including reasonable legal fees) arising out of your misuse of the
+                        service, your violation of these terms, or your violation of any law or the
+                        rights of a third party.
+                    </p>
+                </section>
+
+                <section aria-labelledby="termination">
+                    <h2 id="termination">Termination</h2>
+                    <p>
+                        You can stop using MyTalli at any time and request deletion of your account by
+                        emailing <a href="mailto:hello@mytalli.com">hello@mytalli.com</a>. We may
+                        suspend or terminate your access if you breach these terms or use the service
+                        in a way that creates risk for us or other users. On termination, the sections
+                        of these terms that by their nature should survive (including disclaimers,
+                        limitation of liability, indemnification, and governing law) will survive.
+                    </p>
+                </section>
+
+                <section aria-labelledby="changes">
+                    <h2 id="changes">Changes to these terms</h2>
+                    <p>
+                        We may update these terms from time to time. We will update the "Last updated"
+                        date at the top, and for material changes we will notify you by email. If you
+                        keep using the service after a change takes effect, you accept the updated
+                        terms.
+                    </p>
+                </section>
+
+                <section aria-labelledby="governing-law">
+                    <h2 id="governing-law">Governing law and disputes</h2>
+                    <p>
+                        These terms are governed by the laws of the State of Texas, USA, without
+                        regard to its conflict-of-laws principles. Any dispute arising out of or
+                        relating to these terms or the service will be brought exclusively in the
+                        state or federal courts located in Harris County, Texas, and you and we
+                        consent to the personal jurisdiction of those courts.
+                    </p>
+                </section>
+
+                <section aria-labelledby="general">
+                    <h2 id="general">General</h2>
+                    <p>
+                        If any part of these terms is found unenforceable, the rest remains in effect.
+                        Our failure to enforce any right or provision is not a waiver of that right or
+                        provision. These terms, together with our
+                        <a href="/privacy">Privacy Policy</a>, are the entire agreement between you
+                        and MyTalli regarding the service. You may not assign these terms without our
+                        written consent; we may assign them to an affiliate or in connection with a
+                        merger, acquisition, or sale of assets.
+                    </p>
+                </section>
+
+                <section aria-labelledby="contact">
+                    <h2 id="contact">Contact</h2>
+                    <p>
+                        MyTalli LLC, 5423 Oakhaven Ln, Houston, TX 77091, USA.
+                        Email <a href="mailto:hello@mytalli.com">hello@mytalli.com</a>.
+                    </p>
+                </section>
+            </div>
+        </div>
+    </main>
+</div>
