@@ -6,7 +6,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 /// <summary>Service</summary>
-public class EtsyService
+public class EtsyService : IEtsyApiClient
 {
     #region <Constants>
 

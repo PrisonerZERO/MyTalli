@@ -11,13 +11,13 @@ public class EtsyTokenRefresher : IPlatformTokenRefresher
 
     #region <Variables>
 
-    private readonly EtsyService _etsyService;
+    private readonly IEtsyApiClient _etsyService;
 
     #endregion
 
     #region <Constructors>
 
-    public EtsyTokenRefresher(EtsyService etsyService)
+    public EtsyTokenRefresher(IEtsyApiClient etsyService)
     {
         _etsyService = etsyService;
     }

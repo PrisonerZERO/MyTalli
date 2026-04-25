@@ -23,7 +23,7 @@ public class EtsySyncService : IPlatformSyncService
 
     #region <Variables>
 
-    private readonly EtsyService _etsyService;
+    private readonly IEtsyApiClient _etsyService;
     private readonly EtsyTokenRefresher _etsyTokenRefresher;
     private readonly ILogger<EtsySyncService> _logger;
     private readonly RefreshShopTokensCommand _refreshShopTokensCommand;
@@ -35,7 +35,7 @@ public class EtsySyncService : IPlatformSyncService
 
     #region <Constructors>
 
-    public EtsySyncService(EtsyService etsyService, EtsyTokenRefresher etsyTokenRefresher, ILogger<EtsySyncService> logger, RefreshShopTokensCommand refreshShopTokensCommand, UpsertEtsyExpenseCommand upsertEtsyExpenseCommand, UpsertEtsyPayoutCommand upsertEtsyPayoutCommand, UpsertEtsyRevenueCommand upsertEtsyRevenueCommand)
+    public EtsySyncService(IEtsyApiClient etsyService, EtsyTokenRefresher etsyTokenRefresher, ILogger<EtsySyncService> logger, RefreshShopTokensCommand refreshShopTokensCommand, UpsertEtsyExpenseCommand upsertEtsyExpenseCommand, UpsertEtsyPayoutCommand upsertEtsyPayoutCommand, UpsertEtsyRevenueCommand upsertEtsyRevenueCommand)
     {
         _etsyService = etsyService;
         _etsyTokenRefresher = etsyTokenRefresher;
