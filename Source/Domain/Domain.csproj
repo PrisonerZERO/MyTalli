@@ -14,8 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include=".attributes\StringValueAttribute.cs" />
     <Compile Include=".enums\enums.cs" />
     <Compile Include=".extensions\AssemblyExtensions.cs" />
+    <Compile Include=".extensions\EnumExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>
