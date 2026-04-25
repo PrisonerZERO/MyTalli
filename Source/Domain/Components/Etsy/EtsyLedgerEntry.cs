@@ -32,7 +32,7 @@ public class EtsyLedgerEntry
     public long LedgerId { get; set; }
 
     [JsonPropertyName("reference_id")]
-    public string? ReferenceId { get; set; }
+    public long? ReferenceId { get; set; }
 
     [JsonPropertyName("sequence_number")]
     public int SequenceNumber { get; set; }

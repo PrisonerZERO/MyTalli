@@ -153,8 +153,24 @@ public class EtsyService : IEtsyApiClient
             $"offset={offset}"
         };
 
-        if (minCreated.HasValue)
-            queryParams.Add($"min_created={minCreated.Value}");
+        // Etsy's payment-account/ledger-entries endpoint enforces two undocumented
+        // constraints: max_created is required in practice (400 "Missing input parameter:
+        // [max_created]" otherwise), and the (max - min) window must be ≤ 31 days
+        // (400 "Time window between min_created and max_created must be no more than
+        // 2678400 seconds"). Pin max to "now" and raise min if the caller asked for more
+        // than 30 days, so we always pull the MOST RECENT 30-day slice. Subsequent syncs
+        // run ≤24h apart so the window stays small naturally.
+        const long MaxLedgerWindowSeconds = 30L * 24L * 60L * 60L;
+        var maxCreated = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var effectiveMinCreated = minCreated;
+
+        if (effectiveMinCreated.HasValue && (maxCreated - effectiveMinCreated.Value > MaxLedgerWindowSeconds))
+            effectiveMinCreated = maxCreated - MaxLedgerWindowSeconds;
+
+        if (effectiveMinCreated.HasValue)
+            queryParams.Add($"min_created={effectiveMinCreated.Value}");
+
+        queryParams.Add($"max_created={maxCreated}");
 
         var url = $"{baseUrl}?{string.Join("&", queryParams)}";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
