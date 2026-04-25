@@ -98,13 +98,13 @@
   <div class="intro">
     <div class="intro-left">
       <h2>Current focus: Etsy end-to-end</h2>
-      <p>Etsy is now wired end-to-end in code: OAuth connection, 8 new Expense/Payout subtables (one per platform), sync worker infrastructure (<code>ShopSyncWorker</code>, <code>TokenRefreshWorker</code>, <code>EtsySyncService</code>), a seed script for fake data, and the <code>/platforms/etsy</code> dashboard with Overview / Revenue / Expenses / Payouts tabs. The worker still has not been run against a live Etsy shop — next concrete step is the live-run shakedown.</p>
+      <p>Etsy is now code-complete end-to-end: OAuth connection, full sync coverage (Revenue + Expenses + Payouts via Etsy ledger entries), enum-driven ledger classification with unknown-type warning logs, the <code>/platforms/etsy</code> spoke dashboard, and the nav-menu group highlight. Sync, Upsert commands, and token refresh are all covered by tests (192 / 192 passing). Live-run shakedown against a real Etsy shop is the only remaining step before declaring it production-ready.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">11</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">4</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">14</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">15</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -208,7 +208,7 @@
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
           <h4>Sync worker live-run verification</h4>
-          <p>Worker infrastructure is code-complete but has never been exercised. Connect a real Etsy test shop, let <code>ShopSyncWorker</code> tick, verify receipts flow into <code>app.Revenue</code>/<code>app.RevenueEtsy</code>, confirm status transitions + <code>LastSyncDateTime</code> update, check Elmah is clean.</p>
+          <p>Worker infrastructure is code-complete and unit-tested but has never been exercised against a real shop. Connect a real Etsy test shop, let <code>ShopSyncWorker</code> tick, verify receipts flow into <code>app.Revenue</code>/<code>app.RevenueEtsy</code> AND ledger entries flow into <code>app.Expense</code>/<code>app.Payout</code> with their <code>*Etsy</code> subtables, confirm status transitions + <code>LastSyncDateTime</code> update, watch logs for any "Etsy ledger entry type not recognized" warnings (then add the new types to <code>EtsyLedgerTypes</code>), check Elmah is clean.</p>
         </div>
 
         <div class="card">
@@ -247,9 +247,16 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">14</span>
+        <span class="lane-count">15</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Etsy ledger sync (Expenses + Payouts) + tests</h4>
+          <p>Closed the last code-complete gap on Etsy: <code>EtsySyncService</code> now pulls Etsy's <code>payment-account/ledger-entries</code> in addition to receipts and dispatches each entry by <code>ledger_entry_type</code> — fee types → <code>UpsertEtsyExpenseCommand</code> (mapped to <code>ExpenseCategory</code> enum), <code>Payment</code>/<code>Disbursement</code>/<code>Withdrawal</code> → <code>UpsertEtsyPayoutCommand</code>, <code>Sale</code>/<code>Refund</code> skipped (handled by receipts), and unknown types log a warning so live data surfaces gaps instead of silently dropping rows. Classification driven by enums in <code>Domain/.enums/enums.cs</code> (<code>EtsyLedgerTypes</code> + <code>ExpenseCategory</code>) using the existing <code>StringValueAttribute</code> pattern. Extracted <code>IEtsyApiClient</code> from <code>EtsyService</code> for testability; test project now references <code>My.Talli.Web</code>. 38 new tests cover the three Upsert commands, sync-service orchestration (pagination, classification, unknown-type warning, inline token refresh), and <code>EtsyTokenRefresher</code> expiry math — 154 → 192 passing. Nav menu group highlight: clicking the Etsy parent now goes to <code>/platforms</code> (status page) and the whole platform group lights up as one capsule via <code>:has(a.active)</code> when on the Dashboard spoke.</p>
+          <span class="done-date">Apr 25 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag nav">Nav</span></div>
@@ -268,7 +275,7 @@
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
           <h4>Sync worker infrastructure (code-complete)</h4>
-          <p><code>ShopSyncWorker</code> BackgroundService polls every 5 min, dispatches per platform via <code>IPlatformSyncService</code>, exponential backoff to 24hr cap. <code>EtsySyncService</code> pulls receipts with pagination + inline token refresh. <code>TokenRefreshWorker</code> handles proactive refresh. Incremental sync uses <code>LastSyncDateTime</code> as the floor with 90-day initial backfill. Commands: <code>RefreshShopTokensCommand</code>, <code>UpdateShopSyncStateCommand</code>, <code>UpsertEtsyRevenueCommand</code>. All DI wired. <em>Note: never run against a live Etsy shop yet — see "Sync worker live-run verification" in Next Up.</em></p>
+          <p><code>ShopSyncWorker</code> BackgroundService polls every 5 min, dispatches per platform via <code>IPlatformSyncService</code>, exponential backoff to 24hr cap. <code>EtsySyncService</code> pulls receipts AND ledger entries with pagination + inline token refresh. <code>TokenRefreshWorker</code> handles proactive refresh. Incremental sync uses <code>LastSyncDateTime</code> as the floor with 90-day initial backfill. Commands: <code>RefreshShopTokensCommand</code>, <code>UpdateShopSyncStateCommand</code>, <code>UpsertEtsyRevenueCommand</code>, <code>UpsertEtsyExpenseCommand</code>, <code>UpsertEtsyPayoutCommand</code>. All DI wired. <em>Note: never run against a live Etsy shop yet — see "Sync worker live-run verification" in Next Up.</em></p>
           <span class="done-date">Apr 24 2026</span>
         </div>
 

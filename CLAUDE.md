@@ -95,7 +95,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 ### Schema: `app`
 
 **`app.Expense`** — platform fees not tied to a specific sale (listing fees, ad fees, subscription fees, etc.), and user-created manual expenses (entered via Manual Entry module)
-- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the expense came from for per-shop breakdowns. Always populated for Manual entries: every Manual expense is stamped with a Manual ShopConnection row. Stays nullable on the column because non-Manual platforms may insert rows before a ShopConnection exists.), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Category` (string 50 — Listing Fee, Ad Fee, Subscription Fee, Processing Fee, Shipping Label, Other), `Currency` (string 3), `Description` (string 500), `ExpenseDate` (datetime), `Platform` (string 50), `PlatformTransactionId` (nullable string 255 — dedup key, `manual_{guid}` for manual entries)
+- `Id` (PK), `ShopConnectionId` (nullable FK → ShopConnection — identifies which specific shop the expense came from for per-shop breakdowns. Always populated for Manual entries: every Manual expense is stamped with a Manual ShopConnection row. Stays nullable on the column because non-Manual platforms may insert rows before a ShopConnection exists.), `UserId` (FK → auth.User), `Amount` (decimal 18,2), `Category` (string 50 — Listing Fee, Ad Fee, Subscription Fee, Processing Fee, Shipping Label, Other; canonical list defined in `Domain.enums.ExpenseCategory` — both `EtsySyncService.MapExpenseCategory` and `ManualEntryViewModel.ExpenseCategories` derive from it), `Currency` (string 3), `Description` (string 500), `ExpenseDate` (datetime), `Platform` (string 50), `PlatformTransactionId` (nullable string 255 — dedup key, `manual_{guid}` for manual entries, raw Etsy `entry_id` for Etsy ledger fees)
 - Composite index on `(Platform, ExpenseDate)` for dashboard queries
 - Indexes: `IX_Expense_UserId`, `IX_Expense_ShopConnectionId`
 - FK behavior: `FK_Expense_ShopConnection` Restrict (preserves historical data if a shop is ever removed)
@@ -437,8 +437,13 @@ My.Talli/
     │   │   ├── UnauthorizedException.cs       # 401
     │   │   ├── SignInFailedException.cs        # 401 (inherits Unauthorized)
     │   │   └── UnexpectedException.cs         # 500
+    │   ├── .attributes/
+    │   │   └── StringValueAttribute.cs         # `[StringValue("...")]` decorator for enum members; reflected by `EnumExtensions.ToStringValue()`
+    │   ├── .enums/
+    │   │   └── enums.cs                        # `EtsyLedgerTypes` (15 known Etsy `ledger_entry_type` values), `ExpenseCategory` (6 categories used by `Expense.Category`). Use `[StringValue]` for the canonical string. INPUT enum (Etsy types) only enumerates what we recognize — anything else logs a warning. OUTPUT enum (`ExpenseCategory`) is the single source of truth for expense category strings (used by both `EtsySyncService.MapExpenseCategory` and `ManualEntryViewModel.ExpenseCategories`).
     │   ├── .extensions/
-    │   │   └── AssemblyExtensions.cs          # GetManifestResourceContent() for embedded resources
+    │   │   ├── AssemblyExtensions.cs           # GetManifestResourceContent() for embedded resources
+    │   │   └── EnumExtensions.cs               # `ToStringValue()` — reflects `[StringValue]` on enum members; null-safe (returns empty string for undefined enum values)
     │   ├── Framework/
     │   │   ├── Assert.cs                      # Static validation utility (precondition checks)
     │   │   ├── EnforcedTransactionScope.cs    # Atomic transaction wrapper (sync + async, rethrows after rollback)
@@ -449,6 +454,8 @@ My.Talli/
     │   │   │   ├── AuthorizeChallenge.cs       # PKCE challenge + state + authorize URL
     │   │   │   ├── EtsyMoney.cs                # { amount, divisor, currency_code } — ToDecimal() helper
     │   │   │   ├── EtsyPkceGenerator.cs        # Static helpers: BuildAuthorizeChallenge, ExtractEtsyUserId
+    │   │   │   ├── EtsyLedgerEntriesResponse.cs # Pagination envelope for GET /shops/{id}/payment-account/ledger-entries
+    │   │   │   ├── EtsyLedgerEntry.cs          # Ledger row (entry_id, ledger_entry_type, amount, currency, create_date) — fees + payouts
     │   │   │   ├── EtsyReceipt.cs              # Shop receipt payload (receipt_id, timestamps, totals, transactions[])
     │   │   │   ├── EtsyReceiptsResponse.cs     # Pagination envelope for GET /shops/{id}/receipts ({ count, results })
     │   │   │   ├── EtsyShop.cs                 # Etsy shop payload (shop_id, shop_name, currency, etc.)
@@ -467,10 +474,14 @@ My.Talli/
     │   │       └── Platforms/                  # namespace: My.Talli.Domain.Commands.Platforms
     │   │           ├── ConnectEtsyCommand.cs         # Upsert PlatformConnection + ShopConnection + ShopConnectionEtsy after OAuth
     │   │           ├── CreateManualShopCommand.cs    # Upsert Manual PlatformConnection + insert a Manual ShopConnection row (synthetic IDs, empty tokens)
+    │   │           ├── EtsyExpenseInput.cs           # DTO — one Etsy ledger fee row, consumed by UpsertEtsyExpenseCommand
+    │   │           ├── EtsyPayoutInput.cs            # DTO — one Etsy ledger payout/disbursement, consumed by UpsertEtsyPayoutCommand
     │   │           ├── EtsyRevenueInput.cs           # DTO — one row per Etsy transaction, consumed by UpsertEtsyRevenueCommand
     │   │           ├── RefreshShopTokensCommand.cs   # Update a ShopConnection's tokens after a refresh; RecordFailureAsync for failed refreshes
     │   │           ├── RenameManualShopCommand.cs    # Update ShopConnection.ShopName for a Manual shop (verifies user ownership)
     │   │           ├── UpdateShopSyncStateCommand.cs # Sync lifecycle — MarkInProgress / MarkCompleted / MarkFailed (touches sync fields only)
+    │   │           ├── UpsertEtsyExpenseCommand.cs   # Dedup by (UserId, Platform, ledger_entry_id), insert Expense + ExpenseEtsy pairs
+    │   │           ├── UpsertEtsyPayoutCommand.cs    # Dedup by (UserId, Platform, ledger_entry_id), insert Payout + PayoutEtsy pairs
     │   │           └── UpsertEtsyRevenueCommand.cs   # Dedup by (UserId, Platform, PlatformTransactionId), insert Revenue + RevenueEtsy pairs
     │   ├── Mappers/
     │   │   ├── EntityMapper.cs                 # Abstract mapper (collection methods via LINQ)
@@ -637,11 +648,14 @@ My.Talli/
     │       ├── IAuditable.cs
     │       ├── IAuditableIdentifiable.cs
     │       └── IIdentifiable.cs
-    ├── My.Talli.UnitTesting/        # xUnit unit test project
+    ├── My.Talli.UnitTesting/        # xUnit unit test project. References Domain*, Domain.DI.Lamar, AND My.Talli.Web (so Web-layer services like EtsySyncService can be unit-tested).
     │   ├── My.Talli.UnitTesting.csproj
     │   ├── Commands/
     │   │   └── Platforms/
-    │   │       └── ConnectEtsyCommandTests.cs      # Upsert behavior, multi-shop, null-field handling
+    │   │       ├── ConnectEtsyCommandTests.cs              # Upsert behavior, multi-shop, null-field handling
+    │   │       ├── UpsertEtsyExpenseCommandTests.cs        # Dedup by ledger_entry_id, mixed new/existing, cross-user isolation, nullable fields
+    │   │       ├── UpsertEtsyPayoutCommandTests.cs         # Dedup by ledger_entry_id, mixed new/existing, cross-user isolation
+    │   │       └── UpsertEtsyRevenueCommandTests.cs        # Dedup by transaction_id, mixed new/existing, cross-user isolation
     │   ├── Components/
     │   │   ├── Etsy/
     │   │   │   └── EtsyPkceGeneratorTests.cs       # PKCE challenge format, SHA256 invariant, ExtractEtsyUserId edge cases
@@ -661,20 +675,27 @@ My.Talli/
     │   ├── Infrastructure/
     │   │   ├── Builders/
     │   │   │   ├── BillingHandlerBuilder.cs        # Test setup for Stripe webhook handler + related adapters
-    │   │   │   ├── PlatformHandlerBuilder.cs       # Test setup for ConnectEtsyCommand + PlatformConnection/ShopConnection adapters
+    │   │   │   ├── EtsySyncBuilder.cs              # Test setup for EtsySyncService — wires the service with EtsyApiClientStub + CapturingLogger + Lamar-resolved Domain commands. Exposes adapters for assertions.
+    │   │   │   ├── PlatformHandlerBuilder.cs       # Test setup for ConnectEtsyCommand + Upsert{Revenue,Expense,Payout} commands + their adapters
     │   │   │   └── SignInHandlerBuilder.cs         # Test setup orchestrator (Lamar container, exposes handlers & adapters)
     │   │   ├── IoC/
     │   │   │   └── ContainerRegistry.cs        # Test IoC registry (extends Domain.DI.Lamar, swaps in stubs)
     │   │   └── Stubs/
     │   │       ├── AuditableRepositoryStub.cs  # In-memory IAuditableRepositoryAsync<T> for tests
     │   │       ├── AuditResolverStub.cs
+    │   │       ├── CapturingLogger.cs          # ILogger<T> that records (level, message) for warning-log assertions
     │   │       ├── CurrentUserServiceStub.cs
+    │   │       ├── EtsyApiClientStub.cs        # IEtsyApiClient stub — queue-based canned responses, captures every call for assertions
     │   │       └── IdentityProvider.cs         # Auto-incrementing ID generator for test entities
-    │   └── Notifications/
-    │       └── Emails/
-    │           ├── SubscriptionConfirmationEmailNotificationTests.cs
-    │           ├── WeeklySummaryEmailNotificationTests.cs
-    │           └── WelcomeEmailNotificationTests.cs
+    │   ├── Notifications/
+    │   │   └── Emails/
+    │   │       ├── SubscriptionConfirmationEmailNotificationTests.cs
+    │   │       ├── WeeklySummaryEmailNotificationTests.cs
+    │   │       └── WelcomeEmailNotificationTests.cs
+    │   └── Services/
+    │       └── Platforms/
+    │           ├── EtsySyncServiceTests.cs         # Receipt + ledger pagination, ledger classification (Sale/Refund skip, Payment→Payout, fees→Expense w/ category mapping), unknown-type warning, inline token refresh, dedup across syncs
+    │           └── EtsyTokenRefresherTests.cs      # Refresh token passthrough, access token expiry math (now+expires_in), refresh token expiry (now+90 days), rotation
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, pipeline setup (delegates to Configuration/ and Endpoints/)
@@ -771,13 +792,14 @@ My.Talli/
         │   │   ├── AcsEmailService.cs           # Azure Communication Services implementation (active)
         │   │   └── SmtpEmailService.cs          # MailKit-based implementation (local dev fallback)
         │   ├── Platforms/
-        │   │   ├── EtsyService.cs                # Thin HTTP wrapper — token exchange, token refresh, shop fetch, receipts fetch. Uses Domain.Components.Etsy helpers.
+        │   │   ├── EtsyService.cs                # Thin HTTP wrapper — implements IEtsyApiClient (token exchange, refresh, shop fetch, receipts fetch, ledger fetch). Also exposes BuildAuthorizeChallenge for OAuth (PKCE) — that method stays on the concrete class because the OAuth callback needs it directly.
         │   │   ├── EtsySettings.cs               # Etsy OAuth config POCO (ClientId, ClientSecret, RedirectUri, Scope)
-        │   │   ├── EtsySyncService.cs            # IPlatformSyncService — pulls Etsy receipts page-by-page, maps to Revenue+RevenueEtsy via Domain command
-        │   │   ├── EtsyTokenRefresher.cs         # IPlatformTokenRefresher — Etsy refresh-token rotation (90-day lifetime, 30-day proactive window)
+        │   │   ├── EtsySyncService.cs            # IPlatformSyncService — pulls receipts AND payment-account/ledger-entries page-by-page; classifies ledger entries via EtsyLedgerTypes enum and dispatches to UpsertEtsy{Revenue,Expense,Payout}Command. Unknown ledger types log a warning. Depends on IEtsyApiClient (testable seam).
+        │   │   ├── EtsyTokenRefresher.cs         # IPlatformTokenRefresher — Etsy refresh-token rotation (90-day lifetime, 30-day proactive window). Depends on IEtsyApiClient.
+        │   │   ├── IEtsyApiClient.cs             # Interface for the 5 HTTP methods on EtsyService (ExchangeCode, RefreshTokens, GetShops, GetReceipts, GetLedgerEntries) — exists so EtsySyncService + EtsyTokenRefresher can be unit-tested with a stub
         │   │   ├── IPlatformSyncService.cs       # Per-platform sync contract (Platform name + SyncShopAsync)
         │   │   ├── IPlatformTokenRefresher.cs    # Per-platform token-refresh contract (Platform name, ProactiveRefreshWindow, RefreshAsync)
-        │   │   ├── PlatformSyncResult.cs         # Result — NewRevenueRowCount, MostRecentTransactionDate, PagesFetched, ReceiptsProcessed
+        │   │   ├── PlatformSyncResult.cs         # Result — NewRevenueRowCount + NewExpenseRowCount + NewPayoutRowCount, MostRecentTransactionDate, PagesFetched, ReceiptsProcessed, LedgerPagesFetched, LedgerEntriesProcessed
         │   │   └── PlatformTokenRefreshResult.cs # Result — new AccessToken + expiry, rotated RefreshToken + expiry
         │   └── Tokens/
         │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
@@ -845,7 +867,7 @@ Domain.Data.EntityFramework ← EF Core implementation (DbContext, configs) → 
 Domain                   ← exceptions, notifications → Domain.Data, Domain.Entities
 Domain.DI.Lamar          ← IoC container registration → Domain, Domain.Data, Domain.Data.EntityFramework, Domain.Entities
 My.Talli.Web             ← Blazor Server app → Domain, Domain.Data.EntityFramework, Domain.DI.Lamar
-My.Talli.UnitTesting     ← xUnit tests → Domain, Domain.Data, Domain.DI.Lamar, Domain.Entities
+My.Talli.UnitTesting     ← xUnit tests → Domain, Domain.Data, Domain.DI.Lamar, Domain.Entities, My.Talli.Web
 ```
 
 ## Brand & Design
