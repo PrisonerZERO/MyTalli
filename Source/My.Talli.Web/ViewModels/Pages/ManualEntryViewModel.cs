@@ -3,6 +3,8 @@ namespace My.Talli.Web.ViewModels.Pages;
 using Domain.Commands.Platforms;
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
+using Domain.enums;
+using Domain.extensions;
 using Domain.Framework;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
@@ -136,14 +138,7 @@ public class ManualEntryViewModel : ComponentBase
 	public List<ManualEntryItem> Entries { get; private set; } = [];
 
 	public List<string> ExpenseCategories { get; private set; } =
-	[
-		"Listing Fee",
-		"Ad Fee",
-		"Subscription Fee",
-		"Processing Fee",
-		"Shipping Label",
-		"Other"
-	];
+		Enum.GetValues<ExpenseCategory>().Select(c => c.ToStringValue()).ToList();
 
 	public int ExpenseCurrentPage { get; private set; } = 1;
 

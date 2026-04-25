@@ -2,6 +2,8 @@ namespace My.Talli.Web.Services.Platforms;
 
 using Domain.Commands.Platforms;
 using Domain.Components;
+using Domain.enums;
+using Domain.extensions;
 using Domain.Models;
 
 /// <summary>Service</summary>
@@ -279,28 +281,28 @@ public class EtsySyncService : IPlatformSyncService
     private static string MapExpenseCategory(string? entryType)
     {
         if (string.IsNullOrEmpty(entryType))
-            return "Other";
+            return ExpenseCategory.Other.ToStringValue();
 
         if (entryType.Equals("Listing Fee", StringComparison.OrdinalIgnoreCase))
-            return "Listing Fee";
+            return ExpenseCategory.ListingFee.ToStringValue();
 
         if (entryType.Contains("Promoted", StringComparison.OrdinalIgnoreCase) ||
             entryType.Contains("Marketing", StringComparison.OrdinalIgnoreCase) ||
             entryType.Contains("Ad", StringComparison.OrdinalIgnoreCase))
-            return "Ad Fee";
+            return ExpenseCategory.AdFee.ToStringValue();
 
         if (entryType.Contains("Subscription", StringComparison.OrdinalIgnoreCase))
-            return "Subscription Fee";
+            return ExpenseCategory.SubscriptionFee.ToStringValue();
 
         if (entryType.Contains("Processing", StringComparison.OrdinalIgnoreCase) ||
             entryType.Contains("Transaction", StringComparison.OrdinalIgnoreCase))
-            return "Processing Fee";
+            return ExpenseCategory.ProcessingFee.ToStringValue();
 
         if (entryType.Contains("Postage", StringComparison.OrdinalIgnoreCase) ||
             entryType.Contains("Shipping", StringComparison.OrdinalIgnoreCase))
-            return "Shipping Label";
+            return ExpenseCategory.ShippingLabel.ToStringValue();
 
-        return "Other";
+        return ExpenseCategory.Other.ToStringValue();
     }
 
     #endregion
