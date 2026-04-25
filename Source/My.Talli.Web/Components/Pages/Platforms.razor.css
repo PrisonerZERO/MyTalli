@@ -72,7 +72,9 @@
 
 /* ─── AVAILABLE ROW ─── */
 .plat-row-available { opacity: 0.85; }
+.plat-row-coming-soon { opacity: 0.55; }
 .plat-row-type { color: var(--text-muted); font-size: 13px; }
+.plat-coming-soon { background: var(--bg-input); border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); cursor: default; display: inline-block; font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0.3px; padding: 9px 16px; text-transform: uppercase; }
 
 /* ─── SYNC ERROR ─── */
 .plat-sync-error { background: var(--danger, #e74c3c); border-radius: 50%; color: #fff; cursor: help; display: inline-block; font-size: 10px; font-weight: 700; height: 16px; line-height: 16px; margin-left: 6px; text-align: center; vertical-align: -1px; width: 16px; }

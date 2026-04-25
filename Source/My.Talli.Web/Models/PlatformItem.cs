@@ -15,6 +15,8 @@ public class PlatformItem
 
 	public string Icon { get; set; } = "";
 
+	public bool IsAvailable { get; set; }
+
 	public bool IsConnected { get; set; }
 
 	public bool IsEnabled { get; set; } = true;

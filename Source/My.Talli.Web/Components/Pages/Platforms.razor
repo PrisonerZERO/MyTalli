@@ -206,7 +206,7 @@ else
 
             @foreach (var platform in AvailablePlatforms)
             {
-                <article class="plat-row plat-row-available" aria-label="@platform.Name platform, not connected">
+                <article class="plat-row plat-row-available @(platform.IsAvailable ? "" : "plat-row-coming-soon")" aria-label="@platform.Name platform, @(platform.IsAvailable ? "not connected" : "coming soon")">
                     <div class="plat-row-identity">
                         <div class="plat-icon" style="background: @platform.BrandColor;" aria-hidden="true">
                             @RenderPlatformIcon(platform.Icon)
@@ -218,7 +218,14 @@ else
                     </div>
                     <div class="plat-row-actions">
                         <span class="plat-row-type">@platform.Subtitle</span>
-                        <button class="plat-btn-connect" aria-label="Connect @platform.Name" @onclick="() => StartConnect(platform.Name)" disabled="@(platform.Name != "Etsy")">Connect</button>
+                        @if (platform.IsAvailable)
+                        {
+                            <button class="plat-btn-connect" aria-label="Connect @platform.Name" @onclick="() => StartConnect(platform.Name)">Connect</button>
+                        }
+                        else
+                        {
+                            <span class="plat-coming-soon" title="Sync support coming soon">Coming Soon</span>
+                        }
                     </div>
                 </article>
             }
