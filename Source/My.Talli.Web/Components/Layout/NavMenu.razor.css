@@ -13,9 +13,16 @@
 /* ─── PLATFORMS GROUP ─── */
 .nav-group-label { color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; padding: 16px 14px 4px; text-transform: uppercase; }
 .nav-sub { display: flex; flex-direction: column; gap: 2px; }
+.nav-platform-group { display: flex; flex-direction: column; }
+::deep .nav-platform-group:has(a.active) { background: var(--purple-soft); border-radius: 10px; }
+::deep .nav-platform-group:has(a.active) a { color: var(--purple-primary); }
+::deep .nav-platform-group:has(a.active) a.active { background: transparent; }
 ::deep .nav-sub-link { font-size: 13px; gap: 10px; padding: 9px 14px 9px 18px; }
-::deep .nav-sub-child { color: var(--text-muted); font-size: 12px; padding: 5px 14px 5px 34px; }
+::deep .nav-sub-child { color: var(--text-muted); font-size: 12px; padding: 5px 14px 5px 34px; position: relative; }
+::deep .nav-sub-child::before { background: var(--border); bottom: 50%; content: ''; left: 22px; position: absolute; top: -2px; width: 1px; }
+::deep .nav-sub-child::after { background: var(--border); content: ''; height: 1px; left: 22px; position: absolute; top: 50%; width: 8px; }
 ::deep .nav-sub-child.active { color: var(--purple-primary); font-weight: 600; }
+::deep .nav-sub-child.active::before, ::deep .nav-sub-child.active::after { background: var(--purple-primary); }
 ::deep .platform-dot { border-radius: 50%; display: inline-block; flex-shrink: 0; height: 8px; width: 8px; }
 .nav-connect-link { align-items: center; color: var(--text-muted); display: flex; font-size: 12px; font-weight: 500; gap: 8px; padding: 7px 14px 7px 18px; text-decoration: none; transition: color 0.15s ease; }
 .nav-connect-link:hover { color: var(--purple-primary); }

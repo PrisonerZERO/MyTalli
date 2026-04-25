@@ -80,6 +80,8 @@ public class ContainerRegistry : ServiceRegistry
 		this.AddScoped<RenameManualShopCommand>();
 		this.AddScoped<UpdateLocalSubscriptionCommand>();
 		this.AddScoped<UpdateShopSyncStateCommand>();
+		this.AddScoped<UpsertEtsyExpenseCommand>();
+		this.AddScoped<UpsertEtsyPayoutCommand>();
 		this.AddScoped<UpsertEtsyRevenueCommand>();
 	}
 

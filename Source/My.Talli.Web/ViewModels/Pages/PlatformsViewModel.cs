@@ -208,6 +208,7 @@ public class PlatformsViewModel : ComponentBase
 				BrandColor = "#f56400",
 				Description = "Shop receipts, transactions & payments",
 				Icon = "etsy",
+				IsAvailable = true,
 				Name = "Etsy",
 				Subtitle = "Handmade marketplace",
 				SupportsMultipleShops = true,

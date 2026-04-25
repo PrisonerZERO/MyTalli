@@ -12,6 +12,7 @@ public static class PlatformsConfiguration
     {
         services.Configure<EtsySettings>(configuration.GetSection("Etsy"));
         services.AddHttpClient<EtsyService>();
+        services.AddScoped<IEtsyApiClient>(sp => sp.GetRequiredService<EtsyService>());
 
         // Per-platform token refreshers (rotate refresh tokens before expiry)
         services.AddScoped<EtsyTokenRefresher>();

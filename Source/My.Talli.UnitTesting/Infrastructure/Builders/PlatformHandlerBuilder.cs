@@ -21,14 +21,38 @@ public class PlatformHandlerBuilder
 
 	public ConnectEtsyCommand Command => _container.GetInstance<ConnectEtsyCommand>();
 
+	public RepositoryAdapterAsync<Expense, ENTITIES.Expense> ExpenseAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<Expense, ENTITIES.Expense>>();
+
+	public RepositoryAdapterAsync<ExpenseEtsy, ENTITIES.ExpenseEtsy> ExpenseEtsyAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<ExpenseEtsy, ENTITIES.ExpenseEtsy>>();
+
+	public RepositoryAdapterAsync<Payout, ENTITIES.Payout> PayoutAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<Payout, ENTITIES.Payout>>();
+
+	public RepositoryAdapterAsync<PayoutEtsy, ENTITIES.PayoutEtsy> PayoutEtsyAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<PayoutEtsy, ENTITIES.PayoutEtsy>>();
+
 	public RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection> PlatformConnectionAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection>>();
+
+	public RepositoryAdapterAsync<Revenue, ENTITIES.Revenue> RevenueAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<Revenue, ENTITIES.Revenue>>();
+
+	public RepositoryAdapterAsync<RevenueEtsy, ENTITIES.RevenueEtsy> RevenueEtsyAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<RevenueEtsy, ENTITIES.RevenueEtsy>>();
 
 	public RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> ShopConnectionAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
 
 	public RepositoryAdapterAsync<ShopConnectionEtsy, ENTITIES.ShopConnectionEtsy> ShopConnectionEtsyAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<ShopConnectionEtsy, ENTITIES.ShopConnectionEtsy>>();
+
+	public UpsertEtsyExpenseCommand UpsertExpense => _container.GetInstance<UpsertEtsyExpenseCommand>();
+
+	public UpsertEtsyPayoutCommand UpsertPayout => _container.GetInstance<UpsertEtsyPayoutCommand>();
+
+	public UpsertEtsyRevenueCommand UpsertRevenue => _container.GetInstance<UpsertEtsyRevenueCommand>();
 
 	#endregion
 

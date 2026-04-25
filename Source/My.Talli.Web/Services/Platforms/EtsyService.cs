@@ -6,10 +6,11 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 /// <summary>Service</summary>
-public class EtsyService
+public class EtsyService : IEtsyApiClient
 {
     #region <Constants>
 
+    public const string ShopLedgerEntriesUrlTemplate = "https://openapi.etsy.com/v3/application/shops/{0}/payment-account/ledger-entries";
     public const string ShopReceiptsUrlTemplate = "https://openapi.etsy.com/v3/application/shops/{0}/receipts";
     public const string TokenUrl = "https://api.etsy.com/v3/public/oauth/token";
     public const string UserShopsUrlTemplate = "https://openapi.etsy.com/v3/application/users/{0}/shops";
@@ -141,6 +142,35 @@ public class EtsyService
 
         var payload = await response.Content.ReadFromJsonAsync<EtsyReceiptsResponse>(cancellationToken);
         return payload ?? new EtsyReceiptsResponse();
+    }
+
+    public async Task<EtsyLedgerEntriesResponse> GetLedgerEntriesAsync(long shopId, string accessToken, long? minCreated, int limit, int offset, CancellationToken cancellationToken)
+    {
+        var baseUrl = string.Format(ShopLedgerEntriesUrlTemplate, shopId);
+        var queryParams = new List<string>
+        {
+            $"limit={limit}",
+            $"offset={offset}"
+        };
+
+        if (minCreated.HasValue)
+            queryParams.Add($"min_created={minCreated.Value}");
+
+        var url = $"{baseUrl}?{string.Join("&", queryParams)}";
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Add("x-api-key", $"{_settings.ClientId}:{_settings.ClientSecret}");
+
+        var response = await _httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogWarning("Etsy ledger fetch failed for shop {ShopId}: {Status} {Body}", shopId, response.StatusCode, body);
+            throw new InvalidOperationException($"Etsy ledger fetch failed with status {(int)response.StatusCode}.");
+        }
+
+        var payload = await response.Content.ReadFromJsonAsync<EtsyLedgerEntriesResponse>(cancellationToken);
+        return payload ?? new EtsyLedgerEntriesResponse();
     }
 
     #endregion

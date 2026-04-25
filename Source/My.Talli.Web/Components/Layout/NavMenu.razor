@@ -24,17 +24,19 @@
 
             @foreach (var platform in ConnectedPlatforms)
             {
-                <NavLink class="nav-link nav-sub-link" href="platforms">
-                    <span class="platform-dot" style="background:@platform.BrandColor" aria-hidden="true"></span>
-                    @platform.Name
-                </NavLink>
+                <div class="nav-platform-group">
+                    <a class="nav-link nav-sub-link" href="platforms">
+                        <span class="platform-dot" style="background:@platform.BrandColor" aria-hidden="true"></span>
+                        @platform.Name
+                    </a>
 
-                @if (platform.Name == "Etsy")
-                {
-                    <NavLink class="nav-link nav-sub-link nav-sub-child" href="platforms/etsy">
-                        Dashboard
-                    </NavLink>
-                }
+                    @if (platform.Name == "Etsy")
+                    {
+                        <NavLink class="nav-link nav-sub-link nav-sub-child" href="platforms/etsy">
+                            Dashboard
+                        </NavLink>
+                    }
+                </div>
             }
 
             <a class="nav-connect-link" href="platforms">
