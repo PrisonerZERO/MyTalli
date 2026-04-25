@@ -811,11 +811,17 @@ public class ManualEntryViewModel : ComponentBase
 		try { await NewShopNameRef.FocusAsync(); } catch { /* element may not be rendered yet */ }
 	}
 
+	public Task StartEditActiveShopAsync()
+	{
+		return ActiveShopConnectionId.HasValue ? StartEditShopAsync(ActiveShopConnectionId.Value) : Task.CompletedTask;
+	}
+
 	public async Task StartEditShopAsync(long shopId)
 	{
 		var shop = Shops.FirstOrDefault(s => s.Id == shopId);
 		if (shop is null) return;
 
+		IsShopDropdownOpen = false;
 		EditingShopId = shopId;
 		EditShopName = shop.ShopName;
 
