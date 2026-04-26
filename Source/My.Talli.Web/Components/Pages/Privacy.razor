@@ -1,0 +1,215 @@
+@page "/privacy"
+@layout Layout.LandingLayout
+@inherits My.Talli.Web.ViewModels.Pages.PrivacyViewModel
+
+<PageTitle>Privacy Policy — MyTalli</PageTitle>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<div class="policy-page">
+    <BrandHeader>
+        <a class="back-link" href="@BackLinkHref">@BackLinkText</a>
+    </BrandHeader>
+
+    <main id="main">
+        <div class="policy-shell">
+            <h1 class="page-heading">Privacy Policy</h1>
+            <p class="page-sub">How MyTalli handles your data — last updated @LastUpdated</p>
+
+            <div class="policy-card">
+                <p class="policy-effective"><strong>Effective:</strong> @EffectiveDate</p>
+
+                <p class="policy-intro">
+                    MyTalli LLC ("MyTalli", "we", "us") provides a dashboard that aggregates revenue data
+                    from third-party platforms you connect. This policy explains what we collect, how we
+                    use it, and the choices you have. We aim to keep this short and plain. If anything
+                    here is unclear, email <a href="mailto:hello@mytalli.com">hello@mytalli.com</a> and
+                    we'll explain.
+                </p>
+
+                <section aria-labelledby="who-we-are">
+                    <h2 id="who-we-are">Who we are</h2>
+                    <p>
+                        MyTalli is operated by MyTalli LLC, a Texas limited liability company.
+                        Mailing address: 5423 Oakhaven Ln, Houston, TX 77091, USA.
+                        Contact: <a href="mailto:hello@mytalli.com">hello@mytalli.com</a>.
+                    </p>
+                </section>
+
+                <section aria-labelledby="what-we-collect">
+                    <h2 id="what-we-collect">What we collect</h2>
+                    <ul>
+                        <li>
+                            <strong>Account info from your sign-in provider.</strong> When you sign in with
+                            Google, Apple, or Microsoft, we receive your name, email address, and the
+                            provider's user ID. We do not store passwords — those stay with the provider.
+                        </li>
+                        <li>
+                            <strong>Connected platform data.</strong> When you connect a platform
+                            (Stripe, Etsy, Gumroad, PayPal, Shopify), we store the OAuth access and
+                            refresh tokens that platform issues, and we read your sales, fees, and payouts
+                            so we can display them. We never receive your platform password.
+                        </li>
+                        <li>
+                            <strong>Manual entries.</strong> Anything you type into Manual Entry — revenue,
+                            expenses, payouts, notes, shop names — is stored on your account.
+                        </li>
+                        <li>
+                            <strong>Billing info.</strong> Paid plans are processed by Stripe. We store
+                            your Stripe customer ID and subscription status. We never see or store your
+                            full card number — Stripe handles all card data on its own PCI-compliant
+                            systems.
+                        </li>
+                        <li>
+                            <strong>Email preferences.</strong> Your opt-in/out choices for the weekly
+                            summary, subscription confirmation, and other emails.
+                        </li>
+                        <li>
+                            <strong>Server logs.</strong> Standard request logs (IP address, user agent,
+                            timestamps, and error traces) for security, debugging, and abuse prevention.
+                        </li>
+                    </ul>
+                </section>
+
+                <section aria-labelledby="how-we-use">
+                    <h2 id="how-we-use">How we use it</h2>
+                    <ul>
+                        <li>To run the service — display your revenue, calculate goals, send the emails you've opted into.</li>
+                        <li>To authenticate you and keep your account secure.</li>
+                        <li>To process subscription billing through Stripe.</li>
+                        <li>To investigate errors, abuse, or security incidents.</li>
+                        <li>To comply with tax, accounting, and legal obligations.</li>
+                    </ul>
+                    <p>
+                        We do not sell your data. We do not run third-party advertising. We do not
+                        share your revenue or transaction data with anyone except the service providers
+                        listed below.
+                    </p>
+                </section>
+
+                <section aria-labelledby="how-we-share">
+                    <h2 id="how-we-share">Who we share it with</h2>
+                    <ul>
+                        <li>
+                            <strong>Microsoft Azure</strong> — hosts the application and database
+                            (Central US region) and sends our transactional emails through Azure
+                            Communication Services.
+                        </li>
+                        <li>
+                            <strong>Stripe</strong> — processes payments and stores cardholder data on
+                            its own infrastructure.
+                        </li>
+                        <li>
+                            <strong>Google, Apple, Microsoft</strong> — only during sign-in, to verify
+                            your identity.
+                        </li>
+                        <li>
+                            <strong>Connected platforms (Stripe, Etsy, Gumroad, PayPal, Shopify).</strong>
+                            Data flows from these platforms into MyTalli only — we never push your data
+                            back to them.
+                        </li>
+                        <li>
+                            <strong>Google Analytics</strong> — runs only on the public landing page
+                            (mytalli.com) for visitor counts. It is not loaded on any signed-in page.
+                        </li>
+                        <li>
+                            <strong>Legal requirements.</strong> If we receive a valid legal request
+                            (subpoena, court order), we may be required to share data. We will push back
+                            on overbroad requests and notify you when we are legally allowed to.
+                        </li>
+                    </ul>
+                </section>
+
+                <section aria-labelledby="security">
+                    <h2 id="security">Security</h2>
+                    <p>
+                        Your data is encrypted in transit (TLS) and at rest (Azure SQL Database
+                        Transparent Data Encryption). OAuth tokens for connected platforms are stored
+                        in our database with the same encryption-at-rest protection. We use OAuth
+                        instead of passwords specifically so that compromising MyTalli does not expose
+                        your platform credentials.
+                    </p>
+                    <p>
+                        No system is perfectly secure. If we ever experience a breach affecting your
+                        data, we will notify you by email as required by law.
+                    </p>
+                </section>
+
+                <section aria-labelledby="cookies">
+                    <h2 id="cookies">Cookies</h2>
+                    <p>
+                        We use only essential cookies — an authentication cookie to keep you signed in,
+                        and an antiforgery cookie to protect form submissions. We do not use advertising
+                        or cross-site tracking cookies. The public landing page also uses Google
+                        Analytics, which can be blocked with any standard browser extension or
+                        Do Not Track setting.
+                    </p>
+                </section>
+
+                <section aria-labelledby="your-rights">
+                    <h2 id="your-rights">Your rights and choices</h2>
+                    <ul>
+                        <li><strong>See your data:</strong> visit Settings to review your account info, or use the in-app pages to view your revenue, expenses, and payouts.</li>
+                        <li><strong>Correct your data:</strong> edit your name and preferences in Settings; edit Manual Entry rows on the Manual Entry page.</li>
+                        <li><strong>Pause a connection:</strong> stop syncing for any connected platform from the Platforms page.</li>
+                        <li><strong>Opt out of email:</strong> use the unsubscribe link in any email or change preferences in Settings.</li>
+                        <li><strong>Cancel your subscription:</strong> manage or cancel from My Plan; access continues to the end of your billing period.</li>
+                        <li><strong>Delete your account:</strong> email <a href="mailto:hello@mytalli.com">hello@mytalli.com</a>. We will delete your data within 30 days, except records we are required to keep for tax or legal reasons (such as billing records).</li>
+                    </ul>
+                    <p>
+                        If you are in California, the EU, the UK, or another jurisdiction with extra
+                        privacy rights (such as the right to know, the right to delete, the right to
+                        non-discrimination, or the right to data portability), you can exercise those
+                        rights by emailing us. We will respond within the timeline your law requires.
+                    </p>
+                </section>
+
+                <section aria-labelledby="retention">
+                    <h2 id="retention">How long we keep data</h2>
+                    <ul>
+                        <li>Account data: while your account is active, plus up to 30 days after a deletion request.</li>
+                        <li>Server logs: up to 90 days.</li>
+                        <li>Billing records: up to 7 years, as required for tax and audit purposes.</li>
+                    </ul>
+                </section>
+
+                <section aria-labelledby="children">
+                    <h2 id="children">Children</h2>
+                    <p>
+                        MyTalli is not intended for children under 13 (or 16 in jurisdictions where
+                        that is the higher age of digital consent). We do not knowingly collect data
+                        from children. If you believe a child has signed up, email us and we will
+                        delete the account.
+                    </p>
+                </section>
+
+                <section aria-labelledby="international">
+                    <h2 id="international">International users</h2>
+                    <p>
+                        MyTalli is hosted in the United States. By using the service, you consent to
+                        the transfer and processing of your data in the United States, which may have
+                        different data-protection laws than your country.
+                    </p>
+                </section>
+
+                <section aria-labelledby="changes">
+                    <h2 id="changes">Changes to this policy</h2>
+                    <p>
+                        We will update the "Last updated" date at the top when we change this policy.
+                        For material changes (those that meaningfully affect what we do with your data),
+                        we will notify you by email at the address on your account.
+                    </p>
+                </section>
+
+                <section aria-labelledby="contact">
+                    <h2 id="contact">Contact</h2>
+                    <p>
+                        Questions, requests, or concerns? Email
+                        <a href="mailto:hello@mytalli.com">hello@mytalli.com</a> or write to MyTalli LLC,
+                        5423 Oakhaven Ln, Houston, TX 77091, USA.
+                    </p>
+                </section>
+            </div>
+        </div>
+    </main>
+</div>

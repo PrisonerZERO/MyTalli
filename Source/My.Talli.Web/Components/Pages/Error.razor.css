@@ -1,5 +1,5 @@
 /* ─── ERROR PAGE ─── */
-.error-page { background: #f8f7fc; min-height: 100vh; overflow: hidden; padding: 0 0 80px; position: relative; }
+.error-page { background: var(--bg-page); min-height: 100vh; overflow: hidden; padding: 0 0 80px; position: relative; }
 .error-shell { margin: 0 auto; max-width: 520px; padding: 0 24px; position: relative; text-align: center; z-index: 2; }
 ::deep .hero-bg { height: 600px !important; }
 

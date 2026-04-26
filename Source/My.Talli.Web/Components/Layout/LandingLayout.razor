@@ -3,8 +3,14 @@
 @Body
 
 <footer class="site-footer" role="contentinfo">
-    <p>&copy; @LayoutHelper.CurrentYear MyTalli v@(LayoutHelper.VersionNumber) &mdash; All rights reserved.</p>
-    <a href="mailto:hello@mytalli.com">hello@mytalli.com</a>
+    <p>&copy; @LayoutHelper.CurrentYear MyTalli LLC v@(LayoutHelper.VersionNumber) &mdash; All rights reserved.</p>
+    <nav class="site-footer-links" aria-label="Legal">
+        <a href="/privacy">Privacy</a>
+        <span aria-hidden="true">&middot;</span>
+        <a href="/terms">Terms</a>
+        <span aria-hidden="true">&middot;</span>
+        <a href="mailto:hello@mytalli.com">hello@mytalli.com</a>
+    </nav>
 </footer>
 
 <div id="blazor-error-ui" data-nosnippet>

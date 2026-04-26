@@ -53,6 +53,33 @@ html, body { -webkit-font-smoothing: antialiased; color: var(--text-primary); fo
 .spoke-tab.active { border-bottom-color: #8b5cf6; color: #fff; font-weight: 600; }
 @media (max-width: 641px) { .spoke-tabs { margin: 0 -16px 24px; padding: 0 16px; } .spoke-tab { font-size: 13px; padding: 12px 14px 10px; } }
 
+/* Policy Pages (shared by /privacy and /terms) */
+.policy-page { background: var(--bg-page); min-height: 100vh; overflow: hidden; padding: 0 0 80px; position: relative; }
+.policy-shell { margin: 0 auto; max-width: 760px; padding: 0 20px; position: relative; z-index: 2; }
+.policy-shell .page-heading { color: #fff; font-size: 32px; font-weight: 700; letter-spacing: -0.5px; margin: 0 0 8px; padding-top: 24px; text-align: center; }
+.policy-shell .page-sub { color: rgba(255, 255, 255, 0.75); font-size: 15px; line-height: 1.6; margin: 0 0 36px; text-align: center; }
+.policy-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 4px 24px var(--shadow-card); color: var(--text-primary); font-size: 15px; line-height: 1.7; padding: 48px 56px; }
+.policy-effective { background: var(--purple-soft); border-left: 3px solid var(--purple-primary); border-radius: 4px; color: var(--text-secondary); font-size: 14px; margin: 0 0 28px; padding: 10px 14px; }
+.policy-intro { color: var(--text-primary); font-size: 15px; margin: 0 0 8px; }
+.policy-card section { margin-top: 36px; }
+.policy-card h2 { color: var(--purple-primary); font-size: 20px; font-weight: 700; letter-spacing: -0.2px; margin: 0 0 14px; }
+[data-theme="dark"] .policy-card h2 { color: var(--purple-lavender); }
+.policy-card p { margin: 0 0 14px; }
+.policy-card p:last-child { margin-bottom: 0; }
+.policy-card ul { margin: 0 0 14px; padding-left: 22px; }
+.policy-card li { margin-bottom: 8px; }
+.policy-card li:last-child { margin-bottom: 0; }
+.policy-card a { color: var(--purple-primary); text-decoration: underline; text-underline-offset: 2px; }
+.policy-card a:hover { color: var(--purple-hover); }
+[data-theme="dark"] .policy-card a { color: var(--purple-lavender); }
+[data-theme="dark"] .policy-card a:hover { color: #c4b5fd; }
+@media (max-width: 640.98px) {
+    .policy-shell { padding: 0 16px; }
+    .policy-shell .page-heading { font-size: 26px; }
+    .policy-card { padding: 28px 22px; font-size: 14px; }
+    .policy-card h2 { font-size: 18px; }
+}
+
 /* Visually Hidden (screen reader only) */
 .sr-only { border: 0; clip: rect(0,0,0,0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; width: 1px; }
 a, .btn-link { color: var(--purple-primary); }

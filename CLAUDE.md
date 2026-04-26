@@ -761,12 +761,14 @@ My.Talli/
         │   │   ├── MyPlan.razor.css
         │   │   ├── Platforms.razor       # Platform connections (route: /platforms)
         │   │   ├── Platforms.razor.css
+        │   │   ├── Privacy.razor         # Privacy Policy (route: /privacy, LandingLayout, no scoped CSS — shared `.policy-*` in app.css)
         │   │   ├── Settings.razor        # Account settings (route: /settings)
         │   │   ├── Settings.razor.css
         │   │   ├── SignIn.razor          # Sign-in page (route: /signin)
         │   │   ├── SignIn.razor.css
         │   │   ├── SuggestionBox.razor       # Suggestion box (route: /suggestions)
         │   │   ├── SuggestionBox.razor.css
+        │   │   ├── Terms.razor           # Terms of Service (route: /terms, LandingLayout, no scoped CSS — shared `.policy-*` in app.css)
         │   │   ├── Unsubscribe.razor      # Email preference management (route: /unsubscribe?token=xxx)
         │   │   ├── Unsubscribe.razor.css
         │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
@@ -832,9 +834,11 @@ My.Talli/
         │   │   ├── ManualEntryViewModel.cs
         │   │   ├── MyPlanViewModel.cs
         │   │   ├── PlatformsViewModel.cs
+        │   │   ├── PrivacyViewModel.cs
         │   │   ├── SettingsViewModel.cs
         │   │   ├── SignInViewModel.cs
         │   │   ├── SuggestionBoxViewModel.cs
+        │   │   ├── TermsViewModel.cs
         │   │   └── UnsubscribeViewModel.cs
         │   └── Shared/
         │       ├── BrandHeaderViewModel.cs
@@ -1046,7 +1050,7 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 
 - **Every page** in the app (except the Landing Page) must include a purple gradient swoosh hero section for consistent branding.
 - Pages using `MainLayout` (sidebar pages like Dashboard, Suggestions) use an **inline swoosh** hero within the page markup.
-- Pages using `LandingLayout` (Sign-In, Error) use the **`BrandHeader`** component.
+- Pages using `LandingLayout` (Sign-In, Error, Privacy, Terms) use the **`BrandHeader`** component.
 - See the "Page Branding — Purple Swoosh" table in the Brand & Design section for the full mapping.
 - **Admin page is the reference implementation** for new sidebar pages. Match its SVG (`viewBox="0 0 1000 600"`, swoosh path, gradient fill), hero-bg (`height: calc(100% + 60px)`), and SVG CSS (`min-height: 280px`) exactly. Pages with hero stats use `margin: -32px -40px 0` and `padding: 24px 40px 40px`; pages without stats use `margin: -32px -40px 60px` and `padding: 24px 40px 48px`. **Exception:** Pages with spoke tabs (Dashboard, Manual Entry) use `margin: -32px -40px 0` and `padding: 24px 40px 120px` — the extra bottom padding gives the swoosh curve room to display before the tab bar.
 - **Hero stat numbers** use colorized `nth-child` styling: 1st stat → lavender `#a78bfa`, 2nd stat → contextual color (green `#2ecc71` for money/success, gold `#f5c842` for counts), 3rd stat → white `#fff`. Font size is `22px` on all pages — keep this consistent. Labels are `rgba(255, 255, 255, 0.6)` at `12px`.
@@ -1062,6 +1066,15 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 - **Hero padding for tab pages:** Pages with spoke tabs use `120px` bottom hero padding to give the swoosh curve room before the tab bar starts. The hero `margin-bottom` is `0` so the tab bar sits flush below.
 - **ViewModel pattern:** `ActiveTab` (string property, default varies by page), `SelectTab(string tab)` method. Page content wrapped in `@if (ActiveTab == "xxx")` blocks with `role="tabpanel"` and `aria-label`.
 - **`PageTitle`** updates based on active tab (e.g., "Dashboard — Revenue — MyTalli").
+
+### Dark Mode
+
+- **Auth-gated.** Dark mode applies only to authenticated users. Logged-out visitors always render light, regardless of any cookie state.
+- **Always-light routes:** `/` (Landing) and `/signin` — `theme.js` short-circuits on these paths even for authenticated users, because their CSS is intentionally hardcoded to light. If you add a new public/anonymous route whose CSS is not theme-aware, add it to `isAlwaysLightRoute()` in `theme.js`.
+- **Theme-aware pages:** Every page that an authenticated user can reach must use `var(--*)` tokens — all `MainLayout` pages, plus `Error.razor.css` and `Unsubscribe.razor.css`. New page CSS must follow the same pattern: never hardcode `#fff`, `#1a1a2e`, `#e0dce8`, `#6c5ce7`, etc. Use the tokens defined in `app.css` (`--bg-page`, `--bg-card`, `--border`, `--text-primary`, `--text-muted`, `--text-secondary`, `--purple-primary`, `--purple-hover`, `--success`, `--danger`, etc.). Content sitting on the purple swoosh keeps hardcoded white-on-purple — purple is purple in both themes.
+- **Cookie is the sole source of truth.** `talli-theme` (`"system"` | `"light"` | `"dark"`) is set by (1) OAuth handlers (`Google/Microsoft/AppleAuthenticationHandler.cs`) on sign-in, mirroring `UserPreferences.DarkMode`; (2) the Settings page on theme change via `themeManager.apply()`. It is deleted by (3) the `/api/auth/logout` endpoint and (4) **`CurrentUserMiddleware` on every unauthenticated request** — so a stale cookie from a prior session, an expired auth ticket, or a browser stash cannot survive. The middleware is the load-bearing gate keeping logged-out users on light mode.
+- **No localStorage fallback.** `theme.js` reads only the cookie. An earlier version had a `localStorage` fallback; it was removed because localStorage is not server-controllable and would let dark mode survive sign-out.
+- **System mode listener:** When `data-theme-mode="system"`, `theme.js` listens for OS `prefers-color-scheme` changes and re-applies in real time.
 
 ### Platform Connections
 

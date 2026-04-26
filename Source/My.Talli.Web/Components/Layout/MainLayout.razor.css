@@ -6,6 +6,7 @@ main { flex: 1; min-height: 100vh; position: relative; }
 .site-footer p { color: var(--text-muted); font-size: 12px; margin: 0; }
 .site-footer a { color: var(--text-muted); font-size: 12px; text-decoration: none; }
 .site-footer a:hover { color: var(--purple-primary); }
+.site-footer-links { align-items: center; color: var(--text-disabled); display: flex; font-size: 12px; gap: 10px; }
 
 /* Mobile-only elements — hidden on desktop */
 .mobile-hamburger { display: none; }
@@ -15,6 +16,7 @@ main { flex: 1; min-height: 100vh; position: relative; }
     .page { flex-direction: column; }
     .content { padding: 24px 20px 32px; }
     .site-footer { flex-direction: column; gap: 8px; padding: 20px; text-align: center; }
+    .site-footer-links { flex-wrap: wrap; justify-content: center; }
 
     /* Hamburger button */
     .mobile-hamburger { align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); color: var(--text-primary); cursor: pointer; display: flex; justify-content: center; left: 16px; padding: 8px; position: fixed; top: 16px; z-index: 1001; }
