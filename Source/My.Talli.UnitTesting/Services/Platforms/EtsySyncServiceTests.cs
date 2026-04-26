@@ -220,8 +220,8 @@ public class EtsySyncServiceTests
 
         var stored = await builder.ShopConnectionAdapter.GetByIdAsync(shop.Id);
         Assert.NotNull(stored);
-        Assert.Equal("new-access", stored!.AccessToken);
-        Assert.Equal("new-refresh", stored.RefreshToken);
+        Assert.Equal("new-access", builder.TokenProtector.Unprotect(stored!.AccessToken));
+        Assert.Equal("new-refresh", builder.TokenProtector.Unprotect(stored.RefreshToken!));
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 namespace My.Talli.Domain.Commands.Platforms;
 
 using Domain.Components;
+using Domain.Components.Tokens;
 using Domain.Models;
 using Domain.Repositories;
 
@@ -21,16 +22,18 @@ public class ConnectEtsyCommand
     private readonly RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection> _platformConnectionAdapter;
     private readonly RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> _shopConnectionAdapter;
     private readonly RepositoryAdapterAsync<ShopConnectionEtsy, ENTITIES.ShopConnectionEtsy> _shopConnectionEtsyAdapter;
+    private readonly IShopTokenProtector _tokenProtector;
 
     #endregion
 
     #region <Constructors>
 
-    public ConnectEtsyCommand(RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection> platformConnectionAdapter, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter, RepositoryAdapterAsync<ShopConnectionEtsy, ENTITIES.ShopConnectionEtsy> shopConnectionEtsyAdapter)
+    public ConnectEtsyCommand(RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection> platformConnectionAdapter, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter, RepositoryAdapterAsync<ShopConnectionEtsy, ENTITIES.ShopConnectionEtsy> shopConnectionEtsyAdapter, IShopTokenProtector tokenProtector)
     {
         _platformConnectionAdapter = platformConnectionAdapter;
         _shopConnectionAdapter = shopConnectionAdapter;
         _shopConnectionEtsyAdapter = shopConnectionEtsyAdapter;
+        _tokenProtector = tokenProtector;
     }
 
     #endregion
@@ -84,11 +87,14 @@ public class ConnectEtsyCommand
         var existing = (await _shopConnectionAdapter.FindAsync(s => s.PlatformConnectionId == platformConnectionId && s.PlatformShopId == platformShopId)).FirstOrDefault();
         var wasNewShop = existing is null;
 
+        var protectedAccessToken = _tokenProtector.Protect(tokens.AccessToken);
+        var protectedRefreshToken = string.IsNullOrEmpty(tokens.RefreshToken) ? tokens.RefreshToken : _tokenProtector.Protect(tokens.RefreshToken);
+
         if (existing is null)
         {
             existing = await _shopConnectionAdapter.InsertAsync(new ShopConnection
             {
-                AccessToken = tokens.AccessToken,
+                AccessToken = protectedAccessToken,
                 ConsecutiveFailures = 0,
                 IsActive = true,
                 IsEnabled = true,
@@ -96,7 +102,7 @@ public class ConnectEtsyCommand
                 PlatformAccountId = platformAccountId,
                 PlatformConnectionId = platformConnectionId,
                 PlatformShopId = platformShopId,
-                RefreshToken = tokens.RefreshToken,
+                RefreshToken = protectedRefreshToken,
                 RefreshTokenExpiryDateTime = refreshExpiry,
                 ShopName = shop.ShopName ?? string.Empty,
                 Status = "Pending",
@@ -106,10 +112,10 @@ public class ConnectEtsyCommand
         }
         else
         {
-            existing.AccessToken = tokens.AccessToken;
+            existing.AccessToken = protectedAccessToken;
             existing.IsActive = true;
             existing.PlatformAccountId = platformAccountId;
-            existing.RefreshToken = tokens.RefreshToken;
+            existing.RefreshToken = protectedRefreshToken;
             existing.RefreshTokenExpiryDateTime = refreshExpiry;
             existing.ShopName = shop.ShopName ?? existing.ShopName;
             existing.TokenExpiryDateTime = accessExpiry;

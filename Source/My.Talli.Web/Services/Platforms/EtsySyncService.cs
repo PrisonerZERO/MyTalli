@@ -2,6 +2,7 @@ namespace My.Talli.Web.Services.Platforms;
 
 using Domain.Commands.Platforms;
 using Domain.Components;
+using Domain.Components.Tokens;
 using Domain.enums;
 using Domain.extensions;
 using Domain.Models;
@@ -27,6 +28,7 @@ public class EtsySyncService : IPlatformSyncService
     private readonly EtsyTokenRefresher _etsyTokenRefresher;
     private readonly ILogger<EtsySyncService> _logger;
     private readonly RefreshShopTokensCommand _refreshShopTokensCommand;
+    private readonly IShopTokenProtector _tokenProtector;
     private readonly UpsertEtsyExpenseCommand _upsertEtsyExpenseCommand;
     private readonly UpsertEtsyPayoutCommand _upsertEtsyPayoutCommand;
     private readonly UpsertEtsyRevenueCommand _upsertEtsyRevenueCommand;
@@ -35,12 +37,13 @@ public class EtsySyncService : IPlatformSyncService
 
     #region <Constructors>
 
-    public EtsySyncService(IEtsyApiClient etsyService, EtsyTokenRefresher etsyTokenRefresher, ILogger<EtsySyncService> logger, RefreshShopTokensCommand refreshShopTokensCommand, UpsertEtsyExpenseCommand upsertEtsyExpenseCommand, UpsertEtsyPayoutCommand upsertEtsyPayoutCommand, UpsertEtsyRevenueCommand upsertEtsyRevenueCommand)
+    public EtsySyncService(IEtsyApiClient etsyService, EtsyTokenRefresher etsyTokenRefresher, ILogger<EtsySyncService> logger, RefreshShopTokensCommand refreshShopTokensCommand, IShopTokenProtector tokenProtector, UpsertEtsyExpenseCommand upsertEtsyExpenseCommand, UpsertEtsyPayoutCommand upsertEtsyPayoutCommand, UpsertEtsyRevenueCommand upsertEtsyRevenueCommand)
     {
         _etsyService = etsyService;
         _etsyTokenRefresher = etsyTokenRefresher;
         _logger = logger;
         _refreshShopTokensCommand = refreshShopTokensCommand;
+        _tokenProtector = tokenProtector;
         _upsertEtsyExpenseCommand = upsertEtsyExpenseCommand;
         _upsertEtsyPayoutCommand = upsertEtsyPayoutCommand;
         _upsertEtsyRevenueCommand = upsertEtsyRevenueCommand;
@@ -145,18 +148,17 @@ public class EtsySyncService : IPlatformSyncService
                            shop.TokenExpiryDateTime <= DateTime.UtcNow.Add(AccessTokenSafetyMargin);
 
         if (!needsRefresh)
-            return shop.AccessToken;
+            return _tokenProtector.Unprotect(shop.AccessToken);
 
         if (string.IsNullOrEmpty(shop.RefreshToken))
             throw new InvalidOperationException($"Shop {shop.Id} has no refresh token — cannot sync.");
 
         _logger.LogInformation("Refreshing Etsy access token inline for shop {ShopId} before sync.", shop.Id);
 
-        var refreshed = await _etsyTokenRefresher.RefreshAsync(shop.RefreshToken, cancellationToken);
+        var refreshTokenPlaintext = _tokenProtector.Unprotect(shop.RefreshToken);
+        var refreshed = await _etsyTokenRefresher.RefreshAsync(refreshTokenPlaintext, cancellationToken);
         await _refreshShopTokensCommand.ExecuteAsync(shop.Id, refreshed.AccessToken, refreshed.AccessTokenExpiryDateTime, refreshed.RefreshToken, refreshed.RefreshTokenExpiryDateTime);
 
-        shop.AccessToken = refreshed.AccessToken;
-        shop.RefreshToken = refreshed.RefreshToken ?? shop.RefreshToken;
         shop.TokenExpiryDateTime = refreshed.AccessTokenExpiryDateTime;
         shop.RefreshTokenExpiryDateTime = refreshed.RefreshTokenExpiryDateTime;
 

@@ -11,9 +11,12 @@
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Apple" Version="9.*" />
     <PackageReference Include="Azure.Communication.Email" Version="1.1.0" />
+    <PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.*" />
+    <PackageReference Include="Azure.Identity" Version="1.*" />
     <PackageReference Include="ElmahCore" Version="2.1.*" />
     <PackageReference Include="ElmahCore.Sql" Version="2.1.*" />
     <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="14.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.*" />
     <PackageReference Include="MailKit" Version="4.*" />

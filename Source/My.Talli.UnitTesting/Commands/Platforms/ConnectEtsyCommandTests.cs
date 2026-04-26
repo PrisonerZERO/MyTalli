@@ -33,9 +33,21 @@ public class ConnectEtsyCommandTests
         await builder.Command.ExecuteAsync(42, tokens, "1226690893", [BuildShop()]);
 
         var shop = Assert.Single(await builder.ShopConnectionAdapter.GetAllAsync());
-        Assert.Equal("access-abc", shop.AccessToken);
-        Assert.Equal("refresh-xyz", shop.RefreshToken);
+        Assert.Equal("access-abc", builder.TokenProtector.Unprotect(shop.AccessToken));
+        Assert.Equal("refresh-xyz", builder.TokenProtector.Unprotect(shop.RefreshToken!));
         Assert.Equal("1226690893", shop.PlatformAccountId);
+    }
+
+    [Fact]
+    public async Task Execute_NewConnection_StoredTokensAreEncrypted()
+    {
+        var builder = new PlatformHandlerBuilder();
+
+        await builder.Command.ExecuteAsync(42, BuildTokens("plain-access", "plain-refresh"), "1226690893", [BuildShop()]);
+
+        var shop = Assert.Single(await builder.ShopConnectionAdapter.GetAllAsync());
+        Assert.NotEqual("plain-access", shop.AccessToken);
+        Assert.NotEqual("plain-refresh", shop.RefreshToken);
     }
 
     [Fact]
@@ -62,8 +74,8 @@ public class ConnectEtsyCommandTests
         await builder.Command.ExecuteAsync(1, BuildTokens("new-access", "new-refresh"), "user", [BuildShop()]);
 
         var shop = Assert.Single(await builder.ShopConnectionAdapter.GetAllAsync());
-        Assert.Equal("new-access", shop.AccessToken);
-        Assert.Equal("new-refresh", shop.RefreshToken);
+        Assert.Equal("new-access", builder.TokenProtector.Unprotect(shop.AccessToken));
+        Assert.Equal("new-refresh", builder.TokenProtector.Unprotect(shop.RefreshToken!));
     }
 
     [Fact]
@@ -78,9 +90,9 @@ public class ConnectEtsyCommandTests
 
         var shops = (await builder.ShopConnectionAdapter.GetAllAsync()).OrderBy(s => s.PlatformShopId).ToList();
         Assert.Equal(2, shops.Count);
-        Assert.Equal("login-a-access", shops[0].AccessToken);
+        Assert.Equal("login-a-access", builder.TokenProtector.Unprotect(shops[0].AccessToken));
         Assert.Equal("etsy-user-a", shops[0].PlatformAccountId);
-        Assert.Equal("login-b-access", shops[1].AccessToken);
+        Assert.Equal("login-b-access", builder.TokenProtector.Unprotect(shops[1].AccessToken));
         Assert.Equal("etsy-user-b", shops[1].PlatformAccountId);
     }
 

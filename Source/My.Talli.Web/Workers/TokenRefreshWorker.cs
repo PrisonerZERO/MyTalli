@@ -1,6 +1,7 @@
 namespace My.Talli.Web.Workers;
 
 using Domain.Commands.Platforms;
+using Domain.Components.Tokens;
 using Domain.Data.Interfaces;
 using Domain.Models;
 using Domain.Repositories;
@@ -72,17 +73,18 @@ public class TokenRefreshWorker : BackgroundService
         var shopAdapter = sp.GetRequiredService<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
         var refreshCommand = sp.GetRequiredService<RefreshShopTokensCommand>();
         var currentUserService = sp.GetRequiredService<ICurrentUserService>();
+        var tokenProtector = sp.GetRequiredService<IShopTokenProtector>();
 
         foreach (var refresher in refreshers)
         {
             if (stoppingToken.IsCancellationRequested)
                 return;
 
-            await RefreshPlatformAsync(refresher, shopAdapter, refreshCommand, currentUserService, stoppingToken);
+            await RefreshPlatformAsync(refresher, shopAdapter, refreshCommand, currentUserService, tokenProtector, stoppingToken);
         }
     }
 
-    private async Task RefreshPlatformAsync(IPlatformTokenRefresher refresher, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopAdapter, RefreshShopTokensCommand refreshCommand, ICurrentUserService currentUserService, CancellationToken stoppingToken)
+    private async Task RefreshPlatformAsync(IPlatformTokenRefresher refresher, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopAdapter, RefreshShopTokensCommand refreshCommand, ICurrentUserService currentUserService, IShopTokenProtector tokenProtector, CancellationToken stoppingToken)
     {
         var platform = refresher.Platform;
         var threshold = DateTime.UtcNow.Add(refresher.ProactiveRefreshWindow);
@@ -106,7 +108,7 @@ public class TokenRefreshWorker : BackgroundService
 
             // Audit fields require an authenticated user — stamp as the shop's owner
             currentUserService.Set(shop.UserId, string.Empty);
-            try { await RefreshOneShopAsync(shop, refresher, refreshCommand, stoppingToken); }
+            try { await RefreshOneShopAsync(shop, refresher, refreshCommand, tokenProtector, stoppingToken); }
             finally { currentUserService.Clear(); }
 
             try { await Task.Delay(PerShopDelay, stoppingToken); }
@@ -114,11 +116,12 @@ public class TokenRefreshWorker : BackgroundService
         }
     }
 
-    private async Task RefreshOneShopAsync(ShopConnection shop, IPlatformTokenRefresher refresher, RefreshShopTokensCommand refreshCommand, CancellationToken stoppingToken)
+    private async Task RefreshOneShopAsync(ShopConnection shop, IPlatformTokenRefresher refresher, RefreshShopTokensCommand refreshCommand, IShopTokenProtector tokenProtector, CancellationToken stoppingToken)
     {
         try
         {
-            var result = await refresher.RefreshAsync(shop.RefreshToken!, stoppingToken);
+            var refreshTokenPlaintext = tokenProtector.Unprotect(shop.RefreshToken!);
+            var result = await refresher.RefreshAsync(refreshTokenPlaintext, stoppingToken);
             await refreshCommand.ExecuteAsync(shop.Id, result.AccessToken, result.AccessTokenExpiryDateTime, result.RefreshToken, result.RefreshTokenExpiryDateTime);
             _logger.LogInformation("Refreshed {Platform} tokens for shop {ShopId}.", refresher.Platform, shop.Id);
         }
