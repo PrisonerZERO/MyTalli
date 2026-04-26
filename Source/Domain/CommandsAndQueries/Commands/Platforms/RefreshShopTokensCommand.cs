@@ -1,5 +1,6 @@
 namespace My.Talli.Domain.Commands.Platforms;
 
+using Domain.Components.Tokens;
 using Domain.Models;
 using Domain.Repositories;
 
@@ -11,14 +12,16 @@ public class RefreshShopTokensCommand
     #region <Variables>
 
     private readonly RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> _shopConnectionAdapter;
+    private readonly IShopTokenProtector _tokenProtector;
 
     #endregion
 
     #region <Constructors>
 
-    public RefreshShopTokensCommand(RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter)
+    public RefreshShopTokensCommand(RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter, IShopTokenProtector tokenProtector)
     {
         _shopConnectionAdapter = shopConnectionAdapter;
+        _tokenProtector = tokenProtector;
     }
 
     #endregion
@@ -30,9 +33,9 @@ public class RefreshShopTokensCommand
         var shop = await _shopConnectionAdapter.GetByIdAsync(shopConnectionId)
             ?? throw new InvalidOperationException($"ShopConnection {shopConnectionId} not found.");
 
-        shop.AccessToken = accessToken;
+        shop.AccessToken = _tokenProtector.Protect(accessToken);
         shop.TokenExpiryDateTime = accessTokenExpiry;
-        shop.RefreshToken = refreshToken ?? shop.RefreshToken;
+        shop.RefreshToken = string.IsNullOrEmpty(refreshToken) ? shop.RefreshToken : _tokenProtector.Protect(refreshToken);
         shop.RefreshTokenExpiryDateTime = refreshTokenExpiry;
         shop.LastErrorMessage = null;
 

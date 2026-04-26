@@ -90,7 +90,7 @@
 <div class="header">
   <h1>My<span>Talli</span> Active Work</h1>
   <p class="subtitle">Lightweight Kanban board — what's in flight, what's next, what's done</p>
-  <p class="doc-date">Last updated: April 19, 2026</p>
+  <p class="doc-date">Last updated: April 26, 2026</p>
 </div>
 
 <div class="content">
@@ -103,8 +103,8 @@
     <div class="intro-metrics">
       <span class="metric"><span class="metric-value">11</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">4</span><span class="metric-label">Next<br>up</span></span>
-      <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">15</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">1</span><span class="metric-label">In<br>progress</span></span>
+      <span class="metric"><span class="metric-value">17</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -236,10 +236,16 @@
     <div class="lane progress">
       <div class="lane-header">
         <h3>In Progress</h3>
-        <span class="lane-count">0</span>
+        <span class="lane-count">1</span>
       </div>
       <div class="lane-body">
-        <div class="lane-empty">Nothing in flight right now. Move a card here when you start it.</div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Azure App Service: production secrets migration</h4>
+          <p>Move production-correct config values from <code>appsettings.Development.json</code> into Azure App Service Environment variables → App settings. Chip-away task — Etsy (4 settings) added 2026-04-26, all OAuth/ACS/Unsubscribe/Email already in place from prior work, Connection string verified correct (<code>MyTalli-User</code>). Stripe (7 settings) deferred until live keys are issued. Full per-setting checklist with status tracking lives in <code>documentation/MyTalli_AzureSecrets.html</code>.</p>
+        </div>
+
       </div>
     </div>
 
@@ -247,9 +253,23 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">15</span>
+        <span class="lane-count">17</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Data Protection: persist keys to Azure Blob Storage</h4>
+          <p>Created Azure Storage Account <code>mytallistorage01</code> (RA-GRS, Central US) + private blob container <code>dataprotection-keys</code>. Enabled system-assigned managed identity on App Service (Object ID <code>fe812c6c-…</code>); granted it <code>Storage Blob Data Contributor</code> on the storage account. Added <code>Azure.Extensions.AspNetCore.DataProtection.Blobs</code> + <code>Azure.Identity</code> NuGet packages. <code>PlatformsConfiguration.cs</code> now chains <code>.PersistKeysToAzureBlobStorage()</code> onto <code>AddDataProtection()</code> using <code>DefaultAzureCredential</code>, gated on App Settings being present so local dev keeps file-system default. App Settings <code>DataProtection__BlobStorage__AccountName</code> + <code>__ContainerName</code> set in Azure. 193/193 tests passing. Deploy verification pending.</p>
+          <span class="done-date">Apr 26 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Encrypt OAuth tokens at rest (IDataProtector)</h4>
+          <p><code>ShopConnection.AccessToken</code> + <code>RefreshToken</code> are now wrapped with ASP.NET Data Protection (purpose <code>"MyTalli.ShopConnection.Tokens.v1"</code>). New <code>IShopTokenProtector</code> interface in Domain, <code>DataProtectionShopTokenProtector</code> implementation in Web. Encrypts on write in <code>ConnectEtsyCommand</code> + <code>RefreshShopTokensCommand</code>; decrypts on read in <code>EtsySyncService</code> + <code>TokenRefreshWorker</code>. <code>ShopTokenProtectorStub</code> in test infrastructure with prefix-wrap for verification. New test confirms ciphertext differs from plaintext. 193/193 passing.</p>
+          <span class="done-date">Apr 26 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
