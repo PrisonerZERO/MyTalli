@@ -44,6 +44,11 @@ public class CurrentUserMiddleware
 					string.Join(", ", context.User.Claims.Select(c => $"{c.Type}={c.Value}")));
 			}
 		}
+		else if (context.Request.Cookies.ContainsKey("talli-theme"))
+		{
+			// Theme preference belongs to authenticated users; stale cookie from a prior session must not survive.
+			context.Response.Cookies.Delete("talli-theme", new CookieOptions { Path = "/" });
+		}
 
 		await _next(context);
 	}

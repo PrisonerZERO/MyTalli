@@ -1067,6 +1067,15 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 - **ViewModel pattern:** `ActiveTab` (string property, default varies by page), `SelectTab(string tab)` method. Page content wrapped in `@if (ActiveTab == "xxx")` blocks with `role="tabpanel"` and `aria-label`.
 - **`PageTitle`** updates based on active tab (e.g., "Dashboard — Revenue — MyTalli").
 
+### Dark Mode
+
+- **Auth-gated.** Dark mode applies only to authenticated users. Logged-out visitors always render light, regardless of any cookie state.
+- **Always-light routes:** `/` (Landing) and `/signin` — `theme.js` short-circuits on these paths even for authenticated users, because their CSS is intentionally hardcoded to light. If you add a new public/anonymous route whose CSS is not theme-aware, add it to `isAlwaysLightRoute()` in `theme.js`.
+- **Theme-aware pages:** Every page that an authenticated user can reach must use `var(--*)` tokens — all `MainLayout` pages, plus `Error.razor.css` and `Unsubscribe.razor.css`. New page CSS must follow the same pattern: never hardcode `#fff`, `#1a1a2e`, `#e0dce8`, `#6c5ce7`, etc. Use the tokens defined in `app.css` (`--bg-page`, `--bg-card`, `--border`, `--text-primary`, `--text-muted`, `--text-secondary`, `--purple-primary`, `--purple-hover`, `--success`, `--danger`, etc.). Content sitting on the purple swoosh keeps hardcoded white-on-purple — purple is purple in both themes.
+- **Cookie is the sole source of truth.** `talli-theme` (`"system"` | `"light"` | `"dark"`) is set by (1) OAuth handlers (`Google/Microsoft/AppleAuthenticationHandler.cs`) on sign-in, mirroring `UserPreferences.DarkMode`; (2) the Settings page on theme change via `themeManager.apply()`. It is deleted by (3) the `/api/auth/logout` endpoint and (4) **`CurrentUserMiddleware` on every unauthenticated request** — so a stale cookie from a prior session, an expired auth ticket, or a browser stash cannot survive. The middleware is the load-bearing gate keeping logged-out users on light mode.
+- **No localStorage fallback.** `theme.js` reads only the cookie. An earlier version had a `localStorage` fallback; it was removed because localStorage is not server-controllable and would let dark mode survive sign-out.
+- **System mode listener:** When `data-theme-mode="system"`, `theme.js` listens for OS `prefers-color-scheme` changes and re-applies in real time.
+
 ### Platform Connections
 
 - **Tokens belong to the shop, not the platform.** `PlatformConnection` is a bookkeeping row per (user, platform); OAuth credentials (`AccessToken`, `RefreshToken`, `TokenExpiryDateTime`, `PlatformAccountId`) live on `ShopConnection`. This is what lets a single MyTalli user own multiple Etsy shops under multiple Etsy logins — each shop carries its own login's tokens.
