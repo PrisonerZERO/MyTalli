@@ -186,7 +186,7 @@ public class PlatformsViewModel : ComponentBase
 				"etsy_expired" => "Your connection session expired. Please try again.",
 				"etsy_state" => "Connection could not be verified. Please try again.",
 				"etsy_exchange" => "We couldn't finalize your Etsy connection. Please try again or contact support.",
-				"etsy_plan_limit" => "Your plan allows 1 Etsy shop. Upgrade to Pro to connect additional shops.",
+				"plan_limit" => "Your plan allows 1 shop per platform. Upgrade to Pro to connect additional shops.",
 				_ => "Something went wrong connecting that platform. Please try again."
 			};
 	}
@@ -211,7 +211,6 @@ public class PlatformsViewModel : ComponentBase
 				IsAvailable = true,
 				Name = "Etsy",
 				Subtitle = "Handmade marketplace",
-				SupportsMultipleShops = true,
 			},
 			new PlatformItem
 			{
@@ -289,8 +288,8 @@ public class PlatformsViewModel : ComponentBase
 				}
 			}
 
-			// Multi-shop platforms: free tier capped at 1 shop; Pro unlimited.
-			item.CanAddAnotherShop = item.SupportsMultipleShops && (IsProSubscriber || item.Shops.Count == 0);
+			// Free tier capped at 1 shop per platform; Pro unlimited.
+			item.CanAddAnotherShop = IsProSubscriber || item.Shops.Count == 0;
 		}
 
 		Platforms = catalog;

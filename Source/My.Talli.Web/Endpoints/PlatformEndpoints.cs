@@ -56,7 +56,7 @@ public static class PlatformEndpoints
                 s.UserId == userId && s.PlatformConnection.Platform == "Etsy")).Count();
 
             if (etsyShopCount >= 1)
-                return Results.Redirect("/platforms?error=etsy_plan_limit");
+                return Results.Redirect("/platforms?error=plan_limit");
         }
 
         var challenge = etsy.BuildAuthorizeChallenge();
