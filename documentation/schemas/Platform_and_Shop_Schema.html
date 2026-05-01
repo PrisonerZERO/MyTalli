@@ -357,7 +357,7 @@
     <p>The Platforms page shows a per-shop <strong>Pause / Resume</strong> toggle that flips <code>IsEnabled</code>. There is no "Sync Now" button — syncing is driven server-side by <code>NextSyncDateTime</code>; a manual trigger would undermine the rate-limit plan (see <a href="../MyTalli_SyncScalingPlan.html">SyncScalingPlan.html</a>).</p>
 
     <h3>Connect-another-shop flow (Etsy)</h3>
-    <p>The <code>SupportsMultipleShops</code> flag on the <code>PlatformItem</code> view model gates the "Connect another shop" button — only <code>true</code> for Etsy today. The OAuth callback distinguishes three outcomes via a <code>ConnectEtsyResult</code>:</p>
+    <p>The "Connect another shop" button is shown for every platform — nothing technical stops a user from connecting multiple accounts on any platform. Visibility is gated only by the free-tier 1-shop-per-platform cap (<code>PlatformItem.CanAddAnotherShop = IsProSubscriber || Shops.Count == 0</code>). Etsy's callback distinguishes three outcomes via a <code>ConnectEtsyResult</code>:</p>
     <ul>
       <li><code>connected</code> — first-time connection for this user+platform</li>
       <li><code>added</code> — existing connection, at least one new <code>ShopConnection</code> row inserted</li>
