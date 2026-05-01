@@ -178,6 +178,15 @@ public class PlatformsViewModel : ComponentBase
 				_ => null
 			};
 
+		if (query.TryGetValue("gumroad", out var gumroadStatus))
+			SuccessMessage = gumroadStatus.ToString().ToLowerInvariant() switch
+			{
+				"connected" => "Gumroad connected. Your first sync will start shortly.",
+				"added" => "New Gumroad account connected. Sync will start shortly.",
+				"refreshed" => "That Gumroad account was already connected — no new shop was added. To add a different account, sign out of Gumroad first, then click \"Connect another shop\" again.",
+				_ => null
+			};
+
 		if (query.TryGetValue("error", out var error))
 			ErrorMessage = error.ToString() switch
 			{
@@ -186,6 +195,11 @@ public class PlatformsViewModel : ComponentBase
 				"etsy_expired" => "Your connection session expired. Please try again.",
 				"etsy_state" => "Connection could not be verified. Please try again.",
 				"etsy_exchange" => "We couldn't finalize your Etsy connection. Please try again or contact support.",
+				"gumroad_denied" => "You cancelled the connection to Gumroad. No data was saved.",
+				"gumroad_invalid" => "Gumroad returned an invalid response. Please try again.",
+				"gumroad_expired" => "Your connection session expired. Please try again.",
+				"gumroad_state" => "Connection could not be verified. Please try again.",
+				"gumroad_exchange" => "We couldn't finalize your Gumroad connection. Please try again or contact support.",
 				"plan_limit" => "Your plan allows 1 shop per platform. Upgrade to Pro to connect additional shops.",
 				_ => "Something went wrong connecting that platform. Please try again."
 			};
@@ -217,6 +231,7 @@ public class PlatformsViewModel : ComponentBase
 				BrandColor = "#ff90e8",
 				Description = "Sales, products & subscriber revenue",
 				Icon = "gumroad",
+				IsAvailable = true,
 				Name = "Gumroad",
 				Subtitle = "Digital products",
 			},

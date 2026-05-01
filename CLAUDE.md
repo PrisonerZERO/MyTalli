@@ -451,7 +451,7 @@ My.Talli/
     │   │   └── SubscriptionStatuses.cs        # Static subscription status constants (Active, Cancelling, Cancelled, PastDue, Unpaid)
     │   ├── Components/
     │   │   ├── Etsy/                          # Etsy OAuth + API POCOs (shared with Web's EtsyService)
-    │   │   │   ├── AuthorizeChallenge.cs       # PKCE challenge + state + authorize URL
+    │   │   │   ├── AuthorizeChallenge.cs       # OAuth authorize URL + state (+ PKCE code-verifier for Etsy; empty for Gumroad). Reused across platforms.
     │   │   │   ├── EtsyMoney.cs                # { amount, divisor, currency_code } — ToDecimal() helper
     │   │   │   ├── EtsyPkceGenerator.cs        # Static helpers: BuildAuthorizeChallenge, ExtractEtsyUserId
     │   │   │   ├── EtsyLedgerEntriesResponse.cs # Pagination envelope for GET /shops/{id}/payment-account/ledger-entries
@@ -461,6 +461,13 @@ My.Talli/
     │   │   │   ├── EtsyShop.cs                 # Etsy shop payload (shop_id, shop_name, currency, etc.)
     │   │   │   ├── EtsyTokenResponse.cs        # OAuth token exchange response (access_token, refresh_token, expires_in)
     │   │   │   └── EtsyTransaction.cs          # Line-item payload inside a receipt (transaction_id, listing_id, price, quantity)
+    │   │   ├── Gumroad/                        # Gumroad OAuth + API POCOs (shared with Web's GumroadService)
+    │   │   │   ├── GumroadOAuthGenerator.cs    # Static helper: BuildAuthorizeChallenge (state-only, no PKCE)
+    │   │   │   ├── GumroadSale.cs              # Sale row payload (id, created_at, currency, price cents, product_name, license_key, refunded, disputed, discover_fee_charged)
+    │   │   │   ├── GumroadSalesResponse.cs     # Pagination envelope for GET /v2/sales ({ success, sales, next_page_url, next_page_key })
+    │   │   │   ├── GumroadTokenResponse.cs     # OAuth token exchange response (access_token, scope, token_type — no expiry, no refresh)
+    │   │   │   ├── GumroadUser.cs              # Gumroad user payload (id, user_id, name, email, currency_type, url) — used to populate ShopName + PlatformShopId
+    │   │   │   └── GumroadUserResponse.cs      # Envelope for GET /v2/user ({ success, user })
     │   │   ├── JsonSerializers/
     │   │   │   └── User/
     │   │   │       └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
@@ -473,16 +480,20 @@ My.Talli/
     │   │       │   └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
     │   │       └── Platforms/                  # namespace: My.Talli.Domain.Commands.Platforms
     │   │           ├── ConnectEtsyCommand.cs         # Upsert PlatformConnection + ShopConnection + ShopConnectionEtsy after OAuth
+    │   │           ├── ConnectGumroadCommand.cs      # Upsert PlatformConnection + ShopConnection after OAuth (no subtable — Gumroad fits in the common shop columns)
+    │   │           ├── ConnectGumroadResult.cs       # Result — IsFirstConnection + WasNewShop (drives the connected/added/refreshed redirect status)
     │   │           ├── CreateManualShopCommand.cs    # Upsert Manual PlatformConnection + insert a Manual ShopConnection row (synthetic IDs, empty tokens)
     │   │           ├── EtsyExpenseInput.cs           # DTO — one Etsy ledger fee row, consumed by UpsertEtsyExpenseCommand
     │   │           ├── EtsyPayoutInput.cs            # DTO — one Etsy ledger payout/disbursement, consumed by UpsertEtsyPayoutCommand
     │   │           ├── EtsyRevenueInput.cs           # DTO — one row per Etsy transaction, consumed by UpsertEtsyRevenueCommand
+    │   │           ├── GumroadRevenueInput.cs        # DTO — one row per Gumroad sale, consumed by UpsertGumroadRevenueCommand
     │   │           ├── RefreshShopTokensCommand.cs   # Update a ShopConnection's tokens after a refresh; RecordFailureAsync for failed refreshes
     │   │           ├── RenameManualShopCommand.cs    # Update ShopConnection.ShopName for a Manual shop (verifies user ownership)
     │   │           ├── UpdateShopSyncStateCommand.cs # Sync lifecycle — MarkInProgress / MarkCompleted / MarkFailed (touches sync fields only)
     │   │           ├── UpsertEtsyExpenseCommand.cs   # Dedup by (UserId, Platform, ledger_entry_id), insert Expense + ExpenseEtsy pairs
     │   │           ├── UpsertEtsyPayoutCommand.cs    # Dedup by (UserId, Platform, ledger_entry_id), insert Payout + PayoutEtsy pairs
-    │   │           └── UpsertEtsyRevenueCommand.cs   # Dedup by (UserId, Platform, PlatformTransactionId), insert Revenue + RevenueEtsy pairs
+    │   │           ├── UpsertEtsyRevenueCommand.cs   # Dedup by (UserId, Platform, PlatformTransactionId), insert Revenue + RevenueEtsy pairs
+    │   │           └── UpsertGumroadRevenueCommand.cs # Dedup by (UserId, Platform, sale_id), insert Revenue + RevenueGumroad pairs
     │   ├── Mappers/
     │   │   ├── EntityMapper.cs                 # Abstract mapper (collection methods via LINQ)
     │   │   ├── IEntityMapper.cs               # Generic entity↔model mapper interface
@@ -653,12 +664,16 @@ My.Talli/
     │   ├── Commands/
     │   │   └── Platforms/
     │   │       ├── ConnectEtsyCommandTests.cs              # Upsert behavior, multi-shop, null-field handling
+    │   │       ├── ConnectGumroadCommandTests.cs           # Upsert behavior, name/email fallback, refresh vs new shop
     │   │       ├── UpsertEtsyExpenseCommandTests.cs        # Dedup by ledger_entry_id, mixed new/existing, cross-user isolation, nullable fields
     │   │       ├── UpsertEtsyPayoutCommandTests.cs         # Dedup by ledger_entry_id, mixed new/existing, cross-user isolation
-    │   │       └── UpsertEtsyRevenueCommandTests.cs        # Dedup by transaction_id, mixed new/existing, cross-user isolation
+    │   │       ├── UpsertEtsyRevenueCommandTests.cs        # Dedup by transaction_id, mixed new/existing, cross-user isolation
+    │   │       └── UpsertGumroadRevenueCommandTests.cs     # Dedup by sale_id, refunded/disputed flag passthrough, cross-user isolation
     │   ├── Components/
     │   │   ├── Etsy/
     │   │   │   └── EtsyPkceGeneratorTests.cs       # PKCE challenge format, SHA256 invariant, ExtractEtsyUserId edge cases
+    │   │   ├── Gumroad/
+    │   │   │   └── GumroadOAuthGeneratorTests.cs   # State-only authorize URL, no PKCE artifacts, randomized state across calls
     │   │   ├── JsonSerializers/
     │   │   │   └── UserPreferencesJsonSerializerTests.cs
     │   │   └── Tokens/
@@ -676,7 +691,8 @@ My.Talli/
     │   │   ├── Builders/
     │   │   │   ├── BillingHandlerBuilder.cs        # Test setup for Stripe webhook handler + related adapters
     │   │   │   ├── EtsySyncBuilder.cs              # Test setup for EtsySyncService — wires the service with EtsyApiClientStub + CapturingLogger + Lamar-resolved Domain commands. Exposes adapters for assertions.
-    │   │   │   ├── PlatformHandlerBuilder.cs       # Test setup for ConnectEtsyCommand + Upsert{Revenue,Expense,Payout} commands + their adapters
+    │   │   │   ├── GumroadSyncBuilder.cs           # Test setup for GumroadSyncService — wires the service with GumroadApiClientStub + CapturingLogger + Lamar-resolved UpsertGumroadRevenueCommand. Exposes adapters for assertions.
+    │   │   │   ├── PlatformHandlerBuilder.cs       # Test setup for ConnectEtsyCommand + ConnectGumroadCommand + all Upsert{Revenue,Expense,Payout} commands + their adapters
     │   │   │   └── SignInHandlerBuilder.cs         # Test setup orchestrator (Lamar container, exposes handlers & adapters)
     │   │   ├── IoC/
     │   │   │   └── ContainerRegistry.cs        # Test IoC registry (extends Domain.DI.Lamar, swaps in stubs)
@@ -686,6 +702,7 @@ My.Talli/
     │   │       ├── CapturingLogger.cs          # ILogger<T> that records (level, message) for warning-log assertions
     │   │       ├── CurrentUserServiceStub.cs
     │   │       ├── EtsyApiClientStub.cs        # IEtsyApiClient stub — queue-based canned responses, captures every call for assertions
+    │   │       ├── GumroadApiClientStub.cs     # IGumroadApiClient stub — queue-based canned responses, captures every call for assertions
     │   │       └── IdentityProvider.cs         # Auto-incrementing ID generator for test entities
     │   ├── Notifications/
     │   │   └── Emails/
@@ -695,7 +712,8 @@ My.Talli/
     │   └── Services/
     │       └── Platforms/
     │           ├── EtsySyncServiceTests.cs         # Receipt + ledger pagination, ledger classification (Sale/Refund skip, Payment→Payout, fees→Expense w/ category mapping), unknown-type warning, inline token refresh, dedup across syncs
-    │           └── EtsyTokenRefresherTests.cs      # Refresh token passthrough, access token expiry math (now+expires_in), refresh token expiry (now+90 days), rotation
+    │           ├── EtsyTokenRefresherTests.cs      # Refresh token passthrough, access token expiry math (now+expires_in), refresh token expiry (now+90 days), rotation
+    │           └── GumroadSyncServiceTests.cs      # Sales pagination via next_page_key, dedup across syncs, price-cents → decimal conversion, refunded/disputed/license-key passthrough, after-date defaults to backfill floor
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, pipeline setup (delegates to Configuration/ and Endpoints/)
@@ -798,7 +816,11 @@ My.Talli/
         │   │   ├── EtsySettings.cs               # Etsy OAuth config POCO (ClientId, ClientSecret, RedirectUri, Scope)
         │   │   ├── EtsySyncService.cs            # IPlatformSyncService — pulls receipts AND payment-account/ledger-entries page-by-page; classifies ledger entries via EtsyLedgerTypes enum and dispatches to UpsertEtsy{Revenue,Expense,Payout}Command. Unknown ledger types log a warning. Depends on IEtsyApiClient (testable seam).
         │   │   ├── EtsyTokenRefresher.cs         # IPlatformTokenRefresher — Etsy refresh-token rotation (90-day lifetime, 30-day proactive window). Depends on IEtsyApiClient.
+        │   │   ├── GumroadService.cs             # Thin HTTP wrapper — implements IGumroadApiClient (token exchange, user fetch, sales fetch). Also exposes BuildAuthorizeChallenge for OAuth (state-only, no PKCE). No refresh — Gumroad tokens never expire.
+        │   │   ├── GumroadSettings.cs            # Gumroad OAuth config POCO (ClientId, ClientSecret, RedirectUri, Scope)
+        │   │   ├── GumroadSyncService.cs         # IPlatformSyncService — pulls /v2/sales page-by-page (next_page_key pagination), dedups by sale id into Revenue + RevenueGumroad. No expense/payout sync (Gumroad has no payouts API + no per-sale fee data on /v2/sales).
         │   │   ├── IEtsyApiClient.cs             # Interface for the 5 HTTP methods on EtsyService (ExchangeCode, RefreshTokens, GetShops, GetReceipts, GetLedgerEntries) — exists so EtsySyncService + EtsyTokenRefresher can be unit-tested with a stub
+        │   │   ├── IGumroadApiClient.cs          # Interface for the 3 HTTP methods on GumroadService (ExchangeCode, GetUser, GetSales) — exists so GumroadSyncService can be unit-tested with a stub
         │   │   ├── IPlatformSyncService.cs       # Per-platform sync contract (Platform name + SyncShopAsync)
         │   │   ├── IPlatformTokenRefresher.cs    # Per-platform token-refresh contract (Platform name, ProactiveRefreshWindow, RefreshAsync)
         │   │   ├── PlatformSyncResult.cs         # Result — NewRevenueRowCount + NewExpenseRowCount + NewPayoutRowCount, MostRecentTransactionDate, PagesFetched, ReceiptsProcessed, LedgerPagesFetched, LedgerEntriesProcessed
@@ -1080,7 +1102,7 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 
 - **Tokens belong to the shop, not the platform.** `PlatformConnection` is a bookkeeping row per (user, platform); OAuth credentials (`AccessToken`, `RefreshToken`, `TokenExpiryDateTime`, `PlatformAccountId`) live on `ShopConnection`. This is what lets a single MyTalli user own multiple Etsy shops under multiple Etsy logins — each shop carries its own login's tokens.
 - **Per-shop controls, not per-platform.** The shop row on `/platforms` shows one action button: **Pause** / **Resume** (toggles `ShopConnection.IsEnabled`). No "Sync Now" — syncing is scheduled server-side via `ShopConnection.NextSyncDateTime`; a manual trigger would undermine the rate-limit strategy. No "Manage" — there's no separate management surface; connect/pause on this page is the management surface.
-- **`IsAvailable` flag on `PlatformItem`.** Gates the "Connect" button on the Platforms page. Only `true` for platforms whose sync code is actually shipped (Etsy today). When `false`, the row is dimmed and the Connect button is replaced by a "Coming Soon" badge — no dead-end Connect attempts. **When you ship a new platform's sync, flip this bool in `PlatformsViewModel.GetPlatformCatalog()` — that's the one place that turns the row live.**
+- **`IsAvailable` flag on `PlatformItem`.** Gates the "Connect" button on the Platforms page. Only `true` for platforms whose sync code is actually shipped (Etsy + Gumroad today). When `false`, the row is dimmed and the Connect button is replaced by a "Coming Soon" badge — no dead-end Connect attempts. **When you ship a new platform's sync, flip this bool in `PlatformsViewModel.GetPlatformCatalog()` — that's the one place that turns the row live.**
 - **Every platform supports multiple shops.** Nothing technical stops a single MyTalli user from connecting multiple accounts on any platform — Etsy (multiple Etsy logins, each with one shop), Shopify (multiple stores), Stripe/PayPal/Gumroad (multiple business accounts). The "Connect another shop" button is shown for every platform; the per-platform OAuth endpoint is responsible for enforcing the free-tier cap (see below).
 - **Free-tier 1-shop-per-platform cap.** Free-tier users are capped at one shop *per platform*; Pro users (ProductId 1 or 2, `Active` or `Cancelling`) are uncapped. Enforcement is two-layer:
   - **UI:** `PlatformItem.CanAddAnotherShop = IsProSubscriber || Shops.Count == 0` — computed in `PlatformsViewModel.LoadPlatformsAsync`. When `true` the "Connect another shop" button shows; when `false` the button is replaced by a purple-gradient `plat-btn-upgrade` CTA linking to `/my-plan` ("Upgrade to Pro to connect another {Platform} shop").

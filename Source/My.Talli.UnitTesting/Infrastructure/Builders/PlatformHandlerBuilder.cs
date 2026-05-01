@@ -22,6 +22,13 @@ public class PlatformHandlerBuilder
 
 	public ConnectEtsyCommand Command => _container.GetInstance<ConnectEtsyCommand>();
 
+	public ConnectGumroadCommand GumroadCommand => _container.GetInstance<ConnectGumroadCommand>();
+
+	public RepositoryAdapterAsync<RevenueGumroad, ENTITIES.RevenueGumroad> RevenueGumroadAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<RevenueGumroad, ENTITIES.RevenueGumroad>>();
+
+	public UpsertGumroadRevenueCommand UpsertGumroadRevenue => _container.GetInstance<UpsertGumroadRevenueCommand>();
+
 	public RepositoryAdapterAsync<Expense, ENTITIES.Expense> ExpenseAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<Expense, ENTITIES.Expense>>();
 
