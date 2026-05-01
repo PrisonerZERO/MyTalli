@@ -18,6 +18,10 @@ public static class PlatformsConfiguration
         services.AddHttpClient<EtsyService>();
         services.AddScoped<IEtsyApiClient>(sp => sp.GetRequiredService<EtsyService>());
 
+        services.Configure<GumroadSettings>(configuration.GetSection("Gumroad"));
+        services.AddHttpClient<GumroadService>();
+        services.AddScoped<IGumroadApiClient>(sp => sp.GetRequiredService<GumroadService>());
+
         // At-rest encryption for OAuth tokens stored on ShopConnection.
         // In Azure, persist the master key to Blob Storage so it survives App Service VM moves and slot swaps.
         // Locally (no AccountName configured), fall back to the default file-system store.
@@ -40,6 +44,7 @@ public static class PlatformsConfiguration
 
         // Per-platform sync services (pull revenue data)
         services.AddScoped<IPlatformSyncService, EtsySyncService>();
+        services.AddScoped<IPlatformSyncService, GumroadSyncService>();
 
         // Background workers
         services.AddHostedService<TokenRefreshWorker>();
