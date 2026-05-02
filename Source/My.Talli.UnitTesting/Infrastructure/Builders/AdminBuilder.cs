@@ -20,6 +20,8 @@ public class AdminBuilder
 
 	#region <Properties>
 
+	public IServiceProvider Container => _container;
+
 	public GetSystemSettingCommand GetSystemSetting => _container.GetInstance<GetSystemSettingCommand>();
 
 	public RepositoryAdapterAsync<Heartbeat, ENTITIES.Heartbeat> HeartbeatAdapter =>

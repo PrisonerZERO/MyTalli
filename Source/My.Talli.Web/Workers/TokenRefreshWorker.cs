@@ -1,5 +1,6 @@
 namespace My.Talli.Web.Workers;
 
+using Domain.Commands.Admin;
 using Domain.Commands.Platforms;
 using Domain.Components.Tokens;
 using Domain.Data.Interfaces;
@@ -15,6 +16,9 @@ public class TokenRefreshWorker : BackgroundService
 {
     #region <Constants>
 
+    public const string HeartbeatSourceName = "TokenRefreshWorker";
+
+    private const int HeartbeatExpectedIntervalSeconds = 21600;
     private static readonly TimeSpan InitialDelay = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan LoopInterval = TimeSpan.FromHours(6);
     private static readonly TimeSpan PerShopDelay = TimeSpan.FromMilliseconds(250);
@@ -68,7 +72,10 @@ public class TokenRefreshWorker : BackgroundService
 
         var refreshers = sp.GetServices<IPlatformTokenRefresher>().ToList();
         if (refreshers.Count == 0)
+        {
+            await WriteHeartbeatAsync(sp);
             return;
+        }
 
         var shopAdapter = sp.GetRequiredService<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
         var refreshCommand = sp.GetRequiredService<RefreshShopTokensCommand>();
@@ -81,6 +88,31 @@ public class TokenRefreshWorker : BackgroundService
                 return;
 
             await RefreshPlatformAsync(refresher, shopAdapter, refreshCommand, currentUserService, tokenProtector, stoppingToken);
+        }
+
+        await WriteHeartbeatAsync(sp);
+    }
+
+    private async Task WriteHeartbeatAsync(IServiceProvider scopedServices)
+    {
+        try
+        {
+            var writeHeartbeat = scopedServices.GetRequiredService<WriteHeartbeatTickCommand>();
+            var currentUser = scopedServices.GetRequiredService<ICurrentUserService>();
+
+            currentUser.Set(0L, string.Empty);
+            try
+            {
+                await writeHeartbeat.ExecuteAsync(HeartbeatSourceName, HeartbeatExpectedIntervalSeconds);
+            }
+            finally
+            {
+                currentUser.Clear();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "TokenRefreshWorker heartbeat write failed.");
         }
     }
 

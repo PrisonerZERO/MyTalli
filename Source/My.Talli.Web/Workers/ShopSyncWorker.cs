@@ -1,5 +1,6 @@
 namespace My.Talli.Web.Workers;
 
+using Domain.Commands.Admin;
 using Domain.Commands.Platforms;
 using Domain.Data.Interfaces;
 using Domain.Models;
@@ -14,7 +15,10 @@ public class ShopSyncWorker : BackgroundService
 {
     #region <Constants>
 
+    public const string HeartbeatSourceName = "ShopSyncWorker";
+
     private const int ErrorMessageMaxLength = 1900;
+    private const int HeartbeatExpectedIntervalSeconds = 300;
     private const int MaxShopsPerPass = 50;
     private static readonly TimeSpan FailureBaseBackoff = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan FailureMaxBackoff = TimeSpan.FromHours(24);
@@ -76,7 +80,10 @@ public class ShopSyncWorker : BackgroundService
 
         var syncServices = sp.GetServices<IPlatformSyncService>().ToList();
         if (syncServices.Count == 0)
+        {
+            await WriteHeartbeatAsync(sp);
             return;
+        }
 
         var shopAdapter = sp.GetRequiredService<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
         var stateCommand = sp.GetRequiredService<UpdateShopSyncStateCommand>();
@@ -88,6 +95,31 @@ public class ShopSyncWorker : BackgroundService
                 return;
 
             await SyncPlatformAsync(syncService, shopAdapter, stateCommand, currentUserService, stoppingToken);
+        }
+
+        await WriteHeartbeatAsync(sp);
+    }
+
+    private async Task WriteHeartbeatAsync(IServiceProvider scopedServices)
+    {
+        try
+        {
+            var writeHeartbeat = scopedServices.GetRequiredService<WriteHeartbeatTickCommand>();
+            var currentUser = scopedServices.GetRequiredService<ICurrentUserService>();
+
+            currentUser.Set(0L, string.Empty);
+            try
+            {
+                await writeHeartbeat.ExecuteAsync(HeartbeatSourceName, HeartbeatExpectedIntervalSeconds);
+            }
+            finally
+            {
+                currentUser.Clear();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ShopSyncWorker heartbeat write failed.");
         }
     }
 
