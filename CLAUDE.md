@@ -468,6 +468,8 @@ My.Talli/
     │   │   │   ├── GumroadTokenResponse.cs     # OAuth token exchange response (access_token, scope, token_type — no expiry, no refresh)
     │   │   │   ├── GumroadUser.cs              # Gumroad user payload (id, user_id, name, email, currency_type, url) — used to populate ShopName + PlatformShopId
     │   │   │   └── GumroadUserResponse.cs      # Envelope for GET /v2/user ({ success, user })
+    │   │   ├── Stripe/                         # Stripe Connect POCOs (shared with Web's StripeConnectService)
+    │   │   │   └── StripeAccountInfo.cs        # Account-info DTO consumed by ConnectStripeCommand: { AccountId (acct_xxx), BusinessName, Email }. No OAuth token type — Stripe uses Account Links flow + the platform's own SecretKey + Stripe-Account header on every read.
     │   │   ├── JsonSerializers/
     │   │   │   └── User/
     │   │   │       └── UserPreferencesJsonSerializer.cs  # Serialize/deserialize UserPreferences JSON
@@ -482,6 +484,8 @@ My.Talli/
     │   │           ├── ConnectEtsyCommand.cs         # Upsert PlatformConnection + ShopConnection + ShopConnectionEtsy after OAuth
     │   │           ├── ConnectGumroadCommand.cs      # Upsert PlatformConnection + ShopConnection after OAuth (no subtable — Gumroad fits in the common shop columns)
     │   │           ├── ConnectGumroadResult.cs       # Result — IsFirstConnection + WasNewShop (drives the connected/added/refreshed redirect status)
+    │   │           ├── ConnectStripeCommand.cs       # Upsert PlatformConnection + ShopConnection after Stripe Account Links return (no subtable — base ShopConnection columns cover Stripe). Stores acct_xxx in PlatformAccountId/PlatformShopId; AccessToken stays empty (no per-account token — sync uses platform SecretKey + Stripe-Account header).
+    │   │           ├── ConnectStripeResult.cs        # Result — IsFirstConnection + WasNewShop
     │   │           ├── CreateManualShopCommand.cs    # Upsert Manual PlatformConnection + insert a Manual ShopConnection row (synthetic IDs, empty tokens)
     │   │           ├── EtsyExpenseInput.cs           # DTO — one Etsy ledger fee row, consumed by UpsertEtsyExpenseCommand
     │   │           ├── EtsyPayoutInput.cs            # DTO — one Etsy ledger payout/disbursement, consumed by UpsertEtsyPayoutCommand
@@ -489,11 +493,15 @@ My.Talli/
     │   │           ├── GumroadRevenueInput.cs        # DTO — one row per Gumroad sale, consumed by UpsertGumroadRevenueCommand
     │   │           ├── RefreshShopTokensCommand.cs   # Update a ShopConnection's tokens after a refresh; RecordFailureAsync for failed refreshes
     │   │           ├── RenameManualShopCommand.cs    # Update ShopConnection.ShopName for a Manual shop (verifies user ownership)
+    │   │           ├── StripePayoutInput.cs          # DTO — one Stripe payout, consumed by UpsertStripePayoutCommand
+    │   │           ├── StripeRevenueInput.cs         # DTO — one Stripe charge (with expanded BalanceTransaction for fee/net), consumed by UpsertStripeRevenueCommand
     │   │           ├── UpdateShopSyncStateCommand.cs # Sync lifecycle — MarkInProgress / MarkCompleted / MarkFailed (touches sync fields only)
     │   │           ├── UpsertEtsyExpenseCommand.cs   # Dedup by (UserId, Platform, ledger_entry_id), insert Expense + ExpenseEtsy pairs
     │   │           ├── UpsertEtsyPayoutCommand.cs    # Dedup by (UserId, Platform, ledger_entry_id), insert Payout + PayoutEtsy pairs
     │   │           ├── UpsertEtsyRevenueCommand.cs   # Dedup by (UserId, Platform, PlatformTransactionId), insert Revenue + RevenueEtsy pairs
-    │   │           └── UpsertGumroadRevenueCommand.cs # Dedup by (UserId, Platform, sale_id), insert Revenue + RevenueGumroad pairs
+    │   │           ├── UpsertGumroadRevenueCommand.cs # Dedup by (UserId, Platform, sale_id), insert Revenue + RevenueGumroad pairs
+    │   │           ├── UpsertStripePayoutCommand.cs  # Dedup by (UserId, Platform, stripe_payout_id), insert Payout + PayoutStripe pairs
+    │   │           └── UpsertStripeRevenueCommand.cs # Dedup by (UserId, Platform, balance_transaction_id), insert Revenue + RevenueStripe pairs
     │   ├── Mappers/
     │   │   ├── EntityMapper.cs                 # Abstract mapper (collection methods via LINQ)
     │   │   ├── IEntityMapper.cs               # Generic entity↔model mapper interface
@@ -665,10 +673,13 @@ My.Talli/
     │   │   └── Platforms/
     │   │       ├── ConnectEtsyCommandTests.cs              # Upsert behavior, multi-shop, null-field handling
     │   │       ├── ConnectGumroadCommandTests.cs           # Upsert behavior, name/email fallback, refresh vs new shop
+    │   │       ├── ConnectStripeCommandTests.cs            # Upsert behavior, business-name/email/Stripe fallback, refresh vs new account
     │   │       ├── UpsertEtsyExpenseCommandTests.cs        # Dedup by ledger_entry_id, mixed new/existing, cross-user isolation, nullable fields
     │   │       ├── UpsertEtsyPayoutCommandTests.cs         # Dedup by ledger_entry_id, mixed new/existing, cross-user isolation
     │   │       ├── UpsertEtsyRevenueCommandTests.cs        # Dedup by transaction_id, mixed new/existing, cross-user isolation
-    │   │       └── UpsertGumroadRevenueCommandTests.cs     # Dedup by sale_id, refunded/disputed flag passthrough, cross-user isolation
+    │   │       ├── UpsertGumroadRevenueCommandTests.cs     # Dedup by sale_id, refunded/disputed flag passthrough, cross-user isolation
+    │   │       ├── UpsertStripePayoutCommandTests.cs       # Dedup by stripe_payout_id, payout method/statement-descriptor passthrough, cross-user isolation, nullable fields
+    │   │       └── UpsertStripeRevenueCommandTests.cs      # Dedup by balance_transaction_id, refunded/disputed flag passthrough, payment-method/risk-score/exchange-rate passthrough, cross-user isolation
     │   ├── Components/
     │   │   ├── Etsy/
     │   │   │   └── EtsyPkceGeneratorTests.cs       # PKCE challenge format, SHA256 invariant, ExtractEtsyUserId edge cases
@@ -692,8 +703,9 @@ My.Talli/
     │   │   │   ├── BillingHandlerBuilder.cs        # Test setup for Stripe webhook handler + related adapters
     │   │   │   ├── EtsySyncBuilder.cs              # Test setup for EtsySyncService — wires the service with EtsyApiClientStub + CapturingLogger + Lamar-resolved Domain commands. Exposes adapters for assertions.
     │   │   │   ├── GumroadSyncBuilder.cs           # Test setup for GumroadSyncService — wires the service with GumroadApiClientStub + CapturingLogger + Lamar-resolved UpsertGumroadRevenueCommand. Exposes adapters for assertions.
-    │   │   │   ├── PlatformHandlerBuilder.cs       # Test setup for ConnectEtsyCommand + ConnectGumroadCommand + all Upsert{Revenue,Expense,Payout} commands + their adapters
-    │   │   │   └── SignInHandlerBuilder.cs         # Test setup orchestrator (Lamar container, exposes handlers & adapters)
+    │   │   │   ├── PlatformHandlerBuilder.cs       # Test setup for ConnectEtsyCommand + ConnectGumroadCommand + ConnectStripeCommand + all Upsert{Revenue,Expense,Payout} commands + their adapters
+    │   │   │   ├── SignInHandlerBuilder.cs         # Test setup orchestrator (Lamar container, exposes handlers & adapters)
+    │   │   │   └── StripeSyncBuilder.cs            # Test setup for StripeConnectSyncService — wires the service with StripeApiClientStub + CapturingLogger + Lamar-resolved UpsertStripeRevenueCommand + UpsertStripePayoutCommand. Exposes adapters for assertions.
     │   │   ├── IoC/
     │   │   │   └── ContainerRegistry.cs        # Test IoC registry (extends Domain.DI.Lamar, swaps in stubs)
     │   │   └── Stubs/
@@ -703,7 +715,8 @@ My.Talli/
     │   │       ├── CurrentUserServiceStub.cs
     │   │       ├── EtsyApiClientStub.cs        # IEtsyApiClient stub — queue-based canned responses, captures every call for assertions
     │   │       ├── GumroadApiClientStub.cs     # IGumroadApiClient stub — queue-based canned responses, captures every call for assertions
-    │   │       └── IdentityProvider.cs         # Auto-incrementing ID generator for test entities
+    │   │       ├── IdentityProvider.cs         # Auto-incrementing ID generator for test entities
+    │   │       └── StripeApiClientStub.cs      # IStripeConnectApiClient stub — queue-based StripeList<Charge>/StripeList<Payout> responses, captures every call for assertions. Connect endpoints (CreateConnectedAccount/CreateAccountLink/GetAccount) throw NotImplementedException since sync tests don't need them.
     │   ├── Notifications/
     │   │   └── Emails/
     │   │       ├── SubscriptionConfirmationEmailNotificationTests.cs
@@ -713,7 +726,8 @@ My.Talli/
     │       └── Platforms/
     │           ├── EtsySyncServiceTests.cs         # Receipt + ledger pagination, ledger classification (Sale/Refund skip, Payment→Payout, fees→Expense w/ category mapping), unknown-type warning, inline token refresh, dedup across syncs
     │           ├── EtsyTokenRefresherTests.cs      # Refresh token passthrough, access token expiry math (now+expires_in), refresh token expiry (now+90 days), rotation
-    │           └── GumroadSyncServiceTests.cs      # Sales pagination via next_page_key, dedup across syncs, price-cents → decimal conversion, refunded/disputed/license-key passthrough, after-date defaults to backfill floor
+    │           ├── GumroadSyncServiceTests.cs      # Sales pagination via next_page_key, dedup across syncs, price-cents → decimal conversion, refunded/disputed/license-key passthrough, after-date defaults to backfill floor
+    │           └── StripeConnectSyncServiceTests.cs # Charge + payout pagination via starting_after cursor, dedup across syncs, cents → decimal conversion, refunded/disputed flag passthrough, balance_transaction_id used as canonical dedup key, created-after defaults to 90-day backfill floor, Stripe-Account header value passed through to API client
     └── My.Talli.Web/               # Blazor Server web project
         ├── My.Talli.Web.csproj
         ├── Program.cs              # App entry point, pipeline setup (delegates to Configuration/ and Endpoints/)
@@ -823,8 +837,12 @@ My.Talli/
         │   │   ├── IGumroadApiClient.cs          # Interface for the 3 HTTP methods on GumroadService (ExchangeCode, GetUser, GetSales) — exists so GumroadSyncService can be unit-tested with a stub
         │   │   ├── IPlatformSyncService.cs       # Per-platform sync contract (Platform name + SyncShopAsync)
         │   │   ├── IPlatformTokenRefresher.cs    # Per-platform token-refresh contract (Platform name, ProactiveRefreshWindow, RefreshAsync)
+        │   │   ├── IStripeConnectApiClient.cs    # Interface for the 5 Stripe.net SDK calls used (CreateConnectedAccount, CreateAccountLink, GetAccount, ListCharges, ListPayouts) — exists so StripeConnectSyncService can be unit-tested with a stub
         │   │   ├── PlatformSyncResult.cs         # Result — NewRevenueRowCount + NewExpenseRowCount + NewPayoutRowCount, MostRecentTransactionDate, PagesFetched, ReceiptsProcessed, LedgerPagesFetched, LedgerEntriesProcessed
-        │   │   └── PlatformTokenRefreshResult.cs # Result — new AccessToken + expiry, rotated RefreshToken + expiry
+        │   │   ├── PlatformTokenRefreshResult.cs # Result — new AccessToken + expiry, rotated RefreshToken + expiry
+        │   │   ├── StripeConnectService.cs       # Implements IStripeConnectApiClient via Stripe.net SDK. Uses Account Links flow (NOT legacy OAuth): POST /v1/accounts (type:standard) + POST /v1/account_links (account_onboarding) for connect; ListCharges/ListPayouts pass RequestOptions.StripeAccount=acct_xxx to read on connected account's behalf. Uses the existing billing Stripe.SecretKey — no separate ClientId/ClientSecret.
+        │   │   ├── StripeConnectSettings.cs      # Stripe Connect config POCO (RefreshUri, ReturnUri only — no ClientId/ClientSecret because Account Links uses the platform's existing Stripe.SecretKey)
+        │   │   └── StripeConnectSyncService.cs   # IPlatformSyncService — paginates GET /v1/charges (with expand=balance_transaction for fee/net) and GET /v1/payouts; dedups by balance_transaction_id (revenue) and stripe_payout_id (payouts). Cents → decimal conversion. No expense sync first pass — Stripe processing fees already captured in Revenue.FeeAmount.
         │   └── Tokens/
         │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
         ├── Workers/                    # BackgroundService-hosted workers (same process as Blazor). See documentation/MyTalli_WorkerProcesses.html for architecture.
@@ -1102,7 +1120,8 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 
 - **Tokens belong to the shop, not the platform.** `PlatformConnection` is a bookkeeping row per (user, platform); OAuth credentials (`AccessToken`, `RefreshToken`, `TokenExpiryDateTime`, `PlatformAccountId`) live on `ShopConnection`. This is what lets a single MyTalli user own multiple Etsy shops under multiple Etsy logins — each shop carries its own login's tokens.
 - **Per-shop controls, not per-platform.** The shop row on `/platforms` shows one action button: **Pause** / **Resume** (toggles `ShopConnection.IsEnabled`). No "Sync Now" — syncing is scheduled server-side via `ShopConnection.NextSyncDateTime`; a manual trigger would undermine the rate-limit strategy. No "Manage" — there's no separate management surface; connect/pause on this page is the management surface.
-- **`IsAvailable` flag on `PlatformItem`.** Gates the "Connect" button on the Platforms page. Only `true` for platforms whose sync code is actually shipped (Etsy + Gumroad today). When `false`, the row is dimmed and the Connect button is replaced by a "Coming Soon" badge — no dead-end Connect attempts. **When you ship a new platform's sync, flip this bool in `PlatformsViewModel.GetPlatformCatalog()` — that's the one place that turns the row live.**
+- **`IsAvailable` flag on `PlatformItem`.** Gates the "Connect" button on the Platforms page. Only `true` for platforms whose sync code is actually shipped (Etsy + Gumroad + Stripe today). When `false`, the row is dimmed and the Connect button is replaced by a "Coming Soon" badge — no dead-end Connect attempts. **When you ship a new platform's sync, flip this bool in `PlatformsViewModel.GetPlatformCatalog()` — that's the one place that turns the row live.**
+- **Stripe Connect uses Account Links, not legacy OAuth.** Endpoints are `/api/platforms/stripe/connect` (creates a Stripe Standard account via API and an account-onboarding link, stores `acct_xxx` in an encrypted cookie, redirects to Stripe-hosted onboarding), `/api/platforms/stripe/refresh` (regenerates the link if the user's Stripe session expires mid-onboarding), and `/api/platforms/stripe/return` (reads the cookie, fetches the now-linked account, runs `ConnectStripeCommand`). There is **no `client_id` / `client_secret`** — the platform's existing `Stripe.SecretKey` (the same key billing uses) authenticates everything. Reads against the connected account's data pass `RequestOptions.StripeAccount = acct_xxx` to the Stripe.net SDK. `ShopConnection.AccessToken` stays empty for Stripe (no per-account token to store, same as Manual).
 - **Every platform supports multiple shops.** Nothing technical stops a single MyTalli user from connecting multiple accounts on any platform — Etsy (multiple Etsy logins, each with one shop), Shopify (multiple stores), Stripe/PayPal/Gumroad (multiple business accounts). The "Connect another shop" button is shown for every platform; the per-platform OAuth endpoint is responsible for enforcing the free-tier cap (see below).
 - **Free-tier 1-shop-per-platform cap.** Free-tier users are capped at one shop *per platform*; Pro users (ProductId 1 or 2, `Active` or `Cancelling`) are uncapped. Enforcement is two-layer:
   - **UI:** `PlatformItem.CanAddAnotherShop = IsProSubscriber || Shops.Count == 0` — computed in `PlatformsViewModel.LoadPlatformsAsync`. When `true` the "Connect another shop" button shows; when `false` the button is replaced by a purple-gradient `plat-btn-upgrade` CTA linking to `/my-plan` ("Upgrade to Pro to connect another {Platform} shop").
@@ -1555,7 +1574,7 @@ public AppleSignInHandler(
 
 ## Stripe Setup TODO
 
-> **Moved to memory:** `project_stripe_setup.md` — dev environment working, production keys & custom domains pending.
+> **Moved to memory:** `project_stripe_setup.md` — billing dev working + Connect platform live (verification done 2026-05-02, test connected account created); production billing keys & custom domains pending.
 
 ## Blazor TODO
 

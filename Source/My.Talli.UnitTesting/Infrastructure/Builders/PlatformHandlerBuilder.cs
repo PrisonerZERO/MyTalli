@@ -29,6 +29,18 @@ public class PlatformHandlerBuilder
 
 	public UpsertGumroadRevenueCommand UpsertGumroadRevenue => _container.GetInstance<UpsertGumroadRevenueCommand>();
 
+	public ConnectStripeCommand StripeCommand => _container.GetInstance<ConnectStripeCommand>();
+
+	public RepositoryAdapterAsync<RevenueStripe, ENTITIES.RevenueStripe> RevenueStripeAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<RevenueStripe, ENTITIES.RevenueStripe>>();
+
+	public RepositoryAdapterAsync<PayoutStripe, ENTITIES.PayoutStripe> PayoutStripeAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<PayoutStripe, ENTITIES.PayoutStripe>>();
+
+	public UpsertStripePayoutCommand UpsertStripePayout => _container.GetInstance<UpsertStripePayoutCommand>();
+
+	public UpsertStripeRevenueCommand UpsertStripeRevenue => _container.GetInstance<UpsertStripeRevenueCommand>();
+
 	public RepositoryAdapterAsync<Expense, ENTITIES.Expense> ExpenseAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<Expense, ENTITIES.Expense>>();
 
