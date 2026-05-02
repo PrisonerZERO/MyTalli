@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTalli — Heartbeat &amp; Maintenance Mode Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f7fc; color: #1a1a2e; font-family: 'DM Sans', sans-serif; line-height: 1.55; padding: 0; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 50%, #6c5ce7 100%); color: #fff; overflow: hidden; padding: 48px; position: relative; }
+  .header::before { background: rgba(255,255,255,0.07); border-radius: 50%; content: ''; height: 200px; position: absolute; right: -40px; top: -60px; width: 200px; }
+  .header::after { background: rgba(255,255,255,0.05); border-radius: 50%; content: ''; height: 120px; left: 30%; position: absolute; top: 80px; width: 120px; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; position: relative; z-index: 1; }
+  .header h1 span { color: #a78bfa; }
+  .header .subtitle { color: rgba(255,255,255,0.85); font-size: 15px; margin-top: 6px; position: relative; z-index: 1; }
+  .header .doc-date { color: rgba(255,255,255,0.55); font-size: 12px; margin-top: 12px; position: relative; z-index: 1; }
+
+  /* Content */
+  .content { margin: 0 auto; max-width: 1100px; padding: 40px 32px 80px; }
+
+  /* TOC */
+  .toc { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 32px; padding: 20px 24px; }
+  .toc h2 { color: #1a1a2e; font-size: 13px; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; }
+  .toc ol { color: #555; columns: 2; column-gap: 24px; font-size: 13px; list-style: none; padding: 0; }
+  .toc li { break-inside: avoid; padding: 4px 0; }
+  .toc li a { color: #6c5ce7; text-decoration: none; }
+  .toc li a:hover { text-decoration: underline; }
+
+  /* Sections */
+  .section { background: #fff; border: 1px solid #e0dce8; border-radius: 12px; margin-bottom: 24px; padding: 28px 32px; }
+  .section h2 { border-bottom: 2px solid #ede9ff; color: #1a1a2e; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 16px; padding-bottom: 10px; }
+  .section h3 { color: #1a1a2e; font-size: 15px; font-weight: 700; margin-top: 20px; margin-bottom: 8px; }
+  .section h4 { color: #6c5ce7; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; margin-top: 16px; margin-bottom: 6px; text-transform: uppercase; }
+  .section p { color: #444; font-size: 14px; margin-bottom: 10px; }
+  .section ul, .section ol { color: #444; font-size: 14px; margin-bottom: 10px; padding-left: 24px; }
+  .section ul li, .section ol li { margin-bottom: 4px; }
+  .section code { background: #f4f1ff; border-radius: 3px; color: #5b21b6; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; padding: 1px 5px; }
+  .section pre { background: #1a1a2e; border-radius: 8px; color: #e0dce8; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.5; margin: 10px 0; overflow-x: auto; padding: 14px 16px; }
+  .section pre code { background: transparent; color: inherit; padding: 0; }
+  .section strong { color: #1a1a2e; }
+
+  /* Tables */
+  table { border-collapse: collapse; font-size: 13px; margin: 12px 0; width: 100%; }
+  th { background: #f4f1ff; border-bottom: 2px solid #6c5ce7; color: #1a1a2e; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; padding: 10px 12px; text-align: left; text-transform: uppercase; }
+  td { border-bottom: 1px solid #e0dce8; color: #444; padding: 10px 12px; vertical-align: top; }
+  td code { font-size: 11px; }
+
+  /* Callout boxes */
+  .callout { border-left: 4px solid #6c5ce7; border-radius: 0 6px 6px 0; margin: 12px 0; padding: 12px 16px; }
+  .callout-decision { background: #f4faf6; border-left-color: #27ae60; }
+  .callout-decision strong { color: #14532d; }
+  .callout-warn { background: #fffbeb; border-left-color: #f59e0b; }
+  .callout-warn strong { color: #92400e; }
+  .callout-info { background: #f0edff; border-left-color: #6c5ce7; }
+  .callout-info strong { color: #5b21b6; }
+  .callout p { font-size: 13px; margin: 0; }
+  .callout p + p { margin-top: 6px; }
+
+  /* Tag pill */
+  .tag { border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 7px; text-transform: uppercase; }
+  .tag.new { background: #d1fae5; color: #065f46; }
+  .tag.modify { background: #fef3c7; color: #92400e; }
+  .tag.singleton { background: #ede9ff; color: #5b21b6; }
+  .tag.scoped { background: #dbeafe; color: #1e40af; }
+  .tag.transient { background: #fce7f3; color: #9f1239; }
+
+  /* Footer */
+  .footer { border-top: 1px solid #e0dce8; color: #999; font-size: 12px; margin-top: 48px; padding-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>My<span>Talli</span> Heartbeat &amp; Maintenance Mode Plan</h1>
+  <p class="subtitle">Architecture and implementation plan for Item E (Heartbeat infrastructure) and Item B (Maintenance Mode)</p>
+  <p class="doc-date">Drafted: May 2, 2026 — review before any code is written</p>
+</div>
+
+<div class="content">
+
+  <!-- TOC -->
+  <div class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#decisions">1. Decisions Locked</a></li>
+      <li><a href="#architecture">2. Architecture Overview</a></li>
+      <li><a href="#schema">3. Database Changes</a></li>
+      <li><a href="#domain">4. Domain Layer</a></li>
+      <li><a href="#web">5. Web Layer</a></li>
+      <li><a href="#di">6. DI Registration</a></li>
+      <li><a href="#admin-ui">7. Admin UI</a></li>
+      <li><a href="#tests">8. Tests</a></li>
+      <li><a href="#claudemd">9. CLAUDE.md Updates</a></li>
+      <li><a href="#order">10. Implementation Order</a></li>
+      <li><a href="#scope">11. Out of Scope</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. Decisions Locked -->
+  <div class="section" id="decisions">
+    <h2>1. Decisions Locked</h2>
+    <p>These were settled in conversation before this doc was drafted. They are not up for re-litigation in the implementation phase.</p>
+
+    <table>
+      <thead>
+        <tr><th>Decision</th><th>Choice</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Worker count</td><td><strong>3 in-process workers</strong>: <code>ShopSyncWorker</code> (existing), <code>TokenRefreshWorker</code> (existing), <code>AdminHealthWorker</code> (new)</td></tr>
+        <tr><td>Process model</td><td><strong>In-process</strong> as <code>BackgroundService</code> hosted services inside <code>My.Talli.Web</code>. Same as existing workers.</td></tr>
+        <tr><td>Heartbeat cadence</td><td><strong>1 minute</strong> — fast enough for cross-instance MM propagation, cheap enough for thread pool</td></tr>
+        <tr><td>Heartbeat task profile</td><td><strong>DB-only, fast (&lt;1s per tick)</strong>. Anything that makes outbound platform API calls belongs in its own worker.</td></tr>
+        <tr><td>Authorization model</td><td><strong>Keep existing <code>auth.UserRole</code>.</strong> No <code>IsAdministrator</code> flag refactor. MM uses <code>User.IsInRole("Admin")</code>.</td></tr>
+        <tr><td>MM admin behavior</td><td><strong>Admins are NOT redirected by MM</strong> — they keep full access to verify the fix and watch live indicators.</td></tr>
+        <tr><td>MM eviction signal</td><td><strong>Live count of non-admin users currently in the app</strong> (i.e., on <code>MainLayout</code>, not on <code>/maintenance</code>). Drops to 0 = safe to proceed.</td></tr>
+        <tr><td>MM propagation</td><td><strong>Two paths:</strong> in-process event for instant local reaction + heartbeat re-read of DB flag for cross-instance / SQL-direct changes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2. Architecture -->
+  <div class="section" id="architecture">
+    <h2>2. Architecture Overview</h2>
+
+    <h3>Heartbeat infrastructure (Item E)</h3>
+    <p>A new <code>BackgroundService</code> named <code>AdminHealthWorker</code> ticks every 1 minute. On each tick it:</p>
+    <ol>
+      <li>Re-reads the MM flag from <code>app.SystemSetting</code>; if it differs from the in-memory cache held by <code>MaintenanceModeService</code>, updates the cache and raises the in-process <code>StateChanged</code> event.</li>
+      <li>Writes its own heartbeat row to <code>app.Heartbeat</code> with <code>Source = "AdminHealthWorker"</code> and <code>LastTickAt = UTCNOW</code>. This row is what the future Sync Health Dashboard will read to confirm the worker itself is alive.</li>
+      <li>(Future consumers — token expiry warnings, sync staleness, email delivery, webhook gap, API quota — plug in here as additional checks. Not in scope for E + B.)</li>
+    </ol>
+
+    <p>The other two workers (<code>ShopSyncWorker</code>, <code>TokenRefreshWorker</code>) gain one new responsibility: write a heartbeat row at the end of each loop iteration. That gives the future dashboard a single uniform "is this subsystem alive" surface.</p>
+
+    <h3>Maintenance Mode (Item B)</h3>
+    <p>A boolean flag stored in <code>app.SystemSetting</code> (key <code>"MaintenanceMode"</code>, value <code>"true"</code>/<code>"false"</code>). Reaches users via four paths:</p>
+
+    <table>
+      <thead>
+        <tr><th>Trigger</th><th>Mechanism</th><th>Latency</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>User clicks / loads / refreshes</td><td><code>MaintenanceModeMiddleware</code> reads cached flag from singleton, returns redirect to <code>/maintenance</code></td><td>Immediate</td></tr>
+        <tr><td>User sitting idle on local instance</td><td>Admin's toggle raises in-process <code>StateChanged</code> event; <code>MainLayout</code> subscription navigates to <code>/maintenance</code></td><td>&lt;1s</td></tr>
+        <tr><td>User sitting idle on different instance (future)</td><td><code>AdminHealthWorker</code> on that instance re-reads DB, detects stale cache, raises local event</td><td>&le;60s</td></tr>
+        <tr><td>MM turned OFF</td><td>Same in-process / heartbeat paths fire with <code>false</code>; <code>MainLayout</code> subscription navigates back to <code>/dashboard</code></td><td>&lt;1s local, &le;60s cross-instance</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Admin indicator</h3>
+    <p>Admins bypass MM entirely. To give them confidence that all live users have actually been evicted, a <code>MaintenanceBanner</code> component lives in <code>MainLayout</code> and renders only when MM is on AND the current user is admin. It shows:</p>
+    <ul>
+      <li>Status pill: "<strong>Maintenance Mode is ON</strong>" with a "Turn Off" button</li>
+      <li>Live count: "<strong>3 non-admin users still active</strong>" — pulses red while count &gt; 0, turns green at 0</li>
+    </ul>
+    <p>The count is sourced from <code>ICircuitTracker</code>, a singleton service that uses Blazor's <code>CircuitHandler</code> to track open circuits + a <code>MainLayout</code> session counter to identify "in-app" sessions specifically (excluding circuits parked on <code>/maintenance</code> which uses <code>LandingLayout</code>).</p>
+
+    <div class="callout callout-info">
+      <p><strong>Why <code>MainLayout</code>-based counting and not page-path tracking?</strong> Blazor pages don't expose their circuit ID to component code, so per-circuit path tracking requires extra plumbing. <code>MainLayout</code> sessions are a perfect proxy: any user on an in-app page is rendering <code>MainLayout</code>; the moment they're redirected to <code>/maintenance</code> (which uses <code>LandingLayout</code>) the <code>MainLayout</code> instance disposes and decrements the count. Same signal, simpler implementation.</p>
+    </div>
+  </div>
+
+  <!-- 3. Schema -->
+  <div class="section" id="schema">
+    <h2>3. Database Changes</h2>
+
+    <p>Single new migration covering both tables. Per the "One Migration Per Version" rule, both tables ship together.</p>
+
+    <h3><code>app.SystemSetting</code> <span class="tag new">NEW</span></h3>
+    <p>Key/value store for system-wide settings. Designed to be a long-term home for any future global toggle (e.g., "ReadOnlyMode", "BannerMessage") so we don't keep adding columns to other tables.</p>
+
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>Id</code></td><td><code>bigint</code> PK identity</td><td>Standard surrogate PK so the table fits <code>GenericAuditableRepositoryAsync&lt;T&gt;</code></td></tr>
+        <tr><td><code>SettingKey</code></td><td><code>nvarchar(100)</code></td><td>e.g., <code>"MaintenanceMode"</code>. Unique constraint <code>UQ_SystemSetting_SettingKey</code></td></tr>
+        <tr><td><code>SettingValue</code></td><td><code>nvarchar(max)</code></td><td>String value; consumers parse as needed</td></tr>
+        <tr><td><code>IsDeleted</code></td><td><code>bit</code></td><td>Default false</td></tr>
+        <tr><td><code>IsVisible</code></td><td><code>bit</code></td><td>Default true</td></tr>
+        <tr><td><code>CreateByUserId</code></td><td><code>bigint</code></td><td>Audit</td></tr>
+        <tr><td><code>CreatedOnDateTime</code></td><td><code>datetime2</code></td><td>Audit</td></tr>
+        <tr><td><code>UpdatedByUserId</code></td><td><code>bigint?</code></td><td>Audit</td></tr>
+        <tr><td><code>UpdatedOnDate</code></td><td><code>datetime2?</code></td><td>Audit</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Seed data</strong> (post-deployment script): one row, <code>SettingKey = 'MaintenanceMode'</code>, <code>SettingValue = 'false'</code>.</p>
+
+    <h3><code>app.Heartbeat</code> <span class="tag new">NEW</span></h3>
+    <p>Liveness tracking for subsystems. Each row represents one named source that is expected to "tick" on a regular interval. Used by future Sync Health Dashboard to detect stale subsystems.</p>
+
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>Id</code></td><td><code>bigint</code> PK identity</td><td>Standard surrogate PK so the table fits <code>GenericAuditableRepositoryAsync&lt;T&gt;</code></td></tr>
+        <tr><td><code>HeartbeatSource</code></td><td><code>nvarchar(100)</code></td><td>e.g., <code>"AdminHealthWorker"</code>, <code>"ShopSyncWorker"</code>, <code>"TokenRefreshWorker"</code>. Unique constraint <code>UQ_Heartbeat_HeartbeatSource</code></td></tr>
+        <tr><td><code>ExpectedIntervalSeconds</code></td><td><code>int</code></td><td>Used by stale detection (LastTickAt + ExpectedInterval &lt; now → stale)</td></tr>
+        <tr><td><code>LastTickAt</code></td><td><code>datetime2</code></td><td>UTC timestamp of last successful tick</td></tr>
+        <tr><td><code>Metadata</code></td><td><code>nvarchar(max)?</code></td><td>Optional JSON for extra context (e.g., last-tick rows-processed counts)</td></tr>
+        <tr><td><code>IsDeleted</code></td><td><code>bit</code></td><td>Default false</td></tr>
+        <tr><td><code>IsVisible</code></td><td><code>bit</code></td><td>Default true</td></tr>
+        <tr><td><code>CreateByUserId</code></td><td><code>bigint</code></td><td>Audit (always 0 for worker-written rows)</td></tr>
+        <tr><td><code>CreatedOnDateTime</code></td><td><code>datetime2</code></td><td>Audit</td></tr>
+        <tr><td><code>UpdatedByUserId</code></td><td><code>bigint?</code></td><td>Audit</td></tr>
+        <tr><td><code>UpdatedOnDate</code></td><td><code>datetime2?</code></td><td>Audit</td></tr>
+      </tbody>
+    </table>
+
+    <p>Index: <code>IX_Heartbeat_LastTickAt</code> for stale-detection scans.</p>
+
+    <div class="callout callout-warn">
+      <p><strong>Workers and audit fields:</strong> Workers run with no HTTP context, so they must follow the existing pattern from <code>ShopSyncWorker</code> — call <code>currentUserService.Set(0L, string.Empty)</code> before write, clear in <code>finally</code>. <code>CreateByUserId = 0</code> is the existing "self-created / system" sentinel used by OAuth sign-up.</p>
+    </div>
+
+    <h3>Migration plan</h3>
+    <p>Single migration: <code>AddHeartbeatAndSystemSettings</code>. Per the project rules:</p>
+    <ul>
+      <li>Inherits from <code>DbMigrationBase</code>, overrides <code>UpTables()</code> / <code>DownTables()</code></li>
+      <li>Migration folder: <code>Migrations/{next-version}/</code> with <code>Post-Deployment Scripts/00.app.SystemSetting.seed.sql</code> for the MM seed row</li>
+      <li>Migration script generated to <code>migrations/AddHeartbeatAndSystemSettings.sql</code> (git-ignored) for production review</li>
+      <li>Generated script gets the standard guard block prepended (check <code>__EFMigrationsHistory</code>, abort with <code>RAISERROR</code> if already applied)</li>
+      <li>Run locally with <code>Update-Database</code> against <code>localhost</code> only — never against Azure</li>
+    </ul>
+  </div>
+
+  <!-- 4. Domain Layer -->
+  <div class="section" id="domain">
+    <h2>4. Domain Layer</h2>
+
+    <h3>Entities <span class="tag new">NEW</span></h3>
+    <ul>
+      <li><code>Domain.Entities/Entities/SystemSetting.cs</code> — extends <code>DefaultEntity</code> (standard <code>long Id</code> + audit fields + <code>IsDeleted</code> + <code>IsVisible</code>). Adds <code>SettingKey</code> (string) and <code>SettingValue</code> (string).</li>
+      <li><code>Domain.Entities/Entities/Heartbeat.cs</code> — extends <code>DefaultEntity</code>. Adds <code>HeartbeatSource</code> (string), <code>ExpectedIntervalSeconds</code> (int), <code>LastTickAt</code> (datetime), <code>Metadata</code> (string?).</li>
+    </ul>
+
+    <p>Both fit the existing <code>GenericAuditableRepositoryAsync&lt;T&gt;</code> + <code>RepositoryAdapterAsync</code> pipeline with no special-casing. Lookups by <code>SettingKey</code> / <code>HeartbeatSource</code> use <code>FindAsync(predicate)</code>; the unique constraint guards against duplicates.</p>
+
+    <h3>Models <span class="tag new">NEW</span></h3>
+    <ul>
+      <li><code>Domain/Models/Entity/SystemSetting.cs</code> — inherits <code>DefaultModel</code> (<code>Id</code>, <code>IsDeleted</code>, <code>IsVisible</code>); adds <code>SettingKey</code>, <code>SettingValue</code>. No audit fields per "Entity Models" rule.</li>
+      <li><code>Domain/Models/Entity/Heartbeat.cs</code> — inherits <code>DefaultModel</code>; adds <code>HeartbeatSource</code>, <code>ExpectedIntervalSeconds</code>, <code>LastTickAt</code>, <code>Metadata</code>.</li>
+    </ul>
+
+    <h3>Mappers <span class="tag new">NEW</span></h3>
+    <ul>
+      <li><code>Domain/Mappers/Entity/SystemSettingMapper.cs</code> — implements <code>IEntityMapper&lt;ENTITIES.SystemSetting, MODELS.SystemSetting&gt;</code></li>
+      <li><code>Domain/Mappers/Entity/HeartbeatMapper.cs</code> — same pattern</li>
+    </ul>
+
+    <h3>EF Configurations <span class="tag new">NEW</span></h3>
+    <ul>
+      <li><code>Domain.Data.EntityFramework/Configurations/App/SystemSettingConfiguration.cs</code> — <code>HasKey(e =&gt; e.SettingKey)</code>, <code>ToTable("SystemSetting", "app")</code>, <code>HasColumnOrder(N)</code> on each property per the column-ordering convention</li>
+      <li><code>Domain.Data.EntityFramework/Configurations/App/HeartbeatConfiguration.cs</code> — same pattern</li>
+    </ul>
+
+    <h3>Commands <span class="tag new">NEW</span></h3>
+    <p>All under <code>Domain/CommandsAndQueries/Commands/Admin/</code> (new subfolder; namespace <code>My.Talli.Domain.Commands.Admin</code> per the "Subfolder Namespace Convention" — the <code>CommandsAndQueries</code> umbrella is dropped from the namespace).</p>
+
+    <table>
+      <thead><tr><th>Command</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>GetSystemSettingCommand</code></td><td>Read a single setting by key. Returns <code>string?</code> (null if not found). Used by <code>MaintenanceModeService</code> on startup + by <code>AdminHealthWorker</code> on every tick.</td></tr>
+        <tr><td><code>UpsertSystemSettingCommand</code></td><td>Insert-or-update by <code>SettingKey</code>. Used by <code>MaintenanceModeService.SetEnabledAsync</code>.</td></tr>
+        <tr><td><code>WriteHeartbeatTickCommand</code></td><td>Upsert the heartbeat row for a given source. Used by all three workers at the end of each loop.</td></tr>
+        <tr><td><code>GetHeartbeatStatusCommand</code></td><td>Read all heartbeat rows. (Reserved for future Sync Health Dashboard — implement it now or stub for later? See Out of Scope below.)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. Web Layer -->
+  <div class="section" id="web">
+    <h2>5. Web Layer</h2>
+
+    <h3>Services <span class="tag new">NEW</span></h3>
+
+    <h4>MaintenanceModeService <span class="tag singleton">SINGLETON</span></h4>
+    <p>Lives in <code>Source/My.Talli.Web/Services/Admin/MaintenanceModeService.cs</code>. The single in-memory source of truth for the cached MM flag.</p>
+    <pre><code>public interface IMaintenanceModeService
+{
+    bool IsEnabled { get; }
+    event Action&lt;bool&gt; StateChanged;
+    Task SetEnabledAsync(bool value, long actingUserId);
+    Task RefreshFromDbAsync();
+}</code></pre>
+    <ul>
+      <li><strong>Startup:</strong> hosted-service initializer reads DB once at boot to populate the cache.</li>
+      <li><strong><code>SetEnabledAsync</code>:</strong> writes DB via <code>UpsertSystemSettingCommand</code>, updates cache, raises <code>StateChanged</code>. Called by the admin toggle endpoint.</li>
+      <li><strong><code>RefreshFromDbAsync</code>:</strong> re-reads DB; if value differs from cache, updates cache + raises event. Called by <code>AdminHealthWorker</code> every tick.</li>
+      <li>Singleton because all circuits + middleware + worker share the same flag.</li>
+    </ul>
+
+    <h4>ICircuitTracker <span class="tag singleton">SINGLETON</span></h4>
+    <p>Lives in <code>Source/My.Talli.Web/Services/Admin/CircuitTracker.cs</code>.</p>
+    <pre><code>public interface ICircuitTracker
+{
+    int InAppNonAdminCount { get; }
+    event Action CountChanged;
+    void RegisterInAppSession(string sessionId, bool isAdmin);
+    void UnregisterInAppSession(string sessionId);
+}</code></pre>
+    <ul>
+      <li>Backed by <code>ConcurrentDictionary&lt;string, bool&gt;</code> (sessionId → isAdmin)</li>
+      <li><strong>Sessions are registered by <code>MainLayout</code></strong>, not by the circuit handler — see "MainLayout integration" below</li>
+      <li>Raises <code>CountChanged</code> when <code>InAppNonAdminCount</code> changes; banner subscribes to refresh its display</li>
+    </ul>
+
+    <h3>Middleware <span class="tag new">NEW</span></h3>
+
+    <h4>MaintenanceModeMiddleware</h4>
+    <p>Lives in <code>Source/My.Talli.Web/Middleware/MaintenanceModeMiddleware.cs</code>. Registered via <code>app.UseMaintenanceMode()</code> extension.</p>
+    <p>Pipeline position: <strong>after</strong> <code>UseAuthentication</code> (so the <code>User</code> claim is populated and we can check the Admin role) but <strong>before</strong> <code>UseAuthorization</code> and <code>MapRazorComponents</code>.</p>
+    <p>Logic:</p>
+    <ol>
+      <li>If <code>!IMaintenanceModeService.IsEnabled</code> → pass through</li>
+      <li>If <code>User.IsInRole("Admin")</code> → pass through</li>
+      <li>If request path starts with <code>/maintenance</code>, <code>/api/admin/maintenance</code>, <code>/_blazor</code>, <code>/_framework</code>, <code>/css</code>, <code>/js</code>, or <code>/lib</code> → pass through</li>
+      <li>Otherwise → <code>302 Redirect to /maintenance</code></li>
+    </ol>
+
+    <h3>Workers <span class="tag new">NEW</span> + <span class="tag modify">MODIFY</span></h3>
+
+    <h4>AdminHealthWorker <span class="tag new">NEW</span></h4>
+    <p>Lives in <code>Source/My.Talli.Web/Workers/AdminHealthWorker.cs</code>.</p>
+    <ul>
+      <li>Cadence: <code>Task.Delay(TimeSpan.FromMinutes(1))</code></li>
+      <li>Per tick:
+        <ol>
+          <li><code>currentUserService.Set(0L, string.Empty)</code> (system sentinel)</li>
+          <li><code>await maintenanceModeService.RefreshFromDbAsync()</code></li>
+          <li><code>await writeHeartbeatTickCommand.ExecuteAsync("AdminHealthWorker", expectedIntervalSeconds: 60)</code></li>
+          <li><code>currentUserService.Clear()</code> in <code>finally</code></li>
+        </ol>
+      </li>
+      <li>Each tick creates a fresh <code>IServiceProvider.CreateScope()</code> per the existing worker pattern</li>
+    </ul>
+
+    <h4>ShopSyncWorker <span class="tag modify">MODIFY</span></h4>
+    <p>Add a single <code>WriteHeartbeatTickCommand.ExecuteAsync("ShopSyncWorker", expectedIntervalSeconds: 300)</code> call at the end of each successful loop iteration. No other changes.</p>
+
+    <h4>TokenRefreshWorker <span class="tag modify">MODIFY</span></h4>
+    <p>Same pattern: write a heartbeat row at the end of each loop with <code>expectedIntervalSeconds: 21600</code> (6h).</p>
+
+    <h3>Pages <span class="tag new">NEW</span></h3>
+
+    <h4>/maintenance</h4>
+    <p>Lives in <code>Source/My.Talli.Web/Components/Pages/Maintenance.razor</code>.</p>
+    <ul>
+      <li>Uses <code>LandingLayout</code> (not <code>MainLayout</code>) — keeps the maintenance experience minimal and isolated from app chrome</li>
+      <li>Renders the <code>BrandHeader</code> swoosh per the "Page Hero Branding" rule</li>
+      <li>Body copy: "We're tuning things up. MyTalli will be back in a few minutes." (placeholder copy; refine in implementation)</li>
+      <li>Static SSR (no <code>@rendermode</code>) — the page itself doesn't need interactivity. The auto-recovery (when MM flips off) is handled by users still having an open SignalR circuit on a previously-rendered <code>MainLayout</code> elsewhere; a fresh load of <code>/maintenance</code> stays static. (Edge case: a user who direct-navigates to <code>/maintenance</code> after MM is off and stays there won't auto-leave — the middleware doesn't redirect them since MM is off. That's fine; the page can show a "Back to Dashboard" link.)</li>
+      <li>Page is reachable directly (no MM check) — handy for testing and for the "Back to Dashboard" link to live somewhere reasonable</li>
+    </ul>
+
+    <h3>Components <span class="tag new">NEW</span></h3>
+
+    <h4>MaintenanceBanner</h4>
+    <p>Lives in <code>Source/My.Talli.Web/Components/Shared/MaintenanceBanner.razor</code> (+ <code>.razor.css</code> + ViewModel in <code>ViewModels/Shared/MaintenanceBannerViewModel.cs</code>).</p>
+    <ul>
+      <li>Rendered inside <code>MainLayout</code> (above the page content)</li>
+      <li>Renders only when <code>MaintenanceModeService.IsEnabled &amp;&amp; User.IsInRole("Admin")</code></li>
+      <li>Subscribes to <code>MaintenanceModeService.StateChanged</code> + <code>ICircuitTracker.CountChanged</code> in <code>OnInitializedAsync</code>; unsubscribes in <code>Dispose</code></li>
+      <li>Calls <code>InvokeAsync(StateHasChanged)</code> on event so cross-circuit updates render correctly</li>
+      <li>Visual: persistent red bar at top with status text + count + "Turn Off" button. Pulses red while count &gt; 0; turns green at 0.</li>
+    </ul>
+
+    <h4>MainLayout integration <span class="tag modify">MODIFY</span></h4>
+    <p>Two small additions to <code>MainLayout.razor.cs</code>:</p>
+    <ul>
+      <li>Implements <code>IDisposable</code> if it doesn't already</li>
+      <li><code>OnInitializedAsync</code>: generate a session ID, resolve <code>User.IsInRole("Admin")</code>, call <code>circuitTracker.RegisterInAppSession(sessionId, isAdmin)</code></li>
+      <li><code>Dispose</code>: <code>circuitTracker.UnregisterInAppSession(sessionId)</code></li>
+      <li>Renders <code>&lt;MaintenanceBanner /&gt;</code> at the top of the layout content</li>
+      <li>Subscribes to <code>MaintenanceModeService.StateChanged</code>; on event with <code>true</code> AND <code>!isAdmin</code>, calls <code>NavigationManager.NavigateTo("/maintenance", forceLoad: true)</code>; on event with <code>false</code>, navigates to <code>/dashboard</code></li>
+    </ul>
+
+    <h3>Endpoints <span class="tag new">NEW</span></h3>
+    <p>Add to existing <code>Source/My.Talli.Web/Endpoints/AdminEndpoints.cs</code>:</p>
+    <ul>
+      <li><code>POST /api/admin/maintenance/on</code> — admin-role-gated; calls <code>MaintenanceModeService.SetEnabledAsync(true, currentUserId)</code>; returns 200</li>
+      <li><code>POST /api/admin/maintenance/off</code> — admin-role-gated; calls <code>MaintenanceModeService.SetEnabledAsync(false, currentUserId)</code>; returns 200</li>
+      <li><code>GET /api/admin/maintenance/status</code> — admin-role-gated; returns <code>{ isEnabled, inAppNonAdminCount }</code> (used by the banner if we need a fallback to polling, but in practice the in-process events handle it)</li>
+    </ul>
+  </div>
+
+  <!-- 6. DI -->
+  <div class="section" id="di">
+    <h2>6. DI Registration</h2>
+
+    <p>Per the existing convention (Domain things in <code>Domain.DI.Lamar</code>; Web things in <code>My.Talli.Web/Configuration/</code>):</p>
+
+    <table>
+      <thead><tr><th>Component</th><th>Lifetime</th><th>Registered in</th></tr></thead>
+      <tbody>
+        <tr><td>Mappers (SystemSetting, Heartbeat)</td><td>Scoped</td><td><code>Domain.DI.Lamar/IoC/ContainerRegistry.cs</code></td></tr>
+        <tr><td>Commands (4 new commands)</td><td>Scoped</td><td><code>Domain.DI.Lamar/IoC/ContainerRegistry.cs</code></td></tr>
+        <tr><td><code>IMaintenanceModeService</code> → <code>MaintenanceModeService</code></td><td>Singleton</td><td>New <code>Configuration/AdminConfiguration.cs</code> (or extend existing)</td></tr>
+        <tr><td><code>ICircuitTracker</code> → <code>CircuitTracker</code></td><td>Singleton</td><td>Same as above</td></tr>
+        <tr><td><code>AdminHealthWorker</code></td><td>Hosted Service</td><td><code>Program.cs</code> via <code>builder.Services.AddHostedService&lt;AdminHealthWorker&gt;()</code></td></tr>
+        <tr><td>Initializer (DB-load on startup)</td><td>Hosted Service</td><td>Same as above; runs once at startup to seed cache</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. Admin UI -->
+  <div class="section" id="admin-ui">
+    <h2>7. Admin UI</h2>
+
+    <p>The existing <code>/admin</code> page has two sections (Single User Resend, Bulk Welcome). MM is unrelated to email; lumping it as a third section makes the page cluttered and forces users to scroll past unrelated content to reach the toggle.</p>
+
+    <h3>Recommendation: spoke tabs on /admin</h3>
+    <p>Add the project's standard <strong>spoke tabs</strong> pattern (see "Spoke Tabs" rule in CLAUDE.md) to the <code>/admin</code> page:</p>
+
+    <table>
+      <thead><tr><th>Tab</th><th>Content</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Email</strong> (default)</td><td>Existing Single User Resend + Bulk Welcome sections (unchanged)</td></tr>
+        <tr><td><strong>Maintenance</strong> <span class="tag new">NEW</span></td><td>Status pill (ON/OFF), live count of non-admin in-app users, "Turn On" / "Turn Off" buttons, last-toggled timestamp + by-whom (from audit fields)</td></tr>
+        <tr><td><strong>Sync Health</strong> <em>(reserved — not built in this scope)</em></td><td>Will surface heartbeat rows + per-platform status when Item C ships</td></tr>
+      </tbody>
+    </table>
+
+    <p>Tab styling, active state, ViewModel pattern (<code>ActiveTab</code> string, <code>SelectTab(string)</code> method, <code>@if (ActiveTab == "...")</code> blocks with <code>role="tabpanel"</code>) all per the existing rule. Default tab: <code>"email"</code> (preserves existing behavior for muscle memory).</p>
+
+    <p><strong>Hero stats update</strong> for the admin hero swoosh: when MM is on, surface the count there too (e.g., "Maintenance: ON · 3 active users") so it's visible regardless of which tab is selected.</p>
+
+    <h3>ConfirmDialog on toggle</h3>
+    <p>Both "Turn On" and "Turn Off" trigger the existing <code>ConfirmDialog</code> component (Yes/No, danger variant) before firing the API call. Avoids accidental kills.</p>
+  </div>
+
+  <!-- 8. Tests -->
+  <div class="section" id="tests">
+    <h2>8. Tests</h2>
+
+    <p>Per the "Unit Testing" rules, only test logic that computes / transforms / validates / can fail. Skip property mappers and POCOs.</p>
+
+    <table>
+      <thead><tr><th>Test class</th><th>What it covers</th></tr></thead>
+      <tbody>
+        <tr><td><code>UpsertSystemSettingCommandTests</code></td><td>Insert new key, update existing key, audit fields populated correctly, key-not-found edge cases</td></tr>
+        <tr><td><code>WriteHeartbeatTickCommandTests</code></td><td>Insert new source, update existing source's <code>LastTickAt</code>, metadata round-trip</td></tr>
+        <tr><td><code>MaintenanceModeServiceTests</code></td><td><code>SetEnabledAsync</code> writes DB + updates cache + raises event with correct value, <code>RefreshFromDbAsync</code> raises event only when value changed, no event on no-op refresh</td></tr>
+        <tr><td><code>MaintenanceModeMiddlewareTests</code></td><td>Pass-through when MM off, redirect when MM on + non-admin, pass-through for admin, pass-through for whitelisted paths (/maintenance, /api/admin/maintenance, /_blazor, /_framework, static assets)</td></tr>
+        <tr><td><code>CircuitTrackerTests</code></td><td><code>RegisterInAppSession</code> + <code>UnregisterInAppSession</code> count math, admin sessions excluded from count, <code>CountChanged</code> raised on net change only</td></tr>
+        <tr><td><code>AdminHealthWorkerTests</code></td><td>Tick calls <code>RefreshFromDbAsync</code> + <code>WriteHeartbeatTickCommand</code>; uses fresh scope per tick; clears <code>CurrentUserService</code> in finally</td></tr>
+      </tbody>
+    </table>
+
+    <p>Test infrastructure additions:</p>
+    <ul>
+      <li>Extend <code>Infrastructure/Stubs/</code> with stubs for <code>SystemSetting</code> and <code>Heartbeat</code> repository access (or direct stubs of the new commands' DB calls — depends on which repository pattern we choose in §4)</li>
+      <li>New builder: <code>Infrastructure/Builders/AdminBuilder.cs</code> for wiring the MaintenanceMode + Heartbeat stack in tests</li>
+    </ul>
+  </div>
+
+  <!-- 9. CLAUDE.md -->
+  <div class="section" id="claudemd">
+    <h2>9. CLAUDE.md Updates</h2>
+
+    <p>The following sections need additions / edits after implementation lands:</p>
+
+    <ul>
+      <li><strong>Database → Schemas table</strong>: add <code>SystemSetting</code> and <code>Heartbeat</code> to the <code>app</code> schema row</li>
+      <li><strong>Schema: <code>app</code></strong>: new entries for <code>app.SystemSetting</code> and <code>app.Heartbeat</code></li>
+      <li><strong>Background Workers rule</strong>: bump worker count from "Two workers today" to three; document <code>AdminHealthWorker</code>'s cadence + responsibilities; document the new "every worker writes a heartbeat tick" pattern</li>
+      <li><strong>New rule: Maintenance Mode</strong> — the four propagation paths, admin bypass, the <code>ICircuitTracker</code> indicator, "MM is a flag read by middleware on every request, not a poll"</li>
+      <li><strong>New rule: Heartbeat</strong> — what's in the table, who writes to it, who reads from it, the "fast and DB-only" constraint on heartbeat tasks (no platform API calls allowed in <code>AdminHealthWorker</code>)</li>
+      <li><strong>Sidebar Navigation Pages table</strong>: <code>/admin</code> already listed; no new sidebar entry (Maintenance lives as a tab inside <code>/admin</code>)</li>
+      <li><strong>Solution Structure</strong>: add the new files to the file tree</li>
+    </ul>
+  </div>
+
+  <!-- 10. Order -->
+  <div class="section" id="order">
+    <h2>10. Implementation Order</h2>
+
+    <p>Doable as one commit or several. Recommended split into 4 commits for cleaner review:</p>
+
+    <ol>
+      <li><strong>Commit 1 — Schema + Domain</strong>: migration, entities, models, mappers, EF configs, 4 commands, mapper/command DI registration, unit tests for commands. <em>No behavior change in the running app yet.</em></li>
+      <li><strong>Commit 2 — MM Service + Middleware + Page</strong>: <code>MaintenanceModeService</code> (singleton), startup initializer, <code>MaintenanceModeMiddleware</code>, <code>/maintenance</code> page, admin endpoints. Tests for service + middleware. <em>End of this commit: an admin running SQL <code>UPDATE app.SystemSetting SET SettingValue='true' WHERE SettingKey='MaintenanceMode'</code> would lock out non-admin users on next request — but no UI yet to toggle from the app.</em></li>
+      <li><strong>Commit 3 — Heartbeat worker + worker heartbeat ticks</strong>: <code>AdminHealthWorker</code>, worker heartbeat ticks added to <code>ShopSyncWorker</code> and <code>TokenRefreshWorker</code>, tests. <em>End of this commit: 3 workers ticking, MM cross-instance propagation works.</em></li>
+      <li><strong>Commit 4 — Indicator + Admin UI</strong>: <code>ICircuitTracker</code> + <code>MainLayout</code> session registration, <code>MaintenanceBanner</code> component, spoke tabs on <code>/admin</code>, Maintenance tab UI with toggle + ConfirmDialog. <em>End of this commit: full happy path, admin can toggle MM from the UI and watch the count drop.</em></li>
+    </ol>
+
+    <p>After all four ship: update CLAUDE.md per §9, increment <code>&lt;Version&gt;</code> revision in <code>My.Talli.Web.csproj</code>, manual smoke test (toggle MM, watch a second browser get redirected, toggle off, watch it come back).</p>
+  </div>
+
+  <!-- 11. Out of Scope -->
+  <div class="section" id="scope">
+    <h2>11. Out of Scope</h2>
+
+    <p>The following are explicitly NOT in this E + B scope. They appear here so we don't accidentally pull them in.</p>
+
+    <ul>
+      <li><strong>Other heartbeat consumers</strong> — token expiry warnings, sync staleness alerts, email delivery health, Stripe webhook gap detection, Etsy API quota tracking. The infrastructure (<code>app.Heartbeat</code> + <code>AdminHealthWorker</code>) supports all of these, but each is its own future work item gated on real-user data.</li>
+      <li><strong>Sync Health Dashboard (Item C)</strong> — the admin surface that reads heartbeat rows + <code>ShopConnection</code> health and renders per-platform tiles. Comes after E + B ship. The <code>GetHeartbeatStatusCommand</code> is mentioned in §4 but can be deferred until C starts; or shipped now as an unused read-only command. Recommendation: <strong>defer until C</strong> to avoid YAGNI.</li>
+      <li><strong>Worker Run History (Item D)</strong> — <code>SyncRun</code> table for trend/throughput reporting. Distinct from <code>Heartbeat</code> (which is "is this alive right now") — <code>SyncRun</code> is "how much work did this do, per run, over time". Separate work item.</li>
+      <li><strong>System Heartbeat dashboard tile</strong> — the visual surface for stale-source detection. Deferred to C.</li>
+      <li><strong>CSV Export (Item F)</strong> — separate work stream, lives at <code>/export</code>, not under <code>/admin</code>.</li>
+      <li><strong>Maintenance Mode message customization</strong> — for first ship, the <code>/maintenance</code> page copy is hardcoded. Future: a second <code>SystemSetting</code> key like <code>"MaintenanceMessage"</code> with a textarea on the admin tab.</li>
+      <li><strong>Maintenance Mode auto-schedule</strong> — turning MM on at a specific future time. Future feature; for now it's manual toggle only.</li>
+      <li><strong>Per-circuit page tracking</strong> — the more elaborate "show admin which page each user is on" view. Out of scope; <code>MainLayout</code> session counting gives the needed signal without it.</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 MyTalli — Internal Planning Document
+  </div>
+
+</div>
+
+</body>
+</html>

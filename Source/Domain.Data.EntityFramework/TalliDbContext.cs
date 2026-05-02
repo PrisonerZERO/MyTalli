@@ -37,6 +37,8 @@ public class TalliDbContext : DbContext
 
     public DbSet<GoalType> GoalTypes { get; set; } = null!;
 
+    public DbSet<Heartbeat> Heartbeats { get; set; } = null!;
+
     public DbSet<Order> Orders { get; set; } = null!;
 
     public DbSet<OrderItem> OrderItems { get; set; } = null!;
@@ -80,6 +82,8 @@ public class TalliDbContext : DbContext
     public DbSet<Suggestion> Suggestions { get; set; } = null!;
 
     public DbSet<SuggestionVote> SuggestionVotes { get; set; } = null!;
+
+    public DbSet<SystemSetting> SystemSettings { get; set; } = null!;
 
     public DbSet<User> Users { get; set; } = null!;
 

@@ -1,5 +1,6 @@
 namespace My.Talli.Domain.DI.Lamar.IoC;
 
+using Domain.Commands.Admin;
 using Domain.Commands.Billing;
 using Domain.Commands.Platforms;
 using Domain.Components.JsonSerializers;
@@ -36,6 +37,7 @@ public class ContainerRegistry : ServiceRegistry
 		For<IEntityMapper<MODELS.ExpenseStripe, ENTITIES.ExpenseStripe>>().Use<ExpenseStripeMapper>();
 		For<IEntityMapper<MODELS.Goal, ENTITIES.Goal>>().Use<GoalMapper>();
 		For<IEntityMapper<MODELS.GoalType, ENTITIES.GoalType>>().Use<GoalTypeMapper>();
+		For<IEntityMapper<MODELS.Heartbeat, ENTITIES.Heartbeat>>().Use<HeartbeatMapper>();
 		For<IEntityMapper<MODELS.Order, ENTITIES.Order>>().Use<OrderMapper>();
 		For<IEntityMapper<MODELS.OrderItem, ENTITIES.OrderItem>>().Use<OrderItemMapper>();
 		For<IEntityMapper<MODELS.Payout, ENTITIES.Payout>>().Use<PayoutMapper>();
@@ -58,6 +60,7 @@ public class ContainerRegistry : ServiceRegistry
 		For<IEntityMapper<MODELS.SubscriptionStripe, ENTITIES.SubscriptionStripe>>().Use<SubscriptionStripeMapper>();
 		For<IEntityMapper<MODELS.Suggestion, ENTITIES.Suggestion>>().Use<SuggestionMapper>();
 		For<IEntityMapper<MODELS.SuggestionVote, ENTITIES.SuggestionVote>>().Use<SuggestionVoteMapper>();
+		For<IEntityMapper<MODELS.SystemSetting, ENTITIES.SystemSetting>>().Use<SystemSettingMapper>();
 		For<IEntityMapper<MODELS.User, ENTITIES.User>>().Use<UserMapper>();
 		For<IEntityMapper<MODELS.UserAuthenticationApple, ENTITIES.UserAuthenticationApple>>().Use<UserAuthenticationAppleMapper>();
 		For<IEntityMapper<MODELS.UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle>>().Use<UserAuthenticationGoogleMapper>();
@@ -78,6 +81,7 @@ public class ContainerRegistry : ServiceRegistry
 		this.AddScoped<ConnectStripeCommand>();
 		this.AddScoped<CreateManualShopCommand>();
 		this.AddScoped<FindActiveSubscriptionWithStripeCommand>();
+		this.AddScoped<GetSystemSettingCommand>();
 		this.AddScoped<RefreshShopTokensCommand>();
 		this.AddScoped<RenameManualShopCommand>();
 		this.AddScoped<UpdateLocalSubscriptionCommand>();
@@ -88,6 +92,8 @@ public class ContainerRegistry : ServiceRegistry
 		this.AddScoped<UpsertGumroadRevenueCommand>();
 		this.AddScoped<UpsertStripePayoutCommand>();
 		this.AddScoped<UpsertStripeRevenueCommand>();
+		this.AddScoped<UpsertSystemSettingCommand>();
+		this.AddScoped<WriteHeartbeatTickCommand>();
 	}
 
 	#endregion
