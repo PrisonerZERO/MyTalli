@@ -1,5 +1,5 @@
-/* ─── HERO ─── */
-.admin-hero { margin: -32px -40px 60px; padding: 24px 40px 48px; }
+/* ─── HERO (with spoke tabs — extra bottom padding gives the swoosh curve room before the tab bar) ─── */
+.admin-hero { margin: -32px -40px 0; padding: 24px 40px 120px; }
 .admin-hero .deco-circle-3 { bottom: auto; top: 60px; }
 
 /* ─── LOADING ─── */
@@ -82,3 +82,26 @@
 /* ─── SPINNER ─── */
 .spinner { animation: spin 0.8s linear infinite; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: currentColor; display: inline-block; height: 14px; width: 14px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── MAINTENANCE TAB ─── */
+.mm-status-row { align-items: center; display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+.mm-status-pill { align-items: center; border-radius: 16px; display: inline-flex; font-size: 13px; font-weight: 700; gap: 8px; letter-spacing: 0.5px; padding: 6px 14px; text-transform: uppercase; }
+.mm-pill-on { background: var(--danger-bg); color: var(--danger); }
+.mm-pill-off { background: var(--success-bg); color: var(--success); }
+.mm-pill-dot { background: currentColor; border-radius: 50%; display: inline-block; height: 8px; width: 8px; }
+.mm-pill-on .mm-pill-dot { animation: mm-tab-pulse 1.5s ease-in-out infinite; }
+
+.mm-status-meta { color: var(--text-secondary); font-size: 14px; }
+.mm-status-meta strong { color: var(--text-primary); font-size: 18px; font-weight: 700; }
+.mm-clear-badge { background: var(--success-bg); border-radius: 6px; color: var(--success); font-size: 12px; font-weight: 600; margin-left: 8px; padding: 2px 8px; }
+
+.mm-actions { display: flex; gap: 12px; }
+.btn-mm-on { background: var(--danger); color: #fff; }
+.btn-mm-on:hover { background: #c0392b; }
+.btn-mm-off { background: var(--success); color: #fff; }
+.btn-mm-off:hover { background: #229954; }
+
+@keyframes mm-tab-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+}

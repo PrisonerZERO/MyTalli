@@ -6,9 +6,10 @@ using Domain.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
+using Web.Services.Admin;
 
 /// <summary>View Model</summary>
-public class AdminViewModel : ComponentBase
+public class AdminViewModel : ComponentBase, IDisposable
 {
     #region <Variables>
 
@@ -17,6 +18,12 @@ public class AdminViewModel : ComponentBase
 
     [Inject]
     private GetAdminUserListCommand AdminUserListCommand { get; set; } = default!;
+
+    [Inject]
+    private ICircuitTracker CircuitTracker { get; set; } = default!;
+
+    [Inject]
+    private IMaintenanceModeService MaintenanceModeService { get; set; } = default!;
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
@@ -30,19 +37,38 @@ public class AdminViewModel : ComponentBase
     [Inject]
     private SendWeeklySummaryEmailCommand WeeklySummaryCommand { get; set; } = default!;
 
+    private long _actingUserId;
+
     #endregion
 
     #region <Properties>
 
+    public string ActiveTab { get; private set; } = "email";
+
     public List<AdminUserListItem> FilteredUsers { get; private set; } = [];
+
+    public int InAppNonAdminCount => CircuitTracker.InAppNonAdminCount;
 
     public bool IsConfirmingBulkAll { get; private set; }
 
     public bool IsConfirmingBulkSelected { get; private set; }
 
+    public bool IsConfirmingMaintenanceOff { get; private set; }
+
+    public bool IsConfirmingMaintenanceOn { get; private set; }
+
     public bool IsLoading { get; private set; } = true;
 
+    public bool IsMaintenanceOn => MaintenanceModeService.IsEnabled;
+
     public bool IsSending { get; private set; }
+
+    public string PageTitle => ActiveTab switch
+    {
+        "maintenance" => "Admin — Maintenance",
+        "sync-health" => "Admin — Sync Health",
+        _ => "Admin"
+    };
 
     public string SearchText { get; set; } = string.Empty;
 
@@ -74,9 +100,22 @@ public class AdminViewModel : ComponentBase
             return;
         }
 
+        _actingUserId = ResolveUserId(principal);
+
         Users = await AdminUserListCommand.ExecuteAsync();
         FilteredUsers = Users;
         IsLoading = false;
+
+        MaintenanceModeService.StateChanged += OnMaintenanceStateChanged;
+        CircuitTracker.CountChanged += OnCircuitCountChanged;
+    }
+
+    public void Dispose()
+    {
+        MaintenanceModeService.StateChanged -= OnMaintenanceStateChanged;
+        CircuitTracker.CountChanged -= OnCircuitCountChanged;
+
+        GC.SuppressFinalize(this);
     }
 
 
@@ -88,6 +127,12 @@ public class AdminViewModel : ComponentBase
     {
         IsConfirmingBulkAll = false;
         IsConfirmingBulkSelected = false;
+    }
+
+    public void CancelMaintenanceToggle()
+    {
+        IsConfirmingMaintenanceOff = false;
+        IsConfirmingMaintenanceOn = false;
     }
 
     public async Task ConfirmBulkSendAllAsync()
@@ -145,6 +190,22 @@ public class AdminViewModel : ComponentBase
         }
 
         IsSending = false;
+    }
+
+    public async Task ConfirmMaintenanceOffAsync()
+    {
+        IsConfirmingMaintenanceOff = false;
+        await MaintenanceModeService.SetEnabledAsync(false, _actingUserId);
+        StatusMessage = "Maintenance Mode turned OFF.";
+        IsStatusSuccess = true;
+    }
+
+    public async Task ConfirmMaintenanceOnAsync()
+    {
+        IsConfirmingMaintenanceOn = false;
+        await MaintenanceModeService.SetEnabledAsync(true, _actingUserId);
+        StatusMessage = "Maintenance Mode turned ON.";
+        IsStatusSuccess = true;
     }
 
     public void DismissStatus()
@@ -211,6 +272,12 @@ public class AdminViewModel : ComponentBase
         IsSending = false;
     }
 
+    public void SelectTab(string tab)
+    {
+        ActiveTab = tab;
+        StatusMessage = null;
+    }
+
     public void SelectUser(AdminUserListItem user)
     {
         SelectedUser = user;
@@ -227,6 +294,18 @@ public class AdminViewModel : ComponentBase
     {
         IsConfirmingBulkSelected = true;
         IsConfirmingBulkAll = false;
+    }
+
+    public void StartConfirmMaintenanceOff()
+    {
+        IsConfirmingMaintenanceOff = true;
+        IsConfirmingMaintenanceOn = false;
+    }
+
+    public void StartConfirmMaintenanceOn()
+    {
+        IsConfirmingMaintenanceOn = true;
+        IsConfirmingMaintenanceOff = false;
     }
 
     public void ToggleSelectAll()
@@ -267,6 +346,18 @@ public class AdminViewModel : ComponentBase
 
         SelectAll = SelectedUserIds.Count == FilteredUsers.Count && FilteredUsers.Count > 0;
     }
+
+    private static long ResolveUserId(ClaimsPrincipal principal)
+    {
+        var raw = principal.FindFirst("UserId")?.Value
+            ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        return long.TryParse(raw, out var userId) ? userId : 0L;
+    }
+
+    private void OnMaintenanceStateChanged(bool _) => InvokeAsync(StateHasChanged);
+
+    private void OnCircuitCountChanged() => InvokeAsync(StateHasChanged);
 
     #endregion
 }

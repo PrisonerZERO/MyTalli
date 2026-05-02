@@ -20,6 +20,9 @@ public static class AdminConfiguration
         services.AddSingleton<IMaintenanceModeService, MaintenanceModeService>();
         services.AddHostedService<MaintenanceModeStartupInitializer>();
 
+        // Circuit tracker — counts active in-app sessions (admins excluded) for the MaintenanceBanner indicator
+        services.AddSingleton<ICircuitTracker, CircuitTracker>();
+
         // Heartbeat — AdminHealthWorker ticks every minute, refreshes MM cache + writes own liveness row
         services.AddHostedService<AdminHealthWorker>();
     }

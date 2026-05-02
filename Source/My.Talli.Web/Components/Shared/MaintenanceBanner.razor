@@ -1,0 +1,33 @@
+@inherits My.Talli.Web.ViewModels.Shared.MaintenanceBannerViewModel
+
+@if (ShowBanner)
+{
+    <div class="mm-banner @(InAppNonAdminCount == 0 ? "mm-banner-clear" : "mm-banner-active")" role="status" aria-live="polite">
+        <div class="mm-banner-content">
+            <span class="mm-banner-pill">
+                <span class="mm-banner-dot" aria-hidden="true"></span>
+                Maintenance Mode is ON
+            </span>
+            <span class="mm-banner-count">
+                @if (InAppNonAdminCount == 0)
+                {
+                    <strong>0</strong>
+                    <span>non-admin users active &mdash; safe to proceed</span>
+                }
+                else
+                {
+                    <strong>@InAppNonAdminCount</strong>
+                    <span>non-admin user@(InAppNonAdminCount == 1 ? "" : "s") still active</span>
+                }
+            </span>
+        </div>
+        <button class="mm-banner-action" @onclick="StartConfirmTurnOff">Turn Off</button>
+    </div>
+}
+
+<ConfirmDialog Visible="IsConfirmingTurnOff" ConfirmStyle="primary" OnConfirm="ConfirmTurnOffAsync" OnCancel="CancelTurnOff">
+    <div style="text-align: center; padding: 4px 8px;">
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Turn Maintenance Mode OFF?</h3>
+        <p style="font-size: 14px; color: var(--text-secondary);">Users will be allowed back into the app immediately.</p>
+    </div>
+</ConfirmDialog>
