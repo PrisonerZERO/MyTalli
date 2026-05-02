@@ -22,6 +22,10 @@ public static class PlatformsConfiguration
         services.AddHttpClient<GumroadService>();
         services.AddScoped<IGumroadApiClient>(sp => sp.GetRequiredService<GumroadService>());
 
+        services.Configure<StripeConnectSettings>(configuration.GetSection("StripeConnect"));
+        services.AddScoped<StripeConnectService>();
+        services.AddScoped<IStripeConnectApiClient>(sp => sp.GetRequiredService<StripeConnectService>());
+
         // At-rest encryption for OAuth tokens stored on ShopConnection.
         // In Azure, persist the master key to Blob Storage so it survives App Service VM moves and slot swaps.
         // Locally (no AccountName configured), fall back to the default file-system store.
@@ -45,6 +49,7 @@ public static class PlatformsConfiguration
         // Per-platform sync services (pull revenue data)
         services.AddScoped<IPlatformSyncService, EtsySyncService>();
         services.AddScoped<IPlatformSyncService, GumroadSyncService>();
+        services.AddScoped<IPlatformSyncService, StripeConnectSyncService>();
 
         // Background workers
         services.AddHostedService<TokenRefreshWorker>();

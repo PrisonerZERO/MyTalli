@@ -187,6 +187,15 @@ public class PlatformsViewModel : ComponentBase
 				_ => null
 			};
 
+		if (query.TryGetValue("stripe", out var stripeStatus))
+			SuccessMessage = stripeStatus.ToString().ToLowerInvariant() switch
+			{
+				"connected" => "Stripe connected. Your first sync will start shortly.",
+				"added" => "New Stripe account connected. Sync will start shortly.",
+				"refreshed" => "That Stripe account was already connected — no new shop was added.",
+				_ => null
+			};
+
 		if (query.TryGetValue("error", out var error))
 			ErrorMessage = error.ToString() switch
 			{
@@ -200,6 +209,9 @@ public class PlatformsViewModel : ComponentBase
 				"gumroad_expired" => "Your connection session expired. Please try again.",
 				"gumroad_state" => "Connection could not be verified. Please try again.",
 				"gumroad_exchange" => "We couldn't finalize your Gumroad connection. Please try again or contact support.",
+				"stripe_create" => "We couldn't start your Stripe connection. Please try again or contact support.",
+				"stripe_expired" => "Your Stripe connection session expired. Please try again.",
+				"stripe_exchange" => "We couldn't finalize your Stripe connection. Please try again or contact support.",
 				"plan_limit" => "Your plan allows 1 shop per platform. Upgrade to Pro to connect additional shops.",
 				_ => "Something went wrong connecting that platform. Please try again."
 			};
@@ -214,6 +226,7 @@ public class PlatformsViewModel : ComponentBase
 				BrandColor = "#635bff",
 				Description = "Charges, refunds, subscriptions & payouts",
 				Icon = "stripe",
+				IsAvailable = true,
 				Name = "Stripe",
 				Subtitle = "Payment processing",
 			},

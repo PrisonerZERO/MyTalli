@@ -20,6 +20,8 @@ public static class PlatformEndpoints
     private const string EtsyChallengePurpose = "Etsy.OAuth.v1";
     private const string GumroadChallengeCookieName = "mt_gumroad_oauth";
     private const string GumroadChallengePurpose = "Gumroad.OAuth.v1";
+    private const string StripeChallengeCookieName = "mt_stripe_connect";
+    private const string StripeChallengePurpose = "Stripe.Connect.v1";
 
     #endregion
 
@@ -34,6 +36,11 @@ public static class PlatformEndpoints
         // Gumroad
         app.MapGet("/api/platforms/gumroad/connect", GumroadConnect).RequireAuthorization();
         app.MapGet("/api/platforms/gumroad/callback", GumroadCallback).RequireAuthorization();
+
+        // Stripe
+        app.MapGet("/api/platforms/stripe/connect", StripeConnect).RequireAuthorization();
+        app.MapGet("/api/platforms/stripe/refresh", StripeRefresh).RequireAuthorization();
+        app.MapGet("/api/platforms/stripe/return", StripeReturn).RequireAuthorization();
     }
 
     #endregion
@@ -257,6 +264,170 @@ public static class PlatformEndpoints
         }
     }
 
+    private static async Task<IResult> StripeConnect(
+        HttpContext context,
+        StripeConnectService stripeConnect,
+        IDataProtectionProvider dataProtectionProvider,
+        RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter,
+        RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> subscriptionAdapter,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        var userIdClaim = context.User.FindFirst("UserId")?.Value;
+        if (!long.TryParse(userIdClaim, out var userId))
+            return Results.Unauthorized();
+
+        // Plan-tier guard: free tier capped at 1 Stripe shop. Pro is uncapped.
+        var isPro = (await subscriptionAdapter.FindAsync(s =>
+            s.UserId == userId &&
+            (s.ProductId == 1 || s.ProductId == 2) &&
+            (s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling))).Any();
+
+        if (!isPro)
+        {
+            var stripeShopCount = (await shopConnectionAdapter.FindAsync(s =>
+                s.UserId == userId && s.PlatformConnection.Platform == "Stripe")).Count();
+
+            if (stripeShopCount >= 1)
+                return Results.Redirect("/platforms?error=plan_limit");
+        }
+
+        try
+        {
+            var account = await stripeConnect.CreateConnectedAccountAsync(cancellationToken);
+            var link = await stripeConnect.CreateAccountLinkAsync(account.Id, stripeConnect.ReturnUri, stripeConnect.RefreshUri, cancellationToken);
+
+            var protector = dataProtectionProvider.CreateProtector(StripeChallengePurpose);
+            var cookiePayload = JsonSerializer.Serialize(new StripeConnectCookie { AccountId = account.Id, UserId = userId });
+            var protectedPayload = protector.Protect(cookiePayload);
+
+            context.Response.Cookies.Append(StripeChallengeCookieName, protectedPayload, ToCookieOptions(context));
+
+            return Results.Redirect(link.Url);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Stripe Connect account creation failed for user {UserId}", userId);
+            return Results.Redirect("/platforms?error=stripe_create");
+        }
+    }
+
+    private static async Task<IResult> StripeRefresh(
+        HttpContext context,
+        StripeConnectService stripeConnect,
+        IDataProtectionProvider dataProtectionProvider,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        if (!context.Request.Cookies.TryGetValue(StripeChallengeCookieName, out var protectedPayload) || string.IsNullOrEmpty(protectedPayload))
+            return Results.Redirect("/platforms?error=stripe_expired");
+
+        StripeConnectCookie? cookie;
+        try
+        {
+            var protector = dataProtectionProvider.CreateProtector(StripeChallengePurpose);
+            var cookieJson = protector.Unprotect(protectedPayload);
+            cookie = JsonSerializer.Deserialize<StripeConnectCookie>(cookieJson);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Stripe Connect cookie could not be unprotected on refresh");
+            ClearCookie(context, StripeChallengeCookieName);
+            return Results.Redirect("/platforms?error=stripe_expired");
+        }
+
+        if (cookie is null || string.IsNullOrEmpty(cookie.AccountId))
+        {
+            ClearCookie(context, StripeChallengeCookieName);
+            return Results.Redirect("/platforms?error=stripe_expired");
+        }
+
+        try
+        {
+            var link = await stripeConnect.CreateAccountLinkAsync(cookie.AccountId, stripeConnect.ReturnUri, stripeConnect.RefreshUri, cancellationToken);
+            return Results.Redirect(link.Url);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Stripe Connect link refresh failed for user {UserId}", cookie.UserId);
+            ClearCookie(context, StripeChallengeCookieName);
+            return Results.Redirect("/platforms?error=stripe_create");
+        }
+    }
+
+    private static async Task<IResult> StripeReturn(
+        HttpContext context,
+        StripeConnectService stripeConnect,
+        IDataProtectionProvider dataProtectionProvider,
+        ConnectStripeCommand connectStripe,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        if (!context.Request.Cookies.TryGetValue(StripeChallengeCookieName, out var protectedPayload) || string.IsNullOrEmpty(protectedPayload))
+            return Results.Redirect("/platforms?error=stripe_expired");
+
+        StripeConnectCookie? cookie;
+        try
+        {
+            var protector = dataProtectionProvider.CreateProtector(StripeChallengePurpose);
+            var cookieJson = protector.Unprotect(protectedPayload);
+            cookie = JsonSerializer.Deserialize<StripeConnectCookie>(cookieJson);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Stripe Connect cookie could not be unprotected on return");
+            ClearCookie(context, StripeChallengeCookieName);
+            return Results.Redirect("/platforms?error=stripe_expired");
+        }
+
+        if (cookie is null || string.IsNullOrEmpty(cookie.AccountId))
+        {
+            ClearCookie(context, StripeChallengeCookieName);
+            return Results.Redirect("/platforms?error=stripe_expired");
+        }
+
+        try
+        {
+            var account = await stripeConnect.GetAccountAsync(cookie.AccountId, cancellationToken);
+            var accountInfo = ToAccountInfo(account);
+
+            // TRANSACTION
+            var result = await EnforcedTransactionScope.ExecuteAsync(async () => await connectStripe.ExecuteAsync(cookie.UserId, accountInfo));
+
+            logger.LogInformation("Stripe Connect linked for user {UserId}: account={AccountId} firstConnection={IsFirst} newShop={WasNewShop}", cookie.UserId, cookie.AccountId, result.IsFirstConnection, result.WasNewShop);
+            ClearCookie(context, StripeChallengeCookieName);
+
+            var status = (result.IsFirstConnection, result.WasNewShop) switch
+            {
+                (true, _) => "connected",
+                (false, true) => "added",
+                _ => "refreshed"
+            };
+            return Results.Redirect($"/platforms?stripe={status}");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Stripe Connect return handling failed for user {UserId}", cookie.UserId);
+            ClearCookie(context, StripeChallengeCookieName);
+            return Results.Redirect("/platforms?error=stripe_exchange");
+        }
+    }
+
+    private static StripeAccountInfo ToAccountInfo(Stripe.Account account)
+    {
+        var businessName = account.BusinessProfile?.Name
+            ?? account.Settings?.Dashboard?.DisplayName
+            ?? account.Email
+            ?? "Stripe";
+
+        return new StripeAccountInfo
+        {
+            AccountId = account.Id,
+            BusinessName = businessName,
+            Email = account.Email
+        };
+    }
+
     private static void ClearCookie(HttpContext context, string cookieName)
     {
         context.Response.Cookies.Delete(cookieName);
@@ -298,6 +469,18 @@ internal class GumroadOAuthCookie
     #region <Properties>
 
     public string State { get; set; } = string.Empty;
+
+    public long UserId { get; set; }
+
+    #endregion
+}
+
+/// <summary>Cookie</summary>
+internal class StripeConnectCookie
+{
+    #region <Properties>
+
+    public string AccountId { get; set; } = string.Empty;
 
     public long UserId { get; set; }
 
