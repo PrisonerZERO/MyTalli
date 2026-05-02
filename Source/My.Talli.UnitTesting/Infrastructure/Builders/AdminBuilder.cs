@@ -5,6 +5,7 @@ using Domain.Models;
 using Domain.Repositories;
 using Lamar;
 using My.Talli.UnitTesting.Infrastructure.IoC;
+using My.Talli.Web.Services.Admin;
 
 using ENTITIES = Domain.Entities;
 
@@ -23,6 +24,8 @@ public class AdminBuilder
 
 	public RepositoryAdapterAsync<Heartbeat, ENTITIES.Heartbeat> HeartbeatAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<Heartbeat, ENTITIES.Heartbeat>>();
+
+	public IMaintenanceModeService MaintenanceMode => _container.GetInstance<IMaintenanceModeService>();
 
 	public RepositoryAdapterAsync<SystemSetting, ENTITIES.SystemSetting> SystemSettingAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<SystemSetting, ENTITIES.SystemSetting>>();

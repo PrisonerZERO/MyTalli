@@ -1,0 +1,24 @@
+/* MAINTENANCE PAGE */
+.maintenance-page { background: var(--bg-page); min-height: 100vh; overflow: hidden; padding: 0 0 80px; position: relative; }
+.maintenance-shell { margin: 0 auto; max-width: 520px; padding: 0 24px; position: relative; text-align: center; z-index: 2; }
+::deep .hero-bg { height: 600px !important; }
+
+/* ICON */
+.maintenance-icon-wrap { align-items: center; background: rgba(255, 255, 255, 0.15); border-radius: 50%; display: flex; height: 72px; justify-content: center; margin: 12px auto 12px; width: 72px; }
+.maintenance-icon { color: #fff; height: 32px; width: 32px; }
+
+/* TEXT */
+.maintenance-title { color: #f5c842; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+.maintenance-desc { color: rgba(255, 255, 255, 0.75); font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
+
+/* RETURN LINK */
+.maintenance-return { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff; display: inline-block; font-size: 14px; font-weight: 500; padding: 10px 20px; text-decoration: none; transition: background 0.2s; }
+.maintenance-return:hover { background: rgba(255, 255, 255, 0.25); }
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+    .maintenance-icon-wrap { height: 64px; width: 64px; }
+    .maintenance-icon { height: 28px; width: 28px; }
+    .maintenance-page { padding: 0 16px 60px; }
+    .maintenance-title { font-size: 24px; }
+}

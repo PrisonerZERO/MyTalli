@@ -49,6 +49,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCurrentUser();
+app.UseMaintenanceMode();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
