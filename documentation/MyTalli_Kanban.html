@@ -90,21 +90,21 @@
 <div class="header">
   <h1>My<span>Talli</span> Active Work</h1>
   <p class="subtitle">Lightweight Kanban board — what's in flight, what's next, what's done</p>
-  <p class="doc-date">Last updated: April 26, 2026</p>
+  <p class="doc-date">Last updated: May 2, 2026</p>
 </div>
 
 <div class="content">
 
   <div class="intro">
     <div class="intro-left">
-      <h2>Current focus: Etsy end-to-end</h2>
-      <p>Etsy is now code-complete end-to-end: OAuth connection, full sync coverage (Revenue + Expenses + Payouts via Etsy ledger entries), enum-driven ledger classification with unknown-type warning logs, the <code>/platforms/etsy</code> spoke dashboard, and the nav-menu group highlight. Sync, Upsert commands, and token refresh are all covered by tests (192 / 192 passing). Live-run shakedown against a real Etsy shop is the only remaining step before declaring it production-ready.</p>
+      <h2>Current focus: Live deployment to production</h2>
+      <p>All major work streams are landed in code on <code>development_ROBERT</code>: Etsy + Gumroad + Stripe Connect platform integrations, Privacy / Terms public pages, full Dark Mode coverage. Stripe live keys, webhook, and customer portal were configured in Azure App Service tonight (2026-05-02 PM). The final gate before public launch is merging <code>development_ROBERT</code> → <code>main</code> — current <code>main</code> is the legacy waitlist-only build, so this is a "flip the entire site" deploy, not a feature ship. After deploy: smoke test, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
     </div>
     <div class="intro-metrics">
       <span class="metric"><span class="metric-value">11</span><span class="metric-label">In<br>backlog</span></span>
-      <span class="metric"><span class="metric-value">4</span><span class="metric-label">Next<br>up</span></span>
+      <span class="metric"><span class="metric-value">5</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">1</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">17</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">10</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -125,13 +125,13 @@
         <div class="card">
           <div class="card-tags"><span class="tag nav">Nav</span></div>
           <h4>Stripe spoke page</h4>
-          <p>Platform detail page with Overview / Revenue / Expenses / Payouts tabs. Mirrors the Etsy spoke pattern; uses <code>RevenueStripe</code> + <code>ExpenseStripe</code> + <code>PayoutStripe</code> for drill-down.</p>
+          <p>Platform detail page at <code>/platforms/stripe</code> with Overview / Revenue / Payouts tabs. Mirrors the Etsy spoke pattern; uses <code>RevenueStripe</code> + <code>PayoutStripe</code> for drill-down. Expenses tab waits until standalone Stripe expense sync ships.</p>
         </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag nav">Nav</span></div>
           <h4>Gumroad / PayPal / Shopify spoke pages</h4>
-          <p>Same spoke pattern as Etsy for remaining platforms. Gumroad and Shopify already have their Expense/Payout subtables; PayPal pending.</p>
+          <p>Same spoke pattern as Etsy for remaining platforms. Gumroad and Shopify already have their Expense/Payout subtables; PayPal pending. Gumroad spoke would have Overview/Revenue tabs only (no expenses or payouts surfaced by Gumroad's API).</p>
         </div>
 
         <div class="card">
@@ -149,7 +149,7 @@
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
           <h4>Worker Run History</h4>
-          <p>New <code>SyncRun</code> log table — one row per execution (start/end, records pulled, outcome, error). Enables trend/throughput admin reports beyond current point-in-time state.</p>
+          <p>New <code>SyncRun</code> log table — one row per execution (start/end, records pulled, outcome, error). Enables trend/throughput admin reports beyond current point-in-time state. Pairs with the future Admin Sync Health Dashboard.</p>
         </div>
 
         <div class="card">
@@ -166,20 +166,14 @@
 
         <div class="card">
           <div class="card-tags"><span class="tag billing">Billing</span></div>
-          <h4>Stripe production keys</h4>
-          <p>Swap test keys for live keys in Azure App Service Configuration when ready to go live.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag billing">Billing</span></div>
           <h4>Stripe custom domains</h4>
-          <p><code>pay.mytalli.com</code> (Checkout), <code>billing.mytalli.com</code> (Customer Portal). CNAME in GoDaddy.</p>
+          <p><code>pay.mytalli.com</code> (Checkout), <code>billing.mytalli.com</code> (Customer Portal). CNAME in GoDaddy. Polish, not blocking — default <code>checkout.stripe.com</code> / <code>billing.stripe.com</code> work fine.</p>
         </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>
           <h4>Etsy Commercial Access application</h4>
-          <p>Required for 4+ shops. ~20-day review at Etsy's discretion. Apply before public launch.</p>
+          <p>Required for 4+ shops. ~20-day review at Etsy's discretion. Gated on the live deployed app — apply once <code>main</code> is shipping the full site.</p>
         </div>
 
         <div class="card">
@@ -201,14 +195,20 @@
     <div class="lane next">
       <div class="lane-header">
         <h3>Next Up</h3>
-        <span class="lane-count">4</span>
+        <span class="lane-count">5</span>
       </div>
       <div class="lane-body">
 
         <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Merge <code>development_ROBERT</code> → <code>main</code> + live smoke test</h4>
+          <p>Top priority. <code>main</code> is currently the old waitlist-only build; dev branch holds the entire app. Merging triggers Azure auto-deploy. Smoke-test order after deploy: home → /signin → /dashboard → /my-plan → live Stripe checkout (cancel out without paying). Verify Stripe checkout shows live $12 / $99 prices and <strong>no orange TEST MODE banner</strong>; verify the live webhook receives and processes <code>checkout.session.completed</code>.</p>
+        </div>
+
+        <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Sync worker live-run verification</h4>
-          <p>Worker infrastructure is code-complete and unit-tested but has never been exercised against a real shop. Connect a real Etsy test shop, let <code>ShopSyncWorker</code> tick, verify receipts flow into <code>app.Revenue</code>/<code>app.RevenueEtsy</code> AND ledger entries flow into <code>app.Expense</code>/<code>app.Payout</code> with their <code>*Etsy</code> subtables, confirm status transitions + <code>LastSyncDateTime</code> update, watch logs for any "Etsy ledger entry type not recognized" warnings (then add the new types to <code>EtsyLedgerTypes</code>), check Elmah is clean.</p>
+          <h4>Stripe Connect local end-to-end verification</h4>
+          <p>Stripe Connect code shipped 2026-05-02 but the full local round-trip hasn't been exercised. Click "Connect Stripe" on <code>/platforms</code> → Stripe-hosted onboarding → return → confirm <code>app.PlatformConnection</code> + <code>app.ShopConnection</code> rows appear, wait for <code>ShopSyncWorker</code> to fire and confirm <code>app.Revenue</code> + <code>app.Payout</code> rows ingest. Test against the sandbox connected account ($100 balance + 1 test payment).</p>
         </div>
 
         <div class="card">
@@ -242,8 +242,8 @@
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>
-          <h4>Azure App Service: production secrets migration</h4>
-          <p>Move production-correct config values from <code>appsettings.Development.json</code> into Azure App Service Environment variables → App settings. Chip-away task — Etsy (4 settings) added 2026-04-26, all OAuth/ACS/Unsubscribe/Email already in place from prior work, Connection string verified correct (<code>MyTalli-User</code>). Stripe (7 settings) deferred until live keys are issued. Full per-setting checklist with status tracking lives in <code>documentation/MyTalli_AzureSecrets.html</code>.</p>
+          <h4>Production launch (live-mode deploy)</h4>
+          <p>All Azure-side prereqs landed tonight: Stripe live keys + webhook + customer portal + price IDs. Tomorrow's action: review the diff between <code>development_ROBERT</code> and <code>main</code>, merge, watch the Azure deploy, run the live smoke test. Then attorney review of Privacy / Terms, then soft-launch w/ 5 friends.</p>
         </div>
 
       </div>
@@ -253,28 +253,70 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">17</span>
+        <span class="lane-count">10</span>
       </div>
       <div class="lane-body">
 
         <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span></div>
+          <h4>Stripe live keys + webhook + customer portal in Azure</h4>
+          <p>Final batch of the production secrets migration. All 6 Stripe env vars saved to <code>mytalli-web</code> App Service: <code>Stripe__SecretKey</code>, <code>Stripe__PublishableKey</code>, <code>Stripe__WebhookSecret</code>, <code>Stripe__MonthlyPriceId</code>, <code>Stripe__YearlyPriceId</code>, <code>Stripe__Modules__3</code>. Live webhook registered at <code>https://www.mytalli.com/api/billing/webhook</code> listening to <code>checkout.session.completed</code>, <code>customer.subscription.updated</code>, <code>customer.subscription.deleted</code> ("MyTalli Production"). Live customer portal configured: customer info (name/email/billing/phone), payment methods, cancel-at-end-of-period + collect cancellation reason, redirect to <code>https://www.mytalli.com/my-plan</code>, header text + Terms + Privacy links wired. <code>Stripe__PortalConfigurationId</code> intentionally NOT added — it's dead code in <code>StripeSettings.cs</code> (declared but never read by <code>CreatePortalSessionAsync</code>); side task spawned to delete or wire it up. Live smoke test gated on the <code>main</code> deploy.</p>
+          <span class="done-date">May 2 2026 (PM)</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Stripe Connect Platform &amp; Sync (Account Links flow)</h4>
+          <p>Modern <strong>Account Links flow</strong> shipped end-to-end (NOT legacy OAuth). Stripe Connect platform configured live in dashboard (Standard accounts, direct charges, sellers pay fees, Stripe absorbs losses, Accounts v2 enabled, Platform Agreement accepted). New code: <code>StripeConnectSettings</code> (RefreshUri + ReturnUri only — Account Links uses the existing <code>Stripe.SecretKey</code>), <code>StripeConnectService</code> (Stripe.net SDK wrapper), <code>IStripeConnectApiClient</code>, <code>StripeAccountInfo</code>, <code>ConnectStripeCommand</code>, <code>UpsertStripeRevenueCommand</code>, <code>UpsertStripePayoutCommand</code>, <code>StripeConnectSyncService : IPlatformSyncService</code> (paginated <code>/v1/charges</code> with <code>expand=balance_transaction</code> for fee/net + paginated <code>/v1/payouts</code>, cents → decimal conversion, <code>Stripe-Account: acct_xxx</code> header on every read). Three endpoints: <code>/api/platforms/stripe/connect</code>, <code>/refresh</code>, <code>/return</code>. Free-tier 1-shop cap enforced server-side. <code>IsAvailable=true</code>. <strong>40 new unit tests passing (272 total).</strong> Live-mode dashboard verification + test connected account ($100 balance) verified. Local end-to-end round-trip pending.</p>
+          <span class="done-date">May 2 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Gumroad Platform &amp; Sync</h4>
+          <p>Full OAuth + sync shipped end-to-end. Three Gumroad apps registered (Dev / Azure / Production) under <code>hello@mytalli.com</code>. New code: <code>GumroadSettings</code>, <code>GumroadService</code> (token exchange / user fetch / sales fetch), <code>IGumroadApiClient</code>, <code>GumroadOAuthGenerator</code> (state-only, no PKCE), <code>ConnectGumroadCommand</code> + <code>ConnectGumroadResult</code>, <code>UpsertGumroadRevenueCommand</code>, <code>GumroadSyncService : IPlatformSyncService</code> (paginated <code>/v2/sales</code> via <code>next_page_key</code>, dedup by sale id, refunded/disputed flag passthrough). Endpoints: <code>/api/platforms/gumroad/connect</code> + <code>/callback</code> with state-only Data-Protection cookie. Free-tier 1-shop cap enforced server-side. <code>IsAvailable=true</code>. <strong>No expense/payout sync</strong> — Gumroad's <code>/v2/sales</code> doesn't return per-sale fee data and there's no payouts API. Tokens never expire so no token refresher needed. <strong>39 new unit tests passing (232 total).</strong> Live OAuth round-trip verified.</p>
+          <span class="done-date">May 1 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Dark Mode coverage complete (v0.1.0.2)</h4>
+          <p><code>Error.razor.css</code> and <code>Unsubscribe.razor.css</code> converted from hardcoded light values to <code>var(--*)</code> tokens, so they flip cleanly for authenticated dark-mode users. Auth-gating tightened: <code>talli-theme</code> cookie is now the single source of truth (<code>theme.js</code> localStorage fallback removed); <code>CurrentUserMiddleware</code> deletes the cookie on every unauthenticated request — a stale cookie cannot survive sign-out, session expiry, or browser stash. Routes <code>/</code> and <code>/signin</code> are explicitly route-gated in <code>theme.js</code> (<code>isAlwaysLightRoute()</code>) to always-light. New "Dark Mode" rule added to CLAUDE.md.</p>
+          <span class="done-date">Apr 26 2026</span>
+        </div>
+
+        <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>
           <h4>Data Protection: persist keys to Azure Blob Storage</h4>
-          <p>Created Azure Storage Account <code>mytallistorage01</code> (RA-GRS, Central US) + private blob container <code>dataprotection-keys</code>. Enabled system-assigned managed identity on App Service (Object ID <code>fe812c6c-…</code>); granted it <code>Storage Blob Data Contributor</code> on the storage account. Added <code>Azure.Extensions.AspNetCore.DataProtection.Blobs</code> + <code>Azure.Identity</code> NuGet packages. <code>PlatformsConfiguration.cs</code> now chains <code>.PersistKeysToAzureBlobStorage()</code> onto <code>AddDataProtection()</code> using <code>DefaultAzureCredential</code>, gated on App Settings being present so local dev keeps file-system default. App Settings <code>DataProtection__BlobStorage__AccountName</code> + <code>__ContainerName</code> set in Azure. 193/193 tests passing. Deploy verification pending.</p>
+          <p>Created Azure Storage Account <code>mytallistorage01</code> (RA-GRS, Central US) + private blob container <code>dataprotection-keys</code>. Enabled system-assigned managed identity on App Service; granted it <code>Storage Blob Data Contributor</code> on the storage account. Added <code>Azure.Extensions.AspNetCore.DataProtection.Blobs</code> + <code>Azure.Identity</code> NuGet packages. <code>PlatformsConfiguration.cs</code> chains <code>.PersistKeysToAzureBlobStorage()</code> onto <code>AddDataProtection()</code> using <code>DefaultAzureCredential</code>, gated on App Settings being present so local dev keeps file-system default. App Settings <code>DataProtection__BlobStorage__AccountName</code> + <code>__ContainerName</code> set in Azure. Deploy verification pending.</p>
           <span class="done-date">Apr 26 2026</span>
         </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>
           <h4>Encrypt OAuth tokens at rest (IDataProtector)</h4>
-          <p><code>ShopConnection.AccessToken</code> + <code>RefreshToken</code> are now wrapped with ASP.NET Data Protection (purpose <code>"MyTalli.ShopConnection.Tokens.v1"</code>). New <code>IShopTokenProtector</code> interface in Domain, <code>DataProtectionShopTokenProtector</code> implementation in Web. Encrypts on write in <code>ConnectEtsyCommand</code> + <code>RefreshShopTokensCommand</code>; decrypts on read in <code>EtsySyncService</code> + <code>TokenRefreshWorker</code>. <code>ShopTokenProtectorStub</code> in test infrastructure with prefix-wrap for verification. New test confirms ciphertext differs from plaintext. 193/193 passing.</p>
+          <p><code>ShopConnection.AccessToken</code> + <code>RefreshToken</code> are now wrapped with ASP.NET Data Protection (purpose <code>"MyTalli.ShopConnection.Tokens.v1"</code>). New <code>IShopTokenProtector</code> interface in Domain, <code>DataProtectionShopTokenProtector</code> implementation in Web. Encrypts on write in <code>ConnectEtsyCommand</code> + <code>RefreshShopTokensCommand</code>; decrypts on read in <code>EtsySyncService</code> + <code>TokenRefreshWorker</code>. <code>ShopTokenProtectorStub</code> in test infrastructure with prefix-wrap for verification.</p>
           <span class="done-date">Apr 26 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Privacy Policy + Terms of Service pages</h4>
+          <p><code>/privacy</code> and <code>/terms</code> shipped on LandingLayout with shared <code>.policy-*</code> styles in <code>app.css</code>. Auth-aware back-link (Homepage when logged out, Dashboard when logged in) via <code>[CascadingParameter] HttpContext</code>. Dark mode supported via theme tokens. Footer-of-app links (<code>Privacy · Terms · hello@mytalli.com</code>) added to both <code>LandingLayout</code> and <code>MainLayout</code>. Sign-In got "By continuing, you agree to..." disclosure. Sitemap updated. Footer copyright formalized: <code>MyTalli</code> → <code>MyTalli LLC</code>. Drafts are plain-English baseline; <strong>attorney review is launch-sequence step 5.</strong></p>
+          <span class="done-date">Apr 25 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Etsy worker live-run shakedown (3 bugs fixed)</h4>
+          <p>Ran <code>ShopSyncWorker</code> against the real <code>MyTalliTestShop</code> (shop_id 65266817) for the first time. Caught 3 real bugs unit tests missed (commit <code>efeb6b9</code>): (1) <code>payment-account/ledger-entries</code> requires <code>max_created</code> even when only <code>min_created</code> is supplied, (2) <code>EtsyLedgerEntry.reference_id</code> is a JSON number (POCO retyped <code>string?</code> → <code>long?</code>), (3) ledger fetch enforces a 31-day window — <code>GetLedgerEntriesAsync</code> now caps at 30 days. Sync completes cleanly end-to-end.</p>
+          <span class="done-date">Apr 25 2026</span>
         </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
           <h4>Etsy ledger sync (Expenses + Payouts) + tests</h4>
-          <p>Closed the last code-complete gap on Etsy: <code>EtsySyncService</code> now pulls Etsy's <code>payment-account/ledger-entries</code> in addition to receipts and dispatches each entry by <code>ledger_entry_type</code> — fee types → <code>UpsertEtsyExpenseCommand</code> (mapped to <code>ExpenseCategory</code> enum), <code>Payment</code>/<code>Disbursement</code>/<code>Withdrawal</code> → <code>UpsertEtsyPayoutCommand</code>, <code>Sale</code>/<code>Refund</code> skipped (handled by receipts), and unknown types log a warning so live data surfaces gaps instead of silently dropping rows. Classification driven by enums in <code>Domain/.enums/enums.cs</code> (<code>EtsyLedgerTypes</code> + <code>ExpenseCategory</code>) using the existing <code>StringValueAttribute</code> pattern. Extracted <code>IEtsyApiClient</code> from <code>EtsyService</code> for testability; test project now references <code>My.Talli.Web</code>. 38 new tests cover the three Upsert commands, sync-service orchestration (pagination, classification, unknown-type warning, inline token refresh), and <code>EtsyTokenRefresher</code> expiry math — 154 → 192 passing. Nav menu group highlight: clicking the Etsy parent now goes to <code>/platforms</code> (status page) and the whole platform group lights up as one capsule via <code>:has(a.active)</code> when on the Dashboard spoke.</p>
+          <p>Closed the last code-complete gap on Etsy: <code>EtsySyncService</code> now pulls Etsy's <code>payment-account/ledger-entries</code> in addition to receipts and dispatches each entry by <code>ledger_entry_type</code> — fee types → <code>UpsertEtsyExpenseCommand</code> (mapped to <code>ExpenseCategory</code> enum), <code>Payment</code>/<code>Disbursement</code>/<code>Withdrawal</code> → <code>UpsertEtsyPayoutCommand</code>, <code>Sale</code>/<code>Refund</code> skipped (handled by receipts), unknown types log a warning so live data surfaces gaps. Classification driven by enums in <code>Domain/.enums/enums.cs</code> (<code>EtsyLedgerTypes</code> + <code>ExpenseCategory</code>). Extracted <code>IEtsyApiClient</code> from <code>EtsyService</code> for testability. <strong>38 new tests (192 passing).</strong></p>
           <span class="done-date">Apr 25 2026</span>
         </div>
 
@@ -283,104 +325,6 @@
           <h4>Etsy spoke page</h4>
           <p><code>/platforms/etsy</code> dashboard with hero swoosh, 4-tab bar (Overview / Revenue / Expenses / Payouts), shop + period filters, pagination. Wired to <code>Revenue</code> ⨝ <code>RevenueEtsy</code>, <code>Expense</code> ⨝ <code>ExpenseEtsy</code>, <code>Payout</code> ⨝ <code>PayoutEtsy</code> via <code>RepositoryAdapterAsync</code>. Entry points: "View dashboard →" on Platforms page + sidebar Dashboard sub-link under the Etsy dot.</p>
           <span class="done-date">Apr 24 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Expense &amp; Payout subtables (all platforms)</h4>
-          <p>8 new tables following the existing <code>RevenueX</code> pattern: <code>ExpenseEtsy</code> / <code>ExpenseStripe</code> / <code>ExpenseGumroad</code> / <code>ExpenseManual</code> + matching <code>PayoutX</code> set. Shared-PK 1:1 with parent, cascade delete. Migration <code>20260424160653_AddExpenseAndPayoutSubtables</code> applied locally. <code>SeedFakeEtsyData.sql</code> updated to populate the new Etsy subtables.</p>
-          <span class="done-date">Apr 24 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Sync worker infrastructure (code-complete)</h4>
-          <p><code>ShopSyncWorker</code> BackgroundService polls every 5 min, dispatches per platform via <code>IPlatformSyncService</code>, exponential backoff to 24hr cap. <code>EtsySyncService</code> pulls receipts AND ledger entries with pagination + inline token refresh. <code>TokenRefreshWorker</code> handles proactive refresh. Incremental sync uses <code>LastSyncDateTime</code> as the floor with 90-day initial backfill. Commands: <code>RefreshShopTokensCommand</code>, <code>UpdateShopSyncStateCommand</code>, <code>UpsertEtsyRevenueCommand</code>, <code>UpsertEtsyExpenseCommand</code>, <code>UpsertEtsyPayoutCommand</code>. All DI wired. <em>Note: never run against a live Etsy shop yet — see "Sync worker live-run verification" in Next Up.</em></p>
-          <span class="done-date">Apr 24 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Free-tier Etsy shop cap (1-shop gate)</h4>
-          <p>Multi-shop platforms now respect the plan tier. UI replaces "Connect another shop" with a "Upgrade to Pro" gradient CTA when a free-tier user is at the 1-shop cap. <code>EtsyConnect</code> endpoint enforces the same rule server-side — refuses the OAuth launch and redirects to <code>/platforms?error=etsy_plan_limit</code> with an explanatory toast. Pro users (ProductId 1 or 2, Active or Cancelling) are uncapped. Supersedes the originally-planned <code>IsActive</code> gate — blocking the connection is simpler and more honest than letting them connect many and silently syncing one.</p>
-          <span class="done-date">Apr 19 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag nav">Nav</span></div>
-          <h4>CurrentUserService circuit-scope fix (Platforms page)</h4>
-          <p><code>PlatformsViewModel</code> now calls <code>CurrentUserService.Set(userId, string.Empty)</code> in <code>OnInitializedAsync</code>, matching the pattern already used by Dashboard / Goals / Manual Entry / Settings / Suggestions / Unsubscribe. Fixes an unhandled <code>AuditResolver</code> exception on Pause/Resume after a forceLoad navigation round-trip (middleware populates the HTTP-scope <code>CurrentUserService</code>, but Blazor components run in the circuit scope — different instance, never populated). Documented as a rule in CLAUDE.md so future ViewModels don't repeat the bug.</p>
-          <span class="done-date">Apr 19 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Multi-login Etsy tokens (per-shop)</h4>
-          <p>Moved <code>AccessToken</code> / <code>RefreshToken</code> / <code>TokenExpiryDateTime</code> / <code>PlatformAccountId</code> from <code>PlatformConnection</code> to <code>ShopConnection</code> (migration preserves existing data). One MyTalli user can now own N Etsy shops via N Etsy logins. <code>ConnectEtsyCommand</code> rewritten; dedicated "Add another shop" dialog; three-state callback (<code>connected</code> / <code>added</code> / <code>refreshed</code>) with teach-on-failure toast. <code>SupportsMultipleShops</code> gates the button to Etsy only.</p>
-          <span class="done-date">Apr 19 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Multi-shop schema + UI</h4>
-          <p>Added nullable <code>ShopConnectionId</code> FK to Revenue / Expense / Payout (per-shop analytics). Platforms page now shows nested shop rows with a per-shop Pause/Resume toggle and a "Connect another shop" button. Sidebar lists each connected platform under Manual Entry.</p>
-          <span class="done-date">Apr 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Schema: ShopConnection + ShopConnectionEtsy</h4>
-          <p>New sync-target tables. Provider-specific subtable pattern. SyncQueue fields absorbed onto ShopConnection in the same migration (one row per shop, not per connection).</p>
-          <span class="done-date">Apr 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Etsy OAuth callback flow</h4>
-          <p>Exchange code → fetch shop list → upsert via ConnectEtsyCommand. Tokens stored per-shop on <code>ShopConnection</code>, not on PlatformConnection.</p>
-          <span class="done-date">Apr 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Pre-connection permanence warning</h4>
-          <p>ConfirmDialog before OAuth explains the connection is permanent and occupies a plan slot. Wired on the Platforms page for all connect actions.</p>
-          <span class="done-date">Apr 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag docs">Docs</span></div>
-          <h4>Sync Scaling Plan HTML</h4>
-          <p>Branded 3-phase scaling document in <code>documentation/</code>. Includes phase cards, math boxes, timeline.</p>
-          <span class="done-date">Apr 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag docs">Docs</span></div>
-          <h4>Sync architecture in CLAUDE.md + memory</h4>
-          <p>Revenue Sync Architecture updated to daily baseline. Scaling plan section added. Memory file synced.</p>
-          <span class="done-date">Apr 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag nav">Nav</span></div>
-          <h4>Goals Page</h4>
-          <p>Full CRUD for revenue goals with live earned-vs-target computation from <code>app.Revenue</code>. Inline form cards, pace algorithm.</p>
-          <span class="done-date">Apr 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag nav">Nav</span></div>
-          <h4>Spoke Tabs (Dashboard + Manual Entry)</h4>
-          <p>4-tab bar pattern: Overview / Revenue / Expenses / Payouts. Shared <code>.spoke-tabs</code> CSS class in <code>app.css</code>.</p>
-          <span class="done-date">Apr 2026</span>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag docs">Docs</span></div>
-          <h4>ShopConnection ERD + CostingPlan updates</h4>
-          <p>ERD updated to show the new Revenue/Expense/Payout → ShopConnection FKs. CostingPlan gets a "Multi-Shop Power Users" note in Hidden Costs.</p>
-          <span class="done-date">Apr 2026</span>
         </div>
 
       </div>
