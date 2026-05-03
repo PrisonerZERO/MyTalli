@@ -23,6 +23,7 @@ builder.Services.AddBillingServices(builder.Configuration);
 builder.Services.AddEmailServices(builder.Configuration);
 builder.Services.AddPlatformServices(builder.Configuration);
 builder.Services.AddAdminServices();
+builder.Services.AddExportServices();
 builder.Services.AddKnownIssue(builder.Configuration);
 builder.Services.AddElmahLogging(builder.Configuration);
 
@@ -62,6 +63,7 @@ app.MapAdminEndpoints();
 app.MapAuthEndpoints();
 app.MapBillingEndpoints();
 app.MapEmailEndpoints();
+app.MapExportEndpoints();
 app.MapPlatformEndpoints();
 
 if (app.Environment.IsDevelopment())

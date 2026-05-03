@@ -2,6 +2,7 @@ namespace My.Talli.Domain.DI.Lamar.IoC;
 
 using Domain.Commands.Admin;
 using Domain.Commands.Billing;
+using Domain.Commands.Export;
 using Domain.Commands.Platforms;
 using Domain.Components.JsonSerializers;
 using Domain.Data.EntityFramework.Repositories;
@@ -81,6 +82,8 @@ public class ContainerRegistry : ServiceRegistry
 		this.AddScoped<ConnectStripeCommand>();
 		this.AddScoped<CreateManualShopCommand>();
 		this.AddScoped<FindActiveSubscriptionWithStripeCommand>();
+		this.AddScoped<GetExportDataCommand>();
+		this.AddScoped<GetExportPreviewCommand>();
 		this.AddScoped<GetSyncHealthCommand>();
 		this.AddScoped<GetSystemSettingCommand>();
 		this.AddScoped<RefreshShopTokensCommand>();

@@ -1,0 +1,85 @@
+@page "/export"
+@inherits My.Talli.Web.ViewModels.Pages.ExportViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Export — MyTalli</PageTitle>
+
+<!-- Swoosh hero -->
+<div class="hero export-hero">
+    <div class="hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="exportSwooshGrad" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#6c5ce7" />
+                    <stop offset="50%" stop-color="#8b5cf6" />
+                    <stop offset="100%" stop-color="#6c5ce7" />
+                </linearGradient>
+            </defs>
+            <path d="M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z" fill="url(#exportSwooshGrad)" />
+        </svg>
+        <div class="deco-circle deco-circle-1"></div>
+        <div class="deco-circle deco-circle-2"></div>
+        <div class="deco-circle deco-circle-3"></div>
+    </div>
+
+    <div class="hero-content hero-top">
+        <div>
+            <h1>Export</h1>
+            <p class="hero-subtitle">Download your revenue, expenses, and payouts as CSV files for tax prep or bookkeeping.</p>
+        </div>
+        <ul class="hero-nav">
+            <li><My.Talli.Web.Components.Shared.UserProfileButton @rendermode="InteractiveServer" /></li>
+        </ul>
+    </div>
+</div>
+
+@if (IsLoading)
+{
+    <div class="export-loading"><p>Loading…</p></div>
+}
+else
+{
+    <!-- Date range filter -->
+    <section class="export-section" aria-label="Date range filter">
+        <h2>Date range</h2>
+        <p class="section-desc">Pick a preset or set custom dates. Includes both endpoints.</p>
+
+        <div class="export-range-pills" role="group" aria-label="Date range presets">
+            <button class="range-pill @(SelectedRange == "30d" ? "active" : "")" @onclick='() => SelectRangeAsync("30d")'>Last 30 days</button>
+            <button class="range-pill @(SelectedRange == "90d" ? "active" : "")" @onclick='() => SelectRangeAsync("90d")'>Last 90 days</button>
+            <button class="range-pill @(SelectedRange == "365d" ? "active" : "")" @onclick='() => SelectRangeAsync("365d")'>Last 12 months</button>
+            <button class="range-pill @(SelectedRange == "ytd" ? "active" : "")" @onclick='() => SelectRangeAsync("ytd")'>Year to date</button>
+            <button class="range-pill @(SelectedRange == "all" ? "active" : "")" @onclick='() => SelectRangeAsync("all")'>All time</button>
+        </div>
+
+        <div class="export-custom-range">
+            <div class="custom-range-field">
+                <label for="from-date">From</label>
+                <input id="from-date" type="date" value="@FromDateLocal.ToString("yyyy-MM-dd")"
+                       @onchange="async e => { FromDateLocal = DateTime.Parse(e.Value!.ToString()!); await SetCustomRangeAsync(); }" />
+            </div>
+            <div class="custom-range-field">
+                <label for="to-date">To</label>
+                <input id="to-date" type="date" value="@ToDateLocal.ToString("yyyy-MM-dd")"
+                       @onchange="async e => { ToDateLocal = DateTime.Parse(e.Value!.ToString()!); await SetCustomRangeAsync(); }" />
+            </div>
+        </div>
+    </section>
+
+    <!-- Download buttons -->
+    <section class="export-section" aria-label="Download files">
+        <h2>Download</h2>
+        <p class="section-desc">@(IsRefreshingPreview ? "Counting rows…" : Preview is null ? "" : $"{Preview.TotalRowCount:N0} total rows in this range.")</p>
+
+        <div class="export-card-grid">
+            <ExportCard Label="Revenue" Description="Per-transaction sales with gross, fee, and net." RowCount="@RowCountFor("revenue")" DownloadUrl="@DownloadUrl("revenue")" />
+            <ExportCard Label="Expenses" Description="Platform fees and manual expenses." RowCount="@RowCountFor("expenses")" DownloadUrl="@DownloadUrl("expenses")" />
+            <ExportCard Label="Payouts" Description="Disbursements paid to your bank or PayPal." RowCount="@RowCountFor("payouts")" DownloadUrl="@DownloadUrl("payouts")" />
+        </div>
+
+        <p class="export-fineprint">
+            Files are CSV (RFC 4180), UTF-8 with BOM so Excel opens them with the correct encoding.
+            Dates are UTC. Amounts use a period as the decimal separator regardless of your locale.
+        </p>
+    </section>
+}
