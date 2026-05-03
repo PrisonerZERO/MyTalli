@@ -162,6 +162,28 @@ public class ConnectGumroadCommandTests
         Assert.Equal(2, (await builder.ShopConnectionAdapter.GetAllAsync()).Count());
     }
 
+    [Fact]
+    public async Task Execute_ExistingShopWithFailures_ResetsConsecutiveFailuresAndClearsErrorMessage()
+    {
+        var builder = new PlatformHandlerBuilder();
+        await builder.GumroadCommand.ExecuteAsync(1, BuildTokens(), BuildUser());
+
+        // Simulate worker recording failures
+        var stored = (await builder.ShopConnectionAdapter.GetAllAsync()).Single();
+        stored.ConsecutiveFailures = 4;
+        stored.LastErrorMessage = "HTTP 401 Unauthorized";
+        stored.Status = "Failed";
+        await builder.ShopConnectionAdapter.UpdateAsync(stored);
+
+        // Reconnect
+        await builder.GumroadCommand.ExecuteAsync(1, BuildTokens(), BuildUser());
+
+        var refreshed = (await builder.ShopConnectionAdapter.GetAllAsync()).Single();
+        Assert.Equal(0, refreshed.ConsecutiveFailures);
+        Assert.Null(refreshed.LastErrorMessage);
+        Assert.Equal("Pending", refreshed.Status);
+    }
+
     private static GumroadTokenResponse BuildTokens(string accessToken = "gum-access")
     {
         return new GumroadTokenResponse

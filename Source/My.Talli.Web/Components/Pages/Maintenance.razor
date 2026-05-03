@@ -1,0 +1,30 @@
+@page "/maintenance"
+@layout Layout.LandingLayout
+@inherits My.Talli.Web.ViewModels.Pages.MaintenanceViewModel
+@rendermode InteractiveServer
+
+<PageTitle>Maintenance — MyTalli</PageTitle>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<div class="maintenance-page">
+    <BrandHeader />
+
+    <main id="main" aria-labelledby="maintenance-heading">
+        <div class="maintenance-shell">
+            <div class="maintenance-icon-wrap" aria-hidden="true">
+                <svg class="maintenance-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+                </svg>
+            </div>
+
+            <h1 id="maintenance-heading" class="maintenance-title">We'll be back shortly</h1>
+            <p class="maintenance-desc">MyTalli is undergoing scheduled maintenance. Hang tight &mdash; this should only take a few minutes.</p>
+
+            @if (ShowReturnLink)
+            {
+                <a class="maintenance-return" href="/dashboard">Return to Dashboard</a>
+            }
+        </div>
+    </main>
+</div>

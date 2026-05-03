@@ -31,10 +31,12 @@ public static class PlatformEndpoints
     {
         // Etsy
         app.MapGet("/api/platforms/etsy/connect", EtsyConnect).RequireAuthorization();
+        app.MapGet("/api/platforms/etsy/reconnect/{shopConnectionId:long}", EtsyReconnect).RequireAuthorization();
         app.MapGet("/api/platforms/etsy/callback", EtsyCallback).RequireAuthorization();
 
         // Gumroad
         app.MapGet("/api/platforms/gumroad/connect", GumroadConnect).RequireAuthorization();
+        app.MapGet("/api/platforms/gumroad/reconnect/{shopConnectionId:long}", GumroadReconnect).RequireAuthorization();
         app.MapGet("/api/platforms/gumroad/callback", GumroadCallback).RequireAuthorization();
 
         // Stripe
@@ -153,6 +155,36 @@ public static class PlatformEndpoints
         }
     }
 
+    private static async Task<IResult> EtsyReconnect(
+        long shopConnectionId,
+        HttpContext context,
+        EtsyService etsy,
+        IDataProtectionProvider dataProtectionProvider,
+        RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter)
+    {
+        var userIdClaim = context.User.FindFirst("UserId")?.Value;
+        if (!long.TryParse(userIdClaim, out var userId))
+            return Results.Unauthorized();
+
+        // Ownership check — skip the plan-limit check (the user already owns this shop, this is a refresh-tokens flow not an add-shop flow)
+        var shop = (await shopConnectionAdapter.FindAsync(s =>
+            s.Id == shopConnectionId &&
+            s.UserId == userId &&
+            s.PlatformConnection.Platform == "Etsy")).FirstOrDefault();
+
+        if (shop is null)
+            return Results.Redirect("/platforms?error=etsy_reconnect_notfound");
+
+        var challenge = etsy.BuildAuthorizeChallenge();
+        var protector = dataProtectionProvider.CreateProtector(EtsyChallengePurpose);
+        var cookiePayload = JsonSerializer.Serialize(new EtsyOAuthCookie { CodeVerifier = challenge.CodeVerifier, State = challenge.State, UserId = userId });
+        var protectedPayload = protector.Protect(cookiePayload);
+
+        context.Response.Cookies.Append(EtsyChallengeCookieName, protectedPayload, ToCookieOptions(context));
+
+        return Results.Redirect(challenge.AuthorizeUrl);
+    }
+
     private static async Task<IResult> GumroadConnect(
         HttpContext context,
         GumroadService gumroad,
@@ -262,6 +294,36 @@ public static class PlatformEndpoints
             ClearCookie(context, GumroadChallengeCookieName);
             return Results.Redirect("/platforms?error=gumroad_exchange");
         }
+    }
+
+    private static async Task<IResult> GumroadReconnect(
+        long shopConnectionId,
+        HttpContext context,
+        GumroadService gumroad,
+        IDataProtectionProvider dataProtectionProvider,
+        RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter)
+    {
+        var userIdClaim = context.User.FindFirst("UserId")?.Value;
+        if (!long.TryParse(userIdClaim, out var userId))
+            return Results.Unauthorized();
+
+        // Ownership check — skip the plan-limit check (refresh-tokens flow, not add-shop flow)
+        var shop = (await shopConnectionAdapter.FindAsync(s =>
+            s.Id == shopConnectionId &&
+            s.UserId == userId &&
+            s.PlatformConnection.Platform == "Gumroad")).FirstOrDefault();
+
+        if (shop is null)
+            return Results.Redirect("/platforms?error=gumroad_reconnect_notfound");
+
+        var challenge = gumroad.BuildAuthorizeChallenge();
+        var protector = dataProtectionProvider.CreateProtector(GumroadChallengePurpose);
+        var cookiePayload = JsonSerializer.Serialize(new GumroadOAuthCookie { State = challenge.State, UserId = userId });
+        var protectedPayload = protector.Protect(cookiePayload);
+
+        context.Response.Cookies.Append(GumroadChallengeCookieName, protectedPayload, ToCookieOptions(context));
+
+        return Results.Redirect(challenge.AuthorizeUrl);
     }
 
     private static async Task<IResult> StripeConnect(

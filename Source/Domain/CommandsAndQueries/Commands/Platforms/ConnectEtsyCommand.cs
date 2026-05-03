@@ -113,11 +113,15 @@ public class ConnectEtsyCommand
         else
         {
             existing.AccessToken = protectedAccessToken;
+            existing.ConsecutiveFailures = 0;
             existing.IsActive = true;
+            existing.LastErrorMessage = null;
+            existing.NextSyncDateTime = now;
             existing.PlatformAccountId = platformAccountId;
             existing.RefreshToken = protectedRefreshToken;
             existing.RefreshTokenExpiryDateTime = refreshExpiry;
             existing.ShopName = shop.ShopName ?? existing.ShopName;
+            existing.Status = "Pending";
             existing.TokenExpiryDateTime = accessExpiry;
             await _shopConnectionAdapter.UpdateAsync(existing);
         }

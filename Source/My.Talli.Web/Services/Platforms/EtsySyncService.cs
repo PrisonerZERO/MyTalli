@@ -148,14 +148,14 @@ public class EtsySyncService : IPlatformSyncService
                            shop.TokenExpiryDateTime <= DateTime.UtcNow.Add(AccessTokenSafetyMargin);
 
         if (!needsRefresh)
-            return _tokenProtector.Unprotect(shop.AccessToken);
+            return SafeUnprotect(shop.AccessToken, shop.Id, "access token");
 
         if (string.IsNullOrEmpty(shop.RefreshToken))
             throw new InvalidOperationException($"Shop {shop.Id} has no refresh token — cannot sync.");
 
         _logger.LogInformation("Refreshing Etsy access token inline for shop {ShopId} before sync.", shop.Id);
 
-        var refreshTokenPlaintext = _tokenProtector.Unprotect(shop.RefreshToken);
+        var refreshTokenPlaintext = SafeUnprotect(shop.RefreshToken, shop.Id, "refresh token");
         var refreshed = await _etsyTokenRefresher.RefreshAsync(refreshTokenPlaintext, cancellationToken);
         await _refreshShopTokensCommand.ExecuteAsync(shop.Id, refreshed.AccessToken, refreshed.AccessTokenExpiryDateTime, refreshed.RefreshToken, refreshed.RefreshTokenExpiryDateTime);
 
@@ -163,6 +163,25 @@ public class EtsySyncService : IPlatformSyncService
         shop.RefreshTokenExpiryDateTime = refreshed.RefreshTokenExpiryDateTime;
 
         return refreshed.AccessToken;
+    }
+
+    /// <summary>
+    /// Unprotects a stored token, falling back to treating the value as plaintext if Data Protection
+    /// can't decrypt it. This handles legacy plaintext rows (pre-encryption ship) and key-rotation
+    /// edge cases — the token still works for the API call, and the next successful refresh writes
+    /// back a properly-encrypted value.
+    /// </summary>
+    private string SafeUnprotect(string stored, long shopId, string label)
+    {
+        try
+        {
+            return _tokenProtector.Unprotect(stored);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Etsy {Label} for shop {ShopId} could not be unprotected — treating as plaintext (legacy row?). Next successful refresh will re-encrypt.", label, shopId);
+            return stored;
+        }
     }
 
     private static long BuildMinCreatedTimestamp(ShopConnection shop)

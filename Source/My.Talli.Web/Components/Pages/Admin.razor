@@ -2,7 +2,7 @@
 @inherits My.Talli.Web.ViewModels.Pages.AdminViewModel
 @rendermode InteractiveServer
 
-<PageTitle>Admin — MyTalli</PageTitle>
+<PageTitle>@PageTitle — MyTalli</PageTitle>
 
 <!-- Swoosh hero -->
 <div class="hero admin-hero">
@@ -25,13 +25,20 @@
     <div class="hero-content hero-top admin-header">
         <div>
             <h1>Admin</h1>
-            <p class="hero-subtitle">User management & email tools</p>
+            <p class="hero-subtitle">User management, maintenance, and system health</p>
         </div>
         <ul class="hero-nav">
             <li><My.Talli.Web.Components.Shared.UserProfileButton @rendermode="InteractiveServer" /></li>
         </ul>
     </div>
 </div>
+
+<!-- Spoke tabs -->
+<nav class="spoke-tabs" role="tablist" aria-label="Admin sections">
+    <button class="spoke-tab @(ActiveTab == "email" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "email")" @onclick='() => SelectTab("email")'>Email</button>
+    <button class="spoke-tab @(ActiveTab == "maintenance" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "maintenance")" @onclick='() => SelectTab("maintenance")'>Maintenance</button>
+    <button class="spoke-tab @(ActiveTab == "sync-health" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "sync-health")" @onclick='() => SelectTab("sync-health")'>Sync Health</button>
+</nav>
 
 @if (IsLoading)
 {
@@ -50,149 +57,335 @@ else
         </div>
     }
 
-    <!-- SECTION 1: Single User Resend -->
-    <section aria-label="Resend email to a specific user" class="admin-section">
-        <h2>Resend Email</h2>
-        <p class="section-desc">Select a user, then choose which email to resend.</p>
+    @* ── EMAIL TAB ── *@
+    @if (ActiveTab == "email")
+    {
+        <section aria-label="Email administration" role="tabpanel">
+            <!-- SECTION 1: Single User Resend -->
+            <section aria-label="Resend email to a specific user" class="admin-section">
+                <h2>Resend Email</h2>
+                <p class="section-desc">Select a user, then choose which email to resend.</p>
 
-        <!-- User selector -->
-        <div class="user-selector">
-            <label class="field-label" for="userSelect">Select User</label>
-            <select class="user-select" id="userSelect" @onchange="(e) => OnUserSelected(e)">
-                <option value="">— Choose a user —</option>
-                @foreach (var user in Users)
+                <!-- User selector -->
+                <div class="user-selector">
+                    <label class="field-label" for="userSelect">Select User</label>
+                    <select class="user-select" id="userSelect" @onchange="(e) => OnUserSelected(e)">
+                        <option value="">— Choose a user —</option>
+                        @foreach (var user in Users)
+                        {
+                            <option value="@user.UserId">@ResolveDisplayName(user) — @user.Email</option>
+                        }
+                    </select>
+                </div>
+
+                @if (SelectedUser is not null)
                 {
-                    <option value="@user.UserId">@ResolveDisplayName(user) — @user.Email</option>
+                    <div class="selected-user-card">
+                        <div class="selected-user-info">
+                            <span class="selected-user-name">@ResolveDisplayName(SelectedUser)</span>
+                            <span class="selected-user-email">@SelectedUser.Email</span>
+                            <span class="selected-user-provider">@SelectedUser.PreferredProvider</span>
+                            @if (SelectedUser.HasActiveSubscription)
+                            {
+                                <span class="badge badge-pro">Pro</span>
+                            }
+                        </div>
+
+                        <div class="resend-buttons" role="group" aria-label="Email resend actions">
+                            <button class="btn btn-resend" disabled="@IsSending" @onclick='() => ResendEmailAsync("welcome")'>
+                                @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
+                                Send Welcome
+                            </button>
+                            <button class="btn btn-resend" disabled="@(IsSending || !SelectedUser.HasActiveSubscription)"
+                                    title="@(!SelectedUser.HasActiveSubscription ? "User has no active subscription" : "")"
+                                    @onclick='() => ResendEmailAsync("subscription-confirmation")'>
+                                @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
+                                Send Subscription Confirmation
+                            </button>
+                            <button class="btn btn-resend" disabled="@IsSending" @onclick='() => ResendEmailAsync("weekly-summary")'>
+                                @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
+                                Send Weekly Summary
+                            </button>
+                        </div>
+                    </div>
                 }
-            </select>
-        </div>
+            </section>
 
-        @if (SelectedUser is not null)
-        {
-            <div class="selected-user-card">
-                <div class="selected-user-info">
-                    <span class="selected-user-name">@ResolveDisplayName(SelectedUser)</span>
-                    <span class="selected-user-email">@SelectedUser.Email</span>
-                    <span class="selected-user-provider">@SelectedUser.PreferredProvider</span>
-                    @if (SelectedUser.HasActiveSubscription)
+            <!-- SECTION 2: Bulk Welcome Email -->
+            <section aria-label="Bulk send welcome email" class="admin-section">
+                <h2>Bulk Welcome Email</h2>
+                <p class="section-desc">Send the Welcome email to multiple users at once.</p>
+
+                <!-- Search filter -->
+                <div class="search-bar">
+                    <input aria-label="Filter users by name or email" class="search-input" placeholder="Filter by name or email..."
+                           type="text" @bind="SearchText" @bind:event="oninput" @bind:after="FilterUsers" />
+                </div>
+
+                <!-- User table -->
+                <div class="user-table-wrapper">
+                    <table class="user-table" aria-label="User list for bulk email">
+                        <thead>
+                            <tr>
+                                <th class="col-check">
+                                    <input aria-label="Select all users" type="checkbox" checked="@SelectAll" @onchange="ToggleSelectAll" />
+                                </th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Provider</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in FilteredUsers)
+                            {
+                                <tr>
+                                    <td class="col-check">
+                                        <input aria-label="Select @ResolveDisplayName(user)" type="checkbox"
+                                               checked="@SelectedUserIds.Contains(user.UserId)"
+                                               @onchange="() => ToggleUserSelection(user.UserId)" />
+                                    </td>
+                                    <td>@ResolveDisplayName(user)</td>
+                                    <td class="col-email">@user.Email</td>
+                                    <td>@user.PreferredProvider</td>
+                                    <td>
+                                        @if (user.HasActiveSubscription)
+                                        {
+                                            <span class="badge badge-pro">Pro</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-free">Free</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Bulk action buttons -->
+                <div class="bulk-actions">
+                    <button class="btn btn-bulk" disabled="@(IsSending || SelectedUserIds.Count == 0)" @onclick="ShowBulkSelectedConfirmation">
+                        Send to Selected (@SelectedUserIds.Count)
+                    </button>
+                    <button class="btn btn-bulk-all" disabled="@IsSending" @onclick="ShowBulkAllConfirmation">
+                        Send to All Users (@Users.Count)
+                    </button>
+                </div>
+
+                <!-- Confirmation dialogs -->
+                @if (IsConfirmingBulkSelected)
+                {
+                    <div class="confirm-dialog" role="alertdialog" aria-label="Confirm bulk send">
+                        <p>Send Welcome email to <strong>@SelectedUserIds.Count</strong> selected user(s)?</p>
+                        <div class="confirm-buttons">
+                            <button class="btn btn-confirm" @onclick="ConfirmBulkSendSelectedAsync">Yes, Send</button>
+                            <button class="btn btn-cancel" @onclick="CancelBulk">Cancel</button>
+                        </div>
+                    </div>
+                }
+
+                @if (IsConfirmingBulkAll)
+                {
+                    <div class="confirm-dialog" role="alertdialog" aria-label="Confirm send to all">
+                        <p>Send Welcome email to <strong>all @Users.Count</strong> users?</p>
+                        <div class="confirm-buttons">
+                            <button class="btn btn-confirm" @onclick="ConfirmBulkSendAllAsync">Yes, Send to All</button>
+                            <button class="btn btn-cancel" @onclick="CancelBulk">Cancel</button>
+                        </div>
+                    </div>
+                }
+
+                @if (IsSending)
+                {
+                    <div class="sending-indicator" role="status">
+                        <span class="spinner" aria-hidden="true"></span>
+                        <span>Sending emails...</span>
+                    </div>
+                }
+            </section>
+        </section>
+    }
+
+    @* ── MAINTENANCE TAB ── *@
+    @if (ActiveTab == "maintenance")
+    {
+        <section aria-label="Maintenance Mode" role="tabpanel" class="admin-section">
+            <h2>Maintenance Mode</h2>
+            <p class="section-desc">When ON, non-admin users are redirected to the maintenance page. Admins always retain full access.</p>
+
+            <div class="mm-status-row">
+                <div class="mm-status-pill @(IsMaintenanceOn ? "mm-pill-on" : "mm-pill-off")">
+                    <span class="mm-pill-dot" aria-hidden="true"></span>
+                    @(IsMaintenanceOn ? "ON" : "OFF")
+                </div>
+                <div class="mm-status-meta">
+                    <strong>@InAppNonAdminCount</strong> non-admin user@(InAppNonAdminCount == 1 ? "" : "s") currently active
+                    @if (IsMaintenanceOn && InAppNonAdminCount == 0)
                     {
-                        <span class="badge badge-pro">Pro</span>
+                        <span class="mm-clear-badge">All clear &mdash; safe to proceed</span>
                     }
                 </div>
-
-                <div class="resend-buttons" role="group" aria-label="Email resend actions">
-                    <button class="btn btn-resend" disabled="@IsSending" @onclick='() => ResendEmailAsync("welcome")'>
-                        @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
-                        Send Welcome
-                    </button>
-                    <button class="btn btn-resend" disabled="@(IsSending || !SelectedUser.HasActiveSubscription)"
-                            title="@(!SelectedUser.HasActiveSubscription ? "User has no active subscription" : "")"
-                            @onclick='() => ResendEmailAsync("subscription-confirmation")'>
-                        @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
-                        Send Subscription Confirmation
-                    </button>
-                    <button class="btn btn-resend" disabled="@IsSending" @onclick='() => ResendEmailAsync("weekly-summary")'>
-                        @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
-                        Send Weekly Summary
-                    </button>
-                </div>
             </div>
-        }
-    </section>
 
-    <!-- SECTION 2: Bulk Welcome Email -->
-    <section aria-label="Bulk send welcome email" class="admin-section">
-        <h2>Bulk Welcome Email</h2>
-        <p class="section-desc">Send the Welcome email to multiple users at once.</p>
+            <div class="mm-actions">
+                @if (IsMaintenanceOn)
+                {
+                    <button class="btn btn-mm-off" @onclick="StartConfirmMaintenanceOff">Turn Maintenance OFF</button>
+                }
+                else
+                {
+                    <button class="btn btn-mm-on" @onclick="StartConfirmMaintenanceOn">Turn Maintenance ON</button>
+                }
+            </div>
+        </section>
 
-        <!-- Search filter -->
-        <div class="search-bar">
-            <input aria-label="Filter users by name or email" class="search-input" placeholder="Filter by name or email..."
-                   type="text" @bind="SearchText" @bind:event="oninput" @bind:after="FilterUsers" />
-        </div>
+        <ConfirmDialog Visible="IsConfirmingMaintenanceOn" ConfirmStyle="danger" OnConfirm="ConfirmMaintenanceOnAsync" OnCancel="CancelMaintenanceToggle">
+            <div style="text-align: center; padding: 4px 8px;">
+                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Turn Maintenance Mode ON?</h3>
+                <p style="font-size: 14px; color: var(--text-secondary);">All non-admin users will be redirected to the maintenance page on their next request (and immediately if they're connected via SignalR).</p>
+            </div>
+        </ConfirmDialog>
 
-        <!-- User table -->
-        <div class="user-table-wrapper">
-            <table class="user-table" aria-label="User list for bulk email">
-                <thead>
-                    <tr>
-                        <th class="col-check">
-                            <input aria-label="Select all users" type="checkbox" checked="@SelectAll" @onchange="ToggleSelectAll" />
-                        </th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Provider</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var user in FilteredUsers)
+        <ConfirmDialog Visible="IsConfirmingMaintenanceOff" ConfirmStyle="primary" OnConfirm="ConfirmMaintenanceOffAsync" OnCancel="CancelMaintenanceToggle">
+            <div style="text-align: center; padding: 4px 8px;">
+                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Turn Maintenance Mode OFF?</h3>
+                <p style="font-size: 14px; color: var(--text-secondary);">Users will be allowed back into the app immediately.</p>
+            </div>
+        </ConfirmDialog>
+    }
+
+    @* ── SYNC HEALTH TAB ── *@
+    @if (ActiveTab == "sync-health")
+    {
+        <section aria-label="Sync Health" role="tabpanel">
+            <div class="sh-toolbar">
+                <p class="section-desc sh-toolbar-meta">
+                    @if (SyncHealth is not null)
                     {
-                        <tr>
-                            <td class="col-check">
-                                <input aria-label="Select @ResolveDisplayName(user)" type="checkbox"
-                                       checked="@SelectedUserIds.Contains(user.UserId)"
-                                       @onchange="() => ToggleUserSelection(user.UserId)" />
-                            </td>
-                            <td>@ResolveDisplayName(user)</td>
-                            <td class="col-email">@user.Email</td>
-                            <td>@user.PreferredProvider</td>
-                            <td>
-                                @if (user.HasActiveSubscription)
-                                {
-                                    <span class="badge badge-pro">Pro</span>
-                                }
-                                else
-                                {
-                                    <span class="badge badge-free">Free</span>
-                                }
-                            </td>
-                        </tr>
+                        <span>Snapshot generated @SyncHealth.GeneratedAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</span>
                     }
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Bulk action buttons -->
-        <div class="bulk-actions">
-            <button class="btn btn-bulk" disabled="@(IsSending || SelectedUserIds.Count == 0)" @onclick="ShowBulkSelectedConfirmation">
-                Send to Selected (@SelectedUserIds.Count)
-            </button>
-            <button class="btn btn-bulk-all" disabled="@IsSending" @onclick="ShowBulkAllConfirmation">
-                Send to All Users (@Users.Count)
-            </button>
-        </div>
-
-        <!-- Confirmation dialogs -->
-        @if (IsConfirmingBulkSelected)
-        {
-            <div class="confirm-dialog" role="alertdialog" aria-label="Confirm bulk send">
-                <p>Send Welcome email to <strong>@SelectedUserIds.Count</strong> selected user(s)?</p>
-                <div class="confirm-buttons">
-                    <button class="btn btn-confirm" @onclick="ConfirmBulkSendSelectedAsync">Yes, Send</button>
-                    <button class="btn btn-cancel" @onclick="CancelBulk">Cancel</button>
-                </div>
+                </p>
+                <button class="btn btn-bulk-all" disabled="@IsSyncHealthLoading" @onclick="RefreshSyncHealthAsync">
+                    @if (IsSyncHealthLoading) { <span class="spinner" aria-hidden="true"></span> }
+                    Refresh
+                </button>
             </div>
-        }
 
-        @if (IsConfirmingBulkAll)
-        {
-            <div class="confirm-dialog" role="alertdialog" aria-label="Confirm send to all">
-                <p>Send Welcome email to <strong>all @Users.Count</strong> users?</p>
-                <div class="confirm-buttons">
-                    <button class="btn btn-confirm" @onclick="ConfirmBulkSendAllAsync">Yes, Send to All</button>
-                    <button class="btn btn-cancel" @onclick="CancelBulk">Cancel</button>
-                </div>
-            </div>
-        }
+            @if (IsSyncHealthLoading && SyncHealth is null)
+            {
+                <div class="admin-loading"><p>Loading sync health…</p></div>
+            }
+            else if (SyncHealth is not null)
+            {
+                <!-- Worker liveness -->
+                <section aria-label="Background workers" class="admin-section">
+                    <h2>Background Workers</h2>
+                    <p class="section-desc">In-process workers and when they last ticked. Stale = no tick in 2× expected interval.</p>
 
-        @if (IsSending)
-        {
-            <div class="sending-indicator" role="status">
-                <span class="spinner" aria-hidden="true"></span>
-                <span>Sending emails...</span>
-            </div>
-        }
-    </section>
+                    <div class="sh-tile-grid">
+                        @foreach (var worker in SyncHealth.Workers)
+                        {
+                            <div class="sh-tile @(worker.IsStale ? "sh-tile-bad" : "sh-tile-good")">
+                                <div class="sh-tile-head">
+                                    <span class="sh-tile-title">@worker.Source</span>
+                                    <span class="sh-status-pill @(worker.IsStale ? "sh-pill-bad" : "sh-pill-good")">
+                                        @if (!worker.HasTicked) { <span>Never ticked</span> }
+                                        else if (worker.IsStale) { <span>Stale</span> }
+                                        else { <span>Healthy</span> }
+                                    </span>
+                                </div>
+                                <div class="sh-tile-body">
+                                    @if (worker.HasTicked)
+                                    {
+                                        <div class="sh-row"><span class="sh-row-label">Last tick</span><span class="sh-row-value">@FormatRelative(worker.SecondsSinceLastTick)</span></div>
+                                        <div class="sh-row"><span class="sh-row-label">Expected every</span><span class="sh-row-value">@FormatInterval(worker.ExpectedIntervalSeconds)</span></div>
+                                        <div class="sh-row sh-row-muted"><span class="sh-row-label">At</span><span class="sh-row-value">@worker.LastTickAt?.ToString("HH:mm:ss") UTC</span></div>
+                                    }
+                                    else
+                                    {
+                                        <div class="sh-row sh-row-muted"><span>No heartbeat row in app.Heartbeat — has the worker run yet?</span></div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                <!-- Per-platform tiles -->
+                <section aria-label="Platforms" class="admin-section">
+                    <h2>Platforms</h2>
+                    <p class="section-desc">Connected shops and ingested revenue per platform.</p>
+
+                    <div class="sh-tile-grid">
+                        @foreach (var platform in SyncHealth.Platforms)
+                        {
+                            <div class="sh-tile @(platform.FailingShops > 0 ? "sh-tile-warn" : "sh-tile-neutral")">
+                                <div class="sh-tile-head">
+                                    <span class="sh-tile-title">@platform.Platform</span>
+                                    <span class="sh-status-pill @(platform.FailingShops > 0 ? "sh-pill-warn" : "sh-pill-neutral")">
+                                        @platform.TotalShops shop@(platform.TotalShops == 1 ? "" : "s")
+                                    </span>
+                                </div>
+                                <div class="sh-tile-body">
+                                    <div class="sh-row sh-row-emphasis"><span class="sh-row-label">Revenue</span><span class="sh-row-value">@platform.RevenueTotal.ToString("C0")</span></div>
+                                    <div class="sh-row"><span class="sh-row-label">Transactions</span><span class="sh-row-value">@platform.RevenueRowCount.ToString("N0")</span></div>
+                                    <div class="sh-row"><span class="sh-row-label">Failing shops</span><span class="sh-row-value @(platform.FailingShops > 0 ? "sh-row-warn" : "")">@platform.FailingShops</span></div>
+                                    <div class="sh-row"><span class="sh-row-label">Stale shops</span><span class="sh-row-value @(platform.StaleShops > 0 ? "sh-row-warn" : "")">@platform.StaleShops</span></div>
+                                    <div class="sh-row sh-row-muted"><span class="sh-row-label">Last sync</span><span class="sh-row-value">@(platform.LastSyncAt.HasValue ? platform.LastSyncAt.Value.ToString("yyyy-MM-dd HH:mm") + " UTC" : "—")</span></div>
+                                    <div class="sh-row sh-row-muted"><span class="sh-row-label">Latest revenue</span><span class="sh-row-value">@(platform.MostRecentRevenueAt.HasValue ? platform.MostRecentRevenueAt.Value.ToString("yyyy-MM-dd") : "—")</span></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                <!-- Problem shops list -->
+                <section aria-label="Shops needing attention" class="admin-section">
+                    <h2>Shops Needing Attention</h2>
+                    <p class="section-desc">Shops with consecutive sync failures or that haven't synced in over 36 hours. Capped at 25 rows.</p>
+
+                    @if (SyncHealth.ProblemShops.Count == 0)
+                    {
+                        <div class="sh-empty">
+                            <span class="sh-empty-icon" aria-hidden="true">✓</span>
+                            <span>No shops are currently failing or stale.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="user-table-wrapper">
+                            <table class="user-table" aria-label="Problem shops">
+                                <thead>
+                                    <tr>
+                                        <th>Shop</th>
+                                        <th>Platform</th>
+                                        <th>Issue</th>
+                                        <th>Failures</th>
+                                        <th>Last Sync</th>
+                                        <th>Last Error</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var shop in SyncHealth.ProblemShops)
+                                    {
+                                        <tr>
+                                            <td>@shop.ShopName <span class="sh-shop-id">#@shop.ShopConnectionId</span></td>
+                                            <td>@shop.Platform</td>
+                                            <td><span class="sh-issue-tag sh-issue-@shop.IssueKind.ToLowerInvariant().Replace(" + ", "-").Replace(" ", "-")">@shop.IssueKind</span></td>
+                                            <td>@shop.ConsecutiveFailures</td>
+                                            <td class="col-email">@(shop.LastSyncDateTime.HasValue ? shop.LastSyncDateTime.Value.ToString("yyyy-MM-dd HH:mm") : "—")</td>
+                                            <td class="sh-error-cell">@(shop.LastErrorMessage ?? "—")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </section>
+            }
+        </section>
+    }
 }
 

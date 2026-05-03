@@ -580,6 +580,70 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                     b.ToTable("GoalType", "app");
                 });
 
+            modelBuilder.Entity("My.Talli.Domain.Entities.Heartbeat", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(7);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
+
+                    b.Property<int>("ExpectedIntervalSeconds")
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("HeartbeatSource")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(2);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime>("LastTickAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(4);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(9);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(10);
+
+                    b.HasKey("Id")
+                        .HasName("PK_Heartbeat");
+
+                    b.HasIndex("HeartbeatSource")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_Heartbeat_HeartbeatSource");
+
+                    b.HasIndex("LastTickAt")
+                        .HasDatabaseName("IX_Heartbeat_LastTickAt");
+
+                    b.ToTable("Heartbeat", "app");
+                });
+
             modelBuilder.Entity("My.Talli.Domain.Entities.Order", b =>
                 {
                     b.Property<long>("Id")
@@ -1986,6 +2050,60 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
                         .HasDatabaseName("UQ_SuggestionVote_SuggestionId_UserId");
 
                     b.ToTable("SuggestionVote", "app");
+                });
+
+            modelBuilder.Entity("My.Talli.Domain.Entities.SystemSetting", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CreateByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(5);
+
+                    b.Property<DateTime>("CreatedOnDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(6);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(4);
+
+                    b.Property<string>("SettingKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("SettingValue")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(2);
+
+                    b.Property<long?>("UpdatedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(7);
+
+                    b.Property<DateTime?>("UpdatedOnDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(8);
+
+                    b.HasKey("Id")
+                        .HasName("PK_SystemSetting");
+
+                    b.HasIndex("SettingKey")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_SystemSetting_SettingKey");
+
+                    b.ToTable("SystemSetting", "app");
                 });
 
             modelBuilder.Entity("My.Talli.Domain.Entities.User", b =>

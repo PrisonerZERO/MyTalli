@@ -102,11 +102,15 @@ public class ConnectGumroadCommand
         else
         {
             existing.AccessToken = protectedAccessToken;
+            existing.ConsecutiveFailures = 0;
             existing.IsActive = true;
+            existing.LastErrorMessage = null;
+            existing.NextSyncDateTime = now;
             existing.PlatformAccountId = platformShopId;
             existing.RefreshToken = null;
             existing.RefreshTokenExpiryDateTime = null;
             existing.ShopName = shopName;
+            existing.Status = "Pending";
             existing.TokenExpiryDateTime = null;
             await _shopConnectionAdapter.UpdateAsync(existing);
         }

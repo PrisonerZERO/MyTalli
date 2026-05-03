@@ -1,7 +1,9 @@
 namespace My.Talli.Web.Endpoints;
 
+using System.Security.Claims;
 using Web.Commands.Endpoints;
 using Web.Commands.Notifications;
+using Web.Services.Admin;
 
 /// <summary>Endpoint</summary>
 public static class AdminEndpoints
@@ -14,6 +16,11 @@ public static class AdminEndpoints
         app.MapPost("/api/admin/email/resend", ResendEmail).RequireAuthorization(policy => policy.RequireRole("Admin"));
         app.MapPost("/api/admin/email/bulk-welcome", BulkSendWelcome).RequireAuthorization(policy => policy.RequireRole("Admin"));
         app.MapPost("/api/admin/email/bulk-welcome-all", BulkSendWelcomeAll).RequireAuthorization(policy => policy.RequireRole("Admin"));
+
+        // Maintenance Mode toggle + status
+        app.MapPost("/api/admin/maintenance/on", TurnMaintenanceOn).RequireAuthorization(policy => policy.RequireRole("Admin"));
+        app.MapPost("/api/admin/maintenance/off", TurnMaintenanceOff).RequireAuthorization(policy => policy.RequireRole("Admin"));
+        app.MapGet("/api/admin/maintenance/status", GetMaintenanceStatus).RequireAuthorization(policy => policy.RequireRole("Admin"));
     }
 
     #endregion
@@ -91,6 +98,35 @@ public static class AdminEndpoints
         }
 
         return Results.Ok(new { message = $"Welcome email sent to {sent} user(s)." });
+    }
+
+    private static async Task<IResult> TurnMaintenanceOn(HttpContext context, IMaintenanceModeService maintenanceModeService)
+    {
+        var actingUserId = ResolveAdminUserId(context);
+        await maintenanceModeService.SetEnabledAsync(true, actingUserId);
+
+        return Results.Ok(new { isEnabled = true });
+    }
+
+    private static async Task<IResult> TurnMaintenanceOff(HttpContext context, IMaintenanceModeService maintenanceModeService)
+    {
+        var actingUserId = ResolveAdminUserId(context);
+        await maintenanceModeService.SetEnabledAsync(false, actingUserId);
+
+        return Results.Ok(new { isEnabled = false });
+    }
+
+    private static IResult GetMaintenanceStatus(IMaintenanceModeService maintenanceModeService)
+    {
+        return Results.Ok(new { isEnabled = maintenanceModeService.IsEnabled });
+    }
+
+    private static long ResolveAdminUserId(HttpContext context)
+    {
+        var raw = context.User.FindFirst("UserId")?.Value
+            ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        return long.TryParse(raw, out var userId) ? userId : 0L;
     }
 
     #endregion

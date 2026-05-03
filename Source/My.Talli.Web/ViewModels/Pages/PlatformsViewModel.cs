@@ -64,6 +64,12 @@ public class PlatformsViewModel : ComponentBase
 
 	public int TotalTransactions => Platforms.Where(p => p.IsConnected).Sum(p => p.TransactionCount);
 
+	public int ShopsNeedingAttention => Platforms
+		.Where(p => p.IsConnected)
+		.SelectMany(p => p.Shops)
+		.Count(s => s.Health == ShopHealth.Failing || s.Health == ShopHealth.Stale);
+	// SyncPending intentionally excluded — the user just connected/reconnected, nothing to act on.
+
 
 	#endregion
 
@@ -151,6 +157,12 @@ public class PlatformsViewModel : ComponentBase
 		AddingShopToPlatform = platformName;
 	}
 
+	public void StartReconnect(string platformName, long shopConnectionId)
+	{
+		var platform = platformName.ToLowerInvariant();
+		Navigation.NavigateTo($"/api/platforms/{platform}/reconnect/{shopConnectionId}", forceLoad: true);
+	}
+
 	public async Task TogglePauseAsync(long shopConnectionId)
 	{
 		var shop = (await ShopConnectionAdapter.FindAsync(s => s.Id == shopConnectionId)).FirstOrDefault();
@@ -174,7 +186,7 @@ public class PlatformsViewModel : ComponentBase
 			{
 				"connected" => "Etsy connected. Your first sync will start shortly.",
 				"added" => "New Etsy shop connected. Sync will start shortly.",
-				"refreshed" => "That Etsy login was already connected — no new shop was added. To add a different shop, sign out of Etsy first (profile menu → Sign out on etsy.com), then click \"Connect another shop\" again.",
+				"refreshed" => "Your Etsy connection was refreshed — tokens renewed and any prior errors cleared. To add a different shop, sign out of Etsy first (profile menu → Sign out on etsy.com), then click \"Connect another shop\".",
 				_ => null
 			};
 
@@ -183,7 +195,7 @@ public class PlatformsViewModel : ComponentBase
 			{
 				"connected" => "Gumroad connected. Your first sync will start shortly.",
 				"added" => "New Gumroad account connected. Sync will start shortly.",
-				"refreshed" => "That Gumroad account was already connected — no new shop was added. To add a different account, sign out of Gumroad first, then click \"Connect another shop\" again.",
+				"refreshed" => "Your Gumroad connection was refreshed — tokens renewed and any prior errors cleared. To add a different account, sign out of Gumroad first, then click \"Connect another shop\".",
 				_ => null
 			};
 
@@ -204,11 +216,13 @@ public class PlatformsViewModel : ComponentBase
 				"etsy_expired" => "Your connection session expired. Please try again.",
 				"etsy_state" => "Connection could not be verified. Please try again.",
 				"etsy_exchange" => "We couldn't finalize your Etsy connection. Please try again or contact support.",
+				"etsy_reconnect_notfound" => "We couldn't find that Etsy connection. Please refresh the page and try again.",
 				"gumroad_denied" => "You cancelled the connection to Gumroad. No data was saved.",
 				"gumroad_invalid" => "Gumroad returned an invalid response. Please try again.",
 				"gumroad_expired" => "Your connection session expired. Please try again.",
 				"gumroad_state" => "Connection could not be verified. Please try again.",
 				"gumroad_exchange" => "We couldn't finalize your Gumroad connection. Please try again or contact support.",
+				"gumroad_reconnect_notfound" => "We couldn't find that Gumroad connection. Please refresh the page and try again.",
 				"stripe_create" => "We couldn't start your Stripe connection. Please try again or contact support.",
 				"stripe_expired" => "Your Stripe connection session expired. Please try again.",
 				"stripe_exchange" => "We couldn't finalize your Stripe connection. Please try again or contact support.",
@@ -287,6 +301,7 @@ public class PlatformsViewModel : ComponentBase
 
 		// Merge catalog with real data
 		var catalog = GetPlatformCatalog();
+		var now = DateTime.UtcNow;
 
 		foreach (var item in catalog)
 		{
@@ -294,21 +309,31 @@ public class PlatformsViewModel : ComponentBase
 			{
 				item.IsConnected = true;
 				item.ConnectionStatus = connection.ConnectionStatus;
+				var supportsOAuthReconnect = item.Name == "Etsy" || item.Name == "Gumroad";
 
 				if (shopsByConnectionId.TryGetValue(connection.Id, out var connectionShops))
 				{
 					item.Shops = connectionShops
 						.OrderBy(s => s.ShopName)
-						.Select(s => new ShopItem
+						.Select(s =>
 						{
-							ConnectionStatus = connection.ConnectionStatus,
-							IsEnabled = s.IsEnabled,
-							LastErrorMessage = s.LastErrorMessage,
-							LastSyncLabel = ToSyncLabel(s),
-							ShopConnectionId = s.Id,
-							ShopName = s.ShopName,
-							SyncStatus = s.Status,
-							TransactionCount = txnCountsByShop.TryGetValue(s.Id, out var c) ? c : 0,
+							var health = ShopHealthAnalyzer.ClassifyHealth(s, now);
+							return new ShopItem
+							{
+								ConnectionStatus = connection.ConnectionStatus,
+								ConsecutiveFailures = s.ConsecutiveFailures,
+								FriendlyHealthMessage = ShopHealthAnalyzer.ToFriendlyMessage(health, item.Name, s.LastErrorMessage, s.LastSyncDateTime, now, s.Status),
+								Health = health,
+								IsEnabled = s.IsEnabled,
+								IsOAuthPlatform = supportsOAuthReconnect,
+								LastErrorMessage = s.LastErrorMessage,
+								LastSyncLabel = ToSyncLabel(s),
+								Platform = item.Name,
+								ShopConnectionId = s.Id,
+								ShopName = s.ShopName,
+								SyncStatus = s.Status,
+								TransactionCount = txnCountsByShop.TryGetValue(s.Id, out var c) ? c : 0,
+							};
 						})
 						.ToList();
 

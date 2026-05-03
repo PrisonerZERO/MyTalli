@@ -61,6 +61,17 @@
         <button class="plat-toast-dismiss" aria-label="Dismiss notification" @onclick="DismissMessage">&times;</button>
     </div>
 }
+@if (!IsLoading && ShopsNeedingAttention > 0)
+{
+    <div class="plat-attention-banner animate-in delay-1" role="status">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" x2="12" y1="9" y2="13" />
+            <line x1="12" x2="12.01" y1="17" y2="17" />
+        </svg>
+        <span><strong>@ShopsNeedingAttention</strong> of your shops need@(ShopsNeedingAttention == 1 ? "s" : "") attention. See details below.</span>
+    </div>
+}
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
     <div class="plat-toast plat-toast-error animate-in delay-1" role="alert">
@@ -122,30 +133,46 @@ else
                     <ul class="plat-shop-list" aria-label="Connected @platform.Name shops">
                         @foreach (var shop in platform.Shops)
                         {
-                            <li class="plat-shop-row" aria-label="@shop.ShopName shop">
-                                <div class="plat-shop-identity">
-                                    <svg aria-hidden="true" class="plat-shop-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
-                                        <path d="M3 9l1-5h16l1 5" />
-                                        <path d="M5 9v11a1 1 0 001 1h12a1 1 0 001-1V9" />
-                                        <path d="M9 13h6" />
-                                    </svg>
-                                    <span class="plat-shop-name">@shop.ShopName</span>
-                                </div>
-                                <div class="plat-shop-meta">
-                                    <span class="plat-shop-sync">
-                                        @(shop.IsEnabled ? (string.IsNullOrEmpty(shop.LastSyncLabel) ? "Never synced" : shop.LastSyncLabel) : "Sync paused")
-                                        @if (shop.IsEnabled && shop.SyncStatus == "Failed")
+                            <li class="plat-shop-row plat-shop-health-@HealthCss(shop.Health)" aria-label="@shop.ShopName shop">
+                                <div class="plat-shop-row-main">
+                                    <div class="plat-shop-identity">
+                                        <svg aria-hidden="true" class="plat-shop-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                            <path d="M3 9l1-5h16l1 5" />
+                                            <path d="M5 9v11a1 1 0 001 1h12a1 1 0 001-1V9" />
+                                            <path d="M9 13h6" />
+                                        </svg>
+                                        <span class="plat-shop-name">@shop.ShopName</span>
+                                        <span class="plat-health-badge plat-health-@HealthCss(shop.Health)" aria-label="Health: @My.Talli.Web.Models.ShopHealthAnalyzer.ToHealthLabel(shop.Health)">
+                                            <span class="plat-health-dot" aria-hidden="true"></span>
+                                            @My.Talli.Web.Models.ShopHealthAnalyzer.ToHealthLabel(shop.Health)
+                                        </span>
+                                    </div>
+                                    <div class="plat-shop-meta">
+                                        <span class="plat-shop-sync">@(shop.IsEnabled ? (string.IsNullOrEmpty(shop.LastSyncLabel) ? "Never synced" : shop.LastSyncLabel) : "Sync paused")</span>
+                                        <span class="plat-shop-data">@shop.TransactionCount transactions</span>
+                                    </div>
+                                    <div class="plat-shop-actions">
+                                        @if (shop.IsOAuthPlatform && shop.IsEnabled && (shop.Health == ShopHealth.Failing || shop.Health == ShopHealth.Stale))
                                         {
-                                            <span class="plat-sync-error" title="@shop.LastErrorMessage" aria-label="Sync error: @shop.LastErrorMessage">!</span>
+                                            <button class="plat-btn-reconnect" aria-label="Reconnect @shop.ShopName" @onclick="() => StartReconnect(shop.Platform, shop.ShopConnectionId)">
+                                                Reconnect
+                                            </button>
                                         }
-                                    </span>
-                                    <span class="plat-shop-data">@shop.TransactionCount transactions</span>
+                                        else if (shop.IsOAuthPlatform && shop.IsEnabled)
+                                        {
+                                            <button class="plat-btn-outline-soft" aria-label="Reconnect @shop.ShopName (refresh tokens)" title="Refresh stored authorization" @onclick="() => StartReconnect(shop.Platform, shop.ShopConnectionId)">
+                                                Reconnect
+                                            </button>
+                                        }
+                                        <button class="plat-btn-outline" aria-label="@(shop.IsEnabled ? $"Pause syncing for {shop.ShopName}" : $"Resume syncing for {shop.ShopName}")" @onclick="() => TogglePauseAsync(shop.ShopConnectionId)">
+                                            @(shop.IsEnabled ? "Pause" : "Resume")
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="plat-shop-actions">
-                                    <button class="plat-btn-outline" aria-label="@(shop.IsEnabled ? $"Pause syncing for {shop.ShopName}" : $"Resume syncing for {shop.ShopName}")" @onclick="() => TogglePauseAsync(shop.ShopConnectionId)">
-                                        @(shop.IsEnabled ? "Pause" : "Resume")
-                                    </button>
-                                </div>
+                                @if (!string.IsNullOrEmpty(shop.FriendlyHealthMessage))
+                                {
+                                    <div class="plat-shop-health-message" role="status">@shop.FriendlyHealthMessage</div>
+                                }
                             </li>
                         }
                     </ul>
@@ -278,5 +305,15 @@ else
         "expired" => "Expired",
         "revoked" => "Revoked",
         _ => "Active",
+    };
+
+    string HealthCss(My.Talli.Web.Models.ShopHealth health) => health switch
+    {
+        My.Talli.Web.Models.ShopHealth.Healthy => "healthy",
+        My.Talli.Web.Models.ShopHealth.SyncPending => "syncpending",
+        My.Talli.Web.Models.ShopHealth.Stale => "stale",
+        My.Talli.Web.Models.ShopHealth.Failing => "failing",
+        My.Talli.Web.Models.ShopHealth.Paused => "paused",
+        _ => "healthy",
     };
 }

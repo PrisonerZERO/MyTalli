@@ -1,5 +1,6 @@
 namespace My.Talli.Web.Workers;
 
+using Domain.Commands.Admin;
 using Domain.Commands.Platforms;
 using Domain.Components.Tokens;
 using Domain.Data.Interfaces;
@@ -15,6 +16,9 @@ public class TokenRefreshWorker : BackgroundService
 {
     #region <Constants>
 
+    public const string HeartbeatSourceName = "TokenRefreshWorker";
+
+    private const int HeartbeatExpectedIntervalSeconds = 21600;
     private static readonly TimeSpan InitialDelay = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan LoopInterval = TimeSpan.FromHours(6);
     private static readonly TimeSpan PerShopDelay = TimeSpan.FromMilliseconds(250);
@@ -68,7 +72,10 @@ public class TokenRefreshWorker : BackgroundService
 
         var refreshers = sp.GetServices<IPlatformTokenRefresher>().ToList();
         if (refreshers.Count == 0)
+        {
+            await WriteHeartbeatAsync(sp);
             return;
+        }
 
         var shopAdapter = sp.GetRequiredService<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
         var refreshCommand = sp.GetRequiredService<RefreshShopTokensCommand>();
@@ -81,6 +88,31 @@ public class TokenRefreshWorker : BackgroundService
                 return;
 
             await RefreshPlatformAsync(refresher, shopAdapter, refreshCommand, currentUserService, tokenProtector, stoppingToken);
+        }
+
+        await WriteHeartbeatAsync(sp);
+    }
+
+    private async Task WriteHeartbeatAsync(IServiceProvider scopedServices)
+    {
+        try
+        {
+            var writeHeartbeat = scopedServices.GetRequiredService<WriteHeartbeatTickCommand>();
+            var currentUser = scopedServices.GetRequiredService<ICurrentUserService>();
+
+            currentUser.Set(0L, string.Empty);
+            try
+            {
+                await writeHeartbeat.ExecuteAsync(HeartbeatSourceName, HeartbeatExpectedIntervalSeconds);
+            }
+            finally
+            {
+                currentUser.Clear();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "TokenRefreshWorker heartbeat write failed.");
         }
     }
 
@@ -120,7 +152,7 @@ public class TokenRefreshWorker : BackgroundService
     {
         try
         {
-            var refreshTokenPlaintext = tokenProtector.Unprotect(shop.RefreshToken!);
+            var refreshTokenPlaintext = SafeUnprotect(tokenProtector, shop.RefreshToken!, refresher.Platform, shop.Id);
             var result = await refresher.RefreshAsync(refreshTokenPlaintext, stoppingToken);
             await refreshCommand.ExecuteAsync(shop.Id, result.AccessToken, result.AccessTokenExpiryDateTime, result.RefreshToken, result.RefreshTokenExpiryDateTime);
             _logger.LogInformation("Refreshed {Platform} tokens for shop {ShopId}.", refresher.Platform, shop.Id);
@@ -130,6 +162,24 @@ public class TokenRefreshWorker : BackgroundService
             _logger.LogWarning(ex, "Failed to refresh {Platform} tokens for shop {ShopId}.", refresher.Platform, shop.Id);
             try { await refreshCommand.RecordFailureAsync(shop.Id, $"Token refresh failed: {ex.Message}"); }
             catch (Exception recordEx) { _logger.LogError(recordEx, "Failed to record token refresh error for shop {ShopId}.", shop.Id); }
+        }
+    }
+
+    /// <summary>
+    /// Unprotects a stored refresh token, falling back to treating the value as plaintext if Data
+    /// Protection can't decrypt it (legacy pre-encryption row, key rotation, etc.). The next
+    /// successful refresh writes back a properly-encrypted value via RefreshShopTokensCommand.
+    /// </summary>
+    private string SafeUnprotect(IShopTokenProtector tokenProtector, string stored, string platform, long shopId)
+    {
+        try
+        {
+            return tokenProtector.Unprotect(stored);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "{Platform} refresh token for shop {ShopId} could not be unprotected — treating as plaintext (legacy row?). Next successful refresh will re-encrypt.", platform, shopId);
+            return stored;
         }
     }
 

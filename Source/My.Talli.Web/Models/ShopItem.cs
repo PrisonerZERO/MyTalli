@@ -5,13 +5,23 @@ public class ShopItem
 {
 	#region <Properties>
 
+	public int ConsecutiveFailures { get; set; }
+
 	public string ConnectionStatus { get; set; } = "";
 
+	public string FriendlyHealthMessage { get; set; } = "";
+
+	public ShopHealth Health { get; set; } = ShopHealth.Healthy;
+
 	public bool IsEnabled { get; set; } = true;
+
+	public bool IsOAuthPlatform { get; set; }
 
 	public string? LastErrorMessage { get; set; }
 
 	public string LastSyncLabel { get; set; } = "";
+
+	public string Platform { get; set; } = "";
 
 	public long ShopConnectionId { get; set; }
 

@@ -88,7 +88,7 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 |--------|---------|--------|
 | `auth` | Identity & authentication | User, UserAuthenticationGoogle, UserAuthenticationApple, UserAuthenticationMicrosoft, UserRole |
 | `commerce` | Products, orders, billing, subscriptions | ProductVendor, ProductType, Product, Order, OrderItem, Billing, BillingStripe, Subscription, SubscriptionStripe |
-| `app` | Application features & revenue | Expense, ExpenseEtsy, ExpenseGumroad, ExpenseManual, ExpenseStripe, Goal, GoalType, Milestone (legacy), Payout, PayoutEtsy, PayoutGumroad, PayoutManual, PayoutStripe, PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, ShopConnection, ShopConnectionEtsy, Suggestion, SuggestionVote |
+| `app` | Application features & revenue | Expense, ExpenseEtsy, ExpenseGumroad, ExpenseManual, ExpenseStripe, Goal, GoalType, Heartbeat, Milestone (legacy), Payout, PayoutEtsy, PayoutGumroad, PayoutManual, PayoutStripe, PlatformConnection, Revenue, RevenueEtsy, RevenueGumroad, RevenueManual, RevenueStripe, ShopConnection, ShopConnectionEtsy, Suggestion, SuggestionVote, SystemSetting |
 | `components` | Third-party component tables (not EF-managed) | ELMAH_Error (auto-created by ElmahCore) |
 | `dbo` | Reserved (empty) | — |
 
@@ -121,6 +121,11 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 **`app.GoalType`** — lookup table for goal categories (seed data)
 - `Id` (PK), `Name` (string 100)
 - Seeded values: Monthly Revenue Target, Yearly Revenue Target, Platform Monthly Target, Growth Rate Target
+
+**`app.Heartbeat`** — liveness tracking for in-process subsystems. Each row represents one named "source" expected to tick on a regular interval; downstream stale-detection checks whether `LastTickAt + ExpectedIntervalSeconds < now`.
+- `Id` (PK), `ExpectedIntervalSeconds` (int — how often the source is expected to tick), `HeartbeatSource` (string 100 — `"AdminHealthWorker"`, `"ShopSyncWorker"`, `"TokenRefreshWorker"`), `LastTickAt` (datetime, UTC), `Metadata` (nullable nvarchar max — JSON for per-tick context)
+- Unique constraint on `HeartbeatSource` (`UQ_Heartbeat_HeartbeatSource`); regular index on `LastTickAt` (`IX_Heartbeat_LastTickAt`) for stale-detection scans
+- All three workers write a heartbeat row at the end of each loop pass; the future Sync Health Dashboard reads from here
 
 **`app.Milestone`** — (legacy) waitlist progress tracker milestones. The table still exists in the database but all app code references (entity, model, mapper, configuration, framework constants) have been removed. The data remains for historical reference.
 - `Id` (PK), `Description`, `MilestoneGroup` (Beta, FullLaunch), `SortOrder` (display order within group), `Status` (Complete, InProgress, Upcoming), `Title`
@@ -192,6 +197,11 @@ Blazor Server renders layout components (NavMenu) and page components in paralle
 **`app.ShopConnectionEtsy`** — Etsy-specific 1-to-1 extension of ShopConnection (shared PK)
 - `ShopConnectionId` (PK/FK → ShopConnection, C# property: `Id`), `CountryCode` (char 2, ISO alpha-2), `IsVacationMode` (bool, default false — suppress "stale data" warnings when seller is on break), `ShopCurrency` (char 3, ISO 4217), `ShopUrl` (string, max 500 — deep-link target for the Platforms page)
 - Other platforms (Stripe, Gumroad, PayPal, Shopify) don't have a provider-specific subtable yet — the common fields on `ShopConnection` cover them. Subtables get added (following the same shared-PK convention) when a provider-unique shop-level field appears.
+
+**`app.SystemSetting`** — key/value store for app-wide configuration flags (Maintenance Mode is the first one; future toggles like a global banner message or read-only mode plug into the same row pattern instead of growing column counts on other tables).
+- `Id` (PK), `SettingKey` (string 100 — e.g., `"MaintenanceMode"`. Unique constraint `UQ_SystemSetting_SettingKey`), `SettingValue` (nvarchar max — string value; consumers parse as needed)
+- Seeded with one row at install: `SettingKey = 'MaintenanceMode'`, `SettingValue = 'false'`
+- Read by `MaintenanceModeService.RefreshFromDbAsync()` (called at startup and on every `AdminHealthWorker` tick); written by `UpsertSystemSettingCommand` (called from `MaintenanceModeService.SetEnabledAsync` and from the `/api/admin/maintenance/{on,off}` endpoints)
 
 ### Schema: `auth`
 
@@ -371,7 +381,8 @@ My.Talli/
 │   ├── MyTalli_PlatformCapabilities.html # Platform API capabilities, data richness & integration roadmap
 │   ├── MyTalli_ScalingPlan.html    # Infrastructure scaling strategy (Blazor circuits, Azure App Service tiers)
 │   ├── MyTalli_SyncScalingPlan.html # Platform API rate-limit strategy, daily-baseline sync, 3-phase plan
-│   ├── MyTalli_WorkerProcesses.html # Background worker architecture — two workers, in-process, paced, why & when to extract
+│   ├── MyTalli_HeartbeatAndMaintenanceMode.html # Heartbeat infrastructure + Maintenance Mode plan (schema, services, middleware, banner, admin UI)
+│   ├── MyTalli_WorkerProcesses.html # Background worker architecture — three workers (Sync, TokenRefresh, AdminHealth), in-process, paced, why & when to extract
 │   └── PlatformApiDataShapes.html  # Platform API data shapes (historical snapshot — banner points to current schema docs)
 ├── deploy/                         # Azure SWA deploy folder (static HTML era)
 │   ├── index.html                  # Copied from wireframes/MyTalli_LandingPage.html
@@ -477,6 +488,10 @@ My.Talli/
     │   │       └── UnsubscribeTokenService.cs  # HMAC-SHA256 token generate/validate for email unsubscribe links
     │   ├── CommandsAndQueries/                # CQRS umbrella (Commands now; Queries in the future). Organizational — does NOT affect namespace.
     │   │   └── Commands/
+    │   │       ├── Admin/                      # namespace: My.Talli.Domain.Commands.Admin
+    │   │       │   ├── GetSystemSettingCommand.cs            # Read a single SystemSetting by key (returns null if not found)
+    │   │       │   ├── UpsertSystemSettingCommand.cs         # Insert-or-update by SettingKey (used by MaintenanceModeService)
+    │   │       │   └── WriteHeartbeatTickCommand.cs          # Upsert by HeartbeatSource — stamps LastTickAt = UtcNow (called by all 3 workers)
     │   │       ├── Billing/                    # namespace: My.Talli.Domain.Commands.Billing
     │   │       │   ├── FindActiveSubscriptionWithStripeCommand.cs  # Query active subscription + Stripe record
     │   │       │   └── UpdateLocalSubscriptionCommand.cs           # Sync local DB after plan switch
@@ -511,12 +526,14 @@ My.Talli/
     │   │       ├── OrderItemMapper.cs
     │   │       ├── OrderMapper.cs
     │   │       ├── ProductMapper.cs
+    │   │       ├── HeartbeatMapper.cs
     │   │       ├── ProductTypeMapper.cs
     │   │       ├── ProductVendorMapper.cs
     │   │       ├── SubscriptionMapper.cs
     │   │       ├── SubscriptionStripeMapper.cs
     │   │       ├── SuggestionMapper.cs
     │   │       ├── SuggestionVoteMapper.cs
+    │   │       ├── SystemSettingMapper.cs
     │   │       ├── UserAuthenticationAppleMapper.cs
     │   │       ├── UserAuthenticationGoogleMapper.cs
     │   │       ├── UserAuthenticationMicrosoftMapper.cs
@@ -536,11 +553,13 @@ My.Talli/
     │   │   │   ├── OrderItem.cs
     │   │   │   ├── Product.cs
     │   │   │   ├── ProductType.cs
+    │   │   │   ├── Heartbeat.cs
     │   │   │   ├── ProductVendor.cs
     │   │   │   ├── Subscription.cs
     │   │   │   ├── SubscriptionStripe.cs
     │   │   │   ├── Suggestion.cs
     │   │   │   ├── SuggestionVote.cs
+    │   │   │   ├── SystemSetting.cs
     │   │   │   ├── User.cs
     │   │   │   ├── UserAuthenticationApple.cs
     │   │   │   ├── UserAuthenticationGoogle.cs
@@ -606,9 +625,12 @@ My.Talli/
     │   │   │   │   └── 00.components.ELMAH_Error.sql
     │   │   │   └── Views/
     │   │   │       └── 00.auth.vAuthenticatedUser.sql
-    │   │   └── 02_0/                        # SQL scripts for AddMilestone migration
+    │   │   ├── 02_0/                        # SQL scripts for AddMilestone migration
+    │   │   │   └── Post-Deployment Scripts/
+    │   │   │       └── 00.app.Milestone.sql  # Seed milestone data (17 rows)
+    │   │   └── 16_0/                        # SQL scripts for AddHeartbeatAndSystemSettings migration
     │   │       └── Post-Deployment Scripts/
-    │   │           └── 00.app.Milestone.sql  # Seed milestone data (17 rows)
+    │   │           └── 00.app.SystemSetting.seed.sql  # Seed MaintenanceMode='false' row at install
     │   ├── Repositories/
     │   │   ├── GenericRepositoryAsync.cs  # IRepositoryAsync<T> implementation
     │   │   └── GenericAuditableRepositoryAsync.cs # IAuditableRepositoryAsync<T> implementation
@@ -616,10 +638,12 @@ My.Talli/
     │   │   └── AuditResolver.cs           # IAuditResolver<T> implementation
     │   └── Configurations/
     │       ├── App/                       # Entity configs for app schema
+    │       │   ├── HeartbeatConfiguration.cs
     │       │   ├── RevenueConfiguration.cs
     │       │   ├── RevenueManualConfiguration.cs
     │       │   ├── SuggestionConfiguration.cs
-    │       │   └── SuggestionVoteConfiguration.cs
+    │       │   ├── SuggestionVoteConfiguration.cs
+    │       │   └── SystemSettingConfiguration.cs
     │       ├── Auth/                      # Entity configs for auth schema
     │       │   ├── AuthenticatedUserConfiguration.cs  # Keyless entity config for vAuthenticatedUser view
     │       │   ├── UserConfiguration.cs
@@ -652,12 +676,14 @@ My.Talli/
     │   │   ├── Order.cs
     │   │   ├── OrderItem.cs
     │   │   ├── Product.cs
+    │   │   ├── Heartbeat.cs
     │   │   ├── ProductType.cs
     │   │   ├── ProductVendor.cs
     │   │   ├── Subscription.cs
     │   │   ├── SubscriptionStripe.cs
     │   │   ├── Suggestion.cs
     │   │   ├── SuggestionVote.cs
+    │   │   ├── SystemSetting.cs
     │   │   ├── User.cs
     │   │   ├── UserAuthenticationApple.cs
     │   │   ├── UserAuthenticationGoogle.cs
@@ -670,6 +696,10 @@ My.Talli/
     ├── My.Talli.UnitTesting/        # xUnit unit test project. References Domain*, Domain.DI.Lamar, AND My.Talli.Web (so Web-layer services like EtsySyncService can be unit-tested).
     │   ├── My.Talli.UnitTesting.csproj
     │   ├── Commands/
+    │   │   ├── Admin/
+    │   │   │   ├── GetSystemSettingCommandTests.cs         # Read returns null when key not found, returns value when found, case-sensitive keys
+    │   │   │   ├── UpsertSystemSettingCommandTests.cs      # Insert new key, update existing key, multiple keys isolated, Id preserved across updates
+    │   │   │   └── WriteHeartbeatTickCommandTests.cs       # Insert new source, update existing source's LastTickAt, multiple sources isolated, metadata roundtrip + override
     │   │   └── Platforms/
     │   │       ├── ConnectEtsyCommandTests.cs              # Upsert behavior, multi-shop, null-field handling
     │   │       ├── ConnectGumroadCommandTests.cs           # Upsert behavior, name/email fallback, refresh vs new shop
@@ -700,6 +730,7 @@ My.Talli/
     │   │       └── SignInScenarioTests.cs
     │   ├── Infrastructure/
     │   │   ├── Builders/
+    │   │   │   ├── AdminBuilder.cs                 # Test setup for SystemSetting + Heartbeat commands + IMaintenanceModeService — exposes adapters and the Lamar-resolved scope factory (AdminBuilder.Container) used by AdminHealthWorker.RunTickAsync tests.
     │   │   │   ├── BillingHandlerBuilder.cs        # Test setup for Stripe webhook handler + related adapters
     │   │   │   ├── EtsySyncBuilder.cs              # Test setup for EtsySyncService — wires the service with EtsyApiClientStub + CapturingLogger + Lamar-resolved Domain commands. Exposes adapters for assertions.
     │   │   │   ├── GumroadSyncBuilder.cs           # Test setup for GumroadSyncService — wires the service with GumroadApiClientStub + CapturingLogger + Lamar-resolved UpsertGumroadRevenueCommand. Exposes adapters for assertions.
@@ -716,13 +747,21 @@ My.Talli/
     │   │       ├── EtsyApiClientStub.cs        # IEtsyApiClient stub — queue-based canned responses, captures every call for assertions
     │   │       ├── GumroadApiClientStub.cs     # IGumroadApiClient stub — queue-based canned responses, captures every call for assertions
     │   │       ├── IdentityProvider.cs         # Auto-incrementing ID generator for test entities
+    │   │       ├── MaintenanceModeServiceStub.cs # IMaintenanceModeService stub — IsEnabled is a settable property, SetEnabledAsync raises StateChanged. Used by MaintenanceModeMiddlewareTests to control state directly.
     │   │       └── StripeApiClientStub.cs      # IStripeConnectApiClient stub — queue-based StripeList<Charge>/StripeList<Payout> responses, captures every call for assertions. Connect endpoints (CreateConnectedAccount/CreateAccountLink/GetAccount) throw NotImplementedException since sync tests don't need them.
+    │   ├── Middleware/
+    │   │   └── MaintenanceModeMiddlewareTests.cs   # Pass-through when MM off, redirect when MM on + non-admin, pass-through for admin, pass-through for whitelisted paths (Theory with /maintenance, /api/admin/maintenance/*, /_blazor, /_framework, /css, /js, /lib, /Error)
     │   ├── Notifications/
     │   │   └── Emails/
     │   │       ├── SubscriptionConfirmationEmailNotificationTests.cs
     │   │       ├── WeeklySummaryEmailNotificationTests.cs
     │   │       └── WelcomeEmailNotificationTests.cs
+    │   ├── Workers/
+    │   │   └── AdminHealthWorkerTests.cs           # RunTickAsync — primes MM cache from DB, writes heartbeat row, raises StateChanged on cache flip, no-op when value unchanged, consecutive ticks update LastTickAt on same row
     │   └── Services/
+    │       ├── Admin/
+    │       │   ├── CircuitTrackerTests.cs              # Register/Unregister increments/decrements non-admin count, admin sessions excluded, duplicate session-IDs ignored, CountChanged raised only on net change
+    │       │   └── MaintenanceModeServiceTests.cs      # SetEnabledAsync writes DB + raises event, RefreshFromDbAsync raises only on change, no-op when DB matches cache
     │       └── Platforms/
     │           ├── EtsySyncServiceTests.cs         # Receipt + ledger pagination, ledger classification (Sale/Refund skip, Payment→Payout, fees→Expense w/ category mapping), unknown-type warning, inline token refresh, dedup across syncs
     │           ├── EtsyTokenRefresherTests.cs      # Refresh token passthrough, access token expiry math (now+expires_in), refresh token expiry (now+90 days), rotation
@@ -765,6 +804,7 @@ My.Talli/
         │       └── GetAdminUserListCommand.cs                  # Direct TalliDbContext access for the vAuthenticatedUser view
         ├── Middleware/                 # Custom middleware classes
         │   ├── CurrentUserMiddleware.cs   # Populates ICurrentUserService from HttpContext.User claims on every request
+        │   ├── MaintenanceModeMiddleware.cs # Reads MaintenanceModeService.IsEnabled; redirects non-admin requests to /maintenance (bypassed for admins + whitelisted paths). Pipeline position: after UseCurrentUser, before UseAntiforgery.
         │   └── ProbeFilterMiddleware.cs  # Bot/scanner probe filter (short-circuits .env, .php, wp-admin, etc.)
         ├── Components/
         │   ├── App.razor           # Root HTML document
@@ -787,6 +827,8 @@ My.Talli/
         │   │   ├── Goals.razor.css
         │   │   ├── LandingPage.razor     # Landing page (route: /)
         │   │   ├── LandingPage.razor.css
+        │   │   ├── Maintenance.razor      # Maintenance Mode page (route: /maintenance, LandingLayout, interactive — auto-redirects to /dashboard when MM flips OFF)
+        │   │   ├── Maintenance.razor.css
         │   │   ├── ManualEntry.razor       # Manual entry module (route: /manual-entry)
         │   │   ├── ManualEntry.razor.css
         │   │   ├── MyPlan.razor          # Consolidated plan & module management (route: /my-plan)
@@ -808,11 +850,19 @@ My.Talli/
         │   └── Shared/
         │       ├── BrandHeader.razor     # Reusable purple swoosh header (logo + action slot)
         │       ├── BrandHeader.razor.css
+        │       ├── MaintenanceBanner.razor   # Admin-only persistent banner shown across all in-app pages while MM is on. Renders when (User.IsInRole("Admin") AND MM.IsEnabled). Shows status pill + live non-admin count (red→green at 0) + Turn Off button (ConfirmDialog-guarded). ALSO registers/unregisters the in-app session with ICircuitTracker (every user, every tab) and auto-redirects non-admins to /maintenance when MM flips on.
+        │       ├── MaintenanceBanner.razor.css
         │       ├── ConfirmDialog.razor       # Reusable Yes/No confirmation dialog (danger/primary variants)
         │       └── ConfirmDialog.razor.css
         ├── Helpers/
         │   └── LayoutHelper.cs            # Static helpers (CurrentYear, VersionNumber) for layouts
         ├── Services/
+        │   ├── Admin/
+        │   │   ├── CircuitTracker.cs        # Singleton — counts active in-app sessions (admins excluded). Backed by ConcurrentDictionary, raises CountChanged when non-admin count flips.
+        │   │   ├── ICircuitTracker.cs       # Interface for the circuit-tracker singleton consumed by MaintenanceBanner
+        │   │   ├── IMaintenanceModeService.cs  # Interface — IsEnabled property, StateChanged event, SetEnabledAsync, RefreshFromDbAsync
+        │   │   ├── MaintenanceModeService.cs   # Singleton — caches the MM flag, raises StateChanged on flips. Uses IServiceScopeFactory to call scoped GetSystemSettingCommand + UpsertSystemSettingCommand.
+        │   │   └── MaintenanceModeStartupInitializer.cs  # IHostedService — primes the MaintenanceModeService cache from DB at app boot. Logs + defaults to false on DB failure.
         │   ├── Billing/
         │   │   ├── StripeBillingService.cs  # Stripe Checkout, Portal, & plan switch API wrapper
         │   │   └── StripeSettings.cs        # Stripe configuration POCO
@@ -846,8 +896,9 @@ My.Talli/
         │   └── Tokens/
         │       └── UnsubscribeTokenSettings.cs  # Config POCO for unsubscribe token secret key
         ├── Workers/                    # BackgroundService-hosted workers (same process as Blazor). See documentation/MyTalli_WorkerProcesses.html for architecture.
-        │   ├── ShopSyncWorker.cs       # Polls ShopConnection.NextSyncDateTime every 5 min — paced, 24h cadence per shop, exponential backoff on failure
-        │   └── TokenRefreshWorker.cs   # Rotates expiring OAuth refresh tokens every 6h before they hit the platform's lifetime cap
+        │   ├── AdminHealthWorker.cs    # Ticks every 1 min — fast + DB-only. Refreshes MaintenanceModeService cache from app.SystemSetting (cross-instance MM bridge) and writes own row to app.Heartbeat. Per-tick logic exposed as static RunTickAsync(IServiceProvider, ILogger, CancellationToken) for unit testing.
+        │   ├── ShopSyncWorker.cs       # Polls ShopConnection.NextSyncDateTime every 5 min — paced, 24h cadence per shop, exponential backoff on failure. Writes Heartbeat row at end of each pass.
+        │   └── TokenRefreshWorker.cs   # Rotates expiring OAuth refresh tokens every 6h before they hit the platform's lifetime cap. Writes Heartbeat row at end of each pass.
         ├── Models/                     # Web-layer view-model DTOs (not to be confused with Domain.Models)
         │   ├── ConnectedPlatformLink.cs   # NavMenu link row — platform name + brand color
         │   ├── ExpenseItem.cs             # Manual Entry expense row
@@ -871,6 +922,7 @@ My.Talli/
         │   │   ├── ErrorViewModel.cs
         │   │   ├── GoalsViewModel.cs
         │   │   ├── LandingPageViewModel.cs
+        │   │   ├── MaintenanceViewModel.cs
         │   │   ├── ManualEntryViewModel.cs
         │   │   ├── MyPlanViewModel.cs
         │   │   ├── PlatformsViewModel.cs
@@ -882,7 +934,8 @@ My.Talli/
         │   │   └── UnsubscribeViewModel.cs
         │   └── Shared/
         │       ├── BrandHeaderViewModel.cs
-        │       └── ConfirmDialogViewModel.cs
+        │       ├── ConfirmDialogViewModel.cs
+        │       └── MaintenanceBannerViewModel.cs
         ├── Properties/
         │   └── launchSettings.json
         ├── wwwroot/
@@ -1232,18 +1285,43 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 
 ### Background Workers
 
-Architecture rationale (why two workers, paced, in-process) lives in [documentation/MyTalli_WorkerProcesses.html](documentation/MyTalli_WorkerProcesses.html). The rules below are the guardrails for building and extending them.
+Architecture rationale (why these workers, paced, in-process) lives in [documentation/MyTalli_WorkerProcesses.html](documentation/MyTalli_WorkerProcesses.html). The rules below are the guardrails for building and extending them.
 
 - **Location:** all `BackgroundService` subclasses live in `Source/My.Talli.Web/Workers/` (namespace `My.Talli.Web.Workers`). Platform-specific services the workers call (refreshers, sync services) stay under `Source/My.Talli.Web/Services/Platforms/`.
-- **Two workers today:** `TokenRefreshWorker` (every 6h, rotates refresh tokens before platform expiry) and `ShopSyncWorker` (every 5 min, pulls new revenue data, 24h cadence per shop).
-- **Audit-field stamping:** workers have no HTTP context, so `CurrentUserMiddleware` never runs. Before any write that hits `AuditResolver`, the worker must call `currentUserService.Set(shop.UserId, string.Empty)` and clear it in a `finally`. Otherwise `AuditResolver` throws on UPDATE. Both current workers follow this pattern per-shop.
-- **Pacing is non-negotiable.** Four independent constraints force it: app-wide rate limits (Etsy 10 QPS / 10,000 QPD shared), the shared .NET thread pool, DB index contention on `app.Revenue`, and failure-blast-radius (unpaced failures cause thundering herds on recovery). Concrete numbers: 250ms per-shop for token refresh, 500ms per-shop + 200ms per-page for sync.
+- **Three workers today:** `ShopSyncWorker` (every 5 min, pulls new revenue/expense/payout data per shop, 24h cadence per shop), `TokenRefreshWorker` (every 6h, rotates refresh tokens before platform expiry), and `AdminHealthWorker` (every 1 min, **fast and DB-only** — refreshes the `MaintenanceModeService` cache from `app.SystemSetting` and writes its own row to `app.Heartbeat`). The last one is the universal "this instance is alive + cross-instance MM bridge" worker.
+- **Heartbeat tick at end of every pass.** Every worker writes a row to `app.Heartbeat` at the end of each loop iteration via `WriteHeartbeatTickCommand` (`HeartbeatSourceName` constants: `"ShopSyncWorker"` / `"TokenRefreshWorker"` / `"AdminHealthWorker"`). The tick is wrapped in try/catch and logs a warning on failure — heartbeat-write failures must never break the worker's main job. Future Sync Health Dashboard reads these rows to detect stale subsystems.
+- **Audit-field stamping:** workers have no HTTP context, so `CurrentUserMiddleware` never runs. Before any write that hits `AuditResolver`, the worker must call `currentUserService.Set(<userId>, string.Empty)` and clear it in a `finally`. Otherwise `AuditResolver` throws on UPDATE. Per-shop work uses the shop's `UserId`; system writes (heartbeats, MM cache refresh) use `0L` as the system sentinel.
+- **Pacing is non-negotiable.** Four independent constraints force it: app-wide rate limits (Etsy 10 QPS / 10,000 QPD shared), the shared .NET thread pool, DB index contention on `app.Revenue`, and failure-blast-radius (unpaced failures cause thundering herds on recovery). Concrete numbers: 250ms per-shop for token refresh, 500ms per-shop + 200ms per-page for sync. `AdminHealthWorker` is exempt — its tick is one DB read + one DB upsert + a singleton method call, all under 100ms.
 - **Per-platform abstraction:** new platforms plug in by implementing `IPlatformTokenRefresher` and `IPlatformSyncService` (both in `Services/Platforms/`). The workers enumerate registered instances and dispatch by `Platform` name. No worker code changes needed to add Stripe, PayPal, Shopify, or Gumroad later.
 - **No user-triggered sync.** There is no "Sync Now" button and there won't be one before webhooks ship — see the **Platform Connections** rule.
 - **Scope per pass:** each loop iteration creates a fresh `IServiceProvider.CreateScope()` so every shop gets its own DbContext. No shared state between shops; no contention with Blazor circuits.
 - **Failure semantics:** `ShopSyncWorker` increments `ConsecutiveFailures`, writes `LastErrorMessage` (truncated to 1,900 chars), and schedules the next retry via exponential backoff (`5 min × 2^N`, capped at 24h). `TokenRefreshWorker` logs and retries on the next 6h loop without a backoff counter — token refresh is cheap enough to just try again.
 - **Azure "Always On" required.** App Service idles the process after ~20 min of no web traffic, which stops both workers. Enable Always On on every environment that runs workers.
 - **When to extract to a separate project:** once the web app scales to 2+ Azure App Service instances, workers will duplicate work (each instance runs its own copy) unless extracted or a SQL distributed lock (`sp_getapplock`) is added. Extract target: `My.Talli.Worker` (Azure WebJob / Container App / Functions, sharing Domain + Domain.Data.EntityFramework + Domain.DI.Lamar via project references).
+
+### Heartbeat
+
+`app.Heartbeat` + `AdminHealthWorker` is the foundation many future admin/health features plug into (token-expiry warnings, sync staleness, ACS email delivery, Stripe webhook gap detection, Etsy API quota tracking). Maintenance Mode is the first consumer; the others are deferred until first real users.
+
+- **Tick = fast + local + DB-only.** `AdminHealthWorker` runs every 1 min and must finish each tick in well under 1 second. Anything that makes outbound platform API calls belongs in its own worker (e.g., `TokenRefreshWorker` for OAuth refresh — slow, paced, network-bound). The "fast tick" promise is what makes 1-minute cadence safe for the thread pool.
+- **Three sources today:** `"AdminHealthWorker"` (60s expected interval), `"ShopSyncWorker"` (300s), `"TokenRefreshWorker"` (21600s). Each worker writes its own row at the end of every loop pass via `WriteHeartbeatTickCommand`. Heartbeat-write failures are caught + warned — they never break the worker's main job.
+- **Reader side stays empty for now.** `GetHeartbeatStatusCommand` is intentionally not built; it ships with the future Sync Health Dashboard (Item C in the Heartbeat plan). Don't add reader code "just in case" — YAGNI.
+- **System sentinel for audit:** worker writes use `currentUserService.Set(0L, string.Empty)` (not the shop's `UserId`) since heartbeat rows belong to the system, not a user. Same sentinel used by OAuth sign-up self-stamping.
+
+### Maintenance Mode
+
+A site-wide kill switch. The flag lives in `app.SystemSetting` (key `"MaintenanceMode"`, value `"true"` / `"false"`); a singleton `MaintenanceModeService` caches it in memory. Architecture deep-dive in [documentation/MyTalli_HeartbeatAndMaintenanceMode.html](documentation/MyTalli_HeartbeatAndMaintenanceMode.html).
+
+- **Four propagation paths:**
+  1. **User clicks / loads / refreshes** → `MaintenanceModeMiddleware` reads the cached flag and 302-redirects to `/maintenance` if MM is on.
+  2. **User sitting idle on local instance** → admin's toggle raises the singleton's in-process `StateChanged` event; `MaintenanceBanner` (interactive, in `MainLayout`) calls `NavigationManager.NavigateTo("/maintenance", forceLoad: true)`. Latency: <1s.
+  3. **User sitting idle on a different App Service instance (future)** → `AdminHealthWorker` on that instance re-reads the DB flag every minute; if its cached value is stale, raises the local in-process event. Latency: ≤60s.
+  4. **MM turned OFF** → same in-process / heartbeat paths fire with `false`; the `/maintenance` page (also interactive) auto-redirects users back to `/dashboard`.
+- **Admins are exempt.** Middleware short-circuits when `User.IsInRole("Admin")` is true, regardless of MM state. Admins keep full access to verify the fix and watch the live indicator on the banner.
+- **Indicator on `MainLayout`.** The `MaintenanceBanner` component renders only when MM is on AND the current user is admin. It shows a status pill, the live count of non-admin in-app sessions (sourced from `ICircuitTracker`), and a Turn Off button guarded by `ConfirmDialog`. The banner pulses red while non-admin count > 0 and turns green at 0 — the "safe to proceed" signal admins watch before doing anything risky.
+- **Two ways to toggle.** Admin UI on `/admin` → Maintenance tab calls `MaintenanceModeService.SetEnabledAsync` directly (in-process); `POST /api/admin/maintenance/{on,off}` endpoints (admin-role-gated) exist for external admin tooling. Direct SQL `UPDATE app.SystemSetting` also works as a fallback if the app itself is down — the next `AdminHealthWorker` tick (≤60s) picks it up on every instance.
+- **Middleware whitelist.** `/maintenance`, `/api/admin/maintenance/*`, `/_blazor`, `/_framework`, `/css`, `/js`, `/lib`, `/Error` always pass through even when MM is on, so the maintenance page itself can render and admins can still call the toggle API.
+- **MM is a flag, not a poll.** The middleware reads the in-memory cached flag on every request — no DB round-trip per request. The ONE DB round-trip per minute is the `AdminHealthWorker` tick. Don't add per-request DB reads "for safety"; the in-process event + heartbeat polling is the entire propagation strategy.
 
 ### Summary Tag Convention
 

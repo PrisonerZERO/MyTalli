@@ -1,0 +1,41 @@
+/* SWOOSH HERO */
+.export-hero { margin: -32px -40px 60px; padding: 24px 40px 48px; }
+
+/* LOADING */
+.export-loading { padding: 60px 40px; text-align: center; }
+.export-loading p { color: var(--text-muted); font-size: 14px; }
+
+/* SECTIONS */
+.export-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; margin: 0 40px 28px; padding: 28px 32px; }
+.export-section h2 { color: var(--text-primary); font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+.section-desc { color: var(--text-muted); font-size: 13px; margin: 0 0 20px; }
+
+/* DATE RANGE PILLS */
+.export-range-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.range-pill { background: var(--bg-input); border: 1px solid var(--border); border-radius: 16px; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 6px 14px; transition: all 0.15s; }
+.range-pill:hover { background: var(--bg-hover); color: var(--text-primary); }
+.range-pill.active { background: var(--purple-primary); border-color: var(--purple-primary); color: #fff; }
+.range-pill.active:hover { background: var(--purple-hover); }
+
+/* CUSTOM RANGE INPUTS */
+.export-custom-range { align-items: end; display: flex; gap: 16px; flex-wrap: wrap; }
+.custom-range-field { display: flex; flex-direction: column; gap: 4px; }
+.custom-range-field label { color: var(--text-muted); font-size: 12px; font-weight: 600; }
+.custom-range-field input { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; font-size: 14px; padding: 8px 12px; }
+.custom-range-field input:focus { border-color: var(--purple-primary); outline: none; }
+
+/* CARD GRID */
+.export-card-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-bottom: 16px; }
+
+/* EXPORT CARD (scoped via ::deep so it reaches the projected ExportCard child component) */
+::deep .export-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; gap: 12px; padding: 18px 20px; }
+::deep .export-card-head { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
+::deep .export-card-label { color: var(--text-primary); font-size: 16px; font-weight: 700; }
+::deep .export-card-count { background: var(--purple-soft); border-radius: 12px; color: var(--purple-primary); font-size: 12px; font-weight: 700; padding: 3px 10px; }
+::deep .export-card-desc { color: var(--text-muted); font-size: 13px; line-height: 1.4; margin: 0; }
+::deep .export-card-btn { align-items: center; background: var(--purple-primary); border: none; border-radius: 8px; color: #fff; cursor: pointer; display: inline-flex; font-family: inherit; font-size: 13px; font-weight: 600; gap: 6px; justify-content: center; padding: 10px 16px; text-decoration: none; transition: background 0.15s; }
+::deep .export-card-btn:hover { background: var(--purple-hover); }
+::deep .export-card-btn svg { height: 16px; width: 16px; }
+::deep .export-card-btn-disabled { background: var(--badge-free-bg); color: var(--text-muted); cursor: not-allowed; pointer-events: none; }
+
+.export-fineprint { color: var(--text-muted); font-size: 12px; font-style: italic; margin: 8px 0 0; }
