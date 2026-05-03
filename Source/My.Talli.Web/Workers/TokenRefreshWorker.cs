@@ -152,7 +152,7 @@ public class TokenRefreshWorker : BackgroundService
     {
         try
         {
-            var refreshTokenPlaintext = tokenProtector.Unprotect(shop.RefreshToken!);
+            var refreshTokenPlaintext = SafeUnprotect(tokenProtector, shop.RefreshToken!, refresher.Platform, shop.Id);
             var result = await refresher.RefreshAsync(refreshTokenPlaintext, stoppingToken);
             await refreshCommand.ExecuteAsync(shop.Id, result.AccessToken, result.AccessTokenExpiryDateTime, result.RefreshToken, result.RefreshTokenExpiryDateTime);
             _logger.LogInformation("Refreshed {Platform} tokens for shop {ShopId}.", refresher.Platform, shop.Id);
@@ -162,6 +162,24 @@ public class TokenRefreshWorker : BackgroundService
             _logger.LogWarning(ex, "Failed to refresh {Platform} tokens for shop {ShopId}.", refresher.Platform, shop.Id);
             try { await refreshCommand.RecordFailureAsync(shop.Id, $"Token refresh failed: {ex.Message}"); }
             catch (Exception recordEx) { _logger.LogError(recordEx, "Failed to record token refresh error for shop {ShopId}.", shop.Id); }
+        }
+    }
+
+    /// <summary>
+    /// Unprotects a stored refresh token, falling back to treating the value as plaintext if Data
+    /// Protection can't decrypt it (legacy pre-encryption row, key rotation, etc.). The next
+    /// successful refresh writes back a properly-encrypted value via RefreshShopTokensCommand.
+    /// </summary>
+    private string SafeUnprotect(IShopTokenProtector tokenProtector, string stored, string platform, long shopId)
+    {
+        try
+        {
+            return tokenProtector.Unprotect(stored);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "{Platform} refresh token for shop {ShopId} could not be unprotected — treating as plaintext (legacy row?). Next successful refresh will re-encrypt.", platform, shopId);
+            return stored;
         }
     }
 

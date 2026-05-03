@@ -231,6 +231,43 @@ public class ConnectEtsyCommandTests
     }
 
     [Fact]
+    public async Task Execute_ExistingShopWithFailures_ResetsConsecutiveFailuresAndClearsErrorMessage()
+    {
+        var builder = new PlatformHandlerBuilder();
+
+        // First connect — establishes the shop row
+        await builder.Command.ExecuteAsync(1, BuildTokens(), "user", [BuildShop(shopId: 100)]);
+
+        // Simulate the worker recording failures over time
+        var stored = (await builder.ShopConnectionAdapter.GetAllAsync()).Single();
+        stored.ConsecutiveFailures = 6;
+        stored.LastErrorMessage = "An error occurred during a cryptographic operation";
+        stored.Status = "Failed";
+        await builder.ShopConnectionAdapter.UpdateAsync(stored);
+
+        // Reconnect — should clear the failure state on the existing row
+        await builder.Command.ExecuteAsync(1, BuildTokens(), "user", [BuildShop(shopId: 100)]);
+
+        var refreshed = (await builder.ShopConnectionAdapter.GetAllAsync()).Single();
+        Assert.Equal(0, refreshed.ConsecutiveFailures);
+        Assert.Null(refreshed.LastErrorMessage);
+        Assert.Equal("Pending", refreshed.Status);
+    }
+
+    [Fact]
+    public async Task Execute_ExistingShopReconnect_RewritesEncryptedTokens()
+    {
+        var builder = new PlatformHandlerBuilder();
+        await builder.Command.ExecuteAsync(1, BuildTokens(accessToken: "old-access", refreshToken: "old-refresh"), "user", [BuildShop(shopId: 100)]);
+
+        await builder.Command.ExecuteAsync(1, BuildTokens(accessToken: "new-access", refreshToken: "new-refresh"), "user", [BuildShop(shopId: 100)]);
+
+        var shop = (await builder.ShopConnectionAdapter.GetAllAsync()).Single();
+        Assert.Equal("new-access", builder.TokenProtector.Unprotect(shop.AccessToken));
+        Assert.Equal("new-refresh", builder.TokenProtector.Unprotect(shop.RefreshToken!));
+    }
+
+    [Fact]
     public async Task Execute_ShopWithNullFields_DefaultsToEmptyStrings()
     {
         var builder = new PlatformHandlerBuilder();
