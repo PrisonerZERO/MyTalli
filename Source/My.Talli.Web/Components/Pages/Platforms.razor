@@ -310,6 +310,7 @@ else
     string HealthCss(My.Talli.Web.Models.ShopHealth health) => health switch
     {
         My.Talli.Web.Models.ShopHealth.Healthy => "healthy",
+        My.Talli.Web.Models.ShopHealth.SyncPending => "syncpending",
         My.Talli.Web.Models.ShopHealth.Stale => "stale",
         My.Talli.Web.Models.ShopHealth.Failing => "failing",
         My.Talli.Web.Models.ShopHealth.Paused => "paused",

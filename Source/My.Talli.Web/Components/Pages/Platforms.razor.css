@@ -18,6 +18,7 @@
 .plat-health-badge { align-items: center; border-radius: 12px; display: inline-flex; font-size: 11px; font-weight: 700; gap: 6px; letter-spacing: 0.3px; margin-left: 12px; padding: 3px 10px; text-transform: uppercase; vertical-align: middle; }
 .plat-health-dot { background: currentColor; border-radius: 50%; display: inline-block; height: 6px; width: 6px; }
 .plat-health-healthy { background: var(--success-bg); color: var(--success); }
+.plat-health-syncpending { background: rgba(108, 92, 231, 0.15); color: var(--purple-primary); }
 .plat-health-stale { background: rgba(245, 158, 11, 0.15); color: #92400e; }
 .plat-health-failing { background: rgba(231, 76, 60, 0.15); color: #c0392b; }
 .plat-health-failing .plat-health-dot { animation: plat-health-pulse 1.5s ease-in-out infinite; }
@@ -26,12 +27,14 @@
 /* Shop row visual treatment when not healthy */
 .plat-shop-row.plat-shop-health-failing { border-left: 3px solid var(--danger); padding-left: 13px; }
 .plat-shop-row.plat-shop-health-stale { border-left: 3px solid #f59e0b; padding-left: 13px; }
+.plat-shop-row.plat-shop-health-syncpending { border-left: 3px solid var(--purple-primary); padding-left: 13px; }
 
 /* Friendly health message under the row main */
 .plat-shop-row-main { align-items: center; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; }
 .plat-shop-health-message { color: var(--text-muted); font-size: 13px; margin-top: 8px; padding-left: 36px; }
 .plat-shop-health-failing .plat-shop-health-message { color: #c0392b; }
 .plat-shop-health-stale .plat-shop-health-message { color: #92400e; }
+.plat-shop-health-syncpending .plat-shop-health-message { color: var(--purple-primary); }
 
 /* Reconnect button — prominent when health needs it, soft otherwise */
 .plat-btn-reconnect { background: var(--purple-primary); border: none; border-radius: 8px; color: #fff; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 16px; transition: background 0.15s; }

@@ -4,6 +4,7 @@ namespace My.Talli.Web.Models;
 public enum ShopHealth
 {
 	Healthy,
+	SyncPending,
 	Stale,
 	Failing,
 	Paused

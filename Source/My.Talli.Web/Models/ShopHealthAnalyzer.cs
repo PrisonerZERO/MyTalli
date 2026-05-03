@@ -21,6 +21,12 @@ public static class ShopHealthAnalyzer
 		if (shop.ConsecutiveFailures > 0)
 			return ShopHealth.Failing;
 
+		// "Pending" status is set by ConnectXxxCommand on both first-time connect and reconnect, and
+		// stays Pending until ShopSyncWorker fires (within ~5 min). Show this as a forward-looking
+		// "sync upcoming" state — NOT as Stale — even if LastSyncDateTime is old.
+		if (string.Equals(shop.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+			return ShopHealth.SyncPending;
+
 		if (shop.LastSyncDateTime.HasValue && now - shop.LastSyncDateTime.Value > StaleGracePeriod)
 			return ShopHealth.Stale;
 
@@ -32,12 +38,18 @@ public static class ShopHealthAnalyzer
 	/// display on the Platforms page. Falls back to a generic "try reconnecting" message when no
 	/// pattern matches. Never surfaces the raw exception or stack trace.
 	/// </summary>
-	public static string ToFriendlyMessage(ShopHealth health, string platform, string? rawError, DateTime? lastSyncDateTime, DateTime now)
+	public static string ToFriendlyMessage(ShopHealth health, string platform, string? rawError, DateTime? lastSyncDateTime, DateTime now, string status = "")
 	{
 		switch (health)
 		{
 			case ShopHealth.Healthy:
 				return string.Empty;
+
+			case ShopHealth.SyncPending:
+				// Differentiate first-ever connect from reconnect by whether a prior sync exists
+				return lastSyncDateTime.HasValue
+					? "Reconnected — first sync will start within 5 minutes."
+					: "First sync will start within 5 minutes.";
 
 			case ShopHealth.Paused:
 				return "Sync is paused. Click Resume to start syncing again.";
@@ -95,6 +107,7 @@ public static class ShopHealthAnalyzer
 	public static string ToHealthLabel(ShopHealth health) => health switch
 	{
 		ShopHealth.Healthy => "Healthy",
+		ShopHealth.SyncPending => "Sync Upcoming",
 		ShopHealth.Stale => "Sync Delayed",
 		ShopHealth.Failing => "Reconnect Needed",
 		ShopHealth.Paused => "Paused",

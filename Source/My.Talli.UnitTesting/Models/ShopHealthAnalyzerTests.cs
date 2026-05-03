@@ -72,6 +72,43 @@ public class ShopHealthAnalyzerTests
         Assert.Equal(ShopHealth.Failing, health);
     }
 
+    [Fact]
+    public void Classify_StatusPending_ReturnsSyncPending()
+    {
+        // Brand-new shop or just-reconnected: Status = "Pending", failure state cleared.
+        var shop = BuildShop(isEnabled: true, consecutiveFailures: 0, lastSync: null, status: "Pending");
+
+        var health = ShopHealthAnalyzer.ClassifyHealth(shop, DateTime.UtcNow);
+
+        Assert.Equal(ShopHealth.SyncPending, health);
+    }
+
+    [Fact]
+    public void Classify_StatusPendingWithOldLastSync_ReturnsSyncPendingNotStale()
+    {
+        // Reconnect scenario: ConnectXxxCommand reset failures + cleared error + set Status=Pending,
+        // but LastSyncDateTime still points at the old sync from before the failure cycle. Should
+        // classify as SyncPending (forward-looking), NOT Stale (backward-looking).
+        var now = DateTime.UtcNow;
+        var shop = BuildShop(isEnabled: true, consecutiveFailures: 0, lastSync: now.AddDays(-8), status: "Pending");
+
+        var health = ShopHealthAnalyzer.ClassifyHealth(shop, now);
+
+        Assert.Equal(ShopHealth.SyncPending, health);
+    }
+
+    [Fact]
+    public void Classify_FailingTakesPriorityOverPending()
+    {
+        // If the worker fired AFTER reconnect and failed, we want to surface the new failure
+        // (not the stale "Pending" status from the reconnect).
+        var shop = BuildShop(isEnabled: true, consecutiveFailures: 1, lastSync: null, status: "Pending");
+
+        var health = ShopHealthAnalyzer.ClassifyHealth(shop, DateTime.UtcNow);
+
+        Assert.Equal(ShopHealth.Failing, health);
+    }
+
     [Theory]
     [InlineData("An error occurred during a cryptographic operation", "can't be read")]
     [InlineData("DataProtection: failed to unprotect", "can't be read")]
@@ -148,15 +185,37 @@ public class ShopHealthAnalyzerTests
     }
 
     [Fact]
+    public void Translate_SyncPending_WithPriorSync_ShowsReconnectedMessage()
+    {
+        // Reconnect scenario — old LastSyncDateTime exists, copy says "Reconnected"
+        var message = ShopHealthAnalyzer.ToFriendlyMessage(ShopHealth.SyncPending, "Etsy", null, DateTime.UtcNow.AddDays(-7), DateTime.UtcNow);
+
+        Assert.Contains("Reconnected", message);
+        Assert.Contains("5 minutes", message);
+        Assert.DoesNotContain("Try reconnecting", message);
+    }
+
+    [Fact]
+    public void Translate_SyncPending_NoPriorSync_ShowsFirstSyncMessage()
+    {
+        // Brand-new shop scenario — never synced, copy doesn't say "Reconnected"
+        var message = ShopHealthAnalyzer.ToFriendlyMessage(ShopHealth.SyncPending, "Etsy", null, lastSyncDateTime: null, DateTime.UtcNow);
+
+        Assert.Contains("First sync", message);
+        Assert.DoesNotContain("Reconnected", message);
+    }
+
+    [Fact]
     public void HealthLabel_KnownValues_ReturnExpectedStrings()
     {
         Assert.Equal("Healthy", ShopHealthAnalyzer.ToHealthLabel(ShopHealth.Healthy));
+        Assert.Equal("Sync Upcoming", ShopHealthAnalyzer.ToHealthLabel(ShopHealth.SyncPending));
         Assert.Equal("Sync Delayed", ShopHealthAnalyzer.ToHealthLabel(ShopHealth.Stale));
         Assert.Equal("Reconnect Needed", ShopHealthAnalyzer.ToHealthLabel(ShopHealth.Failing));
         Assert.Equal("Paused", ShopHealthAnalyzer.ToHealthLabel(ShopHealth.Paused));
     }
 
-    private static MODELS.ShopConnection BuildShop(bool isEnabled, int consecutiveFailures, DateTime? lastSync)
+    private static MODELS.ShopConnection BuildShop(bool isEnabled, int consecutiveFailures, DateTime? lastSync, string status = "")
     {
         return new MODELS.ShopConnection
         {
@@ -164,7 +223,8 @@ public class ShopHealthAnalyzerTests
             IsActive = true,
             IsEnabled = isEnabled,
             LastSyncDateTime = lastSync,
-            NextSyncDateTime = DateTime.UtcNow.AddHours(1)
+            NextSyncDateTime = DateTime.UtcNow.AddHours(1),
+            Status = status
         };
     }
 

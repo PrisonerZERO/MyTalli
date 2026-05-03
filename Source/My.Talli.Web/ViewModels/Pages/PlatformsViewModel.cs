@@ -68,6 +68,7 @@ public class PlatformsViewModel : ComponentBase
 		.Where(p => p.IsConnected)
 		.SelectMany(p => p.Shops)
 		.Count(s => s.Health == ShopHealth.Failing || s.Health == ShopHealth.Stale);
+	// SyncPending intentionally excluded — the user just connected/reconnected, nothing to act on.
 
 
 	#endregion
@@ -321,7 +322,7 @@ public class PlatformsViewModel : ComponentBase
 							{
 								ConnectionStatus = connection.ConnectionStatus,
 								ConsecutiveFailures = s.ConsecutiveFailures,
-								FriendlyHealthMessage = ShopHealthAnalyzer.ToFriendlyMessage(health, item.Name, s.LastErrorMessage, s.LastSyncDateTime, now),
+								FriendlyHealthMessage = ShopHealthAnalyzer.ToFriendlyMessage(health, item.Name, s.LastErrorMessage, s.LastSyncDateTime, now, s.Status),
 								Health = health,
 								IsEnabled = s.IsEnabled,
 								IsOAuthPlatform = supportsOAuthReconnect,
