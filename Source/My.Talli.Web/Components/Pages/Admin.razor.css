@@ -105,3 +105,47 @@
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.5; transform: scale(1.3); }
 }
+
+/* ─── SYNC HEALTH TAB ─── */
+.sh-toolbar { align-items: center; display: flex; gap: 16px; justify-content: space-between; margin: 0 40px 16px; }
+.sh-toolbar-meta { color: var(--text-muted); font-size: 13px; margin: 0; }
+
+/* Tile grids */
+.sh-tile-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.sh-tile { background: var(--bg-input); border: 1px solid var(--border); border-left-width: 4px; border-radius: 12px; padding: 16px 20px; }
+.sh-tile-good { border-left-color: var(--success); }
+.sh-tile-bad { border-left-color: var(--danger); }
+.sh-tile-warn { border-left-color: #f59e0b; }
+.sh-tile-neutral { border-left-color: var(--purple-primary); }
+
+.sh-tile-head { align-items: center; display: flex; justify-content: space-between; margin-bottom: 12px; }
+.sh-tile-title { color: var(--text-primary); font-size: 15px; font-weight: 700; }
+
+/* Status pill */
+.sh-status-pill { border-radius: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.4px; padding: 3px 10px; text-transform: uppercase; }
+.sh-pill-good { background: var(--success-bg); color: var(--success); }
+.sh-pill-bad { background: var(--danger-bg); color: var(--danger); }
+.sh-pill-warn { background: #fef3c7; color: #92400e; }
+.sh-pill-neutral { background: var(--purple-soft); color: var(--purple-primary); }
+
+/* Tile body rows */
+.sh-tile-body { display: flex; flex-direction: column; gap: 6px; }
+.sh-row { color: var(--text-secondary); display: flex; font-size: 13px; gap: 8px; justify-content: space-between; }
+.sh-row-label { color: var(--text-muted); }
+.sh-row-value { color: var(--text-primary); font-weight: 500; text-align: right; }
+.sh-row-emphasis .sh-row-value { color: var(--purple-primary); font-size: 18px; font-weight: 700; }
+.sh-row-muted { color: var(--text-muted); font-size: 12px; }
+.sh-row-muted .sh-row-value { color: var(--text-muted); font-weight: 400; }
+.sh-row-warn { color: var(--danger) !important; font-weight: 700; }
+
+/* Empty state */
+.sh-empty { align-items: center; background: var(--success-bg); border-radius: 8px; color: var(--success); display: flex; font-size: 14px; font-weight: 500; gap: 10px; padding: 16px 20px; }
+.sh-empty-icon { background: var(--success); border-radius: 50%; color: #fff; display: inline-flex; font-weight: 700; height: 24px; align-items: center; justify-content: center; width: 24px; }
+
+/* Problem-shop table extras */
+.sh-shop-id { color: var(--text-muted); font-size: 11px; margin-left: 4px; }
+.sh-issue-tag { border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; padding: 2px 7px; text-transform: uppercase; white-space: nowrap; }
+.sh-issue-failing { background: var(--danger-bg); color: var(--danger); }
+.sh-issue-stale { background: #fef3c7; color: #92400e; }
+.sh-issue-failing-stale { background: var(--danger); color: #fff; }
+.sh-error-cell { color: var(--text-muted); font-size: 12px; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

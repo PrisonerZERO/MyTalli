@@ -37,7 +37,7 @@
 <nav class="spoke-tabs" role="tablist" aria-label="Admin sections">
     <button class="spoke-tab @(ActiveTab == "email" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "email")" @onclick='() => SelectTab("email")'>Email</button>
     <button class="spoke-tab @(ActiveTab == "maintenance" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "maintenance")" @onclick='() => SelectTab("maintenance")'>Maintenance</button>
-    <button class="spoke-tab spoke-tab-disabled" role="tab" aria-selected="false" disabled title="Coming soon">Sync Health</button>
+    <button class="spoke-tab @(ActiveTab == "sync-health" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "sync-health")" @onclick='() => SelectTab("sync-health")'>Sync Health</button>
 </nav>
 
 @if (IsLoading)
@@ -255,4 +255,137 @@ else
             </div>
         </ConfirmDialog>
     }
+
+    @* ── SYNC HEALTH TAB ── *@
+    @if (ActiveTab == "sync-health")
+    {
+        <section aria-label="Sync Health" role="tabpanel">
+            <div class="sh-toolbar">
+                <p class="section-desc sh-toolbar-meta">
+                    @if (SyncHealth is not null)
+                    {
+                        <span>Snapshot generated @SyncHealth.GeneratedAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</span>
+                    }
+                </p>
+                <button class="btn btn-bulk-all" disabled="@IsSyncHealthLoading" @onclick="RefreshSyncHealthAsync">
+                    @if (IsSyncHealthLoading) { <span class="spinner" aria-hidden="true"></span> }
+                    Refresh
+                </button>
+            </div>
+
+            @if (IsSyncHealthLoading && SyncHealth is null)
+            {
+                <div class="admin-loading"><p>Loading sync health…</p></div>
+            }
+            else if (SyncHealth is not null)
+            {
+                <!-- Worker liveness -->
+                <section aria-label="Background workers" class="admin-section">
+                    <h2>Background Workers</h2>
+                    <p class="section-desc">In-process workers and when they last ticked. Stale = no tick in 2× expected interval.</p>
+
+                    <div class="sh-tile-grid">
+                        @foreach (var worker in SyncHealth.Workers)
+                        {
+                            <div class="sh-tile @(worker.IsStale ? "sh-tile-bad" : "sh-tile-good")">
+                                <div class="sh-tile-head">
+                                    <span class="sh-tile-title">@worker.Source</span>
+                                    <span class="sh-status-pill @(worker.IsStale ? "sh-pill-bad" : "sh-pill-good")">
+                                        @if (!worker.HasTicked) { <span>Never ticked</span> }
+                                        else if (worker.IsStale) { <span>Stale</span> }
+                                        else { <span>Healthy</span> }
+                                    </span>
+                                </div>
+                                <div class="sh-tile-body">
+                                    @if (worker.HasTicked)
+                                    {
+                                        <div class="sh-row"><span class="sh-row-label">Last tick</span><span class="sh-row-value">@FormatRelative(worker.SecondsSinceLastTick)</span></div>
+                                        <div class="sh-row"><span class="sh-row-label">Expected every</span><span class="sh-row-value">@FormatInterval(worker.ExpectedIntervalSeconds)</span></div>
+                                        <div class="sh-row sh-row-muted"><span class="sh-row-label">At</span><span class="sh-row-value">@worker.LastTickAt?.ToString("HH:mm:ss") UTC</span></div>
+                                    }
+                                    else
+                                    {
+                                        <div class="sh-row sh-row-muted"><span>No heartbeat row in app.Heartbeat — has the worker run yet?</span></div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                <!-- Per-platform tiles -->
+                <section aria-label="Platforms" class="admin-section">
+                    <h2>Platforms</h2>
+                    <p class="section-desc">Connected shops and ingested revenue per platform.</p>
+
+                    <div class="sh-tile-grid">
+                        @foreach (var platform in SyncHealth.Platforms)
+                        {
+                            <div class="sh-tile @(platform.FailingShops > 0 ? "sh-tile-warn" : "sh-tile-neutral")">
+                                <div class="sh-tile-head">
+                                    <span class="sh-tile-title">@platform.Platform</span>
+                                    <span class="sh-status-pill @(platform.FailingShops > 0 ? "sh-pill-warn" : "sh-pill-neutral")">
+                                        @platform.TotalShops shop@(platform.TotalShops == 1 ? "" : "s")
+                                    </span>
+                                </div>
+                                <div class="sh-tile-body">
+                                    <div class="sh-row sh-row-emphasis"><span class="sh-row-label">Revenue</span><span class="sh-row-value">@platform.RevenueTotal.ToString("C0")</span></div>
+                                    <div class="sh-row"><span class="sh-row-label">Transactions</span><span class="sh-row-value">@platform.RevenueRowCount.ToString("N0")</span></div>
+                                    <div class="sh-row"><span class="sh-row-label">Failing shops</span><span class="sh-row-value @(platform.FailingShops > 0 ? "sh-row-warn" : "")">@platform.FailingShops</span></div>
+                                    <div class="sh-row"><span class="sh-row-label">Stale shops</span><span class="sh-row-value @(platform.StaleShops > 0 ? "sh-row-warn" : "")">@platform.StaleShops</span></div>
+                                    <div class="sh-row sh-row-muted"><span class="sh-row-label">Last sync</span><span class="sh-row-value">@(platform.LastSyncAt.HasValue ? platform.LastSyncAt.Value.ToString("yyyy-MM-dd HH:mm") + " UTC" : "—")</span></div>
+                                    <div class="sh-row sh-row-muted"><span class="sh-row-label">Latest revenue</span><span class="sh-row-value">@(platform.MostRecentRevenueAt.HasValue ? platform.MostRecentRevenueAt.Value.ToString("yyyy-MM-dd") : "—")</span></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                <!-- Problem shops list -->
+                <section aria-label="Shops needing attention" class="admin-section">
+                    <h2>Shops Needing Attention</h2>
+                    <p class="section-desc">Shops with consecutive sync failures or that haven't synced in over 36 hours. Capped at 25 rows.</p>
+
+                    @if (SyncHealth.ProblemShops.Count == 0)
+                    {
+                        <div class="sh-empty">
+                            <span class="sh-empty-icon" aria-hidden="true">✓</span>
+                            <span>No shops are currently failing or stale.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="user-table-wrapper">
+                            <table class="user-table" aria-label="Problem shops">
+                                <thead>
+                                    <tr>
+                                        <th>Shop</th>
+                                        <th>Platform</th>
+                                        <th>Issue</th>
+                                        <th>Failures</th>
+                                        <th>Last Sync</th>
+                                        <th>Last Error</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var shop in SyncHealth.ProblemShops)
+                                    {
+                                        <tr>
+                                            <td>@shop.ShopName <span class="sh-shop-id">#@shop.ShopConnectionId</span></td>
+                                            <td>@shop.Platform</td>
+                                            <td><span class="sh-issue-tag sh-issue-@shop.IssueKind.ToLowerInvariant().Replace(" + ", "-").Replace(" ", "-")">@shop.IssueKind</span></td>
+                                            <td>@shop.ConsecutiveFailures</td>
+                                            <td class="col-email">@(shop.LastSyncDateTime.HasValue ? shop.LastSyncDateTime.Value.ToString("yyyy-MM-dd HH:mm") : "—")</td>
+                                            <td class="sh-error-cell">@(shop.LastErrorMessage ?? "—")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </section>
+            }
+        </section>
+    }
 }
+

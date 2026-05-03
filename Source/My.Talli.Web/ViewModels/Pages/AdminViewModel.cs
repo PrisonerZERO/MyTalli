@@ -2,6 +2,7 @@ namespace My.Talli.Web.ViewModels.Pages;
 
 using Commands.Endpoints;
 using Commands.Notifications;
+using Domain.Commands.Admin;
 using Domain.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -18,6 +19,9 @@ public class AdminViewModel : ComponentBase, IDisposable
 
     [Inject]
     private GetAdminUserListCommand AdminUserListCommand { get; set; } = default!;
+
+    [Inject]
+    private GetSyncHealthCommand SyncHealthCommand { get; set; } = default!;
 
     [Inject]
     private ICircuitTracker CircuitTracker { get; set; } = default!;
@@ -62,6 +66,10 @@ public class AdminViewModel : ComponentBase, IDisposable
     public bool IsMaintenanceOn => MaintenanceModeService.IsEnabled;
 
     public bool IsSending { get; private set; }
+
+    public bool IsSyncHealthLoading { get; private set; }
+
+    public SyncHealthReport? SyncHealth { get; private set; }
 
     public string PageTitle => ActiveTab switch
     {
@@ -272,10 +280,28 @@ public class AdminViewModel : ComponentBase, IDisposable
         IsSending = false;
     }
 
-    public void SelectTab(string tab)
+    public async Task SelectTab(string tab)
     {
         ActiveTab = tab;
         StatusMessage = null;
+
+        if (tab == "sync-health")
+            await LoadSyncHealthAsync();
+    }
+
+    public async Task RefreshSyncHealthAsync() => await LoadSyncHealthAsync();
+
+    private async Task LoadSyncHealthAsync()
+    {
+        IsSyncHealthLoading = true;
+        try
+        {
+            SyncHealth = await SyncHealthCommand.ExecuteAsync();
+        }
+        finally
+        {
+            IsSyncHealthLoading = false;
+        }
     }
 
     public void SelectUser(AdminUserListItem user)
@@ -338,6 +364,24 @@ public class AdminViewModel : ComponentBase, IDisposable
         !string.IsNullOrWhiteSpace(user.DisplayName) ? user.DisplayName
         : !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName
         : user.Email.Split('@')[0];
+
+    public static string FormatRelative(TimeSpan? ts)
+    {
+        if (!ts.HasValue) return "—";
+        var t = ts.Value;
+        if (t.TotalSeconds < 60) return $"{(int)t.TotalSeconds}s ago";
+        if (t.TotalMinutes < 60) return $"{(int)t.TotalMinutes}m ago";
+        if (t.TotalHours < 24) return $"{(int)t.TotalHours}h ago";
+        return $"{(int)t.TotalDays}d ago";
+    }
+
+    public static string FormatInterval(int seconds)
+    {
+        if (seconds < 60) return $"{seconds}s";
+        if (seconds < 3600) return $"{seconds / 60}m";
+        if (seconds < 86400) return $"{seconds / 3600}h";
+        return $"{seconds / 86400}d";
+    }
 
     public void ToggleUserSelection(long userId)
     {

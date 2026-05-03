@@ -81,6 +81,7 @@ public class ContainerRegistry : ServiceRegistry
 		this.AddScoped<ConnectStripeCommand>();
 		this.AddScoped<CreateManualShopCommand>();
 		this.AddScoped<FindActiveSubscriptionWithStripeCommand>();
+		this.AddScoped<GetSyncHealthCommand>();
 		this.AddScoped<GetSystemSettingCommand>();
 		this.AddScoped<RefreshShopTokensCommand>();
 		this.AddScoped<RenameManualShopCommand>();

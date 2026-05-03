@@ -22,10 +22,21 @@ public class AdminBuilder
 
 	public IServiceProvider Container => _container;
 
+	public GetSyncHealthCommand GetSyncHealth => _container.GetInstance<GetSyncHealthCommand>();
+
 	public GetSystemSettingCommand GetSystemSetting => _container.GetInstance<GetSystemSettingCommand>();
 
 	public RepositoryAdapterAsync<Heartbeat, ENTITIES.Heartbeat> HeartbeatAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<Heartbeat, ENTITIES.Heartbeat>>();
+
+	public RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection> PlatformConnectionAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection>>();
+
+	public RepositoryAdapterAsync<Revenue, ENTITIES.Revenue> RevenueAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<Revenue, ENTITIES.Revenue>>();
+
+	public RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> ShopConnectionAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
 
 	public IMaintenanceModeService MaintenanceMode => _container.GetInstance<IMaintenanceModeService>();
 
