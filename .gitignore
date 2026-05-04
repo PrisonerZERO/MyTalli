@@ -505,3 +505,5 @@ $RECYCLE.BIN/
 
 # Production migration scripts (generated, may contain sensitive connection info)
 /migrations/
+
+secrets-backup/
