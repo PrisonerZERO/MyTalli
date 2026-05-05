@@ -24,8 +24,8 @@
 ::deep .nav-sub-child.active { color: var(--purple-primary); font-weight: 600; }
 ::deep .nav-sub-child.active::before, ::deep .nav-sub-child.active::after { background: var(--purple-primary); }
 ::deep .platform-dot { border-radius: 50%; display: inline-block; flex-shrink: 0; height: 8px; width: 8px; }
-.nav-connect-link { align-items: center; color: var(--text-muted); display: flex; font-size: 12px; font-weight: 500; gap: 8px; padding: 7px 14px 7px 18px; text-decoration: none; transition: color 0.15s ease; }
-.nav-connect-link:hover { color: var(--purple-primary); }
+.nav-connect-link { align-items: center; color: var(--purple-lavender); display: flex; font-size: 12px; font-weight: 600; gap: 8px; padding: 7px 14px 7px 18px; text-decoration: none; transition: color 0.15s ease; }
+.nav-connect-link:hover { color: #fff; }
 .nav-connect-link .connect-icon { flex-shrink: 0; height: 14px; width: 14px; }
 
 /* ─── UPGRADE CARD ─── */

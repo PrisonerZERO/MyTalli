@@ -5,6 +5,7 @@
 /* ─── SAMPLE BANNER ─── */
 .sample-banner { align-items: center; background: linear-gradient(135deg, var(--purple-soft) 0%, var(--purple-soft-alt) 100%); border: 1px solid var(--border); border-left: 4px solid var(--purple-primary); border-radius: 10px; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 24px; padding: 14px 20px; }
 .sample-banner-content { align-items: center; color: var(--text-secondary); display: flex; font-size: 14px; gap: 10px; }
+.sample-banner-content strong { color: var(--text-primary); }
 .sample-banner-content svg { color: var(--purple-primary); flex-shrink: 0; height: 20px; width: 20px; }
 .sample-banner-actions { display: flex; flex-shrink: 0; gap: 8px; }
 .sample-banner-cta { background: var(--purple-primary); border-radius: 8px; color: #fff; flex-shrink: 0; font-size: 13px; font-weight: 600; padding: 8px 18px; text-decoration: none; transition: background 0.15s ease, border-color 0.15s ease; white-space: nowrap; }
