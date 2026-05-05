@@ -90,21 +90,21 @@
 <div class="header">
   <h1>My<span>Talli</span> Active Work</h1>
   <p class="subtitle">Lightweight Kanban board — what's in flight, what's next, what's done</p>
-  <p class="doc-date">Last updated: May 2, 2026</p>
+  <p class="doc-date">Last updated: May 3, 2026</p>
 </div>
 
 <div class="content">
 
   <div class="intro">
     <div class="intro-left">
-      <h2>Current focus: Live deployment to production</h2>
-      <p>All major work streams are landed in code on <code>development_ROBERT</code>: Etsy + Gumroad + Stripe Connect platform integrations, Privacy / Terms public pages, full Dark Mode coverage. Stripe live keys, webhook, and customer portal were configured in Azure App Service tonight (2026-05-02 PM). The final gate before public launch is merging <code>development_ROBERT</code> → <code>main</code> — current <code>main</code> is the legacy waitlist-only build, so this is a "flip the entire site" deploy, not a feature ship. After deploy: smoke test, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
+      <h2>Current focus: Post-launch hardening</h2>
+      <p><strong>v1.0.0.0 is LIVE on www.mytalli.com</strong> (2026-05-03, via VS Publish → staging slot → slot swap). The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. Deploy was bumpy: a Microsoft sidecar image (<code>msitokenservice</code>) intermittently failed to pull, which forced us to disable Managed Identity on the staging slot to get the container to start. The slot that was prod (with MI on) is now the staging slot, and the slot that was staging (with MI off) is now serving production traffic. Result: prod runs on filesystem-only DataProtection keys until MI is re-enabled. Next: re-enable MI + restore blob-backed keys on prod, reconnect test platforms, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">11</span><span class="metric-label">In<br>backlog</span></span>
-      <span class="metric"><span class="metric-value">5</span><span class="metric-label">Next<br>up</span></span>
-      <span class="metric"><span class="metric-value">1</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">10</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">14</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">4</span><span class="metric-label">Next<br>up</span></span>
+      <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
+      <span class="metric"><span class="metric-value">11</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -118,9 +118,27 @@
     <div class="lane backlog">
       <div class="lane-header">
         <h3>Backlog</h3>
-        <span class="lane-count">11</span>
+        <span class="lane-count">14</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Clean up Publish Profiles + write "How to Deploy" doc</h4>
+          <p>The Properties\PublishProfiles folder accumulated dead Windows MSDeploy profiles during the v1.0.0.0 deploy debugging — only the converted ZipDeploy <code>mytalli-web-staging - Web Deploy.pubxml</code> actually works. Delete the broken ones (and any matching <code>.pubxml.user</code> companions). Then write a one-pager <code>documentation/MyTalli_HowToDeploy.html</code> that points at the <code>azure-deploy</code> skill and shows the VS Publish flow + slot swap visually. Goal: any future contributor (or future Robert) can deploy without rediscovering the MSB4044 / SCM Basic Auth dance.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Collapse migration files (one-per-version rule)</h4>
+          <p>The dev DB currently has 17 migration files spanning multiple version increments — the prod DB now matches. Per CLAUDE.md "One Migration Per Version" rule, each version/release should produce exactly one migration. Process: revert local DB (<code>Update-Database 0</code>), <code>Remove-Migration</code> back to a stable baseline, regenerate as a single migration per version. Do this BEFORE the next prod deploy so the migration history stays clean. Coordinate carefully with what's already on prod — squashing migrations that were applied separately needs the prod history to be matched manually in <code>__EFMigrationsHistory</code>.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Re-enable MI on prod slot + restore blob-backed Data Protection</h4>
+          <p>Right now the prod slot has System-Assigned Managed Identity OFF and the two <code>DataProtection__BlobStorage__*</code> env vars are set to a single space (<code>" "</code>) to force our <code>IsNullOrWhiteSpace</code> guard to skip blob registration. Result: filesystem-only keys, wiped on every container restart. To restore: turn MI on, grant the new principal <code>Storage Blob Data Contributor</code> on <code>mytallistorage01</code>, <strong>delete</strong> the empty-string env vars (so <code>appsettings.json</code> values take over), restart the slot, verify a fresh <code>keys.xml</code> lands in <code>dataprotection-keys</code>. Pre-req: confirm the MCR <code>msitokenservice</code> sidecar pull is no longer failing — if it still is, switch to User-Assigned MI (different sidecar mechanism). Once this lands, also reconnect Etsy / Gumroad / Stripe Connect test shops on prod (their existing tokens are unreadable).</p>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag nav">Nav</span></div>
@@ -195,14 +213,14 @@
     <div class="lane next">
       <div class="lane-header">
         <h3>Next Up</h3>
-        <span class="lane-count">5</span>
+        <span class="lane-count">4</span>
       </div>
       <div class="lane-body">
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>
-          <h4>Merge <code>development_ROBERT</code> → <code>main</code> + live smoke test</h4>
-          <p>Top priority. <code>main</code> is currently the old waitlist-only build; dev branch holds the entire app. Merging triggers Azure auto-deploy. Smoke-test order after deploy: home → /signin → /dashboard → /my-plan → live Stripe checkout (cancel out without paying). Verify Stripe checkout shows live $12 / $99 prices and <strong>no orange TEST MODE banner</strong>; verify the live webhook receives and processes <code>checkout.session.completed</code>.</p>
+          <h4>Merge <code>development_ROBERT</code> → <code>main</code></h4>
+          <p>Now purely git-history hygiene — the app is already live on prod via VS Publish. <code>main</code> still points at the old waitlist-only build, which is misleading. Merge dev into main so future contributors see the right baseline. No deploy implication since Azure isn't auto-deploying from <code>main</code> right now.</p>
         </div>
 
         <div class="card">
@@ -236,16 +254,10 @@
     <div class="lane progress">
       <div class="lane-header">
         <h3>In Progress</h3>
-        <span class="lane-count">1</span>
+        <span class="lane-count">0</span>
       </div>
       <div class="lane-body">
-
-        <div class="card">
-          <div class="card-tags"><span class="tag setup">Setup</span></div>
-          <h4>Production launch (live-mode deploy)</h4>
-          <p>All Azure-side prereqs landed tonight: Stripe live keys + webhook + customer portal + price IDs. Tomorrow's action: review the diff between <code>development_ROBERT</code> and <code>main</code>, merge, watch the Azure deploy, run the live smoke test. Then attorney review of Privacy / Terms, then soft-launch w/ 5 friends.</p>
-        </div>
-
+        <div class="lane-empty">Nothing in progress.</div>
       </div>
     </div>
 
@@ -253,9 +265,16 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">10</span>
+        <span class="lane-count">11</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>v1.0.0.0 LIVE on www.mytalli.com</h4>
+          <p>Full app shipped: <code>https://www.mytalli.com/</code> → 200, v1.0.0.0. Path: VS Publish ZipDeploy → staging slot → slot swap to production. The deploy was bumpy: a Microsoft sidecar image (<code>mcr.microsoft.com/appsvc/msitokenservice:stage3</code>) was failing to pull from MCR, which prevented the staging slot from starting. Workaround: disabled System-Assigned MI on staging + set the two <code>DataProtection__BlobStorage__*</code> env vars to a single space (<code>" "</code>) so our <code>IsNullOrWhiteSpace</code> guard skips blob registration and falls back to filesystem keys. After swap, the slot serving prod doesn't have MI either — see "Re-enable MI on prod" backlog card. Smoke test: <code>/</code>, <code>/signin</code>, <code>/privacy</code>, <code>/terms</code> all 200; full Blazor Server interactive pages render. NOT yet exercised on the live URL: full sign-in round-trip, sync workers against real shops, live Stripe checkout. <strong>Lessons captured in <code>memory/feedback_azure_deployment_lessons.md</code>.</strong></p>
+          <span class="done-date">May 3 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag billing">Billing</span></div>

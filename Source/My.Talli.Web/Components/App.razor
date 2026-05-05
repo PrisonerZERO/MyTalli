@@ -15,6 +15,22 @@
     <meta name="description" content="Connect Stripe, Etsy, Gumroad, and more — see exactly how much you're earning across every platform in one real-time dashboard. Free to start." />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#6c5ce7" />
+    <script>
+        (function () {
+            var path = window.location.pathname.toLowerCase();
+            if (path === '/' || path === '/signin') return;
+            var match = document.cookie.match(/(?:^|; )talli-theme=([^;]*)/);
+            if (!match) return;
+            var mode = match[1];
+            var resolved = mode === 'system'
+                ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                : mode;
+            document.documentElement.setAttribute('data-theme', resolved === 'dark' ? 'dark' : '');
+            document.documentElement.setAttribute('data-theme-mode', mode);
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', resolved === 'dark' ? '#0f0f1a' : '#6c5ce7');
+        })();
+    </script>
     <base href="/" />
     <link rel="canonical" href="https://www.mytalli.com/" />
     <!-- Open Graph -->

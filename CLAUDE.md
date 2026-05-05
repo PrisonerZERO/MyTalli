@@ -369,6 +369,8 @@ My.Talli/
 │   │   ├── Dashboard_Schema.html        # app.Revenue / Expense / Payout / Goal + Revenue provider subtables
 │   │   └── Platform_and_Shop_Schema.html # app.PlatformConnection / ShopConnection / ShopConnectionEtsy
 │   ├── skills/                     # Claude Code skills local to this project
+│   │   ├── azure-deploy/           # Skill — Azure App Service deploy runbook + pre-flight checklist + failure-mode triage (born from the v1.0.0.0 disaster on 2026-05-03)
+│   │   │   └── SKILL.md
 │   │   ├── cost-report/            # Skill — branded financial/costing HTML document builder
 │   │   │   └── SKILL.md
 │   │   ├── scaling-plan/           # Skill — branded scaling/capacity planning HTML document builder
@@ -1009,11 +1011,11 @@ dotnet run --project Source/My.Talli.Web
 
 ### Version Number
 
-- **`<Version>0.1.0.0</Version>`** in `My.Talli.Web.csproj` — single source of truth for the app version. Format: `Major.Minor.Patch.Revision`.
+- **`<Version>1.0.0.0</Version>`** in `My.Talli.Web.csproj` — single source of truth for the app version. Format: `Major.Minor.Patch.Revision`. **Currently live on prod as of 2026-05-03 (first stable production release).**
 - **Revision number** — incremented with each fix deployment. Only the revision (4th segment) changes per fix. The version (`Major.Minor.Patch`) only changes for feature releases or breaking changes. The full 4-segment version is always displayed in the UI so deployment slots (staging vs production) can be visually distinguished.
 - **`LayoutHelper.VersionNumber`** reads `AssemblyInformationalVersionAttribute` (set by `<Version>`) at runtime
 - **`LayoutHelper.CurrentYear`** provides the current year for copyright footers
-- **Landing Page** — version shown inline in footer: `© 2026 MyTalli v0.1.0.0 — All rights reserved.`
+- **Landing Page** — version shown inline in footer: `© 2026 MyTalli LLC v1.0.0.0 — All rights reserved.`
 - **MainLayout pages** — version shown in a subtle `div.app-version` at the bottom of the content area
 - **LandingLayout pages** (Sign-In, Error) — no version displayed
 
@@ -1067,6 +1069,16 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 - **Active routes:** All routes (`/dashboard`, `/suggestions`, `/my-plan`, `/manual-entry`, etc.)
 - **OAuth redirect:** Set to `/dashboard` in the login endpoint (`Program.cs`)
 - **Historical note:** The app previously operated in Waitlist Mode (landing page, sign-in, and waitlist only, all other routes redirected to `/waitlist`). Waitlist Mode and its associated code (page, view model, milestone display) have been removed. The branch `main_WAITLIST` is a frozen snapshot of `main` at the end of Waitlist Mode, preserved for historical reference.
+
+## Production Deployment Status
+
+- **Live:** `https://www.mytalli.com/` is serving **v1.0.0.0** as of 2026-05-03 (deployed via VS Publish ZipDeploy → staging slot → slot swap).
+- **DataProtection posture (degraded):** The slot currently serving production has System-Assigned Managed Identity disabled and the two `DataProtection__BlobStorage__*` env vars set to a single space (`" "`) so the `IsNullOrWhiteSpace` guard in `PlatformsConfiguration.cs` skips blob registration. DataProtection falls back to filesystem-only keys → keys wipe on every container restart → all encrypted OAuth tokens on `app.ShopConnection` become unreadable, and active auth cookies are invalidated. Acceptable for the current beta (only the developer's test shops are connected); MUST be restored before real users connect platforms.
+- **Why degraded:** During the live deploy the auto-injected MSI sidecar image (`mcr.microsoft.com/appsvc/msitokenservice:stage3`) was failing to pull from MCR, blocking container start on staging. Disabling MI was the unblock. After the swap, the slot that was prod (with MI on) became staging, and the slot that was staging (no MI) became production.
+- **Restore path:** see the "Re-enable MI on prod slot + restore blob-backed Data Protection" backlog card in `documentation/MyTalli_Kanban.html` and the lessons in the `feedback_azure_deployment_lessons.md` memory file.
+- **Deploying again? Use the `azure-deploy` skill.** `documentation/skills/azure-deploy/SKILL.md` has the full runbook: pre-flight checklist, deploy steps, failure-mode triage, env-var gotcha, the SSH-into-container debugging move. Invoke it before any future deploy so we don't repeat the v1.0.0.0 nightmare.
+- **App Settings reality:** `WEBSITES_CONTAINER_START_TIME_LIMIT=1800` is set on both slots. Without it, Linux App Service kills the container after 230s of startup — comfortably exceeded by .NET 10 + Lamar IoC + EF model build cold start.
+- **Env vars vs `appsettings.json` precedence (gotcha):** Deleting an Azure App Service env var does NOT make `IConfiguration[key]` return null — the configuration system falls through to `appsettings.json`, which may have a hardcoded value. To force the empty path through `IsNullOrWhiteSpace` checks, set the env var explicitly to `" "` (single space). Azure rejects truly empty strings.
 
 ## Error Handling
 

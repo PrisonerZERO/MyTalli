@@ -5,6 +5,12 @@ using My.Talli.Web.Components;
 using My.Talli.Web.Configuration;
 using My.Talli.Web.Endpoints;
 using My.Talli.Web.Middleware;
+using System.Globalization;
+
+// -------
+// DEFAULTS: Currency Culture
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,8 +22,7 @@ builder.Host.UseLamar(services => services.IncludeRegistry<ContainerRegistry>())
 // SERVICES
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddRepositories();
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddAuthenticationProviders(builder.Configuration);
 builder.Services.AddBillingServices(builder.Configuration);
 builder.Services.AddEmailServices(builder.Configuration);
