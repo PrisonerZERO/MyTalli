@@ -5,9 +5,9 @@ public class GridPreference
 {
 	#region <Properties>
 
-	public string Density { get; set; } = "comfortable";
+	public string Density { get; set; } = "compact";
 
-	public int PageSize { get; set; } = 10;
+	public int PageSize { get; set; } = 50;
 
 	public string SortColumn { get; set; } = "";
 

@@ -29,6 +29,17 @@
                 <p class="hero-subtitle">Record revenue from any source</p>
             </div>
             <ul class="hero-nav">
+                <li>
+                    <div class="period-pills">
+                        @foreach (var period in Periods)
+                        {
+                            <button aria-label="Filter by @period" class="pill @(period == ActivePeriod ? "active" : "")"
+                                    @onclick="() => SelectPeriod(period)">
+                                @period
+                            </button>
+                        }
+                    </div>
+                </li>
                 <li><My.Talli.Web.Components.Shared.UserProfileButton @rendermode="InteractiveServer" /></li>
             </ul>
         </div>
@@ -189,7 +200,7 @@
             <div class="overview-card">
                 <div class="overview-card-label">Total Expenses</div>
                 <div class="overview-card-value expense">@TotalExpenses.ToString("C0")</div>
-                <div class="overview-card-sub">@Expenses.Count items</div>
+                <div class="overview-card-sub">@FilteredExpenses.Count items</div>
             </div>
             <div class="overview-card">
                 <div class="overview-card-label">Net Profit</div>
@@ -199,14 +210,14 @@
             <div class="overview-card">
                 <div class="overview-card-label">Total Payouts</div>
                 <div class="overview-card-value payout">@TotalPayouts.ToString("C0")</div>
-                <div class="overview-card-sub">@Payouts.Count disbursements</div>
+                <div class="overview-card-sub">@FilteredPayouts.Count disbursements</div>
             </div>
         </div>
 
         <!-- Top categories breakdown -->
         <div class="overview-section-card">
             <h3>Revenue by Category</h3>
-            @foreach (var group in Entries.GroupBy(e => e.Category).OrderByDescending(g => g.Sum(e => e.GrossAmount)).Take(5))
+            @foreach (var group in FilteredEntries.GroupBy(e => e.Category).OrderByDescending(g => g.Sum(e => e.GrossAmount)).Take(5))
             {
                 var pct = TotalGross > 0 ? (int)(group.Sum(e => e.GrossAmount) / TotalGross * 100) : 0;
                 <div class="overview-bar-row">
@@ -228,7 +239,7 @@
                     <tr><th>Date</th><th>Description</th><th>Type</th><th class="overview-th-right">Amount</th></tr>
                 </thead>
                 <tbody>
-                    @foreach (var entry in Entries.OrderByDescending(e => e.TransactionDate).Take(5))
+                    @foreach (var entry in FilteredEntries.OrderByDescending(e => e.TransactionDate).Take(5))
                     {
                         <tr>
                             <td class="overview-td-date">@entry.TransactionDateLabel</td>
@@ -237,7 +248,7 @@
                             <td class="overview-td-amount revenue">@entry.NetAmount.ToString("C2")</td>
                         </tr>
                     }
-                    @foreach (var expense in Expenses.OrderByDescending(e => e.ExpenseDate).Take(3))
+                    @foreach (var expense in FilteredExpenses.OrderByDescending(e => e.ExpenseDate).Take(3))
                     {
                         <tr>
                             <td class="overview-td-date">@expense.ExpenseDateLabel</td>

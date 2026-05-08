@@ -65,6 +65,8 @@ public class ManualEntryViewModel : ComponentBase
 
 	#region <Properties>
 
+	public string ActivePeriod { get; private set; } = "30D";
+
 	public long? ActiveShopConnectionId { get; private set; }
 
 	public string ActiveShopName => Shops.FirstOrDefault(s => s.Id == ActiveShopConnectionId)?.ShopName ?? "My Manual Shop";
@@ -94,7 +96,7 @@ public class ManualEntryViewModel : ComponentBase
 
 	public string DeletingPayoutDescription => DeletingPayoutId.HasValue ? Payouts.FirstOrDefault(p => p.Id == DeletingPayoutId)?.Amount.ToString("C2") ?? "" : "";
 
-	public string Density { get; private set; } = "comfortable";
+	public string Density { get; private set; } = "compact";
 
 	// Revenue inline edit fields
 	public string EditCategory { get; set; } = "Sale";
@@ -149,6 +151,12 @@ public class ManualEntryViewModel : ComponentBase
 	public string ExpenseSortColumn { get; private set; } = "ExpenseDate";
 
 	public bool ExpenseSortDescending { get; private set; } = true;
+
+	public List<ManualEntryItem> FilteredEntries => GetPeriodFilteredEntries();
+
+	public List<ExpenseItem> FilteredExpenses => GetPeriodFilteredExpenses();
+
+	public List<PayoutItem> FilteredPayouts => GetPeriodFilteredPayouts();
 
 	public bool HasModuleAccess { get; private set; }
 
@@ -210,7 +218,7 @@ public class ManualEntryViewModel : ComponentBase
 
 	public string PageTitle => ActiveTab == "revenue" ? "Manual Entry" : $"Manual Entry — {ActiveTab[0].ToString().ToUpper()}{ActiveTab[1..]}";
 
-	public int PageSize { get; set; } = 10;
+	public int PageSize { get; set; } = 50;
 
 	public int[] PageSizeOptions { get; } = [10, 25, 50];
 
@@ -223,6 +231,8 @@ public class ManualEntryViewModel : ComponentBase
 	public string PayoutSortColumn { get; private set; } = "PayoutDate";
 
 	public bool PayoutSortDescending { get; private set; } = true;
+
+	public List<string> Periods { get; } = ["7D", "30D", "90D", "12M"];
 
 	public List<string> PayoutStatuses { get; private set; } =
 	[
@@ -241,23 +251,23 @@ public class ManualEntryViewModel : ComponentBase
 
 	public bool SortDescending { get; private set; } = true;
 
-	public int TotalEntries => Entries.Count;
+	public int TotalEntries => GetPeriodFilteredEntries().Count;
 
-	public int TotalExpensePages => Math.Max(1, (int)Math.Ceiling((double)Expenses.Count / PageSize));
+	public int TotalExpensePages => Math.Max(1, (int)Math.Ceiling((double)GetPeriodFilteredExpenses().Count / PageSize));
 
-	public decimal TotalExpenses => Expenses.Sum(e => e.Amount);
+	public decimal TotalExpenses => GetPeriodFilteredExpenses().Sum(e => e.Amount);
 
-	public decimal TotalGross => Entries.Sum(e => e.GrossAmount);
+	public decimal TotalGross => GetPeriodFilteredEntries().Sum(e => e.GrossAmount);
 
-	public decimal TotalNet => Entries.Sum(e => e.NetAmount);
+	public decimal TotalNet => GetPeriodFilteredEntries().Sum(e => e.NetAmount);
 
 	public decimal TotalNetProfit => TotalNet - TotalExpenses;
 
-	public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)Entries.Count / PageSize));
+	public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)GetPeriodFilteredEntries().Count / PageSize));
 
-	public int TotalPayoutPages => Math.Max(1, (int)Math.Ceiling((double)Payouts.Count / PageSize));
+	public int TotalPayoutPages => Math.Max(1, (int)Math.Ceiling((double)GetPeriodFilteredPayouts().Count / PageSize));
 
-	public decimal TotalPayouts => Payouts.Sum(p => p.Amount);
+	public decimal TotalPayouts => GetPeriodFilteredPayouts().Sum(p => p.Amount);
 
 	protected ElementReference EditShopNameRef;
 
@@ -832,6 +842,16 @@ public class ManualEntryViewModel : ComponentBase
 
 	// ── Shared ──
 
+	public void SelectPeriod(string period)
+	{
+		if (ActivePeriod == period) return;
+
+		ActivePeriod = period;
+		CurrentPage = 1;
+		ExpenseCurrentPage = 1;
+		PayoutCurrentPage = 1;
+	}
+
 	public void SelectTab(string tab)
 	{
 		ActiveTab = tab;
@@ -861,17 +881,51 @@ public class ManualEntryViewModel : ComponentBase
 
 	// ── Private ──
 
+	private (DateTime start, DateTime endExclusive) GetPeriodDateRange()
+	{
+		var endExclusive = DateTime.Today.AddDays(1);
+		var start = ActivePeriod switch
+		{
+			"7D" => endExclusive.AddDays(-7),
+			"30D" => endExclusive.AddDays(-30),
+			"90D" => endExclusive.AddDays(-90),
+			"12M" => endExclusive.AddDays(-365),
+			_ => endExclusive.AddDays(-30),
+		};
+		return (start, endExclusive);
+	}
+
+	private List<ManualEntryItem> GetPeriodFilteredEntries()
+	{
+		var (start, endExclusive) = GetPeriodDateRange();
+		return Entries.Where(e => e.TransactionDate >= start && e.TransactionDate < endExclusive).ToList();
+	}
+
+	private List<ExpenseItem> GetPeriodFilteredExpenses()
+	{
+		var (start, endExclusive) = GetPeriodDateRange();
+		return Expenses.Where(e => e.ExpenseDate >= start && e.ExpenseDate < endExclusive).ToList();
+	}
+
+	private List<PayoutItem> GetPeriodFilteredPayouts()
+	{
+		var (start, endExclusive) = GetPeriodDateRange();
+		return Payouts.Where(p => p.PayoutDate >= start && p.PayoutDate < endExclusive).ToList();
+	}
+
 	private IEnumerable<ManualEntryItem> GetSortedEntries()
 	{
+		var filtered = GetPeriodFilteredEntries();
+
 		IEnumerable<ManualEntryItem> sorted = SortColumn switch
 		{
-			"Description" => SortDescending ? Entries.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase) : Entries.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase),
-			"Category" => SortDescending ? Entries.OrderByDescending(e => e.Category) : Entries.OrderBy(e => e.Category),
-			"Quantity" => SortDescending ? Entries.OrderByDescending(e => e.Quantity) : Entries.OrderBy(e => e.Quantity),
-			"UnitPrice" => SortDescending ? Entries.OrderByDescending(e => e.UnitPrice) : Entries.OrderBy(e => e.UnitPrice),
-			"FeeAmount" => SortDescending ? Entries.OrderByDescending(e => e.FeeAmount) : Entries.OrderBy(e => e.FeeAmount),
-			"NetAmount" => SortDescending ? Entries.OrderByDescending(e => e.NetAmount) : Entries.OrderBy(e => e.NetAmount),
-			_ => SortDescending ? Entries.OrderByDescending(e => e.TransactionDate) : Entries.OrderBy(e => e.TransactionDate),
+			"Description" => SortDescending ? filtered.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase) : filtered.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase),
+			"Category" => SortDescending ? filtered.OrderByDescending(e => e.Category) : filtered.OrderBy(e => e.Category),
+			"Quantity" => SortDescending ? filtered.OrderByDescending(e => e.Quantity) : filtered.OrderBy(e => e.Quantity),
+			"UnitPrice" => SortDescending ? filtered.OrderByDescending(e => e.UnitPrice) : filtered.OrderBy(e => e.UnitPrice),
+			"FeeAmount" => SortDescending ? filtered.OrderByDescending(e => e.FeeAmount) : filtered.OrderBy(e => e.FeeAmount),
+			"NetAmount" => SortDescending ? filtered.OrderByDescending(e => e.NetAmount) : filtered.OrderBy(e => e.NetAmount),
+			_ => SortDescending ? filtered.OrderByDescending(e => e.TransactionDate) : filtered.OrderBy(e => e.TransactionDate),
 		};
 
 		return sorted;
@@ -879,22 +933,26 @@ public class ManualEntryViewModel : ComponentBase
 
 	private IEnumerable<ExpenseItem> GetSortedExpenses()
 	{
+		var filtered = GetPeriodFilteredExpenses();
+
 		return ExpenseSortColumn switch
 		{
-			"Description" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase) : Expenses.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase),
-			"Category" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Category) : Expenses.OrderBy(e => e.Category),
-			"Amount" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Amount) : Expenses.OrderBy(e => e.Amount),
-			_ => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.ExpenseDate) : Expenses.OrderBy(e => e.ExpenseDate),
+			"Description" => ExpenseSortDescending ? filtered.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase) : filtered.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase),
+			"Category" => ExpenseSortDescending ? filtered.OrderByDescending(e => e.Category) : filtered.OrderBy(e => e.Category),
+			"Amount" => ExpenseSortDescending ? filtered.OrderByDescending(e => e.Amount) : filtered.OrderBy(e => e.Amount),
+			_ => ExpenseSortDescending ? filtered.OrderByDescending(e => e.ExpenseDate) : filtered.OrderBy(e => e.ExpenseDate),
 		};
 	}
 
 	private IEnumerable<PayoutItem> GetSortedPayouts()
 	{
+		var filtered = GetPeriodFilteredPayouts();
+
 		return PayoutSortColumn switch
 		{
-			"Amount" => PayoutSortDescending ? Payouts.OrderByDescending(p => p.Amount) : Payouts.OrderBy(p => p.Amount),
-			"Status" => PayoutSortDescending ? Payouts.OrderByDescending(p => p.Status) : Payouts.OrderBy(p => p.Status),
-			_ => PayoutSortDescending ? Payouts.OrderByDescending(p => p.PayoutDate) : Payouts.OrderBy(p => p.PayoutDate),
+			"Amount" => PayoutSortDescending ? filtered.OrderByDescending(p => p.Amount) : filtered.OrderBy(p => p.Amount),
+			"Status" => PayoutSortDescending ? filtered.OrderByDescending(p => p.Status) : filtered.OrderBy(p => p.Status),
+			_ => PayoutSortDescending ? filtered.OrderByDescending(p => p.PayoutDate) : filtered.OrderBy(p => p.PayoutDate),
 		};
 	}
 

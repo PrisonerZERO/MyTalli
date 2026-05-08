@@ -20,12 +20,6 @@
 .known-issue-info { background: var(--known-issue-info-bg); border-color: var(--known-issue-info-border); border-left-color: var(--purple-primary); }
 .known-issue-info svg { color: var(--purple-primary); }
 
-/* ─── TOP BAR ─── */
-.period-pills { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 7px; display: flex; gap: 2px; padding: 3px; }
-.pill { background: transparent; border: none; border-radius: 5px; color: rgba(255, 255, 255, 0.6); cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 500; padding: 4px 10px; transition: all 0.15s ease; }
-.pill:hover { color: #fff; }
-.pill.active { background: #fff; color: var(--purple-primary); font-weight: 600; }
-
 /* ─── SUMMARY CARDS ─── */
 .summary-row { display: grid; gap: 20px; grid-template-columns: repeat(4, 1fr); margin-bottom: 28px; }
 .summary-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 22px 24px; position: relative; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
@@ -95,6 +89,8 @@
 .transactions-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 28px; }
 .transactions-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 20px; }
 .transactions-header h3 { color: var(--text-primary); font-size: 16px; font-weight: 600; }
+.period-stat-bar { background: var(--bg-page); border: 1px solid var(--border-subtle); border-radius: 10px; color: var(--text-muted); font-size: 14px; margin-bottom: 20px; padding: 12px 16px; }
+.period-stat-bar strong { color: var(--purple-primary); font-weight: 700; }
 .view-all { background: none; border: none; color: var(--purple-primary); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 4px 0; transition: color 0.15s ease; }
 .view-all:hover { color: var(--purple-hover); }
 .tx-table { border-collapse: collapse; width: 100%; }

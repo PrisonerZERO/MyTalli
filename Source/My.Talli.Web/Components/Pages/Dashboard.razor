@@ -326,6 +326,9 @@
             <div class="transactions-header">
                 <h3>All Revenue</h3>
             </div>
+            <div class="period-stat-bar" role="status" aria-live="polite">
+                <strong>@RecentTransactions.Count</strong> @(RecentTransactions.Count == 1 ? "transaction" : "transactions") totaling <strong>@TotalRevenue.ToString("C0")</strong> in the @PeriodLabel
+            </div>
             <table class="tx-table @DensityCss">
                 <thead>
                     <tr>
@@ -398,6 +401,9 @@
         <div class="transactions-card">
             <div class="transactions-header">
                 <h3>All Expenses</h3>
+            </div>
+            <div class="period-stat-bar" role="status" aria-live="polite">
+                <strong>@Expenses.Count</strong> @(Expenses.Count == 1 ? "expense" : "expenses") totaling <strong>@ExpensesTotalForPeriod.ToString("C0")</strong> in the @PeriodLabel
             </div>
             <table class="tx-table @DensityCss">
                 <thead>
@@ -473,6 +479,9 @@
         <div class="transactions-card">
             <div class="transactions-header">
                 <h3>All Payouts</h3>
+            </div>
+            <div class="period-stat-bar" role="status" aria-live="polite">
+                <strong>@Payouts.Count</strong> @(Payouts.Count == 1 ? "payout" : "payouts") totaling <strong>@PayoutsTotalForPeriod.ToString("C0")</strong> in the @PeriodLabel
             </div>
             <table class="tx-table @DensityCss">
                 <thead>

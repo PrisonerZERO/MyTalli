@@ -24,8 +24,8 @@ SET XACT_ABORT ON;
    ============================================================================ */
 
 DECLARE @Email                  NVARCHAR(256) = N'robertmerrilljordan@gmail.com';
-DECLARE @RevenueRowCount        INT           = 80;   -- sales spread across the backfill window
-DECLARE @BackfillDays           INT           = 90;   -- how far back to spread data
+DECLARE @RevenueRowCount        INT           = 720;  -- sales spread across the backfill window (~0.9/day)
+DECLARE @BackfillDays           INT           = 800;  -- ~26 months — wider than the 12M filter so 12M actually filters
 DECLARE @AdFeeWeekly            DECIMAL(18,2) = 7.50;
 DECLARE @EtsyPlusMonthly        DECIMAL(18,2) = 10.00;
 DECLARE @ListingFeePerListing   DECIMAL(18,2) = 0.20;
