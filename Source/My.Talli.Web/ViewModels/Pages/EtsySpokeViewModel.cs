@@ -85,7 +85,7 @@ public class EtsySpokeViewModel : ComponentBase
 		_ => "Etsy — Revenue"
 	};
 
-	public const int PageSize = 25;
+	public const int PageSize = 50;
 
 	public List<EtsyPayoutItem> PayoutItems { get; private set; } = [];
 

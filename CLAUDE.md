@@ -911,11 +911,11 @@ My.Talli/
         │   ├── ShopItem.cs                # Platforms page shop sub-row (per-shop sync status + txn count)
         │   ├── SuggestionItem.cs          # Suggestion Box row
         │   └── SampleData/                # Static classes returning mock data for gated features
-        │       ├── DashboardDataset.cs
         │       ├── ExpenseDataset.cs
         │       ├── GoalsDataset.cs
         │       ├── ManualEntryDataset.cs
-        │       └── PayoutDataset.cs
+        │       ├── PayoutDataset.cs
+        │       └── RevenueDataset.cs
         ├── ViewModels/
         │   ├── Pages/
         │   │   ├── AdminViewModel.cs
@@ -1226,7 +1226,7 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 ### Sample Data for Gated Features
 
 - **Never show a lock gate for paid features.** Always show the page with sample data + a CTA banner at the top (same pattern as the Dashboard).
-- **Dataset classes** — all faked/sample data lives in static classes in `Models/SampleData/` named `{Feature}Dataset` (e.g., `DashboardDataset`, `GoalsDataset`, `ManualEntryDataset`, `ExpenseDataset`, `PayoutDataset`). Each class returns typed collections or values via static methods. Expense and Payout datasets provide both dashboard-scoped (cross-platform) and manual-scoped (Manual Entry only) sample data via separate methods (e.g., `GetDashboardExpenses()`, `GetManualExpenses()`).
+- **Dataset classes** — all faked/sample data lives in static classes in `Models/SampleData/` named `{Feature}Dataset` (e.g., `RevenueDataset`, `ExpenseDataset`, `PayoutDataset`, `GoalsDataset`, `ManualEntryDataset`). Each class returns typed collections or values via static methods. Expense and Payout datasets provide both dashboard-scoped (cross-platform) and manual-scoped (Manual Entry only) sample data via separate methods (e.g., `GetDashboardExpenses()`, `GetManualExpenses()`). Revenue, Expense, and Payout datasets are deterministic 800-day generators (each seeded with its own `Random` so the streams don't move in lockstep) — used by the Dashboard so the period filter (7D / 30D / 90D / 12M) shows visibly different data on every tab.
 - **`IsSampleData` flag** — on the ViewModel, controls the banner visibility. When `true`: CTA banner shown, "New Entry" / action buttons hidden, edit/delete hidden, grid fully interactive (sort, paginate, density).
 - **The page doesn't know or care** whether data is real or sample — it renders the same grid either way.
 - **Grid preferences** still save for sample data viewers — their density/sort/page size choices persist.

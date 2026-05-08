@@ -8,33 +8,60 @@ public static class PayoutDataset
 	public static List<PayoutItem> GetDashboardPayouts()
 	{
 		var today = DateTime.Today;
+		var rnd = new Random(44);
+		var results = new List<PayoutItem>();
+		var idCounter = -1;
 
-		return
-		[
-			new PayoutItem { Id = -1, Platform = "Stripe", Amount = 1250.00m, PayoutDate = today.AddDays(-1), ExpectedArrivalDate = today.AddDays(1), Status = "In Transit" },
-			new PayoutItem { Id = -2, Platform = "Etsy", Amount = 487.32m, PayoutDate = today.AddDays(-3), ExpectedArrivalDate = today.AddDays(-1), Status = "Paid" },
-			new PayoutItem { Id = -3, Platform = "Gumroad", Amount = 156.80m, PayoutDate = today.AddDays(-7), ExpectedArrivalDate = today.AddDays(-5), Status = "Paid" },
-			new PayoutItem { Id = -4, Platform = "Stripe", Amount = 890.00m, PayoutDate = today.AddDays(-8), ExpectedArrivalDate = today.AddDays(-6), Status = "Paid" },
-			new PayoutItem { Id = -5, Platform = "Etsy", Amount = 312.45m, PayoutDate = today.AddDays(-14), ExpectedArrivalDate = today.AddDays(-12), Status = "Paid" },
-			new PayoutItem { Id = -6, Platform = "Stripe", Amount = 675.00m, PayoutDate = today.AddDays(-15), ExpectedArrivalDate = today.AddDays(-13), Status = "Paid" },
-			new PayoutItem { Id = -7, Platform = "Gumroad", Amount = 89.20m, PayoutDate = today.AddDays(-21), ExpectedArrivalDate = today.AddDays(-19), Status = "Paid" },
-			new PayoutItem { Id = -8, Platform = "Stripe", Amount = 1100.00m, PayoutDate = today.AddDays(-22), ExpectedArrivalDate = today.AddDays(-20), Status = "Paid" },
-		];
+		for (var dayOffset = -800; dayOffset <= -1; dayOffset++)
+		{
+			var date = today.AddDays(dayOffset);
+
+			var count = rnd.NextDouble() switch
+			{
+				< 0.85 => 0,
+				< 0.97 => 1,
+				_ => 2,
+			};
+
+			for (var i = 0; i < count; i++)
+			{
+				var roll = rnd.NextDouble();
+				var status = dayOffset >= -2 && rnd.NextDouble() < 0.5 ? "In Transit" : "Paid";
+
+				if (roll < 0.50)
+					results.Add(new PayoutItem { Id = idCounter--, Platform = "Stripe", Amount = Math.Round((decimal)(300 + rnd.NextDouble() * 1700), 2), PayoutDate = date, ExpectedArrivalDate = date.AddDays(2), Status = status });
+				else if (roll < 0.80)
+					results.Add(new PayoutItem { Id = idCounter--, Platform = "Etsy", Amount = Math.Round((decimal)(100 + rnd.NextDouble() * 700), 2), PayoutDate = date, ExpectedArrivalDate = date.AddDays(2), Status = status });
+				else
+					results.Add(new PayoutItem { Id = idCounter--, Platform = "Gumroad", Amount = Math.Round((decimal)(50 + rnd.NextDouble() * 250), 2), PayoutDate = date, ExpectedArrivalDate = date.AddDays(2), Status = status });
+			}
+		}
+
+		return results;
 	}
 
 	public static List<PayoutItem> GetManualPayouts()
 	{
 		var today = DateTime.Today;
+		var rnd = new Random(47);
+		var results = new List<PayoutItem>();
+		var idCounter = -1L;
 
-		return
-		[
-			new PayoutItem { Id = -1, Platform = "Manual", Amount = 807.50m, PayoutDate = today.AddDays(-2), Status = "Paid" },
-			new PayoutItem { Id = -2, Platform = "Manual", Amount = 1140.00m, PayoutDate = today.AddDays(-5), Status = "Paid" },
-			new PayoutItem { Id = -3, Platform = "Manual", Amount = 570.00m, PayoutDate = today.AddDays(-9), Status = "Pending" },
-			new PayoutItem { Id = -4, Platform = "Manual", Amount = 185.00m, PayoutDate = today.AddDays(-12), Status = "Paid" },
-			new PayoutItem { Id = -5, Platform = "Manual", Amount = 475.00m, PayoutDate = today.AddDays(-16), Status = "Paid" },
-			new PayoutItem { Id = -6, Platform = "Manual", Amount = 304.00m, PayoutDate = today.AddDays(-20), Status = "Paid" },
-		];
+		// Roughly weekly payouts (every 6–8 days) over the last ~13 months
+		var dayOffset = -2;
+
+		while (dayOffset >= -400)
+		{
+			var date = today.AddDays(dayOffset);
+			var amount = Math.Round((decimal)(150 + rnd.NextDouble() * 1300), 2);
+			var status = dayOffset >= -3 ? (rnd.NextDouble() < 0.5 ? "In Transit" : "Pending") : "Paid";
+
+			results.Add(new PayoutItem { Id = idCounter--, Platform = "Manual", Amount = amount, PayoutDate = date, Status = status });
+
+			dayOffset -= 6 + rnd.Next(3);
+		}
+
+		return results;
 	}
 
 	#endregion
