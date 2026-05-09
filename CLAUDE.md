@@ -930,7 +930,6 @@ My.Talli/
         │   │   ├── PlatformsViewModel.cs
         │   │   ├── PrivacyViewModel.cs
         │   │   ├── SettingsViewModel.cs
-        │   │   ├── SignInViewModel.cs
         │   │   ├── SuggestionBoxViewModel.cs
         │   │   ├── TermsViewModel.cs
         │   │   └── UnsubscribeViewModel.cs
