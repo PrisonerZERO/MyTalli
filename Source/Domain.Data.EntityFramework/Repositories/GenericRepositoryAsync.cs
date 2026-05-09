@@ -49,7 +49,7 @@ public class GenericRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where T
 
         try
         {
-            return await _dbSet.Where(predicate).ToListAsync();
+            return await _dbSet.AsNoTracking().Where(predicate).ToListAsync();
         }
         finally
         {
@@ -63,7 +63,7 @@ public class GenericRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where T
 
         try
         {
-            return await _dbSet.ToListAsync();
+            return await _dbSet.AsNoTracking().ToListAsync();
         }
         finally
         {

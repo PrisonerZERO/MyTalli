@@ -366,13 +366,13 @@ public class ManualEntryViewModel : ComponentBase
 
 	public async Task ConfirmDeleteAsync()
 	{
-		if (DeletingId is null) return;
+		if (DeletingId is null || _userId is null) return;
 
 		var revenueId = DeletingId.Value;
 		DeletingId = null;
 
 		var revenue = await RevenueAdapter.GetByIdAsync(revenueId);
-		if (revenue is null) return;
+		if (revenue is null || revenue.UserId != _userId.Value) return;
 
 		var manualEntries = await RevenueManualAdapter.FindAsync(m => m.Id == revenueId);
 		var manual = manualEntries.FirstOrDefault();
@@ -441,7 +441,7 @@ public class ManualEntryViewModel : ComponentBase
 			return;
 
 		var revenue = await RevenueAdapter.GetByIdAsync(EditingId.Value);
-		if (revenue is null) return;
+		if (revenue is null || revenue.UserId != _userId.Value) return;
 
 		revenue.Currency = EditCurrency;
 		revenue.Description = EditDescription;
@@ -503,13 +503,13 @@ public class ManualEntryViewModel : ComponentBase
 
 	public async Task ConfirmDeleteExpenseAsync()
 	{
-		if (DeletingExpenseId is null) return;
+		if (DeletingExpenseId is null || _userId is null) return;
 
 		var expenseId = DeletingExpenseId.Value;
 		DeletingExpenseId = null;
 
 		var expense = await ExpenseAdapter.GetByIdAsync(expenseId);
-		if (expense is null) return;
+		if (expense is null || expense.UserId != _userId.Value) return;
 
 		await ExpenseAdapter.DeleteAsync(expense);
 		await LoadExpensesAsync();
@@ -563,7 +563,7 @@ public class ManualEntryViewModel : ComponentBase
 			return;
 
 		var expense = await ExpenseAdapter.GetByIdAsync(ExpenseEditingId.Value);
-		if (expense is null) return;
+		if (expense is null || expense.UserId != _userId.Value) return;
 
 		expense.Amount = EditExpenseAmount;
 		expense.Category = EditExpenseCategory;
@@ -616,13 +616,13 @@ public class ManualEntryViewModel : ComponentBase
 
 	public async Task ConfirmDeletePayoutAsync()
 	{
-		if (DeletingPayoutId is null) return;
+		if (DeletingPayoutId is null || _userId is null) return;
 
 		var payoutId = DeletingPayoutId.Value;
 		DeletingPayoutId = null;
 
 		var payout = await PayoutAdapter.GetByIdAsync(payoutId);
-		if (payout is null) return;
+		if (payout is null || payout.UserId != _userId.Value) return;
 
 		await PayoutAdapter.DeleteAsync(payout);
 		await LoadPayoutsAsync();
@@ -676,7 +676,7 @@ public class ManualEntryViewModel : ComponentBase
 			return;
 
 		var payout = await PayoutAdapter.GetByIdAsync(PayoutEditingId.Value);
-		if (payout is null) return;
+		if (payout is null || payout.UserId != _userId.Value) return;
 
 		payout.Amount = EditPayoutAmount;
 		payout.ExpectedArrivalDate = EditPayoutExpectedArrival;
@@ -966,8 +966,9 @@ public class ManualEntryViewModel : ComponentBase
 		}
 
 		var shopId = ActiveShopConnectionId.Value;
-		var revenues = await RevenueAdapter.FindAsync(r => r.UserId == _userId!.Value && r.Platform == "Manual" && r.ShopConnectionId == shopId);
-		var manuals = await RevenueManualAdapter.GetAllAsync();
+		var revenues = (await RevenueAdapter.FindAsync(r => r.UserId == _userId!.Value && r.Platform == "Manual" && r.ShopConnectionId == shopId)).ToList();
+		var revenueIds = revenues.Select(r => r.Id).ToList();
+		var manuals = revenueIds.Count == 0 ? [] : await RevenueManualAdapter.FindAsync(m => revenueIds.Contains(m.Id));
 
 		var manualLookup = manuals.ToDictionary(m => m.Id);
 

@@ -33,7 +33,7 @@ public class PayoutConfiguration : IEntityTypeConfiguration<Payout>
 		builder.Property(e => e.UpdatedOnDate).HasColumnOrder(15);
 
 		builder.HasIndex(e => e.ShopConnectionId).HasDatabaseName("IX_Payout_ShopConnectionId");
-		builder.HasIndex(e => e.UserId).HasDatabaseName("IX_Payout_UserId");
+		builder.HasIndex(e => new { e.UserId, e.PayoutDate }).HasDatabaseName("IX_Payout_UserId_PayoutDate");
 		builder.HasIndex(e => new { e.Platform, e.PayoutDate }).HasDatabaseName("IX_Payout_Platform_PayoutDate");
 		builder.HasIndex(e => e.PlatformPayoutId).IsUnique().HasDatabaseName("UQ_Payout_PlatformPayoutId");
 

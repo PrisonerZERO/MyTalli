@@ -111,8 +111,10 @@ public class SuggestionBoxViewModel : ComponentBase
 
 	public async Task EditSuggestionAsync(long suggestionId)
 	{
+		if (_userId is null) return;
+
 		var suggestion = await SuggestionAdapter.GetByIdAsync(suggestionId);
-		if (suggestion is null || suggestion.Status != SuggestionStatuses.New) return;
+		if (suggestion is null || suggestion.UserId != _userId.Value || suggestion.Status != SuggestionStatuses.New) return;
 
 		EditingId = suggestionId;
 		NewTitle = suggestion.Title;
@@ -190,7 +192,7 @@ public class SuggestionBoxViewModel : ComponentBase
 		if (EditingId.HasValue)
 		{
 			var suggestion = await SuggestionAdapter.GetByIdAsync(EditingId.Value);
-			if (suggestion is not null)
+			if (suggestion is not null && suggestion.UserId == _userId.Value)
 			{
 				suggestion.Category = NewCategory;
 				suggestion.Description = NewDescription;

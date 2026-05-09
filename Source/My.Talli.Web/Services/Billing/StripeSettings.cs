@@ -9,8 +9,6 @@ public class StripeSettings
 
     public Dictionary<string, string> Modules { get; set; } = new();
 
-    public string PortalConfigurationId { get; set; } = string.Empty;
-
     public string PublishableKey { get; set; } = string.Empty;
 
     public string SecretKey { get; set; } = string.Empty;

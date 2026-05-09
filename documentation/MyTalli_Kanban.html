@@ -90,7 +90,7 @@
 <div class="header">
   <h1>My<span>Talli</span> Active Work</h1>
   <p class="subtitle">Lightweight Kanban board — what's in flight, what's next, what's done</p>
-  <p class="doc-date">Last updated: May 3, 2026</p>
+  <p class="doc-date">Last updated: May 9, 2026</p>
 </div>
 
 <div class="content">
@@ -104,7 +104,7 @@
       <span class="metric"><span class="metric-value">14</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">4</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">11</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">13</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -123,9 +123,9 @@
       <div class="lane-body">
 
         <div class="card">
-          <div class="card-tags"><span class="tag setup">Setup</span></div>
-          <h4>Clean up Publish Profiles + write "How to Deploy" doc</h4>
-          <p>The Properties\PublishProfiles folder accumulated dead Windows MSDeploy profiles during the v1.0.0.0 deploy debugging — only the converted ZipDeploy <code>mytalli-web-staging - Web Deploy.pubxml</code> actually works. Delete the broken ones (and any matching <code>.pubxml.user</code> companions). Then write a one-pager <code>documentation/MyTalli_HowToDeploy.html</code> that points at the <code>azure-deploy</code> skill and shows the VS Publish flow + slot swap visually. Goal: any future contributor (or future Robert) can deploy without rediscovering the MSB4044 / SCM Basic Auth dance.</p>
+          <div class="card-tags"><span class="tag docs">Docs</span></div>
+          <h4>Write "How to Deploy" doc</h4>
+          <p>Dead publish profiles already cleaned up (May 9 — only <code>mytalli-web-staging - Zip Deploy.pubxml</code> remains). Still owed: a one-pager <code>documentation/MyTalli_HowToDeploy.html</code> that points at the <code>azure-deploy</code> skill and shows the VS Publish flow + slot swap visually. Goal: any future contributor (or future Robert) can deploy without rediscovering the MSB4044 / SCM Basic Auth dance.</p>
         </div>
 
         <div class="card">
@@ -265,9 +265,23 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">11</span>
+        <span class="lane-count">13</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>v1.0.0.2 immediate perf wins (DbContext + sample-data + AsNoTracking)</h4>
+          <p>Three quick wins from the v1.0.0.2 pre-launch perf punch list. (1) <strong>DbContext pre-warm</strong> — new <code>app.PreWarmDatabaseAsync()</code> extension on <code>DatabaseConfiguration</code>, called in <code>Program.cs</code> right after <code>builder.Build()</code>. Touches <code>db.Model</code> to compile the EF model and calls <code>db.Database.CanConnectAsync()</code> to open a SQL connection at startup so the first user request doesn't pay the cold-start cost. Try/catch wrap so a DB hiccup at boot doesn't kill the app. (2) <strong>Sample-data caching</strong> — new tiny <code>DailyCache&lt;T&gt;</code> helper (thread-safe, invalidates at midnight when <code>DateTime.Today</code> rolls over). Wrapped all 5 generators (<code>RevenueDataset.GetSampleRevenues</code>, <code>ExpenseDataset.GetDashboardExpenses</code> + <code>GetManualExpenses</code>, <code>PayoutDataset.GetDashboardPayouts</code> + <code>GetManualPayouts</code>) so the 800-day synthetic data is generated once per process. This was the cause of the 3-4s lag clicking My Plan → Dashboard. (3) <strong><code>AsNoTracking()</code> on read paths</strong> — added to <code>GetAllAsync</code> and <code>FindAsync</code> in <code>GenericRepositoryAsync</code> (<code>GetByIdAsync</code> left alone since it uses the canonical <code>FindAsync(id)</code> tracker path). All 382 unit tests still pass.</p>
+          <span class="done-date">May 9 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>Repo cleanup — dead publish profiles + Stripe PortalConfigurationId</h4>
+          <p>(1) Deleted 6 dead publish profile files in <code>Source/My.Talli.Web/Properties/PublishProfiles/</code> — FTP, ReadOnly-FTP, and the broken MSDeploy "Web Deploy" trio (each with their <code>.pubxml.user</code> companion). Only the working <code>mytalli-web-staging - Zip Deploy.pubxml</code> remains. (2) Removed the dead <code>PortalConfigurationId</code> property from <code>StripeSettings.cs</code> — declared but never read by <code>CreatePortalSessionAsync</code>; the Azure App Setting was intentionally never created. <code>MyTalli_AzureSecrets.html</code> updated to drop the row.</p>
+          <span class="done-date">May 9 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>

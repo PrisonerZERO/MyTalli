@@ -3,11 +3,18 @@ namespace My.Talli.Web.Models;
 /// <summary>Sample Data</summary>
 public static class RevenueDataset
 {
+	#region <Variables>
+
+	private static readonly DailyCache<List<SampleRevenue>> _cache = new(Generate);
+
+	#endregion
+
 	#region <Methods>
 
-	public static List<SampleRevenue> GetSampleRevenues()
+	public static List<SampleRevenue> GetSampleRevenues() => _cache.Get();
+
+	private static List<SampleRevenue> Generate(DateTime today)
 	{
-		var today = DateTime.Today;
 		var rnd = new Random(42);
 		var stripeDescriptions = new[] { "Logo Design — Freelance", "Web Dev Retainer", "Consulting Call (1hr)", "Brand Strategy Session", "Email Setup Project", "Custom Plugin Development", "Site Audit & Recommendations", "Landing Page Build", "Tech Discovery Workshop" };
 		var etsyDescriptions = new[] { "Handmade Candle Set (x2)", "Ceramic Mug — Speckled", "Linen Table Runner", "Custom Pet Portrait", "Wood-burned Coaster Set", "Hand-stamped Necklace", "Beeswax Wraps (3-pack)", "Ribbon Wreath — Spring", "Embroidered Tea Towel" };

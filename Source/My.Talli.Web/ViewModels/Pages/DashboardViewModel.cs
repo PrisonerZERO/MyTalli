@@ -389,17 +389,24 @@ public class DashboardViewModel : ComponentBase
 
 	private async Task LoadRealDataAsync()
 	{
-		var (start, end, _, _) = GetPeriodDateRange(ActivePeriod);
+		var (start, end, prevStart, _) = GetPeriodDateRange(ActivePeriod);
 		var endInclusive = end.AddDays(1);
 
-		var allRevenues = await RevenueAdapter.FindAsync(r => r.UserId == _userId!.Value);
+		// Revenue covers current + previous period for diffs AND this/prev month for the cards.
+		// Fetch from the earliest of those start dates so SQL returns only what's needed.
+		var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+		var prevMonthStart = monthStart.AddMonths(-1);
+		var fetchStart = prevStart < prevMonthStart ? prevStart : prevMonthStart;
+		var userId = _userId!.Value;
+
+		var allRevenues = await RevenueAdapter.FindAsync(r => r.UserId == userId && r.TransactionDate >= fetchStart && r.TransactionDate < endInclusive);
 		var revenueProjection = allRevenues.Select(r => (r.TransactionDate, r.Platform, r.Description, r.NetAmount));
 		RecomputeForPeriod(revenueProjection);
 
-		var expenses = await ExpenseAdapter.FindAsync(e => e.UserId == _userId!.Value && e.ExpenseDate >= start && e.ExpenseDate < endInclusive);
+		var expenses = await ExpenseAdapter.FindAsync(e => e.UserId == userId && e.ExpenseDate >= start && e.ExpenseDate < endInclusive);
 		Expenses = expenses.Select(ToExpenseItem).ToList();
 
-		var payouts = await PayoutAdapter.FindAsync(p => p.UserId == _userId!.Value && p.PayoutDate >= start && p.PayoutDate < endInclusive);
+		var payouts = await PayoutAdapter.FindAsync(p => p.UserId == userId && p.PayoutDate >= start && p.PayoutDate < endInclusive);
 		Payouts = payouts.Select(ToPayoutItem).ToList();
 
 		await LoadGoalDataAsync();
@@ -471,15 +478,17 @@ public class DashboardViewModel : ComponentBase
 			return;
 		}
 
-		// Compute earned from revenue using the goal's date range + platform filter
-		var allRevenues = await RevenueAdapter.FindAsync(r => r.UserId == _userId!.Value);
-		var matchingRevenues = allRevenues.Where(r => r.TransactionDate >= goal.StartDate);
+		// Compute earned from revenue using the goal's date range + platform filter (pushed into SQL).
+		var userId = _userId!.Value;
+		var goalStart = goal.StartDate;
+		var goalEnd = goal.EndDate;
+		var goalPlatform = string.IsNullOrEmpty(goal.Platform) ? null : goal.Platform;
 
-		if (goal.EndDate.HasValue)
-			matchingRevenues = matchingRevenues.Where(r => r.TransactionDate <= goal.EndDate.Value);
-
-		if (!string.IsNullOrEmpty(goal.Platform))
-			matchingRevenues = matchingRevenues.Where(r => r.Platform == goal.Platform);
+		var matchingRevenues = await RevenueAdapter.FindAsync(r =>
+			r.UserId == userId &&
+			r.TransactionDate >= goalStart &&
+			(goalEnd == null || r.TransactionDate <= goalEnd) &&
+			(goalPlatform == null || r.Platform == goalPlatform));
 
 		var earned = matchingRevenues.Sum(r => r.NetAmount);
 

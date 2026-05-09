@@ -192,7 +192,7 @@ public class GoalsViewModel : ComponentBase
 		{
 			// Update existing
 			var goal = await GoalAdapter.GetByIdAsync(EditingGoalId.Value);
-			if (goal is null) return;
+			if (goal is null || goal.UserId != _userId.Value) return;
 
 			goal.EndDate = FormEndDate;
 			goal.GoalTypeId = FormGoalTypeId;
@@ -248,13 +248,13 @@ public class GoalsViewModel : ComponentBase
 
 	public async Task ConfirmDeleteAsync()
 	{
-		if (DeletingGoalId is null) return;
+		if (DeletingGoalId is null || _userId is null) return;
 
 		var goalId = DeletingGoalId.Value;
 		DeletingGoalId = null;
 
 		var goal = await GoalAdapter.GetByIdAsync(goalId);
-		if (goal is null) return;
+		if (goal is null || goal.UserId != _userId.Value) return;
 
 		await GoalAdapter.DeleteAsync(goal);
 		await LoadGoalsAsync();

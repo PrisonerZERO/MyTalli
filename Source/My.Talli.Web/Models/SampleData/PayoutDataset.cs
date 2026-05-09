@@ -3,11 +3,21 @@ namespace My.Talli.Web.Models;
 /// <summary>Sample Data</summary>
 public static class PayoutDataset
 {
+	#region <Variables>
+
+	private static readonly DailyCache<List<PayoutItem>> _dashboardCache = new(GenerateDashboard);
+	private static readonly DailyCache<List<PayoutItem>> _manualCache = new(GenerateManual);
+
+	#endregion
+
 	#region <Methods>
 
-	public static List<PayoutItem> GetDashboardPayouts()
+	public static List<PayoutItem> GetDashboardPayouts() => _dashboardCache.Get();
+
+	public static List<PayoutItem> GetManualPayouts() => _manualCache.Get();
+
+	private static List<PayoutItem> GenerateDashboard(DateTime today)
 	{
-		var today = DateTime.Today;
 		var rnd = new Random(44);
 		var results = new List<PayoutItem>();
 		var idCounter = -1;
@@ -40,9 +50,8 @@ public static class PayoutDataset
 		return results;
 	}
 
-	public static List<PayoutItem> GetManualPayouts()
+	private static List<PayoutItem> GenerateManual(DateTime today)
 	{
-		var today = DateTime.Today;
 		var rnd = new Random(47);
 		var results = new List<PayoutItem>();
 		var idCounter = -1L;

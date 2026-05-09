@@ -14,5 +14,21 @@ public static class DatabaseConfiguration
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
     }
 
+    public static async Task PreWarmDatabaseAsync(this WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<TalliDbContext>();
+
+        try
+        {
+            _ = db.Model;
+            await db.Database.CanConnectAsync();
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogWarning(ex, "DbContext pre-warm failed at startup; first request will pay the cold-start cost.");
+        }
+    }
+
     #endregion
 }

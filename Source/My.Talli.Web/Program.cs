@@ -35,6 +35,9 @@ builder.Services.AddElmahLogging(builder.Configuration);
 // Build
 var app = builder.Build();
 
+// PRE-WARM
+await app.PreWarmDatabaseAsync();
+
 // ---------------------
 // HTTP REQUEST PIPELINE
 

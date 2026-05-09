@@ -1288,6 +1288,17 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 - **Fun Greetings** — when no name is available, the greeting falls back to a random title-cased fun greeting (e.g., "Revenue Rockstar", "Side-Hustle Hero"). This is the last-resort fallback in `Resolve()` and always activates when names are empty, regardless of the Fun Greetings user preference. The Fun Greetings preference adds randomness on top (a different greeting each visit) when the user *does* have a name.
 - **Email notifications** — all customer emails (`WelcomeEmailNotification`, `SubscriptionConfirmationEmailNotification`, `WeeklySummaryEmailNotification`) fall back to `"there"` when FirstName is empty (e.g., "Welcome to MyTalli, there!").
 
+### IDOR Check (Insecure Direct Object Reference)
+
+- **HARD RULE.** Every write/edit/delete that fetches a row by client-supplied ID **MUST** verify ownership before mutating or displaying the entity.
+- **Pattern:** immediately after `RepositoryAdapterAsync.GetByIdAsync(clientId)` (or `FindAsync(x => x.Id == clientId)`), the next line is `if (entity is null || entity.UserId != _userId.Value) return;`. Combine the null + ownership check on one line.
+- **Why:** Blazor Server hides row IDs from the visible UI but they travel through SignalR messages. A malicious user can manipulate the SignalR payload from browser dev tools and substitute another user's row ID. Without the ownership check, the server happily edits/deletes the substituted row. On 2026-05-09 we found 10 such bugs across `ManualEntryViewModel` (6), `GoalsViewModel` (2), `PlatformsViewModel` (1), and `SuggestionBoxViewModel` (1) and fixed them all.
+- **Where it applies:** any user-owned table — Revenue, Expense, Payout, Goal, Suggestion, ShopConnection, PlatformConnection, Subscription, Billing, Order, etc. Not lookup tables (GoalType, Product, ProductType, ProductVendor) or system tables (SystemSetting, Heartbeat).
+- **Method-level prelude:** the `_userId is null` guard goes at the top of the method. The ownership check goes immediately after `GetByIdAsync`.
+- **Admin-gated methods** (`if (!IsAdmin) return;`) are exempt — the role check is the authorization layer.
+- **Subtable lookups** like `RevenueManualAdapter.FindAsync(m => revenueIds.Contains(m.Id))` where `revenueIds` came from a user-scoped parent query are safe — the ID list is already filtered.
+- **Read paths** must include `UserId == _userId.Value` in the `FindAsync` predicate; never trust client IDs without it.
+
 ### ViewModels Must Populate CurrentUserService
 
 - **Every ViewModel that performs audit-resolved writes must call `CurrentUserService.Set(userId, string.Empty)` in `OnInitializedAsync`** — immediately after parsing the `UserId` claim and before any repository call that could hit `AuditResolver`.

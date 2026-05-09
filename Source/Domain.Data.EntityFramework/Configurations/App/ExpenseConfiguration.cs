@@ -33,7 +33,7 @@ public class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
 		builder.Property(e => e.UpdatedOnDate).HasColumnOrder(15);
 
 		builder.HasIndex(e => e.ShopConnectionId).HasDatabaseName("IX_Expense_ShopConnectionId");
-		builder.HasIndex(e => e.UserId).HasDatabaseName("IX_Expense_UserId");
+		builder.HasIndex(e => new { e.UserId, e.ExpenseDate }).HasDatabaseName("IX_Expense_UserId_ExpenseDate");
 		builder.HasIndex(e => new { e.Platform, e.ExpenseDate }).HasDatabaseName("IX_Expense_Platform_ExpenseDate");
 
 		builder.HasOne(e => e.ShopConnection)

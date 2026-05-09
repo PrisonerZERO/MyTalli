@@ -3,11 +3,21 @@ namespace My.Talli.Web.Models;
 /// <summary>Sample Data</summary>
 public static class ExpenseDataset
 {
+	#region <Variables>
+
+	private static readonly DailyCache<List<ExpenseItem>> _dashboardCache = new(GenerateDashboard);
+	private static readonly DailyCache<List<ExpenseItem>> _manualCache = new(GenerateManual);
+
+	#endregion
+
 	#region <Methods>
 
-	public static List<ExpenseItem> GetDashboardExpenses()
+	public static List<ExpenseItem> GetDashboardExpenses() => _dashboardCache.Get();
+
+	public static List<ExpenseItem> GetManualExpenses() => _manualCache.Get();
+
+	private static List<ExpenseItem> GenerateDashboard(DateTime today)
 	{
-		var today = DateTime.Today;
 		var rnd = new Random(43);
 		var stripeProcessing = new[] { "Payment processing — Logo Design", "Payment processing — Web Dev Retainer", "Payment processing — Consulting Call", "Payment processing — Brand Strategy", "Payment processing — Custom Development", "Payment processing — Site Audit", "Payment processing — Landing Page Build" };
 		var etsyListings = new[] { "Listing renewal — Handmade Candle Set", "Listing renewal — Ceramic Mug", "Listing renewal — Linen Table Runner", "Listing renewal x5 — Spring collection", "Listing renewal — Pet Portrait", "Listing renewal — Tea Towel" };
@@ -52,9 +62,8 @@ public static class ExpenseDataset
 		return results;
 	}
 
-	public static List<ExpenseItem> GetManualExpenses()
+	private static List<ExpenseItem> GenerateManual(DateTime today)
 	{
-		var today = DateTime.Today;
 		var rnd = new Random(46);
 		var subscriptions = new[] { ("Canva Pro monthly", 12.99m), ("Adobe Creative Cloud", 54.99m), ("Notion Pro", 8.00m), ("Figma Professional", 15.00m), ("Mailchimp Standard", 20.00m), ("Squarespace hosting", 18.00m) };
 		var ads = new[] { "Instagram promoted post", "Facebook ad — candle collection", "Pinterest promoted pin", "TikTok Spark Ad", "Local newspaper ad", "Etsy Offsite Ad reimbursement" };
