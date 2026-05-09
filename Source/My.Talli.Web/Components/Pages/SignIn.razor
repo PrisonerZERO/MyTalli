@@ -18,9 +18,9 @@
             <div class="login-card" role="group" aria-label="Sign-in options">
                 <p class="login-hint" id="login-hint">(Please use the same provider each time you sign in)</p>
 
-                <div class="signing-in-status" role="status" id="login-spinner" hidden>
+                <div class="signing-in-status" role="status" aria-live="polite" id="login-spinner" hidden>
                     <div class="signing-in-spinner" aria-hidden="true"></div>
-                    <p class="signing-in-text" id="login-spinner-text">Connecting...</p>
+                    <p class="signing-in-text" id="login-spinner-text">Logging in...</p>
                 </div>
 
                 <div class="login-buttons" id="login-buttons">
@@ -60,22 +60,3 @@
     </main>
 </div>
 
-<script>
-    (function () {
-        var buttons = document.querySelectorAll('.login-btn[data-provider]');
-        buttons.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var provider = btn.getAttribute('data-provider');
-                var hint = document.getElementById('login-hint');
-                var btnContainer = document.getElementById('login-buttons');
-                var spinner = document.getElementById('login-spinner');
-                var spinnerText = document.getElementById('login-spinner-text');
-
-                if (hint) hint.setAttribute('hidden', '');
-                if (btnContainer) btnContainer.setAttribute('hidden', '');
-                if (spinnerText) spinnerText.textContent = 'Connecting to ' + provider + '...';
-                if (spinner) spinner.removeAttribute('hidden');
-            });
-        });
-    })();
-</script>
