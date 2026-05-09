@@ -59,9 +59,10 @@ This is the established path. We use VS Publish ZipDeploy to staging, then swap.
 ### 1. Publish to staging
 - Open `Source/My.Talli.slnx` in Visual Studio.
 - Right-click `My.Talli.Web` → Publish.
-- Use the existing publish profile **`mytalli-web-staging - Web Deploy.pubxml`** (already converted to ZipDeploy under the hood, despite the legacy filename — see "How to deploy" doc).
+- **Use the publish profile `mytalli-web-staging - Zip Deploy.pubxml`** (NOT the `Web Deploy` one). Linux App Service does not expose the MSDeploy endpoint (`msdeploy.axd` / Web Management Service) — Web Deploy fails with `ERROR_DESTINATION_NOT_REACHABLE` / `404 Not Found`. The Zip Deploy profile uses Kudu's ZipDeploy API on the SCM URL, which IS available on Linux.
+- The Output window should say `Publishing ...\PubTmp\Out\My.Talli.Web-{timestamp}.zip to https://mytalli-web-staging-...scm.centralus-01.azurewebsites.net` — confirm that line before assuming the deploy is happening correctly.
 - VS will build, package, ZipDeploy. Takes ~2-5 min.
-- **If the publish fails with `MSB4044 missing DestinationUsername`**: Azure Portal → staging slot → Configuration → General settings → enable **SCM Basic Auth Publishing Credentials**. Then in VS, delete all Publish Profiles, re-import a fresh `.PublishSettings` file from Azure, restart VS.
+- **If the publish fails with `MSB4044 missing DestinationUsername`**: Azure Portal → staging slot → Configuration → General settings → enable **SCM Basic Auth Publishing Credentials**. Then in VS, delete all Publish Profiles, re-import a fresh `.PublishSettings` file from Azure, restart VS. **Important:** the import creates a `Web Deploy.pubxml` by default — that one is wrong. Switch to the `Zip Deploy.pubxml` profile (or paste the freshly-downloaded `userPWD` from the `<publishProfile publishMethod="ZipDeploy">` block of the `.PublishSettings` file into the Zip Deploy profile's `.user` file).
 
 ### 2. Verify staging is live and serving v{new-version} BEFORE swapping
 - Hit `https://mytalli-web-staging-hsg2aqcrbdc3fqhb.centralus-01.azurewebsites.net` and check the version in the footer.

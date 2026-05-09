@@ -38,6 +38,8 @@ public class PlatformsViewModel : ComponentBase
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
 
+	private long? _userId;
+
 	#endregion
 
 	#region <Properties>
@@ -98,6 +100,7 @@ public class PlatformsViewModel : ComponentBase
 		// Populate the circuit-scoped CurrentUserService so audit stamping works on interactive
 		// updates (Pause/Resume). Middleware populates the HTTP-request-scoped instance, which
 		// isn't the same scope Blazor components see once the SignalR circuit takes over.
+		_userId = userId;
 		CurrentUserService.Set(userId, string.Empty);
 
 		await LoadPlatformsAsync(userId);
@@ -165,8 +168,10 @@ public class PlatformsViewModel : ComponentBase
 
 	public async Task TogglePauseAsync(long shopConnectionId)
 	{
+		if (_userId is null) return;
+
 		var shop = (await ShopConnectionAdapter.FindAsync(s => s.Id == shopConnectionId)).FirstOrDefault();
-		if (shop is null)
+		if (shop is null || shop.UserId != _userId.Value)
 			return;
 
 		shop.IsEnabled = !shop.IsEnabled;

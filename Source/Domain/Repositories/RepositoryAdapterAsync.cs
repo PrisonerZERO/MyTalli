@@ -7,15 +7,12 @@ using Domain.Mappers;
 using System.Linq.Expressions;
 
 /// <summary>Adapter</summary>
-public class RepositoryAdapterAsync<TModel, TEntity>
-	where TModel : class
-	where TEntity : class, IAuditableIdentifiable
+public class RepositoryAdapterAsync<TModel, TEntity> where TModel : class where TEntity : class, IAuditableIdentifiable
 {
 	#region <Variables>
 
 	private readonly IAuditableRepositoryAsync<TEntity> _repository;
 	private readonly IEntityMapper<TModel, TEntity> _mapper;
-
 
 	#endregion
 
@@ -26,7 +23,6 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 		_mapper = mapper;
 		_repository = repository;
 	}
-
 
 	#endregion
 
@@ -103,7 +99,6 @@ public class RepositoryAdapterAsync<TModel, TEntity>
 		Assert.IsNotNull(model);
 		return _mapper.ToEntity(model);
 	}
-
 
 	#endregion
 }

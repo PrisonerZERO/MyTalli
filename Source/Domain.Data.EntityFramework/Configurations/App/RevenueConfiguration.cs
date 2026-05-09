@@ -36,7 +36,7 @@ public class RevenueConfiguration : IEntityTypeConfiguration<Revenue>
         builder.Property(e => e.UpdatedOnDate).HasColumnOrder(18);
 
         builder.HasIndex(e => e.ShopConnectionId).HasDatabaseName("IX_Revenue_ShopConnectionId");
-        builder.HasIndex(e => e.UserId).HasDatabaseName("IX_Revenue_UserId");
+        builder.HasIndex(e => new { e.UserId, e.TransactionDate }).HasDatabaseName("IX_Revenue_UserId_TransactionDate");
         builder.HasIndex(e => new { e.Platform, e.TransactionDate }).HasDatabaseName("IX_Revenue_Platform_TransactionDate");
 
         builder.HasOne(e => e.ShopConnection)
