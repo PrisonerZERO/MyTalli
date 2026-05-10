@@ -363,8 +363,9 @@ public class ManualEntryViewModel : ComponentBase
 		ShowEditNotes = false;
 	}
 
-	public async Task ChangePageSize()
+	public async Task ChangePageSize(int newSize)
 	{
+		PageSize = newSize;
 		CurrentPage = 1;
 		ExpenseCurrentPage = 1;
 		PayoutCurrentPage = 1;

@@ -1,0 +1,30 @@
+@namespace My.Talli.Web.Components.Shared
+@inherits My.Talli.Web.ViewModels.Shared.GridFooterViewModel
+
+<div class="grid-footer-bar">
+    <div class="grid-page-size">
+        <label for="@PageSelectId">Show</label>
+        <select class="grid-page-select" id="@PageSelectId" @onchange="HandlePageSizeChange">
+            @foreach (var size in PageSizeOptions)
+            {
+                <option value="@size" selected="@(size == PageSize)">@size</option>
+            }
+        </select>
+        <span>entries</span>
+    </div>
+    <div class="grid-density" role="group" aria-label="Row density">
+        <button class="grid-density-btn @(Density == "compact" ? "active" : "")" aria-pressed="@(Density == "compact")" title="Compact" @onclick='() => HandleDensityClick("compact")'>
+            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="6" y2="6" /><line x1="2" x2="14" y1="9" y2="9" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+        </button>
+        <button class="grid-density-btn @(Density == "comfortable" ? "active" : "")" aria-pressed="@(Density == "comfortable")" title="Comfortable" @onclick='() => HandleDensityClick("comfortable")'>
+            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="8" y2="8" /><line x1="2" x2="14" y1="13" y2="13" /></svg>
+        </button>
+        <button class="grid-density-btn @(Density == "spacious" ? "active" : "")" aria-pressed="@(Density == "spacious")" title="Spacious" @onclick='() => HandleDensityClick("spacious")'>
+            <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+        </button>
+    </div>
+    <div class="grid-pager-group">
+        <span class="grid-page-info">@RangeStart–@RangeEnd of @TotalCount</span>
+        <My.Talli.Web.Components.Shared.Pager CurrentPage="@CurrentPage" TotalPages="@TotalPages" OnGoToPage="OnGoToPage" />
+    </div>
+</div>

@@ -235,8 +235,9 @@ public class EtsySpokeViewModel : ComponentBase
 
 	public decimal OverviewRevenue30d => RevenueItems.Where(r => r.TransactionDate >= DateTime.UtcNow.AddDays(-30)).Sum(r => r.GrossAmount);
 
-	public async Task ChangePageSize()
+	public async Task ChangePageSize(int newSize)
 	{
+		PageSize = newSize;
 		CurrentPage = 1;
 		await SaveGridPreferencesAsync();
 	}

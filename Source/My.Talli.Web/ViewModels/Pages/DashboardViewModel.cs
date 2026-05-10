@@ -214,8 +214,9 @@ public class DashboardViewModel : ComponentBase
 
 	// ── Grid controls ──
 
-	public async Task ChangePageSize()
+	public async Task ChangePageSize(int newSize)
 	{
+		PageSize = newSize;
 		RevenueCurrentPage = 1;
 		ExpenseCurrentPage = 1;
 		PayoutCurrentPage = 1;

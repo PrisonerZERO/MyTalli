@@ -1,0 +1,14 @@
+.grid-footer-bar { align-items: center; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; padding: 14px 16px; }
+.grid-page-size { align-items: center; color: var(--text-muted); display: flex; font-size: 13px; gap: 8px; }
+.grid-page-select { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); cursor: pointer; font-family: inherit; font-size: 13px; padding: 4px 8px; }
+.grid-density { display: flex; gap: 2px; }
+.grid-density-btn { align-items: center; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); cursor: pointer; display: flex; height: 28px; justify-content: center; padding: 0 6px; }
+.grid-density-btn:hover { border-color: var(--purple-light); color: var(--purple-primary); }
+.grid-density-btn.active { background: var(--purple-soft); border-color: var(--purple-primary); color: var(--purple-primary); }
+.grid-density-btn svg { height: 14px; width: 14px; }
+.grid-pager-group { align-items: center; display: flex; gap: 12px; }
+.grid-page-info { color: var(--text-muted); font-size: 13px; }
+
+@media (max-width: 641px) {
+    .grid-footer-bar { flex-direction: column; gap: 10px; }
+}
