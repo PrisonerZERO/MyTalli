@@ -44,7 +44,7 @@
             </ul>
         </div>
 
-        @if (Entries.Count > 0)
+        @if (EntryTotalCount > 0)
         {
             <div class="hero-stats manual-stats" role="group" aria-label="Entry statistics">
                 <div class="hero-stat">
@@ -200,7 +200,7 @@
             <div class="overview-card">
                 <div class="overview-card-label">Total Expenses</div>
                 <div class="overview-card-value expense">@TotalExpenses.ToString("C0")</div>
-                <div class="overview-card-sub">@FilteredExpenses.Count items</div>
+                <div class="overview-card-sub">@ExpenseTotalCount items</div>
             </div>
             <div class="overview-card">
                 <div class="overview-card-label">Net Profit</div>
@@ -210,23 +210,22 @@
             <div class="overview-card">
                 <div class="overview-card-label">Total Payouts</div>
                 <div class="overview-card-value payout">@TotalPayouts.ToString("C0")</div>
-                <div class="overview-card-sub">@FilteredPayouts.Count disbursements</div>
+                <div class="overview-card-sub">@PayoutTotalCount disbursements</div>
             </div>
         </div>
 
         <!-- Top categories breakdown -->
         <div class="overview-section-card">
             <h3>Revenue by Category</h3>
-            @foreach (var group in FilteredEntries.GroupBy(e => e.Category).OrderByDescending(g => g.Sum(e => e.GrossAmount)).Take(5))
+            @foreach (var item in CategoryBreakdown)
             {
-                var pct = TotalGross > 0 ? (int)(group.Sum(e => e.GrossAmount) / TotalGross * 100) : 0;
                 <div class="overview-bar-row">
-                    <span class="manual-cat-tag @group.First().CategoryCss">@group.Key</span>
+                    <span class="manual-cat-tag @item.CategoryCss">@item.Category</span>
                     <div class="overview-bar-track">
-                        <div class="overview-bar-fill" style="width:@(pct)%"></div>
+                        <div class="overview-bar-fill" style="width:@(item.Percentage)%"></div>
                     </div>
-                    <span class="overview-bar-amount">@group.Sum(e => e.GrossAmount).ToString("C0")</span>
-                    <span class="overview-bar-pct">@(pct)%</span>
+                    <span class="overview-bar-amount">@item.Total.ToString("C0")</span>
+                    <span class="overview-bar-pct">@(item.Percentage)%</span>
                 </div>
             }
         </div>
@@ -239,7 +238,7 @@
                     <tr><th>Date</th><th>Description</th><th>Type</th><th class="overview-th-right">Amount</th></tr>
                 </thead>
                 <tbody>
-                    @foreach (var entry in FilteredEntries.OrderByDescending(e => e.TransactionDate).Take(5))
+                    @foreach (var entry in OverviewTopEntries)
                     {
                         <tr>
                             <td class="overview-td-date">@entry.TransactionDateLabel</td>
@@ -248,7 +247,7 @@
                             <td class="overview-td-amount revenue">@entry.NetAmount.ToString("C2")</td>
                         </tr>
                     }
-                    @foreach (var expense in FilteredExpenses.OrderByDescending(e => e.ExpenseDate).Take(3))
+                    @foreach (var expense in OverviewTopExpenses)
                     {
                         <tr>
                             <td class="overview-td-date">@expense.ExpenseDateLabel</td>
@@ -268,6 +267,9 @@
 {
     <!-- Entry grid -->
     <div class="manual-table-wrap animate-in delay-2" role="tabpanel" aria-label="Revenue">
+        <div class="period-stat-bar" role="status" aria-live="polite">
+            <strong>@EntryTotalCount</strong> @(EntryTotalCount == 1 ? "entry" : "entries") totaling <strong>@TotalGross.ToString("C0")</strong> in the @PeriodLabel
+        </div>
         <div class="manual-table-scroll">
             <table class="manual-table @DensityCss" aria-label="Manual revenue entries">
                 <thead>
@@ -311,7 +313,7 @@
                             </td>
                         </tr>
                     }
-                    @foreach (var entry in PagedEntries)
+                    @foreach (var entry in Entries)
                     {
                         @if (entry.Id == EditingId)
                         {
@@ -396,7 +398,7 @@
                             </tr>
                         }
                     }
-                    @if (!IsSampleData && Entries.Count == 0)
+                    @if (!IsSampleData && EntryTotalCount == 0)
                     {
                         <tr>
                             <td class="manual-td-empty" colspan="8">
@@ -415,7 +417,7 @@
         </div>
 
         <!-- Pagination -->
-        @if (Entries.Count > 0)
+        @if (EntryTotalCount > 0)
         {
         <div class="manual-pagination">
             <div class="manual-page-size">
@@ -439,14 +441,9 @@
                     <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
                 </button>
             </div>
-            <span class="manual-page-info">@((CurrentPage - 1) * PageSize + 1)–@Math.Min(CurrentPage * PageSize, TotalEntries) of @TotalEntries</span>
-            <div class="manual-page-nav" role="group" aria-label="Pagination">
-                <button class="manual-page-btn" disabled="@(CurrentPage <= 1)" @onclick="() => GoToPage(CurrentPage - 1)" aria-label="Previous page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
-                </button>
-                <button class="manual-page-btn" disabled="@(CurrentPage >= TotalPages)" @onclick="() => GoToPage(CurrentPage + 1)" aria-label="Next page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-                </button>
+            <div class="manual-pager-group">
+                <span class="manual-page-info">@((CurrentPage - 1) * PageSize + 1)–@Math.Min(CurrentPage * PageSize, TotalEntries) of @TotalEntries</span>
+                <My.Talli.Web.Components.Shared.Pager CurrentPage="@CurrentPage" TotalPages="@TotalPages" OnGoToPage="GoToPage" />
             </div>
         </div>
         }
@@ -457,6 +454,9 @@
 @if (ActiveTab == "expenses")
 {
     <div class="manual-table-wrap animate-in delay-2" role="tabpanel" aria-label="Expenses">
+        <div class="period-stat-bar" role="status" aria-live="polite">
+            <strong>@ExpenseTotalCount</strong> @(ExpenseTotalCount == 1 ? "expense" : "expenses") totaling <strong>@TotalExpenses.ToString("C0")</strong> in the @PeriodLabel
+        </div>
         <div class="manual-table-scroll">
             <table class="manual-table @DensityCss" aria-label="Manual expenses">
                 <thead>
@@ -494,7 +494,7 @@
                             </td>
                         </tr>
                     }
-                    @foreach (var expense in PagedExpenses)
+                    @foreach (var expense in Expenses)
                     {
                         @if (expense.Id == ExpenseEditingId)
                         {
@@ -549,7 +549,7 @@
                             </tr>
                         }
                     }
-                    @if (!IsSampleData && Expenses.Count == 0)
+                    @if (!IsSampleData && ExpenseTotalCount == 0)
                     {
                         <tr>
                             <td class="manual-td-empty" colspan="5">
@@ -568,7 +568,7 @@
         </div>
 
         <!-- Pagination -->
-        @if (Expenses.Count > 0)
+        @if (ExpenseTotalCount > 0)
         {
         <div class="manual-pagination">
             <div class="manual-page-size">
@@ -592,14 +592,9 @@
                     <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
                 </button>
             </div>
-            <span class="manual-page-info">@((ExpenseCurrentPage - 1) * PageSize + 1)–@Math.Min(ExpenseCurrentPage * PageSize, Expenses.Count) of @Expenses.Count</span>
-            <div class="manual-page-nav" role="group" aria-label="Pagination">
-                <button class="manual-page-btn" disabled="@(ExpenseCurrentPage <= 1)" @onclick="() => GoToExpensePage(ExpenseCurrentPage - 1)" aria-label="Previous page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
-                </button>
-                <button class="manual-page-btn" disabled="@(ExpenseCurrentPage >= TotalExpensePages)" @onclick="() => GoToExpensePage(ExpenseCurrentPage + 1)" aria-label="Next page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-                </button>
+            <div class="manual-pager-group">
+                <span class="manual-page-info">@((ExpenseCurrentPage - 1) * PageSize + 1)–@Math.Min(ExpenseCurrentPage * PageSize, ExpenseTotalCount) of @ExpenseTotalCount</span>
+                <My.Talli.Web.Components.Shared.Pager CurrentPage="@ExpenseCurrentPage" TotalPages="@TotalExpensePages" OnGoToPage="GoToExpensePage" />
             </div>
         </div>
         }
@@ -610,6 +605,9 @@
 @if (ActiveTab == "payouts")
 {
     <div class="manual-table-wrap animate-in delay-2" role="tabpanel" aria-label="Payouts">
+        <div class="period-stat-bar" role="status" aria-live="polite">
+            <strong>@PayoutTotalCount</strong> @(PayoutTotalCount == 1 ? "payout" : "payouts") totaling <strong>@TotalPayouts.ToString("C0")</strong> in the @PeriodLabel
+        </div>
         <div class="manual-table-scroll">
             <table class="manual-table @DensityCss" aria-label="Manual payouts">
                 <thead>
@@ -645,7 +643,7 @@
                             </td>
                         </tr>
                     }
-                    @foreach (var payout in PagedPayouts)
+                    @foreach (var payout in Payouts)
                     {
                         @if (payout.Id == PayoutEditingId)
                         {
@@ -698,7 +696,7 @@
                             </tr>
                         }
                     }
-                    @if (!IsSampleData && Payouts.Count == 0)
+                    @if (!IsSampleData && PayoutTotalCount == 0)
                     {
                         <tr>
                             <td class="manual-td-empty" colspan="4">
@@ -717,7 +715,7 @@
         </div>
 
         <!-- Pagination -->
-        @if (Payouts.Count > 0)
+        @if (PayoutTotalCount > 0)
         {
         <div class="manual-pagination">
             <div class="manual-page-size">
@@ -741,14 +739,9 @@
                     <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
                 </button>
             </div>
-            <span class="manual-page-info">@((PayoutCurrentPage - 1) * PageSize + 1)–@Math.Min(PayoutCurrentPage * PageSize, Payouts.Count) of @Payouts.Count</span>
-            <div class="manual-page-nav" role="group" aria-label="Pagination">
-                <button class="manual-page-btn" disabled="@(PayoutCurrentPage <= 1)" @onclick="() => GoToPayoutPage(PayoutCurrentPage - 1)" aria-label="Previous page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
-                </button>
-                <button class="manual-page-btn" disabled="@(PayoutCurrentPage >= TotalPayoutPages)" @onclick="() => GoToPayoutPage(PayoutCurrentPage + 1)" aria-label="Next page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-                </button>
+            <div class="manual-pager-group">
+                <span class="manual-page-info">@((PayoutCurrentPage - 1) * PageSize + 1)–@Math.Min(PayoutCurrentPage * PageSize, PayoutTotalCount) of @PayoutTotalCount</span>
+                <My.Talli.Web.Components.Shared.Pager CurrentPage="@PayoutCurrentPage" TotalPages="@TotalPayoutPages" OnGoToPage="GoToPayoutPage" />
             </div>
         </div>
         }

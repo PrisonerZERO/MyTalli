@@ -299,7 +299,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var tx in RecentTransactions.Take(5))
+                @foreach (var tx in OverviewTopTransactions)
                 {
                     <tr>
                         <td>
@@ -327,7 +327,7 @@
                 <h3>All Revenue</h3>
             </div>
             <div class="period-stat-bar" role="status" aria-live="polite">
-                <strong>@RecentTransactions.Count</strong> @(RecentTransactions.Count == 1 ? "transaction" : "transactions") totaling <strong>@TotalRevenue.ToString("C0")</strong> in the @PeriodLabel
+                <strong>@RevenueTotalCount</strong> @(RevenueTotalCount == 1 ? "transaction" : "transactions") totaling <strong>@TotalRevenue.ToString("C0")</strong> in the @PeriodLabel
             </div>
             <table class="tx-table @DensityCss">
                 <thead>
@@ -339,7 +339,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var tx in PagedRevenueTransactions)
+                    @foreach (var tx in RecentTransactions)
                     {
                         <tr>
                             <td>
@@ -356,7 +356,7 @@
                 </tbody>
             </table>
         </div>
-        @if (RecentTransactions.Count > 0)
+        @if (RevenueTotalCount > 0)
         {
         <div class="dash-pagination">
             <div class="dash-page-size">
@@ -380,14 +380,9 @@
                     <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
                 </button>
             </div>
-            <span class="dash-page-info">@((RevenueCurrentPage - 1) * PageSize + 1)–@Math.Min(RevenueCurrentPage * PageSize, RecentTransactions.Count) of @RecentTransactions.Count</span>
-            <div class="dash-page-nav" role="group" aria-label="Pagination">
-                <button class="dash-page-btn" disabled="@(RevenueCurrentPage <= 1)" @onclick="() => RevenueGoToPage(RevenueCurrentPage - 1)" aria-label="Previous page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
-                </button>
-                <button class="dash-page-btn" disabled="@(RevenueCurrentPage >= TotalRevenuePages)" @onclick="() => RevenueGoToPage(RevenueCurrentPage + 1)" aria-label="Next page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-                </button>
+            <div class="dash-pager-group">
+                <span class="dash-page-info">@((RevenueCurrentPage - 1) * PageSize + 1)–@Math.Min(RevenueCurrentPage * PageSize, RevenueTotalCount) of @RevenueTotalCount</span>
+                <My.Talli.Web.Components.Shared.Pager CurrentPage="@RevenueCurrentPage" TotalPages="@TotalRevenuePages" OnGoToPage="RevenueGoToPage" />
             </div>
         </div>
         }
@@ -403,7 +398,7 @@
                 <h3>All Expenses</h3>
             </div>
             <div class="period-stat-bar" role="status" aria-live="polite">
-                <strong>@Expenses.Count</strong> @(Expenses.Count == 1 ? "expense" : "expenses") totaling <strong>@ExpensesTotalForPeriod.ToString("C0")</strong> in the @PeriodLabel
+                <strong>@ExpenseTotalCount</strong> @(ExpenseTotalCount == 1 ? "expense" : "expenses") totaling <strong>@ExpensesTotalForPeriod.ToString("C0")</strong> in the @PeriodLabel
             </div>
             <table class="tx-table @DensityCss">
                 <thead>
@@ -416,7 +411,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var expense in PagedExpenses)
+                    @foreach (var expense in Expenses)
                     {
                         <tr>
                             <td>
@@ -434,7 +429,7 @@
                 </tbody>
             </table>
         </div>
-        @if (Expenses.Count > 0)
+        @if (ExpenseTotalCount > 0)
         {
         <div class="dash-pagination">
             <div class="dash-page-size">
@@ -458,14 +453,9 @@
                     <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
                 </button>
             </div>
-            <span class="dash-page-info">@((ExpenseCurrentPage - 1) * PageSize + 1)–@Math.Min(ExpenseCurrentPage * PageSize, Expenses.Count) of @Expenses.Count</span>
-            <div class="dash-page-nav" role="group" aria-label="Pagination">
-                <button class="dash-page-btn" disabled="@(ExpenseCurrentPage <= 1)" @onclick="() => ExpenseGoToPage(ExpenseCurrentPage - 1)" aria-label="Previous page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
-                </button>
-                <button class="dash-page-btn" disabled="@(ExpenseCurrentPage >= TotalExpensePages)" @onclick="() => ExpenseGoToPage(ExpenseCurrentPage + 1)" aria-label="Next page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-                </button>
+            <div class="dash-pager-group">
+                <span class="dash-page-info">@((ExpenseCurrentPage - 1) * PageSize + 1)–@Math.Min(ExpenseCurrentPage * PageSize, ExpenseTotalCount) of @ExpenseTotalCount</span>
+                <My.Talli.Web.Components.Shared.Pager CurrentPage="@ExpenseCurrentPage" TotalPages="@TotalExpensePages" OnGoToPage="ExpenseGoToPage" />
             </div>
         </div>
         }
@@ -481,7 +471,7 @@
                 <h3>All Payouts</h3>
             </div>
             <div class="period-stat-bar" role="status" aria-live="polite">
-                <strong>@Payouts.Count</strong> @(Payouts.Count == 1 ? "payout" : "payouts") totaling <strong>@PayoutsTotalForPeriod.ToString("C0")</strong> in the @PeriodLabel
+                <strong>@PayoutTotalCount</strong> @(PayoutTotalCount == 1 ? "payout" : "payouts") totaling <strong>@PayoutsTotalForPeriod.ToString("C0")</strong> in the @PeriodLabel
             </div>
             <table class="tx-table @DensityCss">
                 <thead>
@@ -494,7 +484,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var payout in PagedPayouts)
+                    @foreach (var payout in Payouts)
                     {
                         <tr>
                             <td>
@@ -512,7 +502,7 @@
                 </tbody>
             </table>
         </div>
-        @if (Payouts.Count > 0)
+        @if (PayoutTotalCount > 0)
         {
         <div class="dash-pagination">
             <div class="dash-page-size">
@@ -536,14 +526,9 @@
                     <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
                 </button>
             </div>
-            <span class="dash-page-info">@((PayoutCurrentPage - 1) * PageSize + 1)–@Math.Min(PayoutCurrentPage * PageSize, Payouts.Count) of @Payouts.Count</span>
-            <div class="dash-page-nav" role="group" aria-label="Pagination">
-                <button class="dash-page-btn" disabled="@(PayoutCurrentPage <= 1)" @onclick="() => PayoutGoToPage(PayoutCurrentPage - 1)" aria-label="Previous page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
-                </button>
-                <button class="dash-page-btn" disabled="@(PayoutCurrentPage >= TotalPayoutPages)" @onclick="() => PayoutGoToPage(PayoutCurrentPage + 1)" aria-label="Next page">
-                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-                </button>
+            <div class="dash-pager-group">
+                <span class="dash-page-info">@((PayoutCurrentPage - 1) * PageSize + 1)–@Math.Min(PayoutCurrentPage * PageSize, PayoutTotalCount) of @PayoutTotalCount</span>
+                <My.Talli.Web.Components.Shared.Pager CurrentPage="@PayoutCurrentPage" TotalPages="@TotalPayoutPages" OnGoToPage="PayoutGoToPage" />
             </div>
         </div>
         }

@@ -139,11 +139,7 @@
 .manual-density-btn svg { height: 14px; width: 14px; }
 
 .manual-page-info { color: var(--text-muted); font-size: 13px; }
-.manual-page-nav { display: flex; gap: 4px; }
-.manual-page-btn { align-items: center; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; display: flex; justify-content: center; padding: 6px 10px; transition: all 0.15s; }
-.manual-page-btn:hover:not(:disabled) { border-color: var(--purple-primary); color: var(--purple-primary); }
-.manual-page-btn:disabled { color: var(--text-disabled); cursor: default; }
-.manual-page-btn svg { height: 16px; width: 16px; }
+.manual-pager-group { align-items: center; display: flex; gap: 12px; }
 
 /* Overview tab */
 .manual-overview { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }

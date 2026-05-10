@@ -98,13 +98,13 @@
   <div class="intro">
     <div class="intro-left">
       <h2>Current focus: Post-launch hardening</h2>
-      <p><strong>v1.0.0.0 is LIVE on www.mytalli.com</strong> (2026-05-03, via VS Publish → staging slot → slot swap). The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. Deploy was bumpy: a Microsoft sidecar image (<code>msitokenservice</code>) intermittently failed to pull, which forced us to disable Managed Identity on the staging slot to get the container to start. The slot that was prod (with MI on) is now the staging slot, and the slot that was staging (with MI off) is now serving production traffic. Result: prod runs on filesystem-only DataProtection keys until MI is re-enabled. Next: re-enable MI + restore blob-backed keys on prod, reconnect test platforms, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
+      <p><strong>v1.0.0.5 is current on www.mytalli.com</strong> (initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; revision fixes shipped via PR + redeploy since — every release is merged to <code>main</code>). The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. The original deploy was bumpy: a Microsoft sidecar image (<code>msitokenservice</code>) intermittently failed to pull, which forced us to disable Managed Identity on the staging slot to get the container to start. The slot that was prod (with MI on) is now the staging slot, and the slot that was staging (with MI off) is now serving production traffic. Result: prod runs on filesystem-only DataProtection keys until MI is re-enabled. Next: re-enable MI + restore blob-backed keys on prod, reconnect test platforms, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
     </div>
     <div class="intro-metrics">
       <span class="metric"><span class="metric-value">14</span><span class="metric-label">In<br>backlog</span></span>
-      <span class="metric"><span class="metric-value">4</span><span class="metric-label">Next<br>up</span></span>
+      <span class="metric"><span class="metric-value">3</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">13</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">14</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -213,15 +213,9 @@
     <div class="lane next">
       <div class="lane-header">
         <h3>Next Up</h3>
-        <span class="lane-count">4</span>
+        <span class="lane-count">3</span>
       </div>
       <div class="lane-body">
-
-        <div class="card">
-          <div class="card-tags"><span class="tag setup">Setup</span></div>
-          <h4>Merge <code>development_ROBERT</code> → <code>main</code></h4>
-          <p>Now purely git-history hygiene — the app is already live on prod via VS Publish. <code>main</code> still points at the old waitlist-only build, which is misleading. Merge dev into main so future contributors see the right baseline. No deploy implication since Azure isn't auto-deploying from <code>main</code> right now.</p>
-        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
@@ -265,9 +259,16 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">13</span>
+        <span class="lane-count">14</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>v1.0.0.5 — Sign-In click feedback (disable buttons + "Logging in with…" message)</h4>
+          <p>Clicking a provider button on <code>/signin</code> now disables all 3 sign-in buttons (<code>is-disabled</code> class + <code>aria-disabled="true"</code> + <code>tabindex="-1"</code>), swaps the hint for "Logging in with {Provider}…", and defers the OAuth redirect 2 RAFs so the paint lands first. Prevents double-click / multi-provider clicks during the slow Microsoft cold-start. Root cause of the earlier missing feedback was Blazor enhanced navigation skipping inline <code>&lt;script&gt;</code> tags in body content — moved the binder to <code>wwwroot/js/signin.js</code>, loaded once globally from <code>App.razor</code> and rebound on every <code>Blazor.addEventListener('enhancedload')</code> with an idempotency guard (<code>dataset.signinBound</code>). Lesson saved to <code>memory/feedback_blazor_enhanced_nav_testing.md</code>: always verify Blazor pages through the actual user nav path, never just direct URL load.</p>
+          <span class="done-date">May 9 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>

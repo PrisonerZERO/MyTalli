@@ -210,7 +210,9 @@ else
             <div class="grid-card">
                 <div class="grid-header">
                     <h3>Sales</h3>
-                    <span class="grid-meta">@revenueView.Count rows · @revenueView.Sum(r => r.GrossAmount).ToString("C2") gross</span>
+                </div>
+                <div class="period-stat-bar" role="status" aria-live="polite">
+                    <strong>@revenueView.Count</strong> @(revenueView.Count == 1 ? "transaction" : "transactions") totaling <strong>@revenueView.Sum(r => r.NetAmount).ToString("C0")</strong> (net) in the @PeriodLabel
                 </div>
                 @if (revenueView.Count == 0)
                 {
@@ -218,7 +220,7 @@ else
                 }
                 else
                 {
-                    <table class="data-table">
+                    <table class="data-table @DensityCss">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -246,15 +248,30 @@ else
                         </tbody>
                     </table>
                     <div class="grid-footer">
-                        <span class="grid-pagination">@PagedStart()–@PagedEnd(revenueView.Count) of @revenueView.Count</span>
-                        <div class="grid-pages">
-                            <button class="grid-page-btn" disabled="@(CurrentPage == 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
-                            @for (var i = 1; i <= GetTotalPageCount(); i++)
-                            {
-                                var pageNum = i;
-                                <button class="grid-page-btn @(pageNum == CurrentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
-                            }
-                            <button class="grid-page-btn" disabled="@(CurrentPage == GetTotalPageCount())" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
+                        <div class="dash-page-size">
+                            <label for="etsy-rev-page-select">Show</label>
+                            <select class="dash-page-select" id="etsy-rev-page-select" @bind="PageSize" @bind:after="ChangePageSize">
+                                @foreach (var size in PageSizeOptions)
+                                {
+                                    <option value="@size">@size</option>
+                                }
+                            </select>
+                            <span>entries</span>
+                        </div>
+                        <div class="dash-density" role="group" aria-label="Row density">
+                            <button class="dash-density-btn @(Density == "compact" ? "active" : "")" aria-pressed="@(Density == "compact")" title="Compact" @onclick='() => SetDensity("compact")'>
+                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="6" y2="6" /><line x1="2" x2="14" y1="9" y2="9" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                            </button>
+                            <button class="dash-density-btn @(Density == "comfortable" ? "active" : "")" aria-pressed="@(Density == "comfortable")" title="Comfortable" @onclick='() => SetDensity("comfortable")'>
+                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="8" y2="8" /><line x1="2" x2="14" y1="13" y2="13" /></svg>
+                            </button>
+                            <button class="dash-density-btn @(Density == "spacious" ? "active" : "")" aria-pressed="@(Density == "spacious")" title="Spacious" @onclick='() => SetDensity("spacious")'>
+                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                            </button>
+                        </div>
+                        <div class="grid-pager-group">
+                            <span class="grid-pagination">@PagedStart()–@PagedEnd(revenueView.Count) of @revenueView.Count</span>
+                            <My.Talli.Web.Components.Shared.Pager CurrentPage="@CurrentPage" TotalPages="@GetTotalPageCount()" OnGoToPage="GoToPage" />
                         </div>
                     </div>
                 }
@@ -297,7 +314,9 @@ else
             <div class="grid-card">
                 <div class="grid-header">
                     <h3>Platform fees</h3>
-                    <span class="grid-meta">@expenseView.Count rows · @expenseView.Sum(e => e.Amount).ToString("C2")</span>
+                </div>
+                <div class="period-stat-bar" role="status" aria-live="polite">
+                    <strong>@expenseView.Count</strong> @(expenseView.Count == 1 ? "expense" : "expenses") totaling <strong>@expenseView.Sum(e => e.Amount).ToString("C0")</strong> in the @PeriodLabel
                 </div>
                 @if (expenseView.Count == 0)
                 {
@@ -305,7 +324,7 @@ else
                 }
                 else
                 {
-                    <table class="data-table">
+                    <table class="data-table @DensityCss">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -333,15 +352,30 @@ else
                         </tbody>
                     </table>
                     <div class="grid-footer">
-                        <span class="grid-pagination">@PagedStart()–@PagedEnd(expenseView.Count) of @expenseView.Count</span>
-                        <div class="grid-pages">
-                            <button class="grid-page-btn" disabled="@(CurrentPage == 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
-                            @for (var i = 1; i <= GetTotalPageCount(); i++)
-                            {
-                                var pageNum = i;
-                                <button class="grid-page-btn @(pageNum == CurrentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
-                            }
-                            <button class="grid-page-btn" disabled="@(CurrentPage == GetTotalPageCount())" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
+                        <div class="dash-page-size">
+                            <label for="etsy-exp-page-select">Show</label>
+                            <select class="dash-page-select" id="etsy-exp-page-select" @bind="PageSize" @bind:after="ChangePageSize">
+                                @foreach (var size in PageSizeOptions)
+                                {
+                                    <option value="@size">@size</option>
+                                }
+                            </select>
+                            <span>entries</span>
+                        </div>
+                        <div class="dash-density" role="group" aria-label="Row density">
+                            <button class="dash-density-btn @(Density == "compact" ? "active" : "")" aria-pressed="@(Density == "compact")" title="Compact" @onclick='() => SetDensity("compact")'>
+                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="6" y2="6" /><line x1="2" x2="14" y1="9" y2="9" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                            </button>
+                            <button class="dash-density-btn @(Density == "comfortable" ? "active" : "")" aria-pressed="@(Density == "comfortable")" title="Comfortable" @onclick='() => SetDensity("comfortable")'>
+                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="8" y2="8" /><line x1="2" x2="14" y1="13" y2="13" /></svg>
+                            </button>
+                            <button class="dash-density-btn @(Density == "spacious" ? "active" : "")" aria-pressed="@(Density == "spacious")" title="Spacious" @onclick='() => SetDensity("spacious")'>
+                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                            </button>
+                        </div>
+                        <div class="grid-pager-group">
+                            <span class="grid-pagination">@PagedStart()–@PagedEnd(expenseView.Count) of @expenseView.Count</span>
+                            <My.Talli.Web.Components.Shared.Pager CurrentPage="@CurrentPage" TotalPages="@GetTotalPageCount()" OnGoToPage="GoToPage" />
                         </div>
                     </div>
                 }
@@ -369,6 +403,12 @@ else
                     <button class="filter-pill @(PayoutStatusFilter == "intransit" ? "active" : "")" @onclick='() => SelectPayoutStatus("intransit")'>In Transit</button>
                     <button class="filter-pill @(PayoutStatusFilter == "paid" ? "active" : "")" @onclick='() => SelectPayoutStatus("paid")'>Paid</button>
                 </div>
+                <div class="filter-pills" style="margin-left:auto;" role="group" aria-label="Time period filter">
+                    <button class="filter-pill @(Period == "7D" ? "active" : "")" @onclick='() => SelectPeriod("7D")'>7D</button>
+                    <button class="filter-pill @(Period == "30D" ? "active" : "")" @onclick='() => SelectPeriod("30D")'>30D</button>
+                    <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
+                    <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                </div>
             </div>
 
             @{
@@ -377,7 +417,9 @@ else
             <div class="grid-card">
                 <div class="grid-header">
                     <h3>Disbursements</h3>
-                    <span class="grid-meta">@payoutView.Count rows · @PayoutItems.Count(p => p.Status == "In Transit") in transit</span>
+                </div>
+                <div class="period-stat-bar" role="status" aria-live="polite">
+                    <strong>@payoutView.Count</strong> @(payoutView.Count == 1 ? "payout" : "payouts") totaling <strong>@payoutView.Sum(p => p.Amount).ToString("C0")</strong> in the @PeriodLabel
                 </div>
                 @if (payoutView.Count == 0)
                 {
@@ -385,7 +427,7 @@ else
                 }
                 else
                 {
-                    <table class="data-table">
+                    <table class="data-table @DensityCss">
                         <thead>
                             <tr>
                                 <th>Payout date</th>
@@ -411,15 +453,30 @@ else
                         </tbody>
                     </table>
                     <div class="grid-footer">
-                        <span class="grid-pagination">@PagedStart()–@PagedEnd(payoutView.Count) of @payoutView.Count</span>
-                        <div class="grid-pages">
-                            <button class="grid-page-btn" disabled="@(CurrentPage == 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
-                            @for (var i = 1; i <= GetTotalPageCount(); i++)
-                            {
-                                var pageNum = i;
-                                <button class="grid-page-btn @(pageNum == CurrentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
-                            }
-                            <button class="grid-page-btn" disabled="@(CurrentPage == GetTotalPageCount())" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
+                        <div class="dash-page-size">
+                            <label for="etsy-pay-page-select">Show</label>
+                            <select class="dash-page-select" id="etsy-pay-page-select" @bind="PageSize" @bind:after="ChangePageSize">
+                                @foreach (var size in PageSizeOptions)
+                                {
+                                    <option value="@size">@size</option>
+                                }
+                            </select>
+                            <span>entries</span>
+                        </div>
+                        <div class="dash-density" role="group" aria-label="Row density">
+                            <button class="dash-density-btn @(Density == "compact" ? "active" : "")" aria-pressed="@(Density == "compact")" title="Compact" @onclick='() => SetDensity("compact")'>
+                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="6" y2="6" /><line x1="2" x2="14" y1="9" y2="9" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                            </button>
+                            <button class="dash-density-btn @(Density == "comfortable" ? "active" : "")" aria-pressed="@(Density == "comfortable")" title="Comfortable" @onclick='() => SetDensity("comfortable")'>
+                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="3" y2="3" /><line x1="2" x2="14" y1="8" y2="8" /><line x1="2" x2="14" y1="13" y2="13" /></svg>
+                            </button>
+                            <button class="dash-density-btn @(Density == "spacious" ? "active" : "")" aria-pressed="@(Density == "spacious")" title="Spacious" @onclick='() => SetDensity("spacious")'>
+                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 16 16"><line x1="2" x2="14" y1="4" y2="4" /><line x1="2" x2="14" y1="12" y2="12" /></svg>
+                            </button>
+                        </div>
+                        <div class="grid-pager-group">
+                            <span class="grid-pagination">@PagedStart()–@PagedEnd(payoutView.Count) of @payoutView.Count</span>
+                            <My.Talli.Web.Components.Shared.Pager CurrentPage="@CurrentPage" TotalPages="@GetTotalPageCount()" OnGoToPage="GoToPage" />
                         </div>
                     </div>
                 }

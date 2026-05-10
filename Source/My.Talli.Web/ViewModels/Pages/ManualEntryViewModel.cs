@@ -10,7 +10,9 @@ using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
 using Models;
+using Web.Queries;
 
 using ENTITIES = Domain.Entities;
 using MODELS = Domain.Models;
@@ -38,7 +40,16 @@ public class ManualEntryViewModel : ComponentBase
 	private RepositoryAdapterAsync<MODELS.Expense, ENTITIES.Expense> ExpenseAdapter { get; set; } = default!;
 
 	[Inject]
+	private ExpenseFindCommand ExpenseFind { get; set; } = default!;
+
+	[Inject]
+	private ManualEntryFindCommand ManualEntryFind { get; set; } = default!;
+
+	[Inject]
 	private RepositoryAdapterAsync<MODELS.Payout, ENTITIES.Payout> PayoutAdapter { get; set; } = default!;
+
+	[Inject]
+	private PayoutFindCommand PayoutFind { get; set; } = default!;
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.PlatformConnection, ENTITIES.PlatformConnection> PlatformConnectionAdapter { get; set; } = default!;
@@ -83,6 +94,8 @@ public class ManualEntryViewModel : ComponentBase
 		"Physical Product",
 		"Other"
 	];
+
+	public List<CategoryBreakdownItem> CategoryBreakdown { get; private set; } = [];
 
 	public int CurrentPage { get; private set; } = 1;
 
@@ -139,6 +152,8 @@ public class ManualEntryViewModel : ComponentBase
 
 	public List<ManualEntryItem> Entries { get; private set; } = [];
 
+	public int EntryTotalCount { get; private set; }
+
 	public List<string> ExpenseCategories { get; private set; } =
 		Enum.GetValues<ExpenseCategory>().Select(c => c.ToStringValue()).ToList();
 
@@ -152,11 +167,7 @@ public class ManualEntryViewModel : ComponentBase
 
 	public bool ExpenseSortDescending { get; private set; } = true;
 
-	public List<ManualEntryItem> FilteredEntries => GetPeriodFilteredEntries();
-
-	public List<ExpenseItem> FilteredExpenses => GetPeriodFilteredExpenses();
-
-	public List<PayoutItem> FilteredPayouts => GetPeriodFilteredPayouts();
+	public int ExpenseTotalCount { get; private set; }
 
 	public bool HasModuleAccess { get; private set; }
 
@@ -201,20 +212,9 @@ public class ManualEntryViewModel : ComponentBase
 
 	public decimal NewUnitPrice { get; set; }
 
-	public List<ExpenseItem> PagedExpenses => GetSortedExpenses()
-		.Skip((ExpenseCurrentPage - 1) * PageSize)
-		.Take(PageSize)
-		.ToList();
+	public List<ExpenseItem> OverviewTopExpenses { get; private set; } = [];
 
-	public List<ManualEntryItem> PagedEntries => GetSortedEntries()
-		.Skip((CurrentPage - 1) * PageSize)
-		.Take(PageSize)
-		.ToList();
-
-	public List<PayoutItem> PagedPayouts => GetSortedPayouts()
-		.Skip((PayoutCurrentPage - 1) * PageSize)
-		.Take(PageSize)
-		.ToList();
+	public List<ManualEntryItem> OverviewTopEntries { get; private set; } = [];
 
 	public string PageTitle => ActiveTab == "revenue" ? "Manual Entry" : $"Manual Entry — {ActiveTab[0].ToString().ToUpper()}{ActiveTab[1..]}";
 
@@ -231,6 +231,17 @@ public class ManualEntryViewModel : ComponentBase
 	public string PayoutSortColumn { get; private set; } = "PayoutDate";
 
 	public bool PayoutSortDescending { get; private set; } = true;
+
+	public int PayoutTotalCount { get; private set; }
+
+	public string PeriodLabel => ActivePeriod switch
+	{
+		"7D" => "last 7 days",
+		"30D" => "last 30 days",
+		"90D" => "last 90 days",
+		"12M" => "last 12 months",
+		_ => "current period",
+	};
 
 	public List<string> Periods { get; } = ["7D", "30D", "90D", "12M"];
 
@@ -251,23 +262,23 @@ public class ManualEntryViewModel : ComponentBase
 
 	public bool SortDescending { get; private set; } = true;
 
-	public int TotalEntries => GetPeriodFilteredEntries().Count;
+	public int TotalEntries => EntryTotalCount;
 
-	public int TotalExpensePages => Math.Max(1, (int)Math.Ceiling((double)GetPeriodFilteredExpenses().Count / PageSize));
+	public int TotalExpensePages => Math.Max(1, (int)Math.Ceiling((double)ExpenseTotalCount / PageSize));
 
-	public decimal TotalExpenses => GetPeriodFilteredExpenses().Sum(e => e.Amount);
+	public decimal TotalExpenses { get; private set; }
 
-	public decimal TotalGross => GetPeriodFilteredEntries().Sum(e => e.GrossAmount);
+	public decimal TotalGross { get; private set; }
 
-	public decimal TotalNet => GetPeriodFilteredEntries().Sum(e => e.NetAmount);
+	public decimal TotalNet { get; private set; }
 
 	public decimal TotalNetProfit => TotalNet - TotalExpenses;
 
-	public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)GetPeriodFilteredEntries().Count / PageSize));
+	public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)EntryTotalCount / PageSize));
 
-	public int TotalPayoutPages => Math.Max(1, (int)Math.Ceiling((double)GetPeriodFilteredPayouts().Count / PageSize));
+	public int TotalPayoutPages => Math.Max(1, (int)Math.Ceiling((double)PayoutTotalCount / PageSize));
 
-	public decimal TotalPayouts => GetPeriodFilteredPayouts().Sum(p => p.Amount);
+	public decimal TotalPayouts { get; private set; }
 
 	protected ElementReference EditShopNameRef;
 
@@ -326,16 +337,12 @@ public class ManualEntryViewModel : ComponentBase
 		if (HasModuleAccess)
 		{
 			await LoadShopsAsync();
-			await LoadEntriesAsync();
-			await LoadExpensesAsync();
-			await LoadPayoutsAsync();
+			await ReloadAllAsync();
 		}
 		else
 		{
 			IsSampleData = true;
-			Entries = ManualEntryDataset.GetEntries();
-			Expenses = ExpenseDataset.GetManualExpenses();
-			Payouts = PayoutDataset.GetManualPayouts();
+			ReloadSampleData();
 		}
 	}
 
@@ -362,6 +369,7 @@ public class ManualEntryViewModel : ComponentBase
 		ExpenseCurrentPage = 1;
 		PayoutCurrentPage = 1;
 		await SaveGridPreferencesAsync();
+		await ReloadAllAsync();
 	}
 
 	public async Task ConfirmDeleteAsync()
@@ -381,7 +389,7 @@ public class ManualEntryViewModel : ComponentBase
 			await RevenueManualAdapter.DeleteAsync(manual);
 
 		await RevenueAdapter.DeleteAsync(revenue);
-		await LoadEntriesAsync();
+		await ReloadAllAsync();
 	}
 
 	public void DeleteEntry(long revenueId)
@@ -395,9 +403,10 @@ public class ManualEntryViewModel : ComponentBase
 
 	public string GetSortIndicator(string column) => SortColumn == column ? (SortDescending ? "▼" : "▲") : "";
 
-	public void GoToPage(int page)
+	public async Task GoToPage(int page)
 	{
 		CurrentPage = Math.Clamp(page, 1, TotalPages);
+		await LoadEntriesPageAsync();
 	}
 
 	public async Task HandleEditKeyDown(KeyboardEventArgs e)
@@ -427,7 +436,7 @@ public class ManualEntryViewModel : ComponentBase
 		await RevenueManualAdapter.InsertAsync(manual);
 
 		ResetQuickEntry();
-		await LoadEntriesAsync();
+		await ReloadAllAsync();
 
 		try { await QuickEntryDescriptionRef.FocusAsync(); } catch { /* element may not be rendered yet */ }
 	}
@@ -464,7 +473,7 @@ public class ManualEntryViewModel : ComponentBase
 
 		EditingId = null;
 		ShowEditNotes = false;
-		await LoadEntriesAsync();
+		await ReloadAllAsync();
 	}
 
 	public void StartEdit(long entryId)
@@ -512,7 +521,7 @@ public class ManualEntryViewModel : ComponentBase
 		if (expense is null || expense.UserId != _userId.Value) return;
 
 		await ExpenseAdapter.DeleteAsync(expense);
-		await LoadExpensesAsync();
+		await ReloadAllAsync();
 	}
 
 	public void DeleteExpense(long expenseId)
@@ -522,9 +531,10 @@ public class ManualEntryViewModel : ComponentBase
 
 	public string GetExpenseSortIndicator(string column) => ExpenseSortColumn == column ? (ExpenseSortDescending ? "▼" : "▲") : "";
 
-	public void GoToExpensePage(int page)
+	public async Task GoToExpensePage(int page)
 	{
 		ExpenseCurrentPage = Math.Clamp(page, 1, TotalExpensePages);
+		await LoadExpensesPageAsync();
 	}
 
 	public async Task HandleExpenseEditKeyDown(KeyboardEventArgs e)
@@ -550,7 +560,7 @@ public class ManualEntryViewModel : ComponentBase
 		await ExpenseAdapter.InsertAsync(expense);
 
 		ResetExpenseQuickEntry();
-		await LoadExpensesAsync();
+		await ReloadAllAsync();
 
 		try { await ExpenseQuickEntryDescriptionRef.FocusAsync(); } catch { /* element may not be rendered yet */ }
 	}
@@ -572,10 +582,10 @@ public class ManualEntryViewModel : ComponentBase
 		await ExpenseAdapter.UpdateAsync(expense);
 
 		ExpenseEditingId = null;
-		await LoadExpensesAsync();
+		await ReloadAllAsync();
 	}
 
-	public void SortExpensesBy(string column)
+	public async Task SortExpensesBy(string column)
 	{
 		if (ExpenseSortColumn == column)
 		{
@@ -588,6 +598,7 @@ public class ManualEntryViewModel : ComponentBase
 		}
 
 		ExpenseCurrentPage = 1;
+		await LoadExpensesPageAsync();
 	}
 
 	public void StartEditExpense(long expenseId)
@@ -625,7 +636,7 @@ public class ManualEntryViewModel : ComponentBase
 		if (payout is null || payout.UserId != _userId.Value) return;
 
 		await PayoutAdapter.DeleteAsync(payout);
-		await LoadPayoutsAsync();
+		await ReloadAllAsync();
 	}
 
 	public void DeletePayout(long payoutId)
@@ -635,9 +646,10 @@ public class ManualEntryViewModel : ComponentBase
 
 	public string GetPayoutSortIndicator(string column) => PayoutSortColumn == column ? (PayoutSortDescending ? "▼" : "▲") : "";
 
-	public void GoToPayoutPage(int page)
+	public async Task GoToPayoutPage(int page)
 	{
 		PayoutCurrentPage = Math.Clamp(page, 1, TotalPayoutPages);
+		await LoadPayoutsPageAsync();
 	}
 
 	public async Task HandlePayoutEditKeyDown(KeyboardEventArgs e)
@@ -663,7 +675,7 @@ public class ManualEntryViewModel : ComponentBase
 		await PayoutAdapter.InsertAsync(payout);
 
 		ResetPayoutQuickEntry();
-		await LoadPayoutsAsync();
+		await ReloadAllAsync();
 
 		try { await PayoutQuickEntryAmountRef.FocusAsync(); } catch { /* element may not be rendered yet */ }
 	}
@@ -685,10 +697,10 @@ public class ManualEntryViewModel : ComponentBase
 		await PayoutAdapter.UpdateAsync(payout);
 
 		PayoutEditingId = null;
-		await LoadPayoutsAsync();
+		await ReloadAllAsync();
 	}
 
-	public void SortPayoutsBy(string column)
+	public async Task SortPayoutsBy(string column)
 	{
 		if (PayoutSortColumn == column)
 		{
@@ -701,6 +713,7 @@ public class ManualEntryViewModel : ComponentBase
 		}
 
 		PayoutCurrentPage = 1;
+		await LoadPayoutsPageAsync();
 	}
 
 	public void StartEditPayout(long payoutId)
@@ -749,9 +762,7 @@ public class ManualEntryViewModel : ComponentBase
 		IsAddingShop = false;
 		NewShopName = string.Empty;
 
-		await LoadEntriesAsync();
-		await LoadExpensesAsync();
-		await LoadPayoutsAsync();
+		await ReloadAllAsync();
 	}
 
 	public async Task ConfirmEditShopAsync()
@@ -801,9 +812,7 @@ public class ManualEntryViewModel : ComponentBase
 		ActiveShopConnectionId = shopId;
 		IsShopDropdownOpen = false;
 
-		await LoadEntriesAsync();
-		await LoadExpensesAsync();
-		await LoadPayoutsAsync();
+		await ReloadAllAsync();
 	}
 
 	public async Task StartAddShopAsync()
@@ -842,7 +851,7 @@ public class ManualEntryViewModel : ComponentBase
 
 	// ── Shared ──
 
-	public void SelectPeriod(string period)
+	public async Task SelectPeriod(string period)
 	{
 		if (ActivePeriod == period) return;
 
@@ -850,6 +859,7 @@ public class ManualEntryViewModel : ComponentBase
 		CurrentPage = 1;
 		ExpenseCurrentPage = 1;
 		PayoutCurrentPage = 1;
+		await ReloadAllAsync();
 	}
 
 	public void SelectTab(string tab)
@@ -877,6 +887,7 @@ public class ManualEntryViewModel : ComponentBase
 
 		CurrentPage = 1;
 		await SaveGridPreferencesAsync();
+		await LoadEntriesPageAsync();
 	}
 
 	// ── Private ──
@@ -895,114 +906,247 @@ public class ManualEntryViewModel : ComponentBase
 		return (start, endExclusive);
 	}
 
-	private List<ManualEntryItem> GetPeriodFilteredEntries()
+	private async Task ReloadAllAsync()
 	{
-		var (start, endExclusive) = GetPeriodDateRange();
-		return Entries.Where(e => e.TransactionDate >= start && e.TransactionDate < endExclusive).ToList();
-	}
-
-	private List<ExpenseItem> GetPeriodFilteredExpenses()
-	{
-		var (start, endExclusive) = GetPeriodDateRange();
-		return Expenses.Where(e => e.ExpenseDate >= start && e.ExpenseDate < endExclusive).ToList();
-	}
-
-	private List<PayoutItem> GetPeriodFilteredPayouts()
-	{
-		var (start, endExclusive) = GetPeriodDateRange();
-		return Payouts.Where(p => p.PayoutDate >= start && p.PayoutDate < endExclusive).ToList();
-	}
-
-	private IEnumerable<ManualEntryItem> GetSortedEntries()
-	{
-		var filtered = GetPeriodFilteredEntries();
-
-		IEnumerable<ManualEntryItem> sorted = SortColumn switch
+		if (IsSampleData)
 		{
-			"Description" => SortDescending ? filtered.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase) : filtered.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase),
-			"Category" => SortDescending ? filtered.OrderByDescending(e => e.Category) : filtered.OrderBy(e => e.Category),
-			"Quantity" => SortDescending ? filtered.OrderByDescending(e => e.Quantity) : filtered.OrderBy(e => e.Quantity),
-			"UnitPrice" => SortDescending ? filtered.OrderByDescending(e => e.UnitPrice) : filtered.OrderBy(e => e.UnitPrice),
-			"FeeAmount" => SortDescending ? filtered.OrderByDescending(e => e.FeeAmount) : filtered.OrderBy(e => e.FeeAmount),
-			"NetAmount" => SortDescending ? filtered.OrderByDescending(e => e.NetAmount) : filtered.OrderBy(e => e.NetAmount),
-			_ => SortDescending ? filtered.OrderByDescending(e => e.TransactionDate) : filtered.OrderBy(e => e.TransactionDate),
-		};
-
-		return sorted;
-	}
-
-	private IEnumerable<ExpenseItem> GetSortedExpenses()
-	{
-		var filtered = GetPeriodFilteredExpenses();
-
-		return ExpenseSortColumn switch
-		{
-			"Description" => ExpenseSortDescending ? filtered.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase) : filtered.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase),
-			"Category" => ExpenseSortDescending ? filtered.OrderByDescending(e => e.Category) : filtered.OrderBy(e => e.Category),
-			"Amount" => ExpenseSortDescending ? filtered.OrderByDescending(e => e.Amount) : filtered.OrderBy(e => e.Amount),
-			_ => ExpenseSortDescending ? filtered.OrderByDescending(e => e.ExpenseDate) : filtered.OrderBy(e => e.ExpenseDate),
-		};
-	}
-
-	private IEnumerable<PayoutItem> GetSortedPayouts()
-	{
-		var filtered = GetPeriodFilteredPayouts();
-
-		return PayoutSortColumn switch
-		{
-			"Amount" => PayoutSortDescending ? filtered.OrderByDescending(p => p.Amount) : filtered.OrderBy(p => p.Amount),
-			"Status" => PayoutSortDescending ? filtered.OrderByDescending(p => p.Status) : filtered.OrderBy(p => p.Status),
-			_ => PayoutSortDescending ? filtered.OrderByDescending(p => p.PayoutDate) : filtered.OrderBy(p => p.PayoutDate),
-		};
-	}
-
-	private async Task LoadEntriesAsync()
-	{
-		if (ActiveShopConnectionId is null)
-		{
-			Entries = [];
-			CurrentPage = 1;
+			ReloadSampleData();
 			return;
 		}
 
-		var shopId = ActiveShopConnectionId.Value;
-		var revenues = (await RevenueAdapter.FindAsync(r => r.UserId == _userId!.Value && r.Platform == "Manual" && r.ShopConnectionId == shopId)).ToList();
-		var revenueIds = revenues.Select(r => r.Id).ToList();
-		var manuals = revenueIds.Count == 0 ? [] : await RevenueManualAdapter.FindAsync(m => revenueIds.Contains(m.Id));
-
-		var manualLookup = manuals.ToDictionary(m => m.Id);
-
-		Entries = revenues
-			.Select(r => ToEntryItem(r, manualLookup.GetValueOrDefault(r.Id)))
-			.ToList();
-
-		CurrentPage = 1;
+		await LoadAggregatesAsync();
+		await LoadEntriesPageAsync();
+		await LoadExpensesPageAsync();
+		await LoadPayoutsPageAsync();
+		await LoadOverviewAsync();
 	}
 
-	private async Task LoadExpensesAsync()
+	private void ReloadSampleData()
 	{
-		if (ActiveShopConnectionId is null)
+		var (start, endExclusive) = GetPeriodDateRange();
+
+		// Entries (sample)
+		var allEntries = ManualEntryDataset.GetEntries().Where(e => e.TransactionDate >= start && e.TransactionDate < endExclusive).ToList();
+		EntryTotalCount = allEntries.Count;
+		TotalGross = allEntries.Sum(e => e.GrossAmount);
+		TotalNet = allEntries.Sum(e => e.NetAmount);
+		var sortedEntries = SortEntriesSample(allEntries);
+		Entries = sortedEntries.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
+		OverviewTopEntries = allEntries.OrderByDescending(e => e.TransactionDate).Take(5).ToList();
+		CategoryBreakdown = allEntries
+			.GroupBy(e => e.Category)
+			.Select(g => new CategoryBreakdownItem(g.Key, g.Sum(e => e.GrossAmount), TotalGross > 0 ? (int)(g.Sum(e => e.GrossAmount) / TotalGross * 100) : 0))
+			.OrderByDescending(c => c.Total)
+			.Take(5)
+			.ToList();
+
+		// Expenses (sample)
+		var allExpenses = ExpenseDataset.GetManualExpenses().Where(e => e.ExpenseDate >= start && e.ExpenseDate < endExclusive).ToList();
+		ExpenseTotalCount = allExpenses.Count;
+		TotalExpenses = allExpenses.Sum(e => e.Amount);
+		var sortedExpenses = SortExpensesSample(allExpenses);
+		Expenses = sortedExpenses.Skip((ExpenseCurrentPage - 1) * PageSize).Take(PageSize).ToList();
+		OverviewTopExpenses = allExpenses.OrderByDescending(e => e.ExpenseDate).Take(3).ToList();
+
+		// Payouts (sample)
+		var allPayouts = PayoutDataset.GetManualPayouts().Where(p => p.PayoutDate >= start && p.PayoutDate < endExclusive).ToList();
+		PayoutTotalCount = allPayouts.Count;
+		TotalPayouts = allPayouts.Sum(p => p.Amount);
+		var sortedPayouts = SortPayoutsSample(allPayouts);
+		Payouts = sortedPayouts.Skip((PayoutCurrentPage - 1) * PageSize).Take(PageSize).ToList();
+	}
+
+	private async Task LoadAggregatesAsync()
+	{
+		if (ActiveShopConnectionId is null || _userId is null)
+		{
+			TotalGross = 0;
+			TotalNet = 0;
+			TotalExpenses = 0;
+			TotalPayouts = 0;
+			EntryTotalCount = 0;
+			ExpenseTotalCount = 0;
+			PayoutTotalCount = 0;
+			return;
+		}
+
+		var (start, endExclusive) = GetPeriodDateRange();
+		var userId = _userId.Value;
+		var shopId = ActiveShopConnectionId.Value;
+
+		var entryFilter = new ManualEntryFilter { UserId = userId, ShopConnectionId = shopId, StartDate = start, EndDateExclusive = endExclusive };
+		var grossQuery = ManualEntryFind.QueryGrossAmount(entryFilter);
+		var netQuery = ManualEntryFind.QueryNetAmount(entryFilter);
+
+		TotalGross = await ManualEntryFind.RunAsync(() => grossQuery.SumAsync(g => (decimal?)g)) ?? 0m;
+		TotalNet = await ManualEntryFind.RunAsync(() => netQuery.SumAsync(n => (decimal?)n)) ?? 0m;
+		EntryTotalCount = await ManualEntryFind.RunAsync(() => grossQuery.CountAsync());
+
+		var expenseFilter = new ExpenseFilter { UserId = userId, Platform = "Manual", ShopConnectionId = shopId, StartDate = start, EndDateExclusive = endExclusive };
+		var expenseQuery = ExpenseFind.Query(expenseFilter);
+		TotalExpenses = await ExpenseFind.RunAsync(() => expenseQuery.SumAsync(e => (decimal?)e.Amount)) ?? 0m;
+		ExpenseTotalCount = await ExpenseFind.RunAsync(() => expenseQuery.CountAsync());
+
+		var payoutFilter = new PayoutFilter { UserId = userId, Platform = "Manual", ShopConnectionId = shopId, StartDate = start, EndDateExclusive = endExclusive };
+		var payoutQuery = PayoutFind.Query(payoutFilter);
+		TotalPayouts = await PayoutFind.RunAsync(() => payoutQuery.SumAsync(p => (decimal?)p.Amount)) ?? 0m;
+		PayoutTotalCount = await PayoutFind.RunAsync(() => payoutQuery.CountAsync());
+	}
+
+	private async Task LoadEntriesPageAsync()
+	{
+		if (IsSampleData)
+		{
+			ReloadSampleData();
+			return;
+		}
+
+		if (ActiveShopConnectionId is null || _userId is null)
+		{
+			Entries = [];
+			return;
+		}
+
+		var (start, endExclusive) = GetPeriodDateRange();
+
+		var filter = new ManualEntryFilter
+		{
+			UserId = _userId.Value,
+			ShopConnectionId = ActiveShopConnectionId.Value,
+			StartDate = start,
+			EndDateExclusive = endExclusive,
+			SortColumn = SortColumn,
+			SortDescending = SortDescending,
+		};
+
+		var query = ManualEntryFind.Query(filter);
+		var pagedQuery = PaginatorCommand.Query(query, new PageArgs { PageNumber = CurrentPage, PageSize = PageSize });
+
+		Entries = await ManualEntryFind.RunAsync(() => pagedQuery.ToListAsync());
+	}
+
+	private async Task LoadExpensesPageAsync()
+	{
+		if (IsSampleData)
+		{
+			ReloadSampleData();
+			return;
+		}
+
+		if (ActiveShopConnectionId is null || _userId is null)
 		{
 			Expenses = [];
 			return;
 		}
 
-		var shopId = ActiveShopConnectionId.Value;
-		var expenses = await ExpenseAdapter.FindAsync(e => e.UserId == _userId!.Value && e.Platform == "Manual" && e.ShopConnectionId == shopId);
-		Expenses = expenses.Select(ToExpenseItem).ToList();
+		var (start, endExclusive) = GetPeriodDateRange();
+
+		var filter = new ExpenseFilter
+		{
+			UserId = _userId.Value,
+			Platform = "Manual",
+			ShopConnectionId = ActiveShopConnectionId.Value,
+			StartDate = start,
+			EndDateExclusive = endExclusive,
+			SortColumn = ExpenseSortColumn,
+			SortDescending = ExpenseSortDescending,
+		};
+
+		var query = ExpenseFind.Query(filter);
+		var pagedQuery = PaginatorCommand.Query(query, new PageArgs { PageNumber = ExpenseCurrentPage, PageSize = PageSize });
+
+		var rows = await ExpenseFind.RunAsync(() => pagedQuery.ToListAsync());
+		Expenses = rows.Select(ToExpenseItem).ToList();
 	}
 
-	private async Task LoadPayoutsAsync()
+	private async Task LoadPayoutsPageAsync()
 	{
-		if (ActiveShopConnectionId is null)
+		if (IsSampleData)
+		{
+			ReloadSampleData();
+			return;
+		}
+
+		if (ActiveShopConnectionId is null || _userId is null)
 		{
 			Payouts = [];
 			return;
 		}
 
+		var (start, endExclusive) = GetPeriodDateRange();
+
+		var filter = new PayoutFilter
+		{
+			UserId = _userId.Value,
+			Platform = "Manual",
+			ShopConnectionId = ActiveShopConnectionId.Value,
+			StartDate = start,
+			EndDateExclusive = endExclusive,
+			SortColumn = PayoutSortColumn,
+			SortDescending = PayoutSortDescending,
+		};
+
+		var query = PayoutFind.Query(filter);
+		var pagedQuery = PaginatorCommand.Query(query, new PageArgs { PageNumber = PayoutCurrentPage, PageSize = PageSize });
+
+		var rows = await PayoutFind.RunAsync(() => pagedQuery.ToListAsync());
+		Payouts = rows.Select(ToPayoutItem).ToList();
+	}
+
+	private async Task LoadOverviewAsync()
+	{
+		if (ActiveShopConnectionId is null || _userId is null)
+		{
+			OverviewTopEntries = [];
+			OverviewTopExpenses = [];
+			CategoryBreakdown = [];
+			return;
+		}
+
+		var (start, endExclusive) = GetPeriodDateRange();
+		var userId = _userId.Value;
 		var shopId = ActiveShopConnectionId.Value;
-		var payouts = await PayoutAdapter.FindAsync(p => p.UserId == _userId!.Value && p.Platform == "Manual" && p.ShopConnectionId == shopId);
-		Payouts = payouts.Select(ToPayoutItem).ToList();
+
+		// Top 5 newest entries — joined query, ordered by date desc, take 5
+		var entryFilter = new ManualEntryFilter
+		{
+			UserId = userId,
+			ShopConnectionId = shopId,
+			StartDate = start,
+			EndDateExclusive = endExclusive,
+			SortColumn = "TransactionDate",
+			SortDescending = true,
+		};
+		var entryQuery = ManualEntryFind.Query(entryFilter);
+		OverviewTopEntries = await ManualEntryFind.RunAsync(() => entryQuery.Take(5).ToListAsync());
+
+		// Top 3 newest expenses
+		var expenseFilter = new ExpenseFilter
+		{
+			UserId = userId,
+			Platform = "Manual",
+			ShopConnectionId = shopId,
+			StartDate = start,
+			EndDateExclusive = endExclusive,
+			SortColumn = "ExpenseDate",
+			SortDescending = true,
+		};
+		var expenseQuery = ExpenseFind.Query(expenseFilter);
+		var topExpenseRows = await ExpenseFind.RunAsync(() => expenseQuery.Take(3).ToListAsync());
+		OverviewTopExpenses = topExpenseRows.Select(ToExpenseItem).ToList();
+
+		// Top 5 categories — SQL GROUP BY on ManualEntry shape
+		var categoryQuery = ManualEntryFind.Query(entryFilter);
+		var groups = await ManualEntryFind.RunAsync(() => categoryQuery
+			.GroupBy(e => e.Category)
+			.Select(g => new { Category = g.Key, Total = g.Sum(e => e.GrossAmount) })
+			.OrderByDescending(g => g.Total)
+			.Take(5)
+			.ToListAsync());
+
+		CategoryBreakdown = groups
+			.Select(g => new CategoryBreakdownItem(g.Category, g.Total, TotalGross > 0 ? (int)(g.Total / TotalGross * 100) : 0))
+			.ToList();
 	}
 
 	private async Task LoadShopsAsync()
@@ -1082,20 +1226,38 @@ public class ManualEntryViewModel : ComponentBase
 		await UserAdapter.UpdateAsync(user);
 	}
 
-	private ManualEntryItem ToEntryItem(MODELS.Revenue revenue, MODELS.RevenueManual? manual)
+	private List<ManualEntryItem> SortEntriesSample(List<ManualEntryItem> source)
 	{
-		return new ManualEntryItem
+		return SortColumn switch
 		{
-			Category = manual?.Category ?? "Other",
-			Currency = revenue.Currency,
-			Description = revenue.Description,
-			FeeAmount = revenue.FeeAmount,
-			GrossAmount = revenue.GrossAmount,
-			Id = revenue.Id,
-			NetAmount = revenue.NetAmount,
-			Notes = manual?.Notes,
-			Quantity = manual?.Quantity ?? 1,
-			TransactionDate = revenue.TransactionDate,
+			"Description" => SortDescending ? source.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase).ToList() : source.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase).ToList(),
+			"Category" => SortDescending ? source.OrderByDescending(e => e.Category).ToList() : source.OrderBy(e => e.Category).ToList(),
+			"Quantity" => SortDescending ? source.OrderByDescending(e => e.Quantity).ToList() : source.OrderBy(e => e.Quantity).ToList(),
+			"UnitPrice" => SortDescending ? source.OrderByDescending(e => e.UnitPrice).ToList() : source.OrderBy(e => e.UnitPrice).ToList(),
+			"FeeAmount" => SortDescending ? source.OrderByDescending(e => e.FeeAmount).ToList() : source.OrderBy(e => e.FeeAmount).ToList(),
+			"NetAmount" => SortDescending ? source.OrderByDescending(e => e.NetAmount).ToList() : source.OrderBy(e => e.NetAmount).ToList(),
+			_ => SortDescending ? source.OrderByDescending(e => e.TransactionDate).ToList() : source.OrderBy(e => e.TransactionDate).ToList(),
+		};
+	}
+
+	private List<ExpenseItem> SortExpensesSample(List<ExpenseItem> source)
+	{
+		return ExpenseSortColumn switch
+		{
+			"Description" => ExpenseSortDescending ? source.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase).ToList() : source.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase).ToList(),
+			"Category" => ExpenseSortDescending ? source.OrderByDescending(e => e.Category).ToList() : source.OrderBy(e => e.Category).ToList(),
+			"Amount" => ExpenseSortDescending ? source.OrderByDescending(e => e.Amount).ToList() : source.OrderBy(e => e.Amount).ToList(),
+			_ => ExpenseSortDescending ? source.OrderByDescending(e => e.ExpenseDate).ToList() : source.OrderBy(e => e.ExpenseDate).ToList(),
+		};
+	}
+
+	private List<PayoutItem> SortPayoutsSample(List<PayoutItem> source)
+	{
+		return PayoutSortColumn switch
+		{
+			"Amount" => PayoutSortDescending ? source.OrderByDescending(p => p.Amount).ToList() : source.OrderBy(p => p.Amount).ToList(),
+			"Status" => PayoutSortDescending ? source.OrderByDescending(p => p.Status).ToList() : source.OrderBy(p => p.Status).ToList(),
+			_ => PayoutSortDescending ? source.OrderByDescending(p => p.PayoutDate).ToList() : source.OrderBy(p => p.PayoutDate).ToList(),
 		};
 	}
 
@@ -1185,4 +1347,18 @@ public class ManualEntryViewModel : ComponentBase
 	}
 
 	#endregion
+}
+
+public record CategoryBreakdownItem(string Category, decimal Total, int Percentage)
+{
+	public string CategoryCss => Category switch
+	{
+		"Sale" => "cat-sale",
+		"Service" => "cat-service",
+		"Freelance" => "cat-freelance",
+		"Consulting" => "cat-consulting",
+		"Digital Product" => "cat-digital",
+		"Physical Product" => "cat-physical",
+		_ => "cat-other"
+	};
 }
