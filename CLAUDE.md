@@ -40,6 +40,7 @@ MyTalli is a side-hustle revenue aggregation dashboard. It lets creators and fre
   - Generate script: `dotnet ef migrations script --project Domain.Data.EntityFramework --startup-project My.Talli.Web --output ../migrations/<MigrationName>.sql`
 - **Production deployment:** Never run `dotnet ef database update` against production. Instead, generate a SQL script, review it, and run it manually in SSMS against the Azure database.
 - **Migration script folder:** `migrations/` (git-ignored) — stores generated `.sql` deployment scripts
+- **Local SQL testing scripts:** live OUTSIDE the repo at `C:\Users\Robert\Documents\SQL Server Management Studio\MyTalli` (the user manages these directly via SSMS). The repo's `sqlscripts/` folder is deprecated and intentionally empty — do not put new test/reset/seed scripts there. Migration scripts are the exception: they stay in `Source/Domain.Data.EntityFramework/Migrations/` because they're embedded build resources loaded by `DbMigrationBase`.
 - **Migration script guard:** Every generated migration script must have a guard block prepended at the top that checks `__EFMigrationsHistory` for the migration ID and aborts with `RAISERROR` + `RETURN` if already applied. This prevents accidental re-runs against production.
   ```sql
   IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NOT NULL
@@ -423,14 +424,6 @@ My.Talli/
 │   ├── MyTalli_MobilePatterns_Keyhole_Hybrid.html # Mobile wireframe — chosen pattern (Hub & Spoke + Keyhole Hybrid)
 │   ├── MyTalli_ManualEntry_Shops.html # Manual Shops picker concept — picker, dropdown, inline-create, schema diagram
 │   └── MyTalli_NavigationPatterns.html # Navigation IA wireframes — 4 patterns for grid/data organization
-├── sqlscripts/                     # Ad-hoc dev SQL scripts (git-ignored)
-│   ├── Reset_Etsy_TestData.sql      # Hard-delete Etsy Revenue/Expense/Payout for one user
-│   ├── Reset_Gumroad_TestData.sql   # Hard-delete Gumroad Revenue/Expense/Payout for one user
-│   ├── Reset_ManualEntry_TestData.sql # Hard-delete Manual Revenue/Expense/Payout (preserves Manual ShopConnection rows)
-│   ├── Reset_PayPal_TestData.sql    # Hard-delete PayPal Revenue/Expense/Payout (no subtables yet)
-│   ├── Reset_Shopify_TestData.sql   # Hard-delete Shopify Revenue/Expense/Payout (no subtables yet)
-│   ├── Reset_Stripe_TestData.sql    # Hard-delete Stripe Revenue/Expense/Payout for one user
-│   └── SeedFakeEtsyData.sql         # Seed synthetic Etsy receipts for local testing
 └── Source/
     ├── My.Talli.slnx               # Solution file (XML-based .slnx format)
     ├── .claude/settings.local.json
