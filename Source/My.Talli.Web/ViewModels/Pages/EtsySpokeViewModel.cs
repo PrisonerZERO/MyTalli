@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Components;
@@ -55,6 +56,12 @@ public class EtsySpokeViewModel : ComponentBase
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> ShopConnectionAdapter { get; set; } = default!;
 
+	[Inject]
+	private RepositoryAdapterAsync<MODELS.User, ENTITIES.User> UserAdapter { get; set; } = default!;
+
+	[Inject]
+	private UserPreferencesJsonSerializer PreferencesSerializer { get; set; } = default!;
+
 	#endregion
 
 	#region <Properties>
@@ -85,7 +92,21 @@ public class EtsySpokeViewModel : ComponentBase
 		_ => "Etsy — Revenue"
 	};
 
-	public const int PageSize = 50;
+	public int PageSize { get; set; } = 50;
+
+	public int[] PageSizeOptions { get; } = [10, 25, 50];
+
+	public string Density { get; private set; } = "compact";
+
+	public string DensityCss => $"density-{Density}";
+
+	public string PeriodLabel => Period switch
+	{
+		"7D" => "last 7 days",
+		"30D" => "last 30 days",
+		"90D" => "last 90 days",
+		_ => "all time",
+	};
 
 	public List<EtsyPayoutItem> PayoutItems { get; private set; } = [];
 
@@ -172,6 +193,7 @@ public class EtsySpokeViewModel : ComponentBase
 			};
 		}
 
+		items = ApplyPeriodFilter(items, p => p.PayoutDate);
 		return items.OrderByDescending(p => p.PayoutDate).ToList();
 	}
 
@@ -212,6 +234,40 @@ public class EtsySpokeViewModel : ComponentBase
 	public int PagedStart() => (CurrentPage - 1) * PageSize + 1;
 
 	public decimal OverviewRevenue30d => RevenueItems.Where(r => r.TransactionDate >= DateTime.UtcNow.AddDays(-30)).Sum(r => r.GrossAmount);
+
+	public async Task ChangePageSize(int newSize)
+	{
+		PageSize = newSize;
+		CurrentPage = 1;
+		await SaveGridPreferencesAsync();
+	}
+
+	public async Task SetDensity(string density)
+	{
+		Density = density;
+		await SaveGridPreferencesAsync();
+	}
+
+	private async Task SaveGridPreferencesAsync()
+	{
+		if (_userId is null) return;
+
+		var user = await UserAdapter.GetByIdAsync(_userId.Value);
+		if (user is null) return;
+
+		var preferences = PreferencesSerializer.Deserialize(user.UserPreferences);
+
+		preferences.GridPreferences["etsy.grid"] = new MODELS.GridPreference
+		{
+			Density = Density,
+			PageSize = PageSize,
+			SortColumn = string.Empty,
+			SortDescending = true,
+		};
+
+		user.UserPreferences = PreferencesSerializer.Serialize(preferences);
+		await UserAdapter.UpdateAsync(user);
+	}
 
 	public void SelectExpenseCategory(string category)
 	{
@@ -271,7 +327,24 @@ public class EtsySpokeViewModel : ComponentBase
 		_userId = parsedUserId;
 		CurrentUserService.Set(parsedUserId, string.Empty);
 
+		await LoadGridPreferencesAsync();
 		await LoadAsync();
+	}
+
+	private async Task LoadGridPreferencesAsync()
+	{
+		if (_userId is null) return;
+
+		var user = await UserAdapter.GetByIdAsync(_userId.Value);
+		if (user is null) return;
+
+		var preferences = PreferencesSerializer.Deserialize(user.UserPreferences);
+
+		if (preferences.GridPreferences.TryGetValue("etsy.grid", out var gridPrefs))
+		{
+			if (!string.IsNullOrEmpty(gridPrefs.Density)) Density = gridPrefs.Density;
+			if (gridPrefs.PageSize > 0) PageSize = gridPrefs.PageSize;
+		}
 	}
 
 	private IEnumerable<T> ApplyPeriodFilter<T>(IEnumerable<T> source, Func<T, DateTime> dateSelector)

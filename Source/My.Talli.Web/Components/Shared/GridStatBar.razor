@@ -1,0 +1,6 @@
+@namespace My.Talli.Web.Components.Shared
+@inherits My.Talli.Web.ViewModels.Shared.GridStatBarViewModel
+
+<div class="period-stat-bar" role="status" aria-live="polite">
+    <strong>@Count</strong> @(Count == 1 ? SingularLabel : PluralLabel) totaling <strong>@Total.ToString(TotalFormat)</strong>@TotalSuffix in the @PeriodLabel
+</div>

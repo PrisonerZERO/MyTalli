@@ -89,8 +89,6 @@
 .transactions-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 28px; }
 .transactions-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 20px; }
 .transactions-header h3 { color: var(--text-primary); font-size: 16px; font-weight: 600; }
-.period-stat-bar { background: var(--bg-page); border: 1px solid var(--border-subtle); border-radius: 10px; color: var(--text-muted); font-size: 14px; margin-bottom: 20px; padding: 12px 16px; }
-.period-stat-bar strong { color: var(--purple-primary); font-weight: 700; }
 .view-all { background: none; border: none; color: var(--purple-primary); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 4px 0; transition: color 0.15s ease; }
 .view-all:hover { color: var(--purple-hover); }
 .tx-table { border-collapse: collapse; width: 100%; }
@@ -165,11 +163,7 @@
 .dash-density-btn.active { background: var(--purple-soft); border-color: var(--purple-primary); color: var(--purple-primary); }
 .dash-density-btn svg { height: 14px; width: 14px; }
 .dash-page-info { color: var(--text-muted); font-size: 13px; }
-.dash-page-nav { display: flex; gap: 4px; }
-.dash-page-btn { align-items: center; background: transparent; border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-secondary); cursor: pointer; display: flex; justify-content: center; padding: 6px 10px; transition: all 0.15s; }
-.dash-page-btn:hover:not(:disabled) { border-color: var(--purple-primary); color: var(--purple-primary); }
-.dash-page-btn:disabled { color: var(--text-disabled); cursor: default; }
-.dash-page-btn svg { height: 16px; width: 16px; }
+.dash-pager-group { align-items: center; display: flex; gap: 12px; }
 
 @media (max-width: 641px) {
     .dash-hero { margin: -24px -20px 24px; padding: 20px 20px 100px; }

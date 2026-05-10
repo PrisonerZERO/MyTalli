@@ -210,15 +210,15 @@ else
             <div class="grid-card">
                 <div class="grid-header">
                     <h3>Sales</h3>
-                    <span class="grid-meta">@revenueView.Count rows · @revenueView.Sum(r => r.GrossAmount).ToString("C2") gross</span>
                 </div>
+                <My.Talli.Web.Components.Shared.GridStatBar Count="@revenueView.Count" Total="@revenueView.Sum(r => r.NetAmount)" SingularLabel="transaction" PluralLabel="transactions" TotalSuffix=" (net)" PeriodLabel="@PeriodLabel" />
                 @if (revenueView.Count == 0)
                 {
                     <p class="grid-empty">No sales in this window.</p>
                 }
                 else
                 {
-                    <table class="data-table">
+                    <table class="data-table @DensityCss">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -245,18 +245,7 @@ else
                             }
                         </tbody>
                     </table>
-                    <div class="grid-footer">
-                        <span class="grid-pagination">@PagedStart()–@PagedEnd(revenueView.Count) of @revenueView.Count</span>
-                        <div class="grid-pages">
-                            <button class="grid-page-btn" disabled="@(CurrentPage == 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
-                            @for (var i = 1; i <= GetTotalPageCount(); i++)
-                            {
-                                var pageNum = i;
-                                <button class="grid-page-btn @(pageNum == CurrentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
-                            }
-                            <button class="grid-page-btn" disabled="@(CurrentPage == GetTotalPageCount())" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
-                        </div>
-                    </div>
+                    <My.Talli.Web.Components.Shared.GridFooter PageSize="@PageSize" PageSizeOptions="@PageSizeOptions" OnPageSizeChanged="ChangePageSize" Density="@Density" OnDensityChanged="SetDensity" CurrentPage="@CurrentPage" TotalPages="@GetTotalPageCount()" TotalCount="@revenueView.Count" OnGoToPage="GoToPage" PageSelectId="etsy-rev-page-select" />
                 }
             </div>
         </div>
@@ -297,15 +286,15 @@ else
             <div class="grid-card">
                 <div class="grid-header">
                     <h3>Platform fees</h3>
-                    <span class="grid-meta">@expenseView.Count rows · @expenseView.Sum(e => e.Amount).ToString("C2")</span>
                 </div>
+                <My.Talli.Web.Components.Shared.GridStatBar Count="@expenseView.Count" Total="@expenseView.Sum(e => e.Amount)" SingularLabel="expense" PluralLabel="expenses" PeriodLabel="@PeriodLabel" />
                 @if (expenseView.Count == 0)
                 {
                     <p class="grid-empty">No expenses in this window.</p>
                 }
                 else
                 {
-                    <table class="data-table">
+                    <table class="data-table @DensityCss">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -332,18 +321,7 @@ else
                             }
                         </tbody>
                     </table>
-                    <div class="grid-footer">
-                        <span class="grid-pagination">@PagedStart()–@PagedEnd(expenseView.Count) of @expenseView.Count</span>
-                        <div class="grid-pages">
-                            <button class="grid-page-btn" disabled="@(CurrentPage == 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
-                            @for (var i = 1; i <= GetTotalPageCount(); i++)
-                            {
-                                var pageNum = i;
-                                <button class="grid-page-btn @(pageNum == CurrentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
-                            }
-                            <button class="grid-page-btn" disabled="@(CurrentPage == GetTotalPageCount())" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
-                        </div>
-                    </div>
+                    <My.Talli.Web.Components.Shared.GridFooter PageSize="@PageSize" PageSizeOptions="@PageSizeOptions" OnPageSizeChanged="ChangePageSize" Density="@Density" OnDensityChanged="SetDensity" CurrentPage="@CurrentPage" TotalPages="@GetTotalPageCount()" TotalCount="@expenseView.Count" OnGoToPage="GoToPage" PageSelectId="etsy-exp-page-select" />
                 }
             </div>
         </div>
@@ -369,6 +347,12 @@ else
                     <button class="filter-pill @(PayoutStatusFilter == "intransit" ? "active" : "")" @onclick='() => SelectPayoutStatus("intransit")'>In Transit</button>
                     <button class="filter-pill @(PayoutStatusFilter == "paid" ? "active" : "")" @onclick='() => SelectPayoutStatus("paid")'>Paid</button>
                 </div>
+                <div class="filter-pills" style="margin-left:auto;" role="group" aria-label="Time period filter">
+                    <button class="filter-pill @(Period == "7D" ? "active" : "")" @onclick='() => SelectPeriod("7D")'>7D</button>
+                    <button class="filter-pill @(Period == "30D" ? "active" : "")" @onclick='() => SelectPeriod("30D")'>30D</button>
+                    <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
+                    <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                </div>
             </div>
 
             @{
@@ -377,15 +361,15 @@ else
             <div class="grid-card">
                 <div class="grid-header">
                     <h3>Disbursements</h3>
-                    <span class="grid-meta">@payoutView.Count rows · @PayoutItems.Count(p => p.Status == "In Transit") in transit</span>
                 </div>
+                <My.Talli.Web.Components.Shared.GridStatBar Count="@payoutView.Count" Total="@payoutView.Sum(p => p.Amount)" SingularLabel="payout" PluralLabel="payouts" PeriodLabel="@PeriodLabel" />
                 @if (payoutView.Count == 0)
                 {
                     <p class="grid-empty">No payouts yet.</p>
                 }
                 else
                 {
-                    <table class="data-table">
+                    <table class="data-table @DensityCss">
                         <thead>
                             <tr>
                                 <th>Payout date</th>
@@ -410,18 +394,7 @@ else
                             }
                         </tbody>
                     </table>
-                    <div class="grid-footer">
-                        <span class="grid-pagination">@PagedStart()–@PagedEnd(payoutView.Count) of @payoutView.Count</span>
-                        <div class="grid-pages">
-                            <button class="grid-page-btn" disabled="@(CurrentPage == 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
-                            @for (var i = 1; i <= GetTotalPageCount(); i++)
-                            {
-                                var pageNum = i;
-                                <button class="grid-page-btn @(pageNum == CurrentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
-                            }
-                            <button class="grid-page-btn" disabled="@(CurrentPage == GetTotalPageCount())" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
-                        </div>
-                    </div>
+                    <My.Talli.Web.Components.Shared.GridFooter PageSize="@PageSize" PageSizeOptions="@PageSizeOptions" OnPageSizeChanged="ChangePageSize" Density="@Density" OnDensityChanged="SetDensity" CurrentPage="@CurrentPage" TotalPages="@GetTotalPageCount()" TotalCount="@payoutView.Count" OnGoToPage="GoToPage" PageSelectId="etsy-pay-page-select" />
                 }
             </div>
         </div>

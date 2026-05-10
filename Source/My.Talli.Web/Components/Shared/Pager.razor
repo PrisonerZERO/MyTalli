@@ -1,0 +1,23 @@
+@namespace My.Talli.Web.Components.Shared
+@inherits My.Talli.Web.ViewModels.Shared.PagerViewModel
+
+@if (TotalPages >= 1)
+{
+    <div class="pager" role="group" aria-label="Pagination">
+        <button class="pager-btn" disabled="@(CurrentPage <= 1)" @onclick="GoPrevious" aria-label="Previous page">‹</button>
+        @foreach (var slot in GetSlots())
+        {
+            if (slot.IsEllipsis)
+            {
+                <span class="pager-ellipsis" aria-hidden="true">…</span>
+            }
+            else
+            {
+                var pageNum = slot.PageNumber!.Value;
+                var isActive = pageNum == CurrentPage;
+                <button class="pager-btn @(isActive ? "active" : "")" aria-current="@(isActive ? "page" : null)" @onclick="() => GoTo(pageNum)">@pageNum</button>
+            }
+        }
+        <button class="pager-btn" disabled="@(CurrentPage >= TotalPages)" @onclick="GoNext" aria-label="Next page">›</button>
+    </div>
+}

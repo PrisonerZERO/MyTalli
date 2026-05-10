@@ -1,0 +1,300 @@
+@page "/platforms/stripe"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits My.Talli.Web.ViewModels.Pages.StripeSpokeViewModel
+@rendermode InteractiveServer
+
+<PageTitle>@PageTitle — MyTalli</PageTitle>
+
+@* ── Hero swoosh ── *@
+<section class="hero stripe-hero" aria-label="Stripe overview">
+    <div class="hero-bg" aria-hidden="true">
+        <svg preserveAspectRatio="none" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="stripeSwooshGrad" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#6c5ce7" />
+                    <stop offset="50%" stop-color="#7c4dd8" />
+                    <stop offset="100%" stop-color="#8b5cf6" />
+                </linearGradient>
+            </defs>
+            <path d="M0,0 L1000,0 L1000,320 C850,400 650,280 450,340 C250,400 100,360 0,300 Z" fill="url(#stripeSwooshGrad)" />
+        </svg>
+    </div>
+
+    <div class="hero-content">
+        <div class="hero-top">
+            <nav class="hero-breadcrumb" aria-label="Breadcrumb">
+                <a href="/platforms">Platforms</a>
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" /></svg>
+                <span class="current">Stripe Dashboard</span>
+            </nav>
+            <ul class="hero-nav">
+                <li><My.Talli.Web.Components.Shared.UserProfileButton @rendermode="InteractiveServer" /></li>
+            </ul>
+        </div>
+
+        <div class="hero-title-row">
+            <div class="hero-logo" aria-hidden="true">
+                <svg viewBox="0 0 32 32" fill="none">
+                    <rect x="2" y="2" width="28" height="28" rx="6" fill="#635bff" />
+                    <text x="16" y="21" text-anchor="middle" font-family="DM Sans" font-weight="700" font-size="14" fill="#fff">S</text>
+                </svg>
+            </div>
+            <div>
+                <h1>Stripe</h1>
+                <p class="hero-subtitle">
+                    @if (Shops.Count == 0)
+                    {
+                        <span>No accounts connected yet</span>
+                    }
+                    else
+                    {
+                        <span>@Shops.Count account@(Shops.Count == 1 ? "" : "s") connected</span>
+                        if (LastSyncDateTime.HasValue)
+                        {
+                            <span> · last synced @StripeSpokeViewModel.GetRelativeTime(LastSyncDateTime.Value)</span>
+                        }
+                    }
+                </p>
+            </div>
+        </div>
+
+        <div class="hero-stats" role="group" aria-label="Stripe summary statistics">
+            <div class="hero-stat">
+                <span class="hero-stat-num">@Shops.Count</span>
+                <span class="hero-stat-label">@(Shops.Count == 1 ? "Account" : "Accounts")</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">@OverviewNet30d.ToString("C2")</span>
+                <span class="hero-stat-label">Net revenue (30d)</span>
+            </div>
+            <div class="hero-stat">
+                @if (OverviewNextPayout is not null)
+                {
+                    <span class="hero-stat-num">@OverviewNextPayout.Amount.ToString("C2")</span>
+                    <span class="hero-stat-label">Next payout (@(OverviewNextPayout.ExpectedArrivalDate?.ToString("MMM d") ?? "pending"))</span>
+                }
+                else
+                {
+                    <span class="hero-stat-num">—</span>
+                    <span class="hero-stat-label">No payouts pending</span>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ── Spoke tabs ── *@
+<div class="spoke-tabs" role="tablist" aria-label="Stripe sections">
+    <button class="spoke-tab @(ActiveTab == "overview" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "overview")" @onclick='() => SelectTab("overview")'>Overview</button>
+    <button class="spoke-tab @(ActiveTab == "revenue" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "revenue")" @onclick='() => SelectTab("revenue")'>Revenue</button>
+    <button class="spoke-tab @(ActiveTab == "payouts" ? "active" : "")" role="tab" aria-selected="@(ActiveTab == "payouts")" @onclick='() => SelectTab("payouts")'>Payouts</button>
+</div>
+
+<div class="spoke-content">
+    @if (!HasAnyConnectedShop && !IsLoading)
+    {
+        <div class="empty-state">
+            <h2>No Stripe account connected yet</h2>
+            <p>Connect a Stripe account on the <a href="/platforms">Platforms page</a> to start syncing your charges and payouts here.</p>
+        </div>
+    }
+
+    @* ── OVERVIEW TAB ── *@
+    @if (ActiveTab == "overview" && HasAnyConnectedShop)
+    {
+        <div role="tabpanel" aria-label="Overview">
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <span class="kpi-label">Gross revenue (30d)</span>
+                    <span class="kpi-value">@OverviewRevenue30d.ToString("C2")</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Net revenue (30d)</span>
+                    <span class="kpi-value">@OverviewNet30d.ToString("C2")</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Charges (30d)</span>
+                    <span class="kpi-value">@RevenueItems.Count(r => r.TransactionDate >= DateTime.UtcNow.AddDays(-30))</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Payouts (30d)</span>
+                    <span class="kpi-value">@PayoutItems.Count(p => p.PayoutDate >= DateTime.UtcNow.AddDays(-30))</span>
+                </div>
+            </div>
+
+            <div class="grid-card">
+                <div class="grid-header">
+                    <h3>Top payment methods (all time)</h3>
+                </div>
+                @if (!TopPaymentMethods().Any())
+                {
+                    <p class="grid-empty">No charges yet.</p>
+                }
+                else
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Payment method</th>
+                                <th class="num">Charges</th>
+                                <th class="num">Net revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pm in TopPaymentMethods())
+                            {
+                                <tr>
+                                    <td class="cell-desc">@pm.Method</td>
+                                    <td class="num">@pm.Count</td>
+                                    <td class="num">@pm.Revenue.ToString("C2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    }
+
+    @* ── REVENUE TAB ── *@
+    @if (ActiveTab == "revenue" && HasAnyConnectedShop)
+    {
+        <div role="tabpanel" aria-label="Revenue">
+            <div class="filter-bar">
+                <span class="filter-label">Account:</span>
+                <div class="filter-pills" role="group" aria-label="Account filter">
+                    <button class="filter-pill @(SelectedShopId == null ? "active" : "")" @onclick="() => SelectShop(null)">All</button>
+                    @foreach (var shop in Shops)
+                    {
+                        var id = shop.ShopConnectionId;
+                        <button class="filter-pill @(SelectedShopId == id ? "active" : "")" @onclick="() => SelectShop(id)">@shop.DisplayName</button>
+                    }
+                </div>
+                <div class="filter-pills" style="margin-left:auto;" role="group" aria-label="Time period filter">
+                    <button class="filter-pill @(Period == "7D" ? "active" : "")" @onclick='() => SelectPeriod("7D")'>7D</button>
+                    <button class="filter-pill @(Period == "30D" ? "active" : "")" @onclick='() => SelectPeriod("30D")'>30D</button>
+                    <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
+                    <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                </div>
+            </div>
+
+            @{
+                var revenueView = GetVisibleRevenueItems();
+            }
+            <div class="grid-card">
+                <div class="grid-header">
+                    <h3>Charges</h3>
+                </div>
+                <My.Talli.Web.Components.Shared.GridStatBar Count="@revenueView.Count" Total="@revenueView.Sum(r => r.NetAmount)" SingularLabel="charge" PluralLabel="charges" TotalSuffix=" (net)" PeriodLabel="@PeriodLabel" />
+                @if (revenueView.Count == 0)
+                {
+                    <p class="grid-empty">No charges in this window.</p>
+                }
+                else
+                {
+                    <table class="data-table @DensityCss">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th class="num">Gross</th>
+                                <th class="num">Fee</th>
+                                <th class="num">Net</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in GetPagedRevenueItems())
+                            {
+                                <tr>
+                                    <td class="cell-date">@item.TransactionDate.ToLocalTime().ToString("MMM d, h:mmt").ToLower()</td>
+                                    <td class="cell-desc">@(string.IsNullOrEmpty(item.Description) ? item.BalanceTransactionId : item.Description)</td>
+                                    <td>@item.PaymentMethod</td>
+                                    <td><span class="badge @item.StatusCss">@item.StatusLabel</span></td>
+                                    <td class="num">@item.GrossAmount.ToString("C2")</td>
+                                    <td class="num">@item.FeeAmount.ToString("C2")</td>
+                                    <td class="num">@item.NetAmount.ToString("C2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <My.Talli.Web.Components.Shared.GridFooter PageSize="@PageSize" PageSizeOptions="@PageSizeOptions" OnPageSizeChanged="ChangePageSize" Density="@Density" OnDensityChanged="SetDensity" CurrentPage="@CurrentPage" TotalPages="@GetTotalPageCount()" TotalCount="@revenueView.Count" OnGoToPage="GoToPage" PageSelectId="stripe-rev-page-select" />
+                }
+            </div>
+        </div>
+    }
+
+    @* ── PAYOUTS TAB ── *@
+    @if (ActiveTab == "payouts" && HasAnyConnectedShop)
+    {
+        <div role="tabpanel" aria-label="Payouts">
+            <div class="filter-bar">
+                <span class="filter-label">Account:</span>
+                <div class="filter-pills" role="group" aria-label="Account filter">
+                    <button class="filter-pill @(SelectedShopId == null ? "active" : "")" @onclick="() => SelectShop(null)">All</button>
+                    @foreach (var shop in Shops)
+                    {
+                        var id = shop.ShopConnectionId;
+                        <button class="filter-pill @(SelectedShopId == id ? "active" : "")" @onclick="() => SelectShop(id)">@shop.DisplayName</button>
+                    }
+                </div>
+                <span class="filter-label" style="margin-left:12px;">Status:</span>
+                <div class="filter-pills" role="group" aria-label="Payout status filter">
+                    <button class="filter-pill @(PayoutStatusFilter == "all" ? "active" : "")" @onclick='() => SelectPayoutStatus("all")'>All</button>
+                    <button class="filter-pill @(PayoutStatusFilter == "intransit" ? "active" : "")" @onclick='() => SelectPayoutStatus("intransit")'>In Transit</button>
+                    <button class="filter-pill @(PayoutStatusFilter == "paid" ? "active" : "")" @onclick='() => SelectPayoutStatus("paid")'>Paid</button>
+                </div>
+                <div class="filter-pills" style="margin-left:auto;" role="group" aria-label="Time period filter">
+                    <button class="filter-pill @(Period == "7D" ? "active" : "")" @onclick='() => SelectPeriod("7D")'>7D</button>
+                    <button class="filter-pill @(Period == "30D" ? "active" : "")" @onclick='() => SelectPeriod("30D")'>30D</button>
+                    <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
+                    <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                </div>
+            </div>
+
+            @{
+                var payoutView = GetVisiblePayoutItems();
+            }
+            <div class="grid-card">
+                <div class="grid-header">
+                    <h3>Disbursements</h3>
+                </div>
+                <My.Talli.Web.Components.Shared.GridStatBar Count="@payoutView.Count" Total="@payoutView.Sum(p => p.Amount)" SingularLabel="payout" PluralLabel="payouts" PeriodLabel="@PeriodLabel" />
+                @if (payoutView.Count == 0)
+                {
+                    <p class="grid-empty">No payouts in this window.</p>
+                }
+                else
+                {
+                    <table class="data-table @DensityCss">
+                        <thead>
+                            <tr>
+                                <th>Payout date</th>
+                                <th>Status</th>
+                                <th>Method</th>
+                                <th>Expected arrival</th>
+                                <th>Stripe ID</th>
+                                <th class="num">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in GetPagedPayoutItems())
+                            {
+                                <tr>
+                                    <td class="cell-date">@item.PayoutDate.ToLocalTime().ToString("MMM d")</td>
+                                    <td><span class="badge @item.StatusCss">@item.StatusLabel</span></td>
+                                    <td>@item.PayoutMethod</td>
+                                    <td class="cell-date">@(item.ExpectedArrivalDate?.ToLocalTime().ToString("MMM d") ?? "—")</td>
+                                    <td class="cell-id">@item.StripePayoutId</td>
+                                    <td class="num">@item.Amount.ToString("C2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <My.Talli.Web.Components.Shared.GridFooter PageSize="@PageSize" PageSizeOptions="@PageSizeOptions" OnPageSizeChanged="ChangePageSize" Density="@Density" OnDensityChanged="SetDensity" CurrentPage="@CurrentPage" TotalPages="@GetTotalPageCount()" TotalCount="@payoutView.Count" OnGoToPage="GoToPage" PageSelectId="stripe-pay-page-select" />
+                }
+            </div>
+        </div>
+    }
+</div>

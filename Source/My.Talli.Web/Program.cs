@@ -29,6 +29,7 @@ builder.Services.AddEmailServices(builder.Configuration);
 builder.Services.AddPlatformServices(builder.Configuration);
 builder.Services.AddAdminServices();
 builder.Services.AddExportServices();
+builder.Services.AddQueries();
 builder.Services.AddKnownIssue(builder.Configuration);
 builder.Services.AddElmahLogging(builder.Configuration);
 

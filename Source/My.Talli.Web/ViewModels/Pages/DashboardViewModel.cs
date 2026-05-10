@@ -7,12 +7,14 @@ using Domain.Repositories;
 using Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Models;
 using Services.Identity;
 using Services.UI;
 using System.Security.Claims;
 using System.Text;
+using Web.Queries;
 
 using ENTITIES = Domain.Entities;
 using MODELS = Domain.Models;
@@ -31,7 +33,7 @@ public class DashboardViewModel : ComponentBase
 	private ICurrentUserService CurrentUserService { get; set; } = default!;
 
 	[Inject]
-	private RepositoryAdapterAsync<MODELS.Expense, ENTITIES.Expense> ExpenseAdapter { get; set; } = default!;
+	private ExpenseFindCommand ExpenseFind { get; set; } = default!;
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.PlatformConnection, ENTITIES.PlatformConnection> PlatformConnectionAdapter { get; set; } = default!;
@@ -43,13 +45,13 @@ public class DashboardViewModel : ComponentBase
 	private IOptions<KnownIssueSettings> KnownIssueOptions { get; set; } = default!;
 
 	[Inject]
-	private RepositoryAdapterAsync<MODELS.Payout, ENTITIES.Payout> PayoutAdapter { get; set; } = default!;
+	private PayoutFindCommand PayoutFind { get; set; } = default!;
 
 	[Inject]
 	private UserPreferencesJsonSerializer PreferencesSerializer { get; set; } = default!;
 
 	[Inject]
-	private RepositoryAdapterAsync<MODELS.Revenue, ENTITIES.Revenue> RevenueAdapter { get; set; } = default!;
+	private RevenueFindCommand RevenueFind { get; set; } = default!;
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
@@ -90,7 +92,9 @@ public class DashboardViewModel : ComponentBase
 
 	public List<ExpenseItem> Expenses { get; private set; } = [];
 
-	public decimal ExpensesTotalForPeriod => Expenses.Sum(e => e.Amount);
+	public int ExpenseTotalCount { get; private set; }
+
+	public decimal ExpensesTotalForPeriod { get; private set; }
 
 	public string ExpenseSortColumn { get; private set; } = "ExpenseDate";
 
@@ -116,11 +120,7 @@ public class DashboardViewModel : ComponentBase
 
 	public int MonthlyGoalPercentage { get; private set; } = 68;
 
-	public List<ExpenseItem> PagedExpenses => GetSortedExpenses().Skip((ExpenseCurrentPage - 1) * PageSize).Take(PageSize).ToList();
-
-	public List<PayoutItem> PagedPayouts => GetSortedPayouts().Skip((PayoutCurrentPage - 1) * PageSize).Take(PageSize).ToList();
-
-	public List<Transaction> PagedRevenueTransactions => GetSortedRevenue().Skip((RevenueCurrentPage - 1) * PageSize).Take(PageSize).ToList();
+	public List<Transaction> OverviewTopTransactions { get; private set; } = [];
 
 	public int PageSize { get; set; } = 50;
 
@@ -132,7 +132,9 @@ public class DashboardViewModel : ComponentBase
 
 	public List<PayoutItem> Payouts { get; private set; } = [];
 
-	public decimal PayoutsTotalForPeriod => Payouts.Sum(p => p.Amount);
+	public int PayoutTotalCount { get; private set; }
+
+	public decimal PayoutsTotalForPeriod { get; private set; }
 
 	public string PayoutSortColumn { get; private set; } = "PayoutDate";
 
@@ -157,6 +159,8 @@ public class DashboardViewModel : ComponentBase
 
 	public int RevenueCurrentPage { get; private set; } = 1;
 
+	public int RevenueTotalCount { get; private set; }
+
 	public string RevenueSortColumn { get; private set; } = "TransactionDate";
 
 	public bool RevenueSortDescending { get; private set; } = true;
@@ -167,13 +171,13 @@ public class DashboardViewModel : ComponentBase
 
 	public decimal TotalRevenue { get; private set; } = 4218m;
 
-	public int TotalExpensePages => Math.Max(1, (int)Math.Ceiling((double)Expenses.Count / PageSize));
+	public int TotalExpensePages => Math.Max(1, (int)Math.Ceiling((double)ExpenseTotalCount / PageSize));
 
-	public int TotalPayoutPages => Math.Max(1, (int)Math.Ceiling((double)Payouts.Count / PageSize));
+	public int TotalPayoutPages => Math.Max(1, (int)Math.Ceiling((double)PayoutTotalCount / PageSize));
 
 	public string TotalRevenueChange { get; private set; } = "23%";
 
-	public int TotalRevenuePages => Math.Max(1, (int)Math.Ceiling((double)RecentTransactions.Count / PageSize));
+	public int TotalRevenuePages => Math.Max(1, (int)Math.Ceiling((double)RevenueTotalCount / PageSize));
 
 	public string UserFirstName { get; private set; } = string.Empty;
 
@@ -186,11 +190,7 @@ public class DashboardViewModel : ComponentBase
 	{
 		LoadKnownIssue();
 		await LoadUserFromClaims();
-
-		if (IsSampleData)
-			LoadMockDataForPeriod();
-		else
-			await LoadRealDataAsync();
+		await ReloadAllAsync();
 	}
 
 
@@ -204,11 +204,7 @@ public class DashboardViewModel : ComponentBase
 		ExpenseCurrentPage = 1;
 		PayoutCurrentPage = 1;
 		RevenueCurrentPage = 1;
-
-		if (IsSampleData)
-			LoadMockDataForPeriod();
-		else
-			await LoadRealDataAsync();
+		await ReloadAllAsync();
 	}
 
 	public void SelectTab(string tab)
@@ -218,17 +214,20 @@ public class DashboardViewModel : ComponentBase
 
 	// ── Grid controls ──
 
-	public async Task ChangePageSize()
+	public async Task ChangePageSize(int newSize)
 	{
+		PageSize = newSize;
 		RevenueCurrentPage = 1;
 		ExpenseCurrentPage = 1;
 		PayoutCurrentPage = 1;
 		await SaveGridPreferencesAsync();
+		await ReloadAllAsync();
 	}
 
-	public void ExpenseGoToPage(int page)
+	public async Task ExpenseGoToPage(int page)
 	{
 		ExpenseCurrentPage = Math.Clamp(page, 1, TotalExpensePages);
+		await LoadExpensePageAsync();
 	}
 
 	public async Task ExpenseSortBy(string column)
@@ -245,6 +244,7 @@ public class DashboardViewModel : ComponentBase
 
 		ExpenseCurrentPage = 1;
 		await SaveGridPreferencesAsync();
+		await LoadExpensePageAsync();
 	}
 
 	public string GetExpenseSortIndicator(string column) => ExpenseSortColumn == column ? (ExpenseSortDescending ? "▼" : "▲") : "";
@@ -253,9 +253,10 @@ public class DashboardViewModel : ComponentBase
 
 	public string GetRevenueSortIndicator(string column) => RevenueSortColumn == column ? (RevenueSortDescending ? "▼" : "▲") : "";
 
-	public void PayoutGoToPage(int page)
+	public async Task PayoutGoToPage(int page)
 	{
 		PayoutCurrentPage = Math.Clamp(page, 1, TotalPayoutPages);
+		await LoadPayoutPageAsync();
 	}
 
 	public async Task PayoutSortBy(string column)
@@ -272,11 +273,13 @@ public class DashboardViewModel : ComponentBase
 
 		PayoutCurrentPage = 1;
 		await SaveGridPreferencesAsync();
+		await LoadPayoutPageAsync();
 	}
 
-	public void RevenueGoToPage(int page)
+	public async Task RevenueGoToPage(int page)
 	{
 		RevenueCurrentPage = Math.Clamp(page, 1, TotalRevenuePages);
+		await LoadRevenuePageAsync();
 	}
 
 	public async Task RevenueSortBy(string column)
@@ -293,6 +296,7 @@ public class DashboardViewModel : ComponentBase
 
 		RevenueCurrentPage = 1;
 		await SaveGridPreferencesAsync();
+		await LoadRevenuePageAsync();
 	}
 
 	public async Task SetDensity(string density)
@@ -375,51 +379,31 @@ public class DashboardViewModel : ComponentBase
 		KnownIssueSeverity = settings.Severity;
 	}
 
-	private void LoadMockDataForPeriod()
+	private async Task ReloadAllAsync()
 	{
-		var (start, end, _, _) = GetPeriodDateRange(ActivePeriod);
-		var endInclusive = end.AddDays(1);
+		if (IsSampleData)
+		{
+			LoadMockDataForPeriod();
+			return;
+		}
 
-		var revenueProjection = RevenueDataset.GetSampleRevenues().Select(r => (r.TransactionDate, r.Platform, r.Description, r.NetAmount));
-		RecomputeForPeriod(revenueProjection);
-
-		Expenses = ExpenseDataset.GetDashboardExpenses().Where(e => e.ExpenseDate >= start && e.ExpenseDate < endInclusive).ToList();
-		Payouts = PayoutDataset.GetDashboardPayouts().Where(p => p.PayoutDate >= start && p.PayoutDate < endInclusive).ToList();
-	}
-
-	private async Task LoadRealDataAsync()
-	{
-		var (start, end, prevStart, _) = GetPeriodDateRange(ActivePeriod);
-		var endInclusive = end.AddDays(1);
-
-		// Revenue covers current + previous period for diffs AND this/prev month for the cards.
-		// Fetch from the earliest of those start dates so SQL returns only what's needed.
-		var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
-		var prevMonthStart = monthStart.AddMonths(-1);
-		var fetchStart = prevStart < prevMonthStart ? prevStart : prevMonthStart;
-		var userId = _userId!.Value;
-
-		var allRevenues = await RevenueAdapter.FindAsync(r => r.UserId == userId && r.TransactionDate >= fetchStart && r.TransactionDate < endInclusive);
-		var revenueProjection = allRevenues.Select(r => (r.TransactionDate, r.Platform, r.Description, r.NetAmount));
-		RecomputeForPeriod(revenueProjection);
-
-		var expenses = await ExpenseAdapter.FindAsync(e => e.UserId == userId && e.ExpenseDate >= start && e.ExpenseDate < endInclusive);
-		Expenses = expenses.Select(ToExpenseItem).ToList();
-
-		var payouts = await PayoutAdapter.FindAsync(p => p.UserId == userId && p.PayoutDate >= start && p.PayoutDate < endInclusive);
-		Payouts = payouts.Select(ToPayoutItem).ToList();
-
+		await LoadAggregatesAsync();
+		await LoadRevenuePageAsync();
+		await LoadExpensePageAsync();
+		await LoadPayoutPageAsync();
 		await LoadGoalDataAsync();
 	}
 
-	private void RecomputeForPeriod(IEnumerable<(DateTime Date, string Platform, string Description, decimal NetAmount)> all)
+	private void LoadMockDataForPeriod()
 	{
 		var (start, end, prevStart, prevEnd) = GetPeriodDateRange(ActivePeriod);
 		var endInclusive = end.AddDays(1);
 		var prevEndInclusive = prevEnd.AddDays(1);
-		var allList = all.ToList();
-		var currentRevenues = allList.Where(r => r.Date >= start && r.Date < endInclusive).ToList();
-		var previousRevenues = allList.Where(r => r.Date >= prevStart && r.Date < prevEndInclusive).ToList();
+
+		// Revenue (sample)
+		var allRevenues = RevenueDataset.GetSampleRevenues();
+		var currentRevenues = allRevenues.Where(r => r.TransactionDate >= start && r.TransactionDate < endInclusive).ToList();
+		var previousRevenues = allRevenues.Where(r => r.TransactionDate >= prevStart && r.TransactionDate < prevEndInclusive).ToList();
 
 		// Summary cards
 		TotalRevenue = currentRevenues.Sum(r => r.NetAmount);
@@ -428,8 +412,8 @@ public class DashboardViewModel : ComponentBase
 
 		var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 		var prevMonthStart = monthStart.AddMonths(-1);
-		ThisMonthRevenue = allList.Where(r => r.Date >= monthStart).Sum(r => r.NetAmount);
-		var prevMonthRevenue = allList.Where(r => r.Date >= prevMonthStart && r.Date < monthStart).Sum(r => r.NetAmount);
+		ThisMonthRevenue = allRevenues.Where(r => r.TransactionDate >= monthStart).Sum(r => r.NetAmount);
+		var prevMonthRevenue = allRevenues.Where(r => r.TransactionDate >= prevMonthStart && r.TransactionDate < monthStart).Sum(r => r.NetAmount);
 		ThisMonthChange = FormatChange(ThisMonthRevenue, prevMonthRevenue);
 
 		// Platform breakdown
@@ -439,8 +423,88 @@ public class DashboardViewModel : ComponentBase
 		PlatformsConnected = Platforms.Count;
 
 		// Chart
-		var currentDaily = currentRevenues.GroupBy(r => r.Date.Date).Select(g => (Date: g.Key, Amount: g.Sum(r => r.NetAmount))).OrderBy(d => d.Date).ToList();
-		var previousDaily = previousRevenues.GroupBy(r => r.Date.Date).Select(g => (Date: g.Key, Amount: g.Sum(r => r.NetAmount))).OrderBy(d => d.Date).ToList();
+		var currentDaily = currentRevenues.GroupBy(r => r.TransactionDate.Date).Select(g => (Date: g.Key, Amount: g.Sum(r => r.NetAmount))).OrderBy(d => d.Date).ToList();
+		var previousDaily = previousRevenues.GroupBy(r => r.TransactionDate.Date).Select(g => (Date: g.Key, Amount: g.Sum(r => r.NetAmount))).OrderBy(d => d.Date).ToList();
+		var yMax = Math.Max(currentDaily.Any() ? currentDaily.Max(d => d.Amount) : 0, previousDaily.Any() ? previousDaily.Max(d => d.Amount) : 0);
+		ChartCurrentLinePath = BuildChartPath(currentDaily, start, end, yMax);
+		ChartCurrentAreaPath = ChartCurrentLinePath + " L796,200 L40,200 Z";
+		ChartPreviousLinePath = BuildChartPath(previousDaily, prevStart, prevEnd, yMax);
+		ChartPreviousAreaPath = ChartPreviousLinePath + " L796,200 L40,200 Z";
+
+		// Top 5 newest for Overview
+		OverviewTopTransactions = currentRevenues.OrderByDescending(r => r.TransactionDate).Take(5)
+			.Select(r => new Transaction(r.Platform, GetPlatformColor(r.Platform), r.Description, r.TransactionDate.ToString("MMM d, yyyy"), r.NetAmount, r.TransactionDate)).ToList();
+
+		// Revenue grid (paged + sorted)
+		var sortedRevenues = SortRevenueSample(currentRevenues);
+		RevenueTotalCount = sortedRevenues.Count;
+		RecentTransactions = sortedRevenues.Skip((RevenueCurrentPage - 1) * PageSize).Take(PageSize)
+			.Select(r => new Transaction(r.Platform, GetPlatformColor(r.Platform), r.Description, r.TransactionDate.ToString("MMM d, yyyy"), r.NetAmount, r.TransactionDate)).ToList();
+
+		// Expenses (sample)
+		var allExpenses = ExpenseDataset.GetDashboardExpenses().Where(e => e.ExpenseDate >= start && e.ExpenseDate < endInclusive).ToList();
+		ExpensesTotalForPeriod = allExpenses.Sum(e => e.Amount);
+		ExpenseTotalCount = allExpenses.Count;
+		var sortedExpenses = SortExpenseSample(allExpenses);
+		Expenses = sortedExpenses.Skip((ExpenseCurrentPage - 1) * PageSize).Take(PageSize).ToList();
+
+		// Payouts (sample)
+		var allPayouts = PayoutDataset.GetDashboardPayouts().Where(p => p.PayoutDate >= start && p.PayoutDate < endInclusive).ToList();
+		PayoutsTotalForPeriod = allPayouts.Sum(p => p.Amount);
+		PayoutTotalCount = allPayouts.Count;
+		var sortedPayouts = SortPayoutSample(allPayouts);
+		Payouts = sortedPayouts.Skip((PayoutCurrentPage - 1) * PageSize).Take(PageSize).ToList();
+	}
+
+	private async Task LoadAggregatesAsync()
+	{
+		var (start, end, prevStart, prevEnd) = GetPeriodDateRange(ActivePeriod);
+		var endInclusive = end.AddDays(1);
+		var prevEndInclusive = prevEnd.AddDays(1);
+		var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+		var prevMonthStart = monthStart.AddMonths(-1);
+		var userId = _userId!.Value;
+
+		// Period totals (current + previous) — SUM in SQL
+		var currentRevQuery = RevenueFind.Query(new RevenueFilter { UserId = userId, StartDate = start, EndDateExclusive = endInclusive });
+		var previousRevQuery = RevenueFind.Query(new RevenueFilter { UserId = userId, StartDate = prevStart, EndDateExclusive = prevEndInclusive });
+		var thisMonthRevQuery = RevenueFind.Query(new RevenueFilter { UserId = userId, StartDate = monthStart });
+		var prevMonthRevQuery = RevenueFind.Query(new RevenueFilter { UserId = userId, StartDate = prevMonthStart, EndDateExclusive = monthStart });
+
+		TotalRevenue = await RevenueFind.RunAsync(() => currentRevQuery.SumAsync(r => (decimal?)r.NetAmount)) ?? 0m;
+		var previousTotal = await RevenueFind.RunAsync(() => previousRevQuery.SumAsync(r => (decimal?)r.NetAmount)) ?? 0m;
+		TotalRevenueChange = FormatChange(TotalRevenue, previousTotal);
+
+		ThisMonthRevenue = await RevenueFind.RunAsync(() => thisMonthRevQuery.SumAsync(r => (decimal?)r.NetAmount)) ?? 0m;
+		var prevMonthRevenue = await RevenueFind.RunAsync(() => prevMonthRevQuery.SumAsync(r => (decimal?)r.NetAmount)) ?? 0m;
+		ThisMonthChange = FormatChange(ThisMonthRevenue, prevMonthRevenue);
+
+		// Platform breakdown — GROUP BY in SQL
+		var platformGroups = await RevenueFind.RunAsync(() => currentRevQuery
+			.GroupBy(r => r.Platform)
+			.Select(g => new { Platform = g.Key, Total = g.Sum(r => r.NetAmount) })
+			.OrderByDescending(g => g.Total)
+			.ToListAsync());
+
+		var platformTotal = platformGroups.Sum(g => g.Total);
+		Platforms = platformGroups.Select(g => new PlatformBreakdown(g.Platform, GetPlatformColor(g.Platform), g.Total, platformTotal > 0 ? (int)(g.Total / platformTotal * 100) : 0)).ToList();
+		PlatformsConnected = Platforms.Count;
+
+		// Chart data — GROUP BY day in SQL
+		var currentDailyRaw = await RevenueFind.RunAsync(() => currentRevQuery
+			.GroupBy(r => r.TransactionDate.Date)
+			.Select(g => new { Date = g.Key, Amount = g.Sum(r => r.NetAmount) })
+			.OrderBy(g => g.Date)
+			.ToListAsync());
+
+		var previousDailyRaw = await RevenueFind.RunAsync(() => previousRevQuery
+			.GroupBy(r => r.TransactionDate.Date)
+			.Select(g => new { Date = g.Key, Amount = g.Sum(r => r.NetAmount) })
+			.OrderBy(g => g.Date)
+			.ToListAsync());
+
+		var currentDaily = currentDailyRaw.Select(d => (d.Date, d.Amount)).ToList();
+		var previousDaily = previousDailyRaw.Select(d => (d.Date, d.Amount)).ToList();
 		var yMax = Math.Max(currentDaily.Any() ? currentDaily.Max(d => d.Amount) : 0, previousDaily.Any() ? previousDaily.Max(d => d.Amount) : 0);
 
 		ChartCurrentLinePath = BuildChartPath(currentDaily, start, end, yMax);
@@ -448,8 +512,103 @@ public class DashboardViewModel : ComponentBase
 		ChartPreviousLinePath = BuildChartPath(previousDaily, prevStart, prevEnd, yMax);
 		ChartPreviousAreaPath = ChartPreviousLinePath + " L796,200 L40,200 Z";
 
-		// All transactions (Revenue tab pages through these; Overview shows top 5)
-		RecentTransactions = currentRevenues.OrderByDescending(r => r.Date).Select(r => new Transaction(r.Platform, GetPlatformColor(r.Platform), r.Description, r.Date.ToString("MMM d, yyyy"), r.NetAmount, r.Date)).ToList();
+		// Overview top 5 — TOP 5 BY DATE in SQL
+		var topRows = await RevenueFind.RunAsync(() => currentRevQuery
+			.OrderByDescending(r => r.TransactionDate)
+			.Take(5)
+			.ToListAsync());
+		OverviewTopTransactions = topRows.Select(r => new Transaction(r.Platform, GetPlatformColor(r.Platform), r.Description, r.TransactionDate.ToString("MMM d, yyyy"), r.NetAmount, r.TransactionDate)).ToList();
+
+		// Expense / Payout period totals — SUM in SQL
+		var expenseQuery = ExpenseFind.Query(new ExpenseFilter { UserId = userId, StartDate = start, EndDateExclusive = endInclusive });
+		ExpensesTotalForPeriod = await ExpenseFind.RunAsync(() => expenseQuery.SumAsync(e => (decimal?)e.Amount)) ?? 0m;
+
+		var payoutQuery = PayoutFind.Query(new PayoutFilter { UserId = userId, StartDate = start, EndDateExclusive = endInclusive });
+		PayoutsTotalForPeriod = await PayoutFind.RunAsync(() => payoutQuery.SumAsync(p => (decimal?)p.Amount)) ?? 0m;
+	}
+
+	private async Task LoadRevenuePageAsync()
+	{
+		if (IsSampleData)
+		{
+			LoadMockDataForPeriod();
+			return;
+		}
+
+		var (start, end, _, _) = GetPeriodDateRange(ActivePeriod);
+		var endInclusive = end.AddDays(1);
+		var userId = _userId!.Value;
+
+		var filter = new RevenueFilter
+		{
+			UserId = userId,
+			StartDate = start,
+			EndDateExclusive = endInclusive,
+			SortColumn = RevenueSortColumn,
+			SortDescending = RevenueSortDescending,
+		};
+		var query = RevenueFind.Query(filter);
+		var pagedQuery = PaginatorCommand.Query(query, new PageArgs { PageNumber = RevenueCurrentPage, PageSize = PageSize });
+
+		RevenueTotalCount = await RevenueFind.RunAsync(() => query.CountAsync());
+		var rows = await RevenueFind.RunAsync(() => pagedQuery.ToListAsync());
+		RecentTransactions = rows.Select(r => new Transaction(r.Platform, GetPlatformColor(r.Platform), r.Description, r.TransactionDate.ToString("MMM d, yyyy"), r.NetAmount, r.TransactionDate)).ToList();
+	}
+
+	private async Task LoadExpensePageAsync()
+	{
+		if (IsSampleData)
+		{
+			LoadMockDataForPeriod();
+			return;
+		}
+
+		var (start, end, _, _) = GetPeriodDateRange(ActivePeriod);
+		var endInclusive = end.AddDays(1);
+		var userId = _userId!.Value;
+
+		var filter = new ExpenseFilter
+		{
+			UserId = userId,
+			StartDate = start,
+			EndDateExclusive = endInclusive,
+			SortColumn = ExpenseSortColumn,
+			SortDescending = ExpenseSortDescending,
+		};
+		var query = ExpenseFind.Query(filter);
+		var pagedQuery = PaginatorCommand.Query(query, new PageArgs { PageNumber = ExpenseCurrentPage, PageSize = PageSize });
+
+		ExpenseTotalCount = await ExpenseFind.RunAsync(() => query.CountAsync());
+		var rows = await ExpenseFind.RunAsync(() => pagedQuery.ToListAsync());
+		Expenses = rows.Select(ToExpenseItem).ToList();
+	}
+
+	private async Task LoadPayoutPageAsync()
+	{
+		if (IsSampleData)
+		{
+			LoadMockDataForPeriod();
+			return;
+		}
+
+		var (start, end, _, _) = GetPeriodDateRange(ActivePeriod);
+		var endInclusive = end.AddDays(1);
+		var userId = _userId!.Value;
+
+		var filter = new PayoutFilter
+		{
+			UserId = userId,
+			StartDate = start,
+			EndDateExclusive = endInclusive,
+			SortColumn = PayoutSortColumn,
+			SortDescending = PayoutSortDescending,
+		};
+		var query = PayoutFind.Query(filter);
+		var pagedQuery = PaginatorCommand.Query(query, new PageArgs { PageNumber = PayoutCurrentPage, PageSize = PageSize });
+
+		PayoutTotalCount = await PayoutFind.RunAsync(() => query.CountAsync());
+		var rows = await PayoutFind.RunAsync(() => pagedQuery.ToListAsync());
+		Payouts = rows.Select(ToPayoutItem).ToList();
 	}
 
 	private async Task LoadGoalDataAsync()
@@ -478,19 +637,17 @@ public class DashboardViewModel : ComponentBase
 			return;
 		}
 
-		// Compute earned from revenue using the goal's date range + platform filter (pushed into SQL).
+		// Compute earned via SQL SUM (date + optional platform filter)
 		var userId = _userId!.Value;
-		var goalStart = goal.StartDate;
-		var goalEnd = goal.EndDate;
-		var goalPlatform = string.IsNullOrEmpty(goal.Platform) ? null : goal.Platform;
-
-		var matchingRevenues = await RevenueAdapter.FindAsync(r =>
-			r.UserId == userId &&
-			r.TransactionDate >= goalStart &&
-			(goalEnd == null || r.TransactionDate <= goalEnd) &&
-			(goalPlatform == null || r.Platform == goalPlatform));
-
-		var earned = matchingRevenues.Sum(r => r.NetAmount);
+		var goalFilter = new RevenueFilter
+		{
+			UserId = userId,
+			StartDate = goal.StartDate,
+			EndDateExclusive = goal.EndDate?.AddDays(1),
+			Platform = string.IsNullOrEmpty(goal.Platform) ? null : goal.Platform,
+		};
+		var goalQuery = RevenueFind.Query(goalFilter);
+		var earned = await RevenueFind.RunAsync(() => goalQuery.SumAsync(r => (decimal?)r.NetAmount)) ?? 0m;
 
 		HasGoal = true;
 		GoalTargetAmount = goal.TargetAmount;
@@ -556,38 +713,38 @@ public class DashboardViewModel : ComponentBase
 		IsSampleData = !hasModules && !hasPlatforms;
 	}
 
-	private IEnumerable<ExpenseItem> GetSortedExpenses()
-	{
-		return ExpenseSortColumn switch
-		{
-			"Description" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase) : Expenses.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase),
-			"Category" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Category) : Expenses.OrderBy(e => e.Category),
-			"Amount" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Amount) : Expenses.OrderBy(e => e.Amount),
-			"Platform" => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.Platform) : Expenses.OrderBy(e => e.Platform),
-			_ => ExpenseSortDescending ? Expenses.OrderByDescending(e => e.ExpenseDate) : Expenses.OrderBy(e => e.ExpenseDate),
-		};
-	}
-
-	private IEnumerable<PayoutItem> GetSortedPayouts()
-	{
-		return PayoutSortColumn switch
-		{
-			"Amount" => PayoutSortDescending ? Payouts.OrderByDescending(p => p.Amount) : Payouts.OrderBy(p => p.Amount),
-			"Status" => PayoutSortDescending ? Payouts.OrderByDescending(p => p.Status) : Payouts.OrderBy(p => p.Status),
-			"Platform" => PayoutSortDescending ? Payouts.OrderByDescending(p => p.Platform) : Payouts.OrderBy(p => p.Platform),
-			"ExpectedArrival" => PayoutSortDescending ? Payouts.OrderByDescending(p => p.ExpectedArrivalDate) : Payouts.OrderBy(p => p.ExpectedArrivalDate),
-			_ => PayoutSortDescending ? Payouts.OrderByDescending(p => p.PayoutDate) : Payouts.OrderBy(p => p.PayoutDate),
-		};
-	}
-
-	private IEnumerable<Transaction> GetSortedRevenue()
+	private List<SampleRevenue> SortRevenueSample(List<SampleRevenue> source)
 	{
 		return RevenueSortColumn switch
 		{
-			"Description" => RevenueSortDescending ? RecentTransactions.OrderByDescending(t => t.Description, StringComparer.OrdinalIgnoreCase) : RecentTransactions.OrderBy(t => t.Description, StringComparer.OrdinalIgnoreCase),
-			"Amount" => RevenueSortDescending ? RecentTransactions.OrderByDescending(t => t.Amount) : RecentTransactions.OrderBy(t => t.Amount),
-			"Platform" => RevenueSortDescending ? RecentTransactions.OrderByDescending(t => t.PlatformName) : RecentTransactions.OrderBy(t => t.PlatformName),
-			_ => RevenueSortDescending ? RecentTransactions.OrderByDescending(t => t.SortDate) : RecentTransactions.OrderBy(t => t.SortDate),
+			"Description" => RevenueSortDescending ? source.OrderByDescending(r => r.Description, StringComparer.OrdinalIgnoreCase).ToList() : source.OrderBy(r => r.Description, StringComparer.OrdinalIgnoreCase).ToList(),
+			"Amount" => RevenueSortDescending ? source.OrderByDescending(r => r.NetAmount).ToList() : source.OrderBy(r => r.NetAmount).ToList(),
+			"Platform" => RevenueSortDescending ? source.OrderByDescending(r => r.Platform).ToList() : source.OrderBy(r => r.Platform).ToList(),
+			_ => RevenueSortDescending ? source.OrderByDescending(r => r.TransactionDate).ToList() : source.OrderBy(r => r.TransactionDate).ToList(),
+		};
+	}
+
+	private List<ExpenseItem> SortExpenseSample(List<ExpenseItem> source)
+	{
+		return ExpenseSortColumn switch
+		{
+			"Description" => ExpenseSortDescending ? source.OrderByDescending(e => e.Description, StringComparer.OrdinalIgnoreCase).ToList() : source.OrderBy(e => e.Description, StringComparer.OrdinalIgnoreCase).ToList(),
+			"Category" => ExpenseSortDescending ? source.OrderByDescending(e => e.Category).ToList() : source.OrderBy(e => e.Category).ToList(),
+			"Amount" => ExpenseSortDescending ? source.OrderByDescending(e => e.Amount).ToList() : source.OrderBy(e => e.Amount).ToList(),
+			"Platform" => ExpenseSortDescending ? source.OrderByDescending(e => e.Platform).ToList() : source.OrderBy(e => e.Platform).ToList(),
+			_ => ExpenseSortDescending ? source.OrderByDescending(e => e.ExpenseDate).ToList() : source.OrderBy(e => e.ExpenseDate).ToList(),
+		};
+	}
+
+	private List<PayoutItem> SortPayoutSample(List<PayoutItem> source)
+	{
+		return PayoutSortColumn switch
+		{
+			"Amount" => PayoutSortDescending ? source.OrderByDescending(p => p.Amount).ToList() : source.OrderBy(p => p.Amount).ToList(),
+			"Status" => PayoutSortDescending ? source.OrderByDescending(p => p.Status).ToList() : source.OrderBy(p => p.Status).ToList(),
+			"Platform" => PayoutSortDescending ? source.OrderByDescending(p => p.Platform).ToList() : source.OrderBy(p => p.Platform).ToList(),
+			"ExpectedArrival" => PayoutSortDescending ? source.OrderByDescending(p => p.ExpectedArrivalDate).ToList() : source.OrderBy(p => p.ExpectedArrivalDate).ToList(),
+			_ => PayoutSortDescending ? source.OrderByDescending(p => p.PayoutDate).ToList() : source.OrderBy(p => p.PayoutDate).ToList(),
 		};
 	}
 
