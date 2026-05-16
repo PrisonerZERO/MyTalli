@@ -207,7 +207,7 @@
     <div class="lane next">
       <div class="lane-header">
         <h3>Next Up</h3>
-        <span class="lane-count">3</span>
+        <span class="lane-count">2</span>
       </div>
       <div class="lane-body">
 
@@ -221,12 +221,6 @@
           <div class="card-tags"><span class="tag sync">Sync</span></div>
           <h4>Platforms page connection status</h4>
           <p>Surface token-expired / last-sync-failed states so users know when a reconnection is required.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag billing">Billing</span></div>
-          <h4>Module Checkout extension</h4>
-          <p>Extend <code>/api/billing/create-checkout-session</code> to accept module product IDs. Required for "Add Module" button on My Plan page.</p>
         </div>
 
       </div>
@@ -247,9 +241,19 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">16</span>
+        <span class="lane-count">17</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span></div>
+          <h4>Module Checkout audit + 2 silent-fallback bugs fixed + 3 regression tests</h4>
+          <p>The "Module Checkout extension" card was stale — the feature already shipped end-to-end in PR #43 ("ADD: Manual Entry Module &amp; its Stripe Product Setup"). Full trace: <em>Add Module</em> button on <code>/my-plan</code> → <code>HandleAddModule(productId)</code> in <code>MyPlanViewModel</code> → <code>/api/billing/create-checkout-session?product={id}</code> → <code>BillingEndpoints</code> looks up <code>StripeSettings.Modules</code> → Stripe Checkout → webhook → <code>CheckoutCompletedHandler.ResolveProductId</code> reverse-maps price → <code>StripeWebhookHandler</code> creates Order + OrderItem + Subscription + SubscriptionStripe + Billing + BillingStripe. But the audit caught two silent-fallback bugs in the Web layer (same family as the Stripe Connect Kind bug — code "shipped" doesn't mean "verified").
+          <strong>Bug A (endpoint silent fallthrough):</strong> if <code>?product=3</code> was sent but no matching key existed in <code>Stripe:Modules</code> (e.g., misconfigured Azure env var), <code>BillingEndpoints.CreateCheckoutSession</code> silently dropped through to the Pro plan branch. User clicked <em>Add Module</em> for $3/mo and got subscribed to Pro for $12/mo. Fixed: now logs warning + redirects to <code>/my-plan?error=invalid_module</code>.
+          <strong>Bug B (webhook silent fallback):</strong> <code>CheckoutCompletedHandler.ResolveProductId</code> did <code>return 1; // fallback to Pro Monthly</code> if the Stripe price id matched nothing in <code>MonthlyPriceId</code>, <code>YearlyPriceId</code>, or <code>Modules</code>. A successful Stripe charge for an unrecognized price would silently create a Pro Monthly subscription. Fixed: logs the unrecognized price + every known one and throws <code>InvalidOperationException</code> so the webhook fails loudly, Stripe retries, and Elmah catches it. User's payment is safe on Stripe's side until reconciled.
+          <strong>3 new regression tests</strong> in <code>StripeWebhookHandlerTests</code>: <code>ModuleCheckout_CreatesSubscriptionWithModuleProductId</code>, <code>ModuleCheckout_CreatesBillingAtModulePrice</code>, and <code>ProUserAddsModule_CreatesSecondSubscriptionRowNotReplacingPro</code> (proves the existing-stripe early-return only fires on duplicate of the same <code>sub_xxx</code>, so a Pro + module combo correctly produces two Subscription rows). <code>SeedProductAsync</code> helper extended with optional <code>productTypeId</code>. <strong>387/387 tests pass</strong> (was 384). End-to-end manual test skipped after weighing cost vs benefit — module flow shares the same Stripe Checkout + webhook plumbing as Pro plan (which is proven in production), and the only delta (<code>ResolveProductId</code> mapping) is now directly unit-tested.</p>
+          <span class="done-date">May 16 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>

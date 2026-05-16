@@ -232,6 +232,76 @@ public class StripeWebhookHandlerTests
 		await Assert.ThrowsAsync<NotFoundException>(() => builder.Handler.HandleCheckoutCompletedAsync(payload));
 	}
 
+	// ── Module checkout (ProductId >= 3) ──
+
+	[Fact]
+	public async Task ModuleCheckout_CreatesSubscriptionWithModuleProductId()
+	{
+		var builder = new BillingHandlerBuilder();
+		var user = await SeedUserAsync(builder);
+		var module = await SeedProductAsync(builder, "Manual Entry Module", 3m, productTypeId: 2);
+
+		var payload = CreateCheckoutPayload(module.Id, "test@gmail.com");
+		payload.UserId = user.Id;
+		payload.StripeSubscriptionId = "sub_module_123";
+		payload.StripePriceId = "price_module_3";
+
+		await builder.Handler.HandleCheckoutCompletedAsync(payload);
+
+		var subscription = Assert.Single(await builder.SubscriptionAdapter.GetAllAsync());
+		Assert.Equal(module.Id, subscription.ProductId);
+		Assert.Equal(FRAMEWORK.SubscriptionStatuses.Active, subscription.Status);
+		Assert.Equal(user.Id, subscription.UserId);
+	}
+
+	[Fact]
+	public async Task ModuleCheckout_CreatesBillingAtModulePrice()
+	{
+		var builder = new BillingHandlerBuilder();
+		var user = await SeedUserAsync(builder);
+		var module = await SeedProductAsync(builder, "Manual Entry Module", 3m, productTypeId: 2);
+
+		var payload = CreateCheckoutPayload(module.Id, "test@gmail.com");
+		payload.UserId = user.Id;
+		payload.StripeSubscriptionId = "sub_module_123";
+
+		await builder.Handler.HandleCheckoutCompletedAsync(payload);
+
+		var billing = Assert.Single(await builder.BillingAdapter.GetAllAsync());
+		Assert.Equal(3m, billing.Amount);
+	}
+
+	[Fact]
+	public async Task ProUserAddsModule_CreatesSecondSubscriptionRowNotReplacingPro()
+	{
+		// User has an active Pro subscription, then buys a module. Module checkout creates a NEW
+		// (Subscription + SubscriptionStripe) row alongside Pro — separate Stripe subscription id, separate
+		// row. The existing-stripe early-return path in HandleCheckoutCompletedAsync only fires on duplicate
+		// of the SAME Stripe subscription id, so a different sub_xxx must produce a new row.
+		var builder = new BillingHandlerBuilder();
+		var user = await SeedUserAsync(builder);
+		var pro = await SeedProductAsync(builder, "Pro Monthly Subscription", 12m);
+		var module = await SeedProductAsync(builder, "Manual Entry Module", 3m, productTypeId: 2);
+
+		// Pro checkout
+		var proPayload = CreateCheckoutPayload(pro.Id, "test@gmail.com");
+		proPayload.UserId = user.Id;
+		proPayload.StripeSubscriptionId = "sub_pro_123";
+		await builder.Handler.HandleCheckoutCompletedAsync(proPayload);
+
+		// Module checkout (separate Stripe subscription)
+		var modulePayload = CreateCheckoutPayload(module.Id, "test@gmail.com");
+		modulePayload.UserId = user.Id;
+		modulePayload.StripeSubscriptionId = "sub_module_456";
+		modulePayload.StripePriceId = "price_module_3";
+		await builder.Handler.HandleCheckoutCompletedAsync(modulePayload);
+
+		var subscriptions = (await builder.SubscriptionAdapter.GetAllAsync()).ToList();
+		Assert.Equal(2, subscriptions.Count);
+		Assert.Contains(subscriptions, s => s.ProductId == pro.Id);
+		Assert.Contains(subscriptions, s => s.ProductId == module.Id);
+	}
+
 	// ── HandleSubscriptionDeletedAsync ──
 
 	[Fact]
@@ -423,12 +493,12 @@ public class StripeWebhookHandlerTests
 		StripeSubscriptionId = "sub_test_123"
 	};
 
-	private static async Task<Product> SeedProductAsync(BillingHandlerBuilder builder, string name, decimal price)
+	private static async Task<Product> SeedProductAsync(BillingHandlerBuilder builder, string name, decimal price, long productTypeId = 1)
 	{
 		var vendor = await builder.ProductAdapter.InsertAsync(new Product
 		{
 			ProductName = name,
-			ProductTypeId = 1,
+			ProductTypeId = productTypeId,
 			VendorId = 1,
 			VendorPrice = price
 		});

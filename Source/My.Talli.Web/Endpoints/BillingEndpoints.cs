@@ -22,7 +22,7 @@ public static class BillingEndpoints
 
     #region <Methods>
 
-    private static async Task<IResult> CreateCheckoutSession(HttpContext context, StripeBillingService billing)
+    private static async Task<IResult> CreateCheckoutSession(HttpContext context, StripeBillingService billing, ILogger<Program> logger)
     {
         var email = context.User.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrEmpty(email))
@@ -35,10 +35,19 @@ public static class BillingEndpoints
 
         var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
 
-        // Module checkout: ?product={productId}
+        // Module checkout: ?product={productId}. If the param is present but no price is configured for it,
+        // fail loudly instead of silently falling through to Pro — otherwise a user clicking "Add Module"
+        // for a misconfigured module would accidentally subscribe to Pro $12/mo.
         var productParam = context.Request.Query["product"].ToString();
-        if (!string.IsNullOrEmpty(productParam) && billing.Modules.TryGetValue(productParam, out var modulePriceId))
+        if (!string.IsNullOrEmpty(productParam))
         {
+            if (!billing.Modules.TryGetValue(productParam, out var modulePriceId))
+            {
+                logger.LogWarning("Module checkout requested for productId={ProductId} but no Stripe price configured in Stripe:Modules. User={UserId}", productParam, userId);
+                context.Response.Redirect("/my-plan?error=invalid_module");
+                return Results.Empty;
+            }
+
             var session = await billing.CreateCheckoutSessionAsync(email, modulePriceId, successUrl: $"{baseUrl}/my-plan?status=success", cancelUrl: $"{baseUrl}/my-plan?status=cancelled", userId: userId);
             context.Response.Redirect(session.Url);
             return Results.Empty;
