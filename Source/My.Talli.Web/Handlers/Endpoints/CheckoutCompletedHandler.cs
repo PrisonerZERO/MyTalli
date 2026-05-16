@@ -104,7 +104,14 @@ public class CheckoutCompletedHandler
                 return id;
         }
 
-        return 1; // fallback to Pro Monthly
+        // Fail loudly instead of silently falling back to Pro Monthly. A real Stripe checkout completed for
+        // a price we don't recognize — the user paid for something, and writing a Pro Monthly subscription
+        // here would silently corrupt their entitlement. Throwing causes the webhook to fail; Stripe will
+        // retry and the failure surfaces in Elmah for investigation. The user's payment is safe on Stripe's
+        // side until we reconcile.
+        _logger.LogError("Stripe checkout completed with unrecognized price id {StripePriceId}. Known: monthly={Monthly}, yearly={Yearly}, modules=[{Modules}]",
+            stripePriceId, _settings.MonthlyPriceId, _settings.YearlyPriceId, string.Join(", ", _settings.Modules.Select(m => $"{m.Key}={m.Value}")));
+        throw new InvalidOperationException($"Stripe price id '{stripePriceId}' is not registered in Stripe:MonthlyPriceId, Stripe:YearlyPriceId, or Stripe:Modules. Investigate before this webhook retries.");
     }
 
     private async Task<CheckoutCompletedPayload> ToPayloadAsync(Stripe.Checkout.Session session)

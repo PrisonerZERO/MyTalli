@@ -168,6 +168,26 @@ public class GumroadSyncServiceTests
     }
 
     [Fact]
+    public async Task SyncShop_LastSyncUnspecifiedKind_PinnedToUtcSameWallClock()
+    {
+        // EF Core reads datetime2 columns as DateTimeKind.Unspecified. GumroadService.GetSalesAsync formats
+        // the after= query parameter via .ToUniversalTime(), which treats Unspecified as Local and shifts
+        // the date by the local timezone offset (potentially crossing the day boundary). The sync service
+        // must pin LastSyncDateTime to Utc without changing the wall-clock value.
+        var builder = new GumroadSyncBuilder();
+        var unspecified = new DateTime(2026, 4, 1, 12, 0, 0, DateTimeKind.Unspecified);
+        var shop = await InsertShopAsync(builder);
+        shop.LastSyncDateTime = unspecified;
+
+        await builder.Service.SyncShopAsync(shop, CancellationToken.None);
+
+        var passed = builder.ApiClient.SalesCalls[0].After;
+        Assert.NotNull(passed);
+        Assert.Equal(DateTimeKind.Utc, passed.Value.Kind);
+        Assert.Equal(new DateTime(2026, 4, 1, 12, 0, 0, DateTimeKind.Utc), passed.Value);
+    }
+
+    [Fact]
     public async Task SyncShop_EmptySaleId_Skipped()
     {
         var builder = new GumroadSyncBuilder();

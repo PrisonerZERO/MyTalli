@@ -497,9 +497,12 @@ public static class PlatformEndpoints
 
     private static CookieOptions ToCookieOptions(HttpContext context)
     {
+        // Stripe Connect Standard onboarding (identity, address, bank, 2FA) routinely takes 15-30+ minutes
+        // for a first-time seller. A short expiry leaves Stripe-side connected accounts orphaned with no DB
+        // binding when the cookie dies mid-flow. 60 min matches Stripe's own Account Link expiry default.
         return new CookieOptions
         {
-            Expires = DateTimeOffset.UtcNow.AddMinutes(10),
+            Expires = DateTimeOffset.UtcNow.AddMinutes(60),
             HttpOnly = true,
             IsEssential = true,
             Path = "/",

@@ -840,15 +840,26 @@ My.Talli/
         │   │   ├── Terms.razor           # Terms of Service (route: /terms, LandingLayout, no scoped CSS — shared `.policy-*` in app.css)
         │   │   ├── Unsubscribe.razor      # Email preference management (route: /unsubscribe?token=xxx)
         │   │   ├── Unsubscribe.razor.css
+        │   │   ├── EtsySpoke.razor          # Etsy per-platform dashboard (route: /platforms/etsy) — Overview / Revenue / Expenses / Payouts tabs
+        │   │   ├── EtsySpoke.razor.css
+        │   │   ├── GumroadSpoke.razor       # Gumroad per-platform dashboard (route: /platforms/gumroad) — Overview / Revenue tabs (no payouts API, no per-sale fees)
+        │   │   ├── GumroadSpoke.razor.css
+        │   │   ├── StripeSpoke.razor        # Stripe per-platform dashboard (route: /platforms/stripe) — Overview / Revenue / Payouts tabs
+        │   │   ├── StripeSpoke.razor.css
         │   │   ├── Error.razor           # Branded error page (routes: /Error, /Error/{StatusCode})
         │   │   └── Error.razor.css
         │   └── Shared/
         │       ├── BrandHeader.razor     # Reusable purple swoosh header (logo + action slot)
         │       ├── BrandHeader.razor.css
+        │       ├── ConfirmDialog.razor       # Reusable Yes/No confirmation dialog (danger/primary variants)
+        │       ├── ConfirmDialog.razor.css
+        │       ├── GridFooter.razor          # Shared grid footer — page-size selector + density buttons + page-info + <Pager>. Renders for every grid surface across Dashboard, Manual Entry, Etsy/Gumroad/Stripe spokes — single source of truth, drift impossible.
+        │       ├── GridFooter.razor.css
+        │       ├── GridStatBar.razor         # Shared "X items totaling $Y in the period" stat bar above every grid.
         │       ├── MaintenanceBanner.razor   # Admin-only persistent banner shown across all in-app pages while MM is on. Renders when (User.IsInRole("Admin") AND MM.IsEnabled). Shows status pill + live non-admin count (red→green at 0) + Turn Off button (ConfirmDialog-guarded). ALSO registers/unregisters the in-app session with ICircuitTracker (every user, every tab) and auto-redirects non-admins to /maintenance when MM flips on.
         │       ├── MaintenanceBanner.razor.css
-        │       ├── ConfirmDialog.razor       # Reusable Yes/No confirmation dialog (danger/primary variants)
-        │       └── ConfirmDialog.razor.css
+        │       ├── Pager.razor               # Shared windowed pager (renders 1..N up to 7 pages, otherwise 1 … current±1 … last). Used inside GridFooter on every grid.
+        │       └── Pager.razor.css
         ├── Helpers/
         │   └── LayoutHelper.cs            # Static helpers (CurrentYear, VersionNumber) for layouts
         ├── Services/
@@ -1003,7 +1014,7 @@ dotnet run --project Source/My.Talli.Web
 
 ### Version Number
 
-- **`<Version>1.0.0.0</Version>`** in `My.Talli.Web.csproj` — single source of truth for the app version. Format: `Major.Minor.Patch.Revision`. **Currently live on prod as of 2026-05-03 (first stable production release).**
+- **`<Version>1.0.0.6</Version>`** in `My.Talli.Web.csproj` — single source of truth for the app version. Format: `Major.Minor.Patch.Revision`. **Initial v1.0.0.0 went live on prod 2026-05-03; subsequent revisions (v1.0.0.1–v1.0.0.6) have shipped via PR + redeploy.**
 - **Revision number** — incremented with each fix deployment. Only the revision (4th segment) changes per fix. The version (`Major.Minor.Patch`) only changes for feature releases or breaking changes. The full 4-segment version is always displayed in the UI so deployment slots (staging vs production) can be visually distinguished.
 - **`LayoutHelper.VersionNumber`** reads `AssemblyInformationalVersionAttribute` (set by `<Version>`) at runtime
 - **`LayoutHelper.CurrentYear`** provides the current year for copyright footers
@@ -1064,7 +1075,7 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 
 ## Production Deployment Status
 
-- **Live:** `https://www.mytalli.com/` is serving **v1.0.0.0** as of 2026-05-03 (deployed via VS Publish ZipDeploy → staging slot → slot swap).
+- **Live:** `https://www.mytalli.com/` — initial **v1.0.0.0** shipped 2026-05-03 via VS Publish ZipDeploy → staging slot → slot swap. Subsequent revisions (v1.0.0.1 through v1.0.0.6) have shipped via PR-to-`main` + redeploy. Every release cycle now: develop on `development_ROB`/`_ROBERT` (name alternates), PR to `main`, merge, push to Azure.
 - **DataProtection posture (degraded):** The slot currently serving production has System-Assigned Managed Identity disabled and the two `DataProtection__BlobStorage__*` env vars set to a single space (`" "`) so the `IsNullOrWhiteSpace` guard in `PlatformsConfiguration.cs` skips blob registration. DataProtection falls back to filesystem-only keys → keys wipe on every container restart → all encrypted OAuth tokens on `app.ShopConnection` become unreadable, and active auth cookies are invalidated. Acceptable for the current beta (only the developer's test shops are connected); MUST be restored before real users connect platforms.
 - **Why degraded:** During the live deploy the auto-injected MSI sidecar image (`mcr.microsoft.com/appsvc/msitokenservice:stage3`) was failing to pull from MCR, blocking container start on staging. Disabling MI was the unblock. After the swap, the slot that was prod (with MI on) became staging, and the slot that was staging (no MI) became production.
 - **Restore path:** see the "Re-enable MI on prod slot + restore blob-backed Data Protection" backlog card in `documentation/MyTalli_Kanban.html` and the lessons in the `feedback_azure_deployment_lessons.md` memory file.
@@ -1306,6 +1317,7 @@ Architecture rationale (why these workers, paced, in-process) lives in [document
 - **Three workers today:** `ShopSyncWorker` (every 5 min, pulls new revenue/expense/payout data per shop, 24h cadence per shop), `TokenRefreshWorker` (every 6h, rotates refresh tokens before platform expiry), and `AdminHealthWorker` (every 1 min, **fast and DB-only** — refreshes the `MaintenanceModeService` cache from `app.SystemSetting` and writes its own row to `app.Heartbeat`). The last one is the universal "this instance is alive + cross-instance MM bridge" worker.
 - **Heartbeat tick at end of every pass.** Every worker writes a row to `app.Heartbeat` at the end of each loop iteration via `WriteHeartbeatTickCommand` (`HeartbeatSourceName` constants: `"ShopSyncWorker"` / `"TokenRefreshWorker"` / `"AdminHealthWorker"`). The tick is wrapped in try/catch and logs a warning on failure — heartbeat-write failures must never break the worker's main job. Future Sync Health Dashboard reads these rows to detect stale subsystems.
 - **Audit-field stamping:** workers have no HTTP context, so `CurrentUserMiddleware` never runs. Before any write that hits `AuditResolver`, the worker must call `currentUserService.Set(<userId>, string.Empty)` and clear it in a `finally`. Otherwise `AuditResolver` throws on UPDATE. Per-shop work uses the shop's `UserId`; system writes (heartbeats, MM cache refresh) use `0L` as the system sentinel.
+- **DateTime Kind = UTC everywhere (project-wide).** SQL Server `datetime2` stores no timezone and EF Core hydrates the value as `DateTimeKind.Unspecified`. Provider SDKs (Stripe.net `DateRangeOptions`, anything calling `.ToUniversalTime()` or `DateTimeOffset.ToUnixTimeSeconds()`) treat Unspecified as **Local** and silently shift Unix-seconds filters by the local timezone offset — dropping every record created in that gap between syncs. **Primary defense:** `TalliDbContext.OnModelCreating` registers a global `ValueConverter<DateTime, DateTime>` that pins every DateTime / `DateTime?` property to `Kind=Utc` on read and normalizes `Local→Utc` on write. Every EF-loaded DateTime now arrives in code as UTC, full stop. **Belt-and-suspenders defense:** sync services should still call `DateTime.SpecifyKind(value, DateTimeKind.Utc)` at the SDK boundary (see `EtsySyncService.BuildMinCreatedTimestamp` as the reference impl) — this protects against any DateTime that didn't come from EF (constructed in code, passed from a test, deserialized from a request). Regression tests of the shape *"when input is `Kind=Unspecified`, the value passed to the API client is `Kind=Utc` with the same wall-clock value"* live in `StripeConnectSyncServiceTests` + `GumroadSyncServiceTests` (named `SyncShop_LastSyncUnspecifiedKind_PinnedToUtcSameWallClock`). Add the same test pattern to every new sync service.
 - **Pacing is non-negotiable.** Four independent constraints force it: app-wide rate limits (Etsy 10 QPS / 10,000 QPD shared), the shared .NET thread pool, DB index contention on `app.Revenue`, and failure-blast-radius (unpaced failures cause thundering herds on recovery). Concrete numbers: 250ms per-shop for token refresh, 500ms per-shop + 200ms per-page for sync. `AdminHealthWorker` is exempt — its tick is one DB read + one DB upsert + a singleton method call, all under 100ms.
 - **Per-platform abstraction:** new platforms plug in by implementing `IPlatformTokenRefresher` and `IPlatformSyncService` (both in `Services/Platforms/`). The workers enumerate registered instances and dispatch by `Platform` name. No worker code changes needed to add Stripe, PayPal, Shopify, or Gumroad later.
 - **No user-triggered sync.** There is no "Sync Now" button and there won't be one before webhooks ship — see the **Platform Connections** rule.
@@ -1496,13 +1508,14 @@ Endpoint-supporting logic lives in dedicated classes under `Handlers/` and `Comm
 - **Handlers** (Web only — `My.Talli.Web/Handlers/Endpoints/`) — react to events. They orchestrate the pipeline: map external objects (e.g., Stripe SDK types, Etsy API responses) to Domain payloads, call Domain commands/handlers inside transactions, handle side effects (logging, emails). Each handler owns everything it does — mapping methods, email building, etc. live inside the handler, not back in the endpoint.
 - **Commands** — execute actions. Each command exposes a single `ExecuteAsync()` method. Organized by subfolder based on **what the command does**, not who calls it.
   - **Domain commands** (`Domain/CommandsAndQueries/Commands/{Area}/`) — the default home for commands. Use only Domain-layer deps: `RepositoryAdapterAsync`, Domain POCOs, `EnforcedTransactionScope`. Registered in `Domain.DI.Lamar.IoC.ContainerRegistry`. Example: `ConnectEtsyCommand`, `FindActiveSubscriptionWithStripeCommand`, `UpdateLocalSubscriptionCommand`. These are testable from `My.Talli.UnitTesting` via the in-memory repository stubs.
-  - **Web commands** (`My.Talli.Web/Commands/{Area}/`) — only when the command genuinely needs Web-layer primitives: `IEmailService`, direct `TalliDbContext` access (for keyless view queries like `vAuthenticatedUser`), or other infrastructure interfaces the Domain shouldn't see. Registered in the relevant `Configuration/{Name}Configuration.cs`. Example: `GetAdminUserListCommand` (direct DbContext), `SendWelcomeEmailCommand` (IEmailService).
+  - **Web commands** (`My.Talli.Web/CommandsAndQueries/Commands/{Area}/`) — only when the command genuinely needs Web-layer primitives: `IEmailService`, direct `TalliDbContext` access (for keyless view queries like `vAuthenticatedUser`), or other infrastructure interfaces the Domain shouldn't see. Registered in the relevant `Configuration/{Name}Configuration.cs`. Example: `GetAdminUserListCommand` (direct DbContext), `SendWelcomeEmailCommand` (IEmailService).
+  - **Web queries** (`My.Talli.Web/CommandsAndQueries/Queries/`) — read-side counterpart to Web commands. House `IQueryable<T>`-returning Find commands + supporting filters/page-args/paginator that get composed with EF aggregates (`SumAsync`, `GroupBy`, `Skip/Take`) by callers. Example: `RevenueFindCommand`, `ExpenseFindCommand`, `PayoutFindCommand`, `ManualEntryFindCommand`, `PaginatorCommand`. Registered in `Configuration/QueriesConfiguration.cs`.
   - **Default to Domain.** A command belongs in Web only if moving it breaks the "Domain stays HTTP- and SDK-free" rule. When in doubt, try Domain first and let the compiler push back.
 - Both handlers and commands are **non-static classes** with constructor-injected dependencies — no `HttpContext.RequestServices.GetRequiredService` calls.
 - All are registered as **scoped** (Web commands in `Configuration/{Name}Configuration.cs`; Domain commands in `Domain.DI.Lamar.IoC.ContainerRegistry`).
 - **One class per operation** — not one class per domain area. `CheckoutCompletedHandler` handles checkout completed events, not "all billing webhook events."
 - **Namespaces:**
-  - Web: `My.Talli.Web.Handlers.Endpoints` / `My.Talli.Web.Commands.{Area}`.
+  - Web: `My.Talli.Web.Handlers.Endpoints` / `My.Talli.Web.Commands.{Area}` / `My.Talli.Web.Queries` (the Web project's `CommandsAndQueries/` umbrella folder is organizational and does NOT appear in the namespace, matching the Domain convention).
   - Domain: `My.Talli.Domain.Commands.{Area}` (the `CommandsAndQueries/` umbrella folder is organizational and does NOT appear in the namespace — see Subfolder Namespace Convention).
 
 ### No Inline Code Blocks
