@@ -29,18 +29,7 @@ public class ConnectGumroadCommandTests
         await builder.GumroadCommand.ExecuteAsync(42, BuildTokens(accessToken: "gum-access"), BuildUser());
 
         var shop = Assert.Single(await builder.ShopConnectionAdapter.GetAllAsync());
-        Assert.Equal("gum-access", builder.TokenProtector.Unprotect(shop.AccessToken));
-    }
-
-    [Fact]
-    public async Task Execute_NewConnection_StoredAccessTokenIsEncrypted()
-    {
-        var builder = new PlatformHandlerBuilder();
-
-        await builder.GumroadCommand.ExecuteAsync(42, BuildTokens(accessToken: "plain-access"), BuildUser());
-
-        var shop = Assert.Single(await builder.ShopConnectionAdapter.GetAllAsync());
-        Assert.NotEqual("plain-access", shop.AccessToken);
+        Assert.Equal("gum-access", shop.AccessToken);
     }
 
     [Fact]
@@ -146,7 +135,7 @@ public class ConnectGumroadCommandTests
         Assert.False(result.WasNewShop);
 
         var shop = Assert.Single(await builder.ShopConnectionAdapter.GetAllAsync());
-        Assert.Equal("new", builder.TokenProtector.Unprotect(shop.AccessToken));
+        Assert.Equal("new", shop.AccessToken);
     }
 
     [Fact]

@@ -1,7 +1,6 @@
 namespace My.Talli.UnitTesting.Infrastructure.Builders;
 
 using Domain.Commands.Platforms;
-using Domain.Components.Tokens;
 using Domain.Models;
 using Domain.Repositories;
 using Lamar;
@@ -37,8 +36,6 @@ public class GumroadSyncBuilder
     public RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> ShopConnectionAdapter =>
         _container.GetInstance<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
 
-    public IShopTokenProtector TokenProtector => _container.GetInstance<IShopTokenProtector>();
-
     #endregion
 
     #region <Constructors>
@@ -50,7 +47,6 @@ public class GumroadSyncBuilder
         Service = new GumroadSyncService(
             ApiClient,
             Logger,
-            _container.GetInstance<IShopTokenProtector>(),
             _container.GetInstance<UpsertGumroadRevenueCommand>());
     }
 

@@ -1,11 +1,12 @@
 namespace My.Talli.Domain.Data.EntityFramework;
 
 using Domain.Entities;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 /// <summary>Database Context</summary>
-public class TalliDbContext : DbContext
+public class TalliDbContext : DbContext, IDataProtectionKeyContext
 {
     #region <Constructors>
 
@@ -23,6 +24,8 @@ public class TalliDbContext : DbContext
     public DbSet<Billing> Billings { get; set; } = null!;
 
     public DbSet<BillingStripe> BillingStripes { get; set; } = null!;
+
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
     public DbSet<Expense> Expenses { get; set; } = null!;
 

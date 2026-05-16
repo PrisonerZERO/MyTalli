@@ -1,7 +1,6 @@
 namespace My.Talli.UnitTesting.Infrastructure.Builders;
 
 using Domain.Commands.Platforms;
-using Domain.Components.Tokens;
 using Domain.Models;
 using Domain.Repositories;
 using Lamar;
@@ -67,8 +66,6 @@ public class PlatformHandlerBuilder
 
 	public RepositoryAdapterAsync<ShopConnectionEtsy, ENTITIES.ShopConnectionEtsy> ShopConnectionEtsyAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<ShopConnectionEtsy, ENTITIES.ShopConnectionEtsy>>();
-
-	public IShopTokenProtector TokenProtector => _container.GetInstance<IShopTokenProtector>();
 
 	public UpsertEtsyExpenseCommand UpsertExpense => _container.GetInstance<UpsertEtsyExpenseCommand>();
 

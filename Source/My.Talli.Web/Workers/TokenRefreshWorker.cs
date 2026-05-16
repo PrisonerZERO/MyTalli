@@ -2,7 +2,6 @@ namespace My.Talli.Web.Workers;
 
 using Domain.Commands.Admin;
 using Domain.Commands.Platforms;
-using Domain.Components.Tokens;
 using Domain.Data.Interfaces;
 using Domain.Models;
 using Domain.Repositories;
@@ -80,14 +79,13 @@ public class TokenRefreshWorker : BackgroundService
         var shopAdapter = sp.GetRequiredService<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
         var refreshCommand = sp.GetRequiredService<RefreshShopTokensCommand>();
         var currentUserService = sp.GetRequiredService<ICurrentUserService>();
-        var tokenProtector = sp.GetRequiredService<IShopTokenProtector>();
 
         foreach (var refresher in refreshers)
         {
             if (stoppingToken.IsCancellationRequested)
                 return;
 
-            await RefreshPlatformAsync(refresher, shopAdapter, refreshCommand, currentUserService, tokenProtector, stoppingToken);
+            await RefreshPlatformAsync(refresher, shopAdapter, refreshCommand, currentUserService, stoppingToken);
         }
 
         await WriteHeartbeatAsync(sp);
@@ -116,7 +114,7 @@ public class TokenRefreshWorker : BackgroundService
         }
     }
 
-    private async Task RefreshPlatformAsync(IPlatformTokenRefresher refresher, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopAdapter, RefreshShopTokensCommand refreshCommand, ICurrentUserService currentUserService, IShopTokenProtector tokenProtector, CancellationToken stoppingToken)
+    private async Task RefreshPlatformAsync(IPlatformTokenRefresher refresher, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopAdapter, RefreshShopTokensCommand refreshCommand, ICurrentUserService currentUserService, CancellationToken stoppingToken)
     {
         var platform = refresher.Platform;
         var threshold = DateTime.UtcNow.Add(refresher.ProactiveRefreshWindow);
@@ -140,7 +138,7 @@ public class TokenRefreshWorker : BackgroundService
 
             // Audit fields require an authenticated user — stamp as the shop's owner
             currentUserService.Set(shop.UserId, string.Empty);
-            try { await RefreshOneShopAsync(shop, refresher, refreshCommand, tokenProtector, stoppingToken); }
+            try { await RefreshOneShopAsync(shop, refresher, refreshCommand, stoppingToken); }
             finally { currentUserService.Clear(); }
 
             try { await Task.Delay(PerShopDelay, stoppingToken); }
@@ -148,12 +146,11 @@ public class TokenRefreshWorker : BackgroundService
         }
     }
 
-    private async Task RefreshOneShopAsync(ShopConnection shop, IPlatformTokenRefresher refresher, RefreshShopTokensCommand refreshCommand, IShopTokenProtector tokenProtector, CancellationToken stoppingToken)
+    private async Task RefreshOneShopAsync(ShopConnection shop, IPlatformTokenRefresher refresher, RefreshShopTokensCommand refreshCommand, CancellationToken stoppingToken)
     {
         try
         {
-            var refreshTokenPlaintext = SafeUnprotect(tokenProtector, shop.RefreshToken!, refresher.Platform, shop.Id);
-            var result = await refresher.RefreshAsync(refreshTokenPlaintext, stoppingToken);
+            var result = await refresher.RefreshAsync(shop.RefreshToken!, stoppingToken);
             await refreshCommand.ExecuteAsync(shop.Id, result.AccessToken, result.AccessTokenExpiryDateTime, result.RefreshToken, result.RefreshTokenExpiryDateTime);
             _logger.LogInformation("Refreshed {Platform} tokens for shop {ShopId}.", refresher.Platform, shop.Id);
         }
@@ -162,24 +159,6 @@ public class TokenRefreshWorker : BackgroundService
             _logger.LogWarning(ex, "Failed to refresh {Platform} tokens for shop {ShopId}.", refresher.Platform, shop.Id);
             try { await refreshCommand.RecordFailureAsync(shop.Id, $"Token refresh failed: {ex.Message}"); }
             catch (Exception recordEx) { _logger.LogError(recordEx, "Failed to record token refresh error for shop {ShopId}.", shop.Id); }
-        }
-    }
-
-    /// <summary>
-    /// Unprotects a stored refresh token, falling back to treating the value as plaintext if Data
-    /// Protection can't decrypt it (legacy pre-encryption row, key rotation, etc.). The next
-    /// successful refresh writes back a properly-encrypted value via RefreshShopTokensCommand.
-    /// </summary>
-    private string SafeUnprotect(IShopTokenProtector tokenProtector, string stored, string platform, long shopId)
-    {
-        try
-        {
-            return tokenProtector.Unprotect(stored);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "{Platform} refresh token for shop {ShopId} could not be unprotected — treating as plaintext (legacy row?). Next successful refresh will re-encrypt.", platform, shopId);
-            return stored;
         }
     }
 

@@ -2,7 +2,6 @@ namespace My.Talli.Web.Services.Platforms;
 
 using Domain.Commands.Platforms;
 using Domain.Components;
-using Domain.Components.Tokens;
 using Domain.enums;
 using Domain.extensions;
 using Domain.Models;
@@ -28,7 +27,6 @@ public class EtsySyncService : IPlatformSyncService
     private readonly EtsyTokenRefresher _etsyTokenRefresher;
     private readonly ILogger<EtsySyncService> _logger;
     private readonly RefreshShopTokensCommand _refreshShopTokensCommand;
-    private readonly IShopTokenProtector _tokenProtector;
     private readonly UpsertEtsyExpenseCommand _upsertEtsyExpenseCommand;
     private readonly UpsertEtsyPayoutCommand _upsertEtsyPayoutCommand;
     private readonly UpsertEtsyRevenueCommand _upsertEtsyRevenueCommand;
@@ -37,13 +35,12 @@ public class EtsySyncService : IPlatformSyncService
 
     #region <Constructors>
 
-    public EtsySyncService(IEtsyApiClient etsyService, EtsyTokenRefresher etsyTokenRefresher, ILogger<EtsySyncService> logger, RefreshShopTokensCommand refreshShopTokensCommand, IShopTokenProtector tokenProtector, UpsertEtsyExpenseCommand upsertEtsyExpenseCommand, UpsertEtsyPayoutCommand upsertEtsyPayoutCommand, UpsertEtsyRevenueCommand upsertEtsyRevenueCommand)
+    public EtsySyncService(IEtsyApiClient etsyService, EtsyTokenRefresher etsyTokenRefresher, ILogger<EtsySyncService> logger, RefreshShopTokensCommand refreshShopTokensCommand, UpsertEtsyExpenseCommand upsertEtsyExpenseCommand, UpsertEtsyPayoutCommand upsertEtsyPayoutCommand, UpsertEtsyRevenueCommand upsertEtsyRevenueCommand)
     {
         _etsyService = etsyService;
         _etsyTokenRefresher = etsyTokenRefresher;
         _logger = logger;
         _refreshShopTokensCommand = refreshShopTokensCommand;
-        _tokenProtector = tokenProtector;
         _upsertEtsyExpenseCommand = upsertEtsyExpenseCommand;
         _upsertEtsyPayoutCommand = upsertEtsyPayoutCommand;
         _upsertEtsyRevenueCommand = upsertEtsyRevenueCommand;
@@ -148,40 +145,20 @@ public class EtsySyncService : IPlatformSyncService
                            shop.TokenExpiryDateTime <= DateTime.UtcNow.Add(AccessTokenSafetyMargin);
 
         if (!needsRefresh)
-            return SafeUnprotect(shop.AccessToken, shop.Id, "access token");
+            return shop.AccessToken;
 
         if (string.IsNullOrEmpty(shop.RefreshToken))
             throw new InvalidOperationException($"Shop {shop.Id} has no refresh token — cannot sync.");
 
         _logger.LogInformation("Refreshing Etsy access token inline for shop {ShopId} before sync.", shop.Id);
 
-        var refreshTokenPlaintext = SafeUnprotect(shop.RefreshToken, shop.Id, "refresh token");
-        var refreshed = await _etsyTokenRefresher.RefreshAsync(refreshTokenPlaintext, cancellationToken);
+        var refreshed = await _etsyTokenRefresher.RefreshAsync(shop.RefreshToken, cancellationToken);
         await _refreshShopTokensCommand.ExecuteAsync(shop.Id, refreshed.AccessToken, refreshed.AccessTokenExpiryDateTime, refreshed.RefreshToken, refreshed.RefreshTokenExpiryDateTime);
 
         shop.TokenExpiryDateTime = refreshed.AccessTokenExpiryDateTime;
         shop.RefreshTokenExpiryDateTime = refreshed.RefreshTokenExpiryDateTime;
 
         return refreshed.AccessToken;
-    }
-
-    /// <summary>
-    /// Unprotects a stored token, falling back to treating the value as plaintext if Data Protection
-    /// can't decrypt it. This handles legacy plaintext rows (pre-encryption ship) and key-rotation
-    /// edge cases — the token still works for the API call, and the next successful refresh writes
-    /// back a properly-encrypted value.
-    /// </summary>
-    private string SafeUnprotect(string stored, long shopId, string label)
-    {
-        try
-        {
-            return _tokenProtector.Unprotect(stored);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Etsy {Label} for shop {ShopId} could not be unprotected — treating as plaintext (legacy row?). Next successful refresh will re-encrypt.", label, shopId);
-            return stored;
-        }
     }
 
     private static long BuildMinCreatedTimestamp(ShopConnection shop)

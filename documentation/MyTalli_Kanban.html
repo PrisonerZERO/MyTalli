@@ -98,13 +98,13 @@
   <div class="intro">
     <div class="intro-left">
       <h2>Current focus: Post-launch hardening</h2>
-      <p><strong>v1.0.0.6 pushing to Azure (May 10).</strong> Previous live: v1.0.0.5 (initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; revision fixes shipped via PR + redeploy since — every release is merged to <code>main</code>). The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. The original deploy was bumpy: a Microsoft sidecar image (<code>msitokenservice</code>) intermittently failed to pull, which forced us to disable Managed Identity on the staging slot to get the container to start. The slot that was prod (with MI on) is now the staging slot, and the slot that was staging (with MI off) is now serving production traffic. Result: prod runs on filesystem-only DataProtection keys until MI is re-enabled. Next: re-enable MI + restore blob-backed keys on prod, reconnect test platforms, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
+      <p><strong>v1.0.0.7 LIVE on www.mytalli.com (May 16).</strong> Previous: v1.0.0.6 (May 10), v1.0.0.5 (May 10), v1.0.0.4–v1.0.0.1, initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; every release merged to <code>main</code>. The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. The original deploy was bumpy: a Microsoft sidecar image (<code>msitokenservice</code>) intermittently failed to pull, which forced us to disable Managed Identity on the staging slot to get the container to start. The slot that was prod (with MI on) is now the staging slot, and the slot that was staging (with MI off) is now serving production traffic. Result: prod runs on filesystem-only DataProtection keys until MI is re-enabled. Next: re-enable MI + restore blob-backed keys on prod, reconnect test platforms, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
     </div>
     <div class="intro-metrics">
       <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">3</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">15</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">18</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -241,9 +241,16 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">17</span>
+        <span class="lane-count">18</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span><span class="tag billing">Billing</span><span class="tag sync">Sync</span><span class="tag nav">Nav</span></div>
+          <h4>v1.0.0.7 LIVE — Silent data-loss sweep + sidebar highlights</h4>
+          <p>Shipped to <code>https://www.mytalli.com/</code> on May 16. Bundle of 5 commits queued during the Stripe Connect local end-to-end verification session and pushed together. <strong>Headline:</strong> three silent-data-corruption bugs fixed that were all variants of "code tried to be helpful with a fallback when input didn't match expectations" — see <code>memory/feedback_fail_loud_at_boundaries.md</code>. (1) <code>StripeConnectSyncService</code> + <code>GumroadSyncService</code> DateTime Kind: EF-loaded <code>LastSyncDateTime</code> arrived as <code>Kind=Unspecified</code> and Stripe.net's <code>DateRangeOptions.GreaterThan</code> serialized it as Local time, shifting the Unix-seconds filter by the local timezone offset (~5h CDT) → silently dropped every charge/payout created in that gap between syncs. Targeted fix: <code>DateTime.SpecifyKind(value, DateTimeKind.Utc)</code> at the SDK boundary. <strong>Project-wide follow-up</strong>: global <code>ValueConverter&lt;DateTime, DateTime&gt;</code> on <code>TalliDbContext.OnModelCreating</code> pins every EF-loaded DateTime to <code>Kind=Utc</code> across all 30+ entities — eliminates the trap forever. (2) <code>BillingEndpoints.CreateCheckoutSession</code> silently fell through to Pro plan checkout when <code>?product=</code> wasn't in <code>Stripe:Modules</code> — user clicks "Add Module" for $3/mo, gets subscribed to Pro for $12/mo. Fixed: log warning + redirect to <code>/my-plan?error=invalid_module</code>. (3) <code>CheckoutCompletedHandler.ResolveProductId</code> had <code>return 1; // fallback to Pro Monthly</code> on any unrecognized Stripe price id — webhook silently created a Pro Monthly record instead of the real entitlement. Fixed: throw <code>InvalidOperationException</code> with full diagnostic context; Stripe retries, Elmah catches. <strong>Also bumped:</strong> Stripe Connect cookie expiry 10 min → 60 min (real Standard onboarding routinely takes 15-30+ min, users hit <code>?error=stripe_expired</code>). <strong>UX:</strong> two-level active highlight in the sidebar — group background + active sub-link pill (<code>--purple-soft-alt</code>); dark-mode token fixed (was collapsed to <code>--purple-soft</code>, no contrast); platform parent links now go to their dashboard + properly clickable via NavLink; Manual platform's 404 dashboard link fixed (routes to <code>/manual-entry</code>). <strong>5 new regression tests</strong> covering the DateTime Kind invariant + module checkout paths. <strong>387/387 tests pass.</strong></p>
+          <span class="done-date">May 16 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag billing">Billing</span></div>
