@@ -98,13 +98,13 @@
   <div class="intro">
     <div class="intro-left">
       <h2>Current focus: Post-launch hardening</h2>
-      <p><strong>v1.0.0.7 LIVE on www.mytalli.com (May 16).</strong> Previous: v1.0.0.6 (May 10), v1.0.0.5 (May 10), v1.0.0.4–v1.0.0.1, initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; every release merged to <code>main</code>. The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. The original deploy was bumpy: a Microsoft sidecar image (<code>msitokenservice</code>) intermittently failed to pull, which forced us to disable Managed Identity on the staging slot to get the container to start. The slot that was prod (with MI on) is now the staging slot, and the slot that was staging (with MI off) is now serving production traffic. Result: prod runs on filesystem-only DataProtection keys until MI is re-enabled. Next: re-enable MI + restore blob-backed keys on prod, reconnect test platforms, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
+      <p><strong>v1.0.0.8 LIVE on www.mytalli.com (May 16).</strong> Previous: v1.0.0.7 (May 16), v1.0.0.6 (May 10), v1.0.0.5 (May 10), v1.0.0.4–v1.0.0.1, initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; every release merged to <code>main</code>. The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. <strong>Infrastructure side is now stable:</strong> v1.0.0.8 moved DataProtection keys to SQL (<code>components.DataProtectionKey</code>) and removed the at-rest encryption layer on OAuth tokens — no more MI / blob / sidecar dependency, no more "container restart wipes keys" failure mode. Next: reconnect Etsy / Gumroad test shops on prod (old ciphertext tokens are unreadable), delete the dead <code>DataProtection__BlobStorage__*</code> env vars on both slots, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">3</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">18</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">19</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -118,7 +118,7 @@
     <div class="lane backlog">
       <div class="lane-header">
         <h3>Backlog</h3>
-        <span class="lane-count">13</span>
+        <span class="lane-count">12</span>
       </div>
       <div class="lane-body">
 
@@ -132,12 +132,6 @@
           <div class="card-tags"><span class="tag setup">Setup</span></div>
           <h4>Collapse migration files (one-per-version rule)</h4>
           <p>The dev DB currently has 17 migration files spanning multiple version increments — the prod DB now matches. Per CLAUDE.md "One Migration Per Version" rule, each version/release should produce exactly one migration. Process: revert local DB (<code>Update-Database 0</code>), <code>Remove-Migration</code> back to a stable baseline, regenerate as a single migration per version. Do this BEFORE the next prod deploy so the migration history stays clean. Coordinate carefully with what's already on prod — squashing migrations that were applied separately needs the prod history to be matched manually in <code>__EFMigrationsHistory</code>.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag setup">Setup</span></div>
-          <h4>Re-enable MI on prod slot + restore blob-backed Data Protection</h4>
-          <p>Right now the prod slot has System-Assigned Managed Identity OFF and the two <code>DataProtection__BlobStorage__*</code> env vars are set to a single space (<code>" "</code>) to force our <code>IsNullOrWhiteSpace</code> guard to skip blob registration. Result: filesystem-only keys, wiped on every container restart. To restore: turn MI on, grant the new principal <code>Storage Blob Data Contributor</code> on <code>mytallistorage01</code>, <strong>delete</strong> the empty-string env vars (so <code>appsettings.json</code> values take over), restart the slot, verify a fresh <code>keys.xml</code> lands in <code>dataprotection-keys</code>. Pre-req: confirm the MCR <code>msitokenservice</code> sidecar pull is no longer failing — if it still is, switch to User-Assigned MI (different sidecar mechanism). Once this lands, also reconnect Etsy / Gumroad / Stripe Connect test shops on prod (their existing tokens are unreadable).</p>
         </div>
 
         <div class="card">
@@ -241,9 +235,16 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">18</span>
+        <span class="lane-count">19</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>v1.0.0.8 LIVE — SQL-backed DataProtection + plaintext OAuth tokens</h4>
+          <p>Shipped to <code>https://www.mytalli.com/</code> on May 16 (same day as v1.0.0.7). Two-part change. <strong>Part 1 — SQL-backed DataProtection:</strong> Added <code>Microsoft.AspNetCore.DataProtection.EntityFrameworkCore</code> + new <code>components.DataProtectionKey</code> table (EF migration). <code>TalliDbContext</code> now implements <code>IDataProtectionKeyContext</code>; <code>PlatformsConfiguration</code> calls <code>.PersistKeysToDbContext&lt;TalliDbContext&gt;()</code>. Keys persist across container restarts / slot swaps / scale events via Azure SQL backups. <strong>Zero MI / blob / sidecar dependency</strong> — sidesteps the v1.0.0.0 deploy nightmare entirely. <strong>Part 2 — Rip out <code>IShopTokenProtector</code>:</strong> the at-rest encryption layer on <code>ShopConnection.AccessToken</code> / <code>RefreshToken</code> was security theater once we co-located the decryption keys in the same SQL DB as the data (zero defense against full-DB compromise) while creating a permanent operational tax (lose the keys → every connected platform requires manual reconnect). Tokens now stored plaintext; DB itself is the trust boundary. DataProtection still wraps cookies + antiforgery + the Stripe Connect onboarding cookie — those are browser-round-trip values that genuinely need encryption. Deleted: <code>IShopTokenProtector.cs</code>, <code>DataProtectionShopTokenProtector.cs</code>, <code>ShopTokenProtectorStub.cs</code> + the 2 now-obsolete "tokens are encrypted" tests. Stripped from 3 Domain commands + 3 Web services + 4 test files. EF Core packages bumped <code>preview.2</code> → <code>10.0.*</code> (stable) to satisfy the new dependency. Deploy verified end-to-end: signed in across slot swap (cookie keys persisted in SQL), first <code>DataProtectionKey</code> row landed on prod (<code>key-986196af-...</code>). <strong>385/385 tests pass.</strong></p>
+          <span class="done-date">May 16 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span><span class="tag billing">Billing</span><span class="tag sync">Sync</span><span class="tag nav">Nav</span></div>
@@ -304,7 +305,7 @@
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>
           <h4>v1.0.0.0 LIVE on www.mytalli.com</h4>
-          <p>Full app shipped: <code>https://www.mytalli.com/</code> → 200, v1.0.0.0. Path: VS Publish ZipDeploy → staging slot → slot swap to production. The deploy was bumpy: a Microsoft sidecar image (<code>mcr.microsoft.com/appsvc/msitokenservice:stage3</code>) was failing to pull from MCR, which prevented the staging slot from starting. Workaround: disabled System-Assigned MI on staging + set the two <code>DataProtection__BlobStorage__*</code> env vars to a single space (<code>" "</code>) so our <code>IsNullOrWhiteSpace</code> guard skips blob registration and falls back to filesystem keys. After swap, the slot serving prod doesn't have MI either — see "Re-enable MI on prod" backlog card. Smoke test: <code>/</code>, <code>/signin</code>, <code>/privacy</code>, <code>/terms</code> all 200; full Blazor Server interactive pages render. NOT yet exercised on the live URL: full sign-in round-trip, sync workers against real shops, live Stripe checkout. <strong>Lessons captured in <code>memory/feedback_azure_deployment_lessons.md</code>.</strong></p>
+          <p>Full app shipped: <code>https://www.mytalli.com/</code> → 200, v1.0.0.0. Path: VS Publish ZipDeploy → staging slot → slot swap to production. The deploy was bumpy: a Microsoft sidecar image (<code>mcr.microsoft.com/appsvc/msitokenservice:stage3</code>) was failing to pull from MCR, which prevented the staging slot from starting. Workaround: disabled System-Assigned MI on staging + set the two <code>DataProtection__BlobStorage__*</code> env vars to a single space (<code>" "</code>) so our <code>IsNullOrWhiteSpace</code> guard skips blob registration and falls back to filesystem keys. After swap, the slot serving prod ran on filesystem keys for ~13 days. <strong>RESOLVED 2026-05-16 by v1.0.0.8</strong> (see Done card above) — moved DataProtection keys to SQL, eliminated the MI/blob/sidecar dependency entirely. Smoke test: <code>/</code>, <code>/signin</code>, <code>/privacy</code>, <code>/terms</code> all 200; full Blazor Server interactive pages render. <strong>Lessons captured in <code>memory/feedback_azure_deployment_lessons.md</code>.</strong></p>
           <span class="done-date">May 3 2026</span>
         </div>
 
@@ -345,8 +346,8 @@
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>
-          <h4>Encrypt OAuth tokens at rest (IDataProtector)</h4>
-          <p><code>ShopConnection.AccessToken</code> + <code>RefreshToken</code> are now wrapped with ASP.NET Data Protection (purpose <code>"MyTalli.ShopConnection.Tokens.v1"</code>). New <code>IShopTokenProtector</code> interface in Domain, <code>DataProtectionShopTokenProtector</code> implementation in Web. Encrypts on write in <code>ConnectEtsyCommand</code> + <code>RefreshShopTokensCommand</code>; decrypts on read in <code>EtsySyncService</code> + <code>TokenRefreshWorker</code>. <code>ShopTokenProtectorStub</code> in test infrastructure with prefix-wrap for verification.</p>
+          <h4>Encrypt OAuth tokens at rest (IDataProtector) — REVERTED by v1.0.0.8</h4>
+          <p><strong>Originally shipped Apr 26:</strong> <code>ShopConnection.AccessToken</code> + <code>RefreshToken</code> wrapped with ASP.NET Data Protection (purpose <code>"MyTalli.ShopConnection.Tokens.v1"</code>) via <code>IShopTokenProtector</code> / <code>DataProtectionShopTokenProtector</code>. <strong>REVERTED 2026-05-16 (v1.0.0.8)</strong> after realizing that co-locating decryption keys in the same SQL DB as the data was security theater (zero defense vs full-DB compromise) while creating a permanent operational tax (key loss = manual reconnect per platform). Tokens now stored plaintext; DB is the trust boundary. See lesson <code>memory/feedback_security_theater_co_located_keys.md</code>.</p>
           <span class="done-date">Apr 26 2026</span>
         </div>
 

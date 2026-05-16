@@ -95,11 +95,11 @@ Azure tried to inject the MSI sidecar container and the image pull failed agains
 Three real causes, in order of likelihood:
 
 1. **`WEBSITES_CONTAINER_START_TIME_LIMIT` is missing or low.** Set to `1800`.
-2. **DefaultAzureCredential is hanging or throwing during DI startup.** This happens when our code does `dataProtection.PersistKeysToAzureBlobStorage(blobUri, new DefaultAzureCredential())` and there are zero working credential sources (no MI, no env vars, no CLI). The DataProtection key-ring read is eager on first request → token acquisition fails → host crashes. Fix: either restore MI (preferred), or set both `DataProtection__BlobStorage__AccountName` and `__ContainerName` to `" "` (single space) on the slot to force the `IsNullOrWhiteSpace` guard in `PlatformsConfiguration.cs` to skip blob registration. See "Env vars vs appsettings.json" below.
+2. **DefaultAzureCredential is hanging or throwing during DI startup.** **No longer applicable as of v1.0.0.8** — we removed the `PersistKeysToAzureBlobStorage(blobUri, new DefaultAzureCredential())` call entirely. DataProtection keys now persist to SQL via `PersistKeysToDbContext<TalliDbContext>()`, no Azure credential needed. Historical note: this failure mode is what forced the v1.0.0.0 degraded-posture workaround. Kept here so future-you recognizes the symptom if it ever resurfaces (e.g., if anyone re-adds blob storage).
 3. **`DOTNET_STARTUP_HOOKS` injecting `Microsoft.ApplicationInsights.StartupHook.dll` is hanging.** Rare but seen on .NET 10 preview. Workaround: prove it by SSH'ing in (see below) and running with `DOTNET_STARTUP_HOOKS= dotnet My.Talli.Web.dll` to bypass.
 
 ### Container appears up but returns 500 on `/` and `/signin` while `/privacy` and `/terms` are 200
-You're hitting DataProtection at the `IDataProtector.Protect()` call inside Blazor Server's `ServerComponentSerializer` — the component serializer encrypts component state, fails because DataProtection can't read keys. Same root cause as #2 above. Look at App Insights → Failures → Exceptions → `CryptographicException at Microsoft.AspNetCore.DataProtection`.
+You're hitting DataProtection at the `IDataProtector.Protect()` call inside Blazor Server's `ServerComponentSerializer` — the component serializer encrypts component state, fails because DataProtection can't read keys. **Post-v1.0.0.8 the most likely cause is the `components.DataProtectionKey` table being inaccessible** (DB down, connection string wrong, migration didn't run). Verify the table exists and has at least one row. Look at App Insights → Failures → Exceptions → `CryptographicException at Microsoft.AspNetCore.DataProtection`.
 
 ## SSH into the container — the fastest debugger
 
@@ -117,17 +117,17 @@ Whatever the dotnet process throws (or hangs on) shows up live in your terminal 
 
 To force a config value to be empty (e.g., to make a `IsNullOrWhiteSpace` guard trip and skip a code branch), you must explicitly set the env var to a value that satisfies the check. Azure Portal won't accept truly empty strings, so **use a single space `" "`** — `IsNullOrWhiteSpace(" ")` returns true, env vars override `appsettings.json`, the if-block is skipped.
 
-This is exactly what we did to disable blob-backed DataProtection on the prod slot during the v1.0.0.0 deploy. The single-space env var values for `DataProtection__BlobStorage__AccountName` and `__ContainerName` are still on the prod slot today; restoring MI requires deleting them.
+This is exactly what we did to disable blob-backed DataProtection on the prod slot during the v1.0.0.0 deploy. Those single-space env vars are now dead config — v1.0.0.8 stopped reading them. Cleanup: delete them when convenient.
 
 ## After the deploy — leftover state to know about
 
-After v1.0.0.0 (2026-05-03) shipped, the prod slot is in this degraded posture:
-- System-Assigned Managed Identity: **OFF**
-- `DataProtection__BlobStorage__AccountName`: `" "` (single space)
-- `DataProtection__BlobStorage__ContainerName`: `" "` (single space)
-- Result: filesystem-only DataProtection keys → wiped on every container restart → encrypted OAuth tokens on `app.ShopConnection` become unreadable → connected platforms (Etsy/Gumroad/Stripe Connect) need to be reconnected after each restart
+**Post-v1.0.0.8 (2026-05-16) prod posture:** healthy. DataProtection keys persist to `components.DataProtectionKey` (SQL). No MI, no blob, no sidecar dependency.
 
-**Restore path** (do this when ready): re-enable MI, grant `Storage Blob Data Contributor` to the new principal on `mytallistorage01`, **delete** the empty-string env vars (so `appsettings.json` values take over), restart the slot, verify `keys.xml` lands in the blob container.
+Cleanup still pending from the v1.0.0.0 → v1.0.0.8 transition:
+- `DataProtection__BlobStorage__AccountName` and `__ContainerName` env vars on both slots — set to `" "` from the v1.0.0.0 workaround, v1.0.0.8 no longer reads them. Harmless to leave, tidier to remove.
+- `mytallistorage01/dataprotection-keys` blob container — unused. Decommission or keep as cold backup.
+- System-Assigned Managed Identity on both slots — currently OFF. v1.0.0.8 doesn't need it. Leave off unless a future feature needs MI for something else (Key Vault, etc.).
+- Test platform shops on prod (Etsy + Gumroad) need one manual reconnect: their old ciphertext OAuth tokens (encrypted with the pre-v1.0.0.8 `IShopTokenProtector`) are unreadable to the plaintext-only code path.
 
 ## Things this skill MUST prevent us from doing again
 
