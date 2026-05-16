@@ -51,7 +51,15 @@ public class StripeConnectSyncService : IPlatformSyncService
     {
         var result = new PlatformSyncResult();
         var accountId = shop.PlatformAccountId;
-        var createdAfter = shop.LastSyncDateTime ?? DateTime.UtcNow.AddDays(-InitialBackfillDays);
+        // Belt-and-suspenders: TalliDbContext already pins every EF-loaded DateTime to Kind=Utc via a global
+        // value converter, so shop.LastSyncDateTime should already be Utc when it came from the database.
+        // Re-pin here anyway to cover any in-memory ShopConnection (constructed in code, deserialized from a
+        // request, passed from a test stub) — Stripe.net serializes Unspecified as Local when building the
+        // created[gt] Unix-seconds filter, which silently drops every charge/payout created in the local
+        // timezone-offset gap between syncs. Keep this redundant pin even if the converter looks sufficient.
+        var createdAfter = shop.LastSyncDateTime.HasValue
+            ? DateTime.SpecifyKind(shop.LastSyncDateTime.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow.AddDays(-InitialBackfillDays);
 
         await SyncChargesAsync(shop, accountId, createdAfter, result, cancellationToken);
         await SyncPayoutsAsync(shop, accountId, createdAfter, result, cancellationToken);

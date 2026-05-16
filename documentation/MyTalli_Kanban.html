@@ -90,7 +90,7 @@
 <div class="header">
   <h1>My<span>Talli</span> Active Work</h1>
   <p class="subtitle">Lightweight Kanban board — what's in flight, what's next, what's done</p>
-  <p class="doc-date">Last updated: May 9, 2026</p>
+  <p class="doc-date">Last updated: May 10, 2026</p>
 </div>
 
 <div class="content">
@@ -98,13 +98,13 @@
   <div class="intro">
     <div class="intro-left">
       <h2>Current focus: Post-launch hardening</h2>
-      <p><strong>v1.0.0.5 is current on www.mytalli.com</strong> (initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; revision fixes shipped via PR + redeploy since — every release is merged to <code>main</code>). The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. The original deploy was bumpy: a Microsoft sidecar image (<code>msitokenservice</code>) intermittently failed to pull, which forced us to disable Managed Identity on the staging slot to get the container to start. The slot that was prod (with MI on) is now the staging slot, and the slot that was staging (with MI off) is now serving production traffic. Result: prod runs on filesystem-only DataProtection keys until MI is re-enabled. Next: re-enable MI + restore blob-backed keys on prod, reconnect test platforms, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
+      <p><strong>v1.0.0.6 pushing to Azure (May 10).</strong> Previous live: v1.0.0.5 (initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; revision fixes shipped via PR + redeploy since — every release is merged to <code>main</code>). The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. The original deploy was bumpy: a Microsoft sidecar image (<code>msitokenservice</code>) intermittently failed to pull, which forced us to disable Managed Identity on the staging slot to get the container to start. The slot that was prod (with MI on) is now the staging slot, and the slot that was staging (with MI off) is now serving production traffic. Result: prod runs on filesystem-only DataProtection keys until MI is re-enabled. Next: re-enable MI + restore blob-backed keys on prod, reconnect test platforms, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">14</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">3</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">14</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">15</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -118,7 +118,7 @@
     <div class="lane backlog">
       <div class="lane-header">
         <h3>Backlog</h3>
-        <span class="lane-count">14</span>
+        <span class="lane-count">13</span>
       </div>
       <div class="lane-body">
 
@@ -142,14 +142,8 @@
 
         <div class="card">
           <div class="card-tags"><span class="tag nav">Nav</span></div>
-          <h4>Stripe spoke page</h4>
-          <p>Platform detail page at <code>/platforms/stripe</code> with Overview / Revenue / Payouts tabs. Mirrors the Etsy spoke pattern; uses <code>RevenueStripe</code> + <code>PayoutStripe</code> for drill-down. Expenses tab waits until standalone Stripe expense sync ships.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag nav">Nav</span></div>
-          <h4>Gumroad / PayPal / Shopify spoke pages</h4>
-          <p>Same spoke pattern as Etsy for remaining platforms. Gumroad and Shopify already have their Expense/Payout subtables; PayPal pending. Gumroad spoke would have Overview/Revenue tabs only (no expenses or payouts surfaced by Gumroad's API).</p>
+          <h4>PayPal / Shopify spoke pages</h4>
+          <p>Same spoke pattern as Etsy / Stripe / Gumroad for the two remaining platforms. PayPal subtables not yet built; Shopify subtables not yet built. Both spokes get the standard 4 grid controls (page-size, density, pager, period stat bar) for free via the shared <code>&lt;GridStatBar&gt;</code> + <code>&lt;GridFooter&gt;</code> components shipped in v1.0.0.6.</p>
         </div>
 
         <div class="card">
@@ -219,12 +213,6 @@
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span></div>
-          <h4>Stripe Connect local end-to-end verification</h4>
-          <p>Stripe Connect code shipped 2026-05-02 but the full local round-trip hasn't been exercised. Click "Connect Stripe" on <code>/platforms</code> → Stripe-hosted onboarding → return → confirm <code>app.PlatformConnection</code> + <code>app.ShopConnection</code> rows appear, wait for <code>ShopSyncWorker</code> to fire and confirm <code>app.Revenue</code> + <code>app.Payout</code> rows ingest. Test against the sandbox connected account ($100 balance + 1 test payment).</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span></div>
           <h4>SignalR sync completion toast</h4>
           <p>Real-time toast when a sync completes and user is on dashboard: "Etsy data updated just now." Page refreshes data silently.</p>
         </div>
@@ -259,9 +247,27 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">14</span>
+        <span class="lane-count">16</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span></div>
+          <h4>Stripe Connect local end-to-end verification + 2 bugs fixed + project-wide UTC converter</h4>
+          <p>Full local round-trip verified against a real Stripe test-mode connected account: browser <em>Connect Stripe</em> → Stripe-hosted onboarding (Standard account, Jenny Rosen test data, <code>tok_visa</code> bank link) → <code>/api/platforms/stripe/return</code> → <code>ConnectStripeCommand</code> → <code>ShopSyncWorker</code> → <code>StripeConnectSyncService</code> → 4 rows in <code>app.Revenue</code> + <code>app.RevenueStripe</code> (gross / fee / net / balance_txn / card / risk score all correct) + 1 row in <code>app.Payout</code> + <code>app.PayoutStripe</code> (status <code>failed</code>, captured from the <code>****2227</code> test bank). The test surfaced two real bugs that were fixed in the same session:
+          <strong>Bug #1 (critical, silent data loss):</strong> <code>StripeConnectSyncService.SyncShopAsync</code> passed <code>shop.LastSyncDateTime</code> (which EF Core hydrates as <code>DateTimeKind.Unspecified</code>) directly into the Stripe.net SDK's <code>DateRangeOptions.GreaterThan</code>. The SDK serializes Unspecified as Local time when building the <code>created[gt]</code> Unix-seconds filter, shifting the window forward by the local timezone offset (~5h CDT) and silently dropping every charge created in that gap. Targeted fix: <code>DateTime.SpecifyKind(value, DateTimeKind.Utc)</code> before passing to the SDK. <code>GumroadSyncService</code> had the same root cause via <code>.ToUniversalTime()</code> — bounded by Gumroad's day-precision filter but still drops sales around midnight UTC. Same fix applied. <code>EtsySyncService</code> was already correct (explicit <code>SpecifyKind(Utc)</code> in <code>BuildMinCreatedTimestamp</code>).
+          <strong>Project-wide follow-up fix (same session):</strong> added a global <code>ValueConverter&lt;DateTime, DateTime&gt;</code> (+ nullable variant) in <code>TalliDbContext.OnModelCreating</code> that walks every entity and pins every <code>DateTime</code> / <code>DateTime?</code> property to <code>Kind=Utc</code> on read and normalizes <code>Local→Utc</code> on write. Every EF-loaded DateTime now arrives in code as UTC, full stop, across all 30+ entities — no per-property configuration. Per-service <code>SpecifyKind(Utc)</code> stays in place as belt-and-suspenders for in-memory DateTimes that didn't come from EF. <code>AuditResolver</code> unaffected (already uses <code>DateTime.UtcNow</code>). No display formatting, component-state, or test fallout.
+          <strong>Bug #2 (UX):</strong> Stripe Connect cookie expiry was 10 min in <code>PlatformEndpoints.cs</code> — real Stripe Standard onboarding (KYC + identity + bank + 2FA + climate step) routinely takes 15-30+ min. Anyone slower than 10 min got <code>?error=stripe_expired</code> and lost their session, leaving an orphaned <code>acct_xxx</code> in Stripe with no DB binding. Bumped to 60 min (matches Stripe's own Account Link default). We actually hit this bug live during the test — recovered the orphaned account via direct DB insert to complete the verification.
+          <strong>2 new regression tests:</strong> <code>SyncShop_LastSyncUnspecifiedKind_PinnedToUtcSameWallClock</code> in both <code>StripeConnectSyncServiceTests</code> + <code>GumroadSyncServiceTests</code> — assert the value passed to the API client is <code>Kind=Utc</code> with the same wall-clock value. <strong>384/384 tests pass.</strong> Cleanup pass also nuked all dormant <code>NextSyncDateTime=9999-12-31</code> fixture shops (Stripe + Etsy + Gumroad) so <code>/platforms</code> now shows the genuine new-user view (2 Connected, 3 Available, 0 transactions).</p>
+          <span class="done-date">May 16 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span><span class="tag sync">Sync</span></div>
+          <h4>v1.0.0.6 — Stripe + Gumroad spokes, SQL paging, shared grid components</h4>
+          <p>(1) <strong>Stripe spoke</strong> at <code>/platforms/stripe</code> with Overview + Revenue + Payouts tabs. (2) <strong>Gumroad spoke</strong> at <code>/platforms/gumroad</code> with Overview + Revenue tabs (Gumroad has no payouts API or per-sale fees, so no Expenses/Payouts). Both spokes get sidebar Dashboard sub-links + Platforms-page "View dashboard →" buttons. (3) <strong>SQL paging + aggregations</strong> across all 9 existing grids (Dashboard / Manual Entry / Etsy spoke ×3 tabs each): new <code>Web/CommandsAndQueries/Queries/</code> layer (<code>PaginatorCommand</code> + <code>RevenueFindCommand</code> / <code>ExpenseFindCommand</code> / <code>PayoutFindCommand</code> / <code>ManualEntryFindCommand</code> with Revenue+RevenueManual SQL join) pushes <code>SUM</code> / <code>GROUP BY</code> / <code>OFFSET FETCH</code> into SQL instead of loading every period row into memory then computing in C#. (4) <strong>Shared grid components</strong> <code>&lt;Pager&gt;</code> + <code>&lt;GridStatBar&gt;</code> + <code>&lt;GridFooter&gt;</code> (page-size selector + density buttons + page-info + pager) — Dashboard, Manual Entry, Etsy spoke, Stripe spoke, Gumroad spoke all render through the same components by construction. Drift across grids is now structurally impossible. (5) <strong>Etsy spoke parity fixes</strong>: page-size selector + density buttons + period stat bar + period filter on Payouts tab + persisted grid prefs (<code>etsy.grid</code>) were all missing. (6) <strong>Organizational cleanup</strong>: Web project's <code>Commands/</code> + <code>Queries/</code> consolidated under a <code>CommandsAndQueries/</code> umbrella matching the Domain project's convention. Local DB testing SQL scripts moved out of the repo to <code>~/Documents/SQL Server Management Studio/MyTalli/</code>. <strong>0 build errors, 382/382 tests pass.</strong> Push to Azure: May 10.</p>
+          <span class="done-date">May 10 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag nav">Nav</span></div>

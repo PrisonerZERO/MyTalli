@@ -49,7 +49,15 @@ public class GumroadSyncService : IPlatformSyncService
     {
         var result = new PlatformSyncResult();
         var accessToken = _tokenProtector.Unprotect(shop.AccessToken);
-        var after = shop.LastSyncDateTime ?? DateTime.UtcNow.AddDays(-InitialBackfillDays);
+        // Belt-and-suspenders: TalliDbContext already pins every EF-loaded DateTime to Kind=Utc via a global
+        // value converter, so shop.LastSyncDateTime should already be Utc when it came from the database.
+        // Re-pin here anyway to cover any in-memory ShopConnection (constructed in code, passed from a test
+        // stub) — GumroadService.GetSalesAsync calls .ToUniversalTime() on this value, which treats
+        // Unspecified as Local and shifts the result by the local timezone offset. Keep this redundant pin
+        // even if the converter looks sufficient.
+        var after = shop.LastSyncDateTime.HasValue
+            ? DateTime.SpecifyKind(shop.LastSyncDateTime.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow.AddDays(-InitialBackfillDays);
 
         string? pageKey = null;
         var pagesFetched = 0;

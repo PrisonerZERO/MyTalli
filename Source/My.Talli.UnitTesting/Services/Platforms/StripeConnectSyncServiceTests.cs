@@ -160,6 +160,26 @@ public class StripeConnectSyncServiceTests
     }
 
     [Fact]
+    public async Task SyncShop_LastSyncUnspecifiedKind_PinnedToUtcSameWallClock()
+    {
+        // EF Core reads datetime2 columns as DateTimeKind.Unspecified. The Stripe.net SDK serializes
+        // Unspecified as Local when building the created[gt] Unix-seconds filter, which silently shifts the
+        // window by the local timezone offset and drops every charge created in that gap. The sync service
+        // must pin LastSyncDateTime to Utc *without changing the wall-clock value*.
+        var builder = new StripeSyncBuilder();
+        var unspecified = new DateTime(2026, 4, 1, 12, 0, 0, DateTimeKind.Unspecified);
+        var shop = await InsertShopAsync(builder);
+        shop.LastSyncDateTime = unspecified;
+
+        await builder.Service.SyncShopAsync(shop, CancellationToken.None);
+
+        var passed = builder.ApiClient.ChargeCalls[0].CreatedAfter;
+        Assert.NotNull(passed);
+        Assert.Equal(DateTimeKind.Utc, passed.Value.Kind);
+        Assert.Equal(new DateTime(2026, 4, 1, 12, 0, 0, DateTimeKind.Utc), passed.Value);
+    }
+
+    [Fact]
     public async Task SyncShop_PayoutPage_InsertsAll()
     {
         var builder = new StripeSyncBuilder();

@@ -2,6 +2,7 @@ namespace My.Talli.Domain.Data.EntityFramework;
 
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 /// <summary>Database Context</summary>
 public class TalliDbContext : DbContext
@@ -103,6 +104,34 @@ public class TalliDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TalliDbContext).Assembly);
+
+        ApplyUtcDateTimeConverter(modelBuilder);
+    }
+
+    // SQL Server datetime2 stores no timezone, and EF Core hydrates the value back as DateTimeKind.Unspecified.
+    // Provider SDKs (Stripe.net's DateRangeOptions, anything calling .ToUniversalTime() or DateTimeOffset.ToUnixTimeSeconds())
+    // treat Unspecified as Local and silently shift the value by the local timezone offset. By convention every DateTime we
+    // store is UTC, so apply a project-wide value converter that stamps Kind=Utc on read and normalizes Local→Utc on write.
+    private static void ApplyUtcDateTimeConverter(ModelBuilder modelBuilder)
+    {
+        var utcConverter = new ValueConverter<DateTime, DateTime>(
+            v => v.Kind == DateTimeKind.Local ? v.ToUniversalTime() : v,
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+        var nullableUtcConverter = new ValueConverter<DateTime?, DateTime?>(
+            v => v.HasValue && v.Value.Kind == DateTimeKind.Local ? v.Value.ToUniversalTime() : v,
+            v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime))
+                    property.SetValueConverter(utcConverter);
+                else if (property.ClrType == typeof(DateTime?))
+                    property.SetValueConverter(nullableUtcConverter);
+            }
+        }
     }
 
 
