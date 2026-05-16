@@ -24,12 +24,16 @@
 
             @foreach (var platform in ConnectedPlatforms)
             {
-                var dashboardUrl = $"platforms/{platform.Name.ToLowerInvariant()}";
+                // Manual is a virtual platform with no spoke page at /platforms/manual — its dashboard
+                // lives at /manual-entry (the dedicated module page).
+                var dashboardUrl = platform.Name == "Manual"
+                    ? "manual-entry"
+                    : $"platforms/{platform.Name.ToLowerInvariant()}";
                 <div class="nav-platform-group">
-                    <a class="nav-link nav-sub-link" href="@dashboardUrl">
+                    <NavLink class="nav-link nav-sub-link" href="@dashboardUrl">
                         <span class="platform-dot" style="background:@platform.BrandColor" aria-hidden="true"></span>
                         @platform.Name
-                    </a>
+                    </NavLink>
 
                     <NavLink class="nav-link nav-sub-link nav-sub-child" href="@dashboardUrl">
                         Dashboard
