@@ -1,7 +1,6 @@
 namespace My.Talli.UnitTesting.Infrastructure.Builders;
 
 using Domain.Commands.Platforms;
-using Domain.Components.Tokens;
 using Domain.Models;
 using Domain.Repositories;
 using Lamar;
@@ -49,8 +48,6 @@ public class EtsySyncBuilder
     public RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> ShopConnectionAdapter =>
         _container.GetInstance<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
 
-    public IShopTokenProtector TokenProtector => _container.GetInstance<IShopTokenProtector>();
-
     public EtsyTokenRefresher TokenRefresher { get; }
 
     #endregion
@@ -68,7 +65,6 @@ public class EtsySyncBuilder
             TokenRefresher,
             Logger,
             _container.GetInstance<RefreshShopTokensCommand>(),
-            _container.GetInstance<IShopTokenProtector>(),
             _container.GetInstance<UpsertEtsyExpenseCommand>(),
             _container.GetInstance<UpsertEtsyPayoutCommand>(),
             _container.GetInstance<UpsertEtsyRevenueCommand>());

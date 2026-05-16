@@ -1,6 +1,5 @@
 namespace My.Talli.UnitTesting.Infrastructure.IoC;
 
-using Domain.Components.Tokens;
 using Domain.Data.Interfaces;
 using Lamar;
 using My.Talli.UnitTesting.Infrastructure.Stubs;
@@ -17,7 +16,6 @@ public class ContainerRegistry : ServiceRegistry
 
 		ForSingletonOf<IdentityProvider>().Use<IdentityProvider>();
 		ForSingletonOf<ICurrentUserService>().Use<CurrentUserServiceStub>();
-		ForSingletonOf<IShopTokenProtector>().Use<ShopTokenProtectorStub>();
 		ForSingletonOf<IMaintenanceModeService>().Use<MaintenanceModeService>();
 
 		For(typeof(IAuditResolver<>)).Use(typeof(AuditResolverStub<>)).Singleton();

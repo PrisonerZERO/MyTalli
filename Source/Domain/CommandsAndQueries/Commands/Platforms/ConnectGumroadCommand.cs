@@ -1,7 +1,6 @@
 namespace My.Talli.Domain.Commands.Platforms;
 
 using Domain.Components;
-using Domain.Components.Tokens;
 using Domain.Models;
 using Domain.Repositories;
 
@@ -20,17 +19,15 @@ public class ConnectGumroadCommand
 
     private readonly RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection> _platformConnectionAdapter;
     private readonly RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> _shopConnectionAdapter;
-    private readonly IShopTokenProtector _tokenProtector;
 
     #endregion
 
     #region <Constructors>
 
-    public ConnectGumroadCommand(RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection> platformConnectionAdapter, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter, IShopTokenProtector tokenProtector)
+    public ConnectGumroadCommand(RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection> platformConnectionAdapter, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter)
     {
         _platformConnectionAdapter = platformConnectionAdapter;
         _shopConnectionAdapter = shopConnectionAdapter;
-        _tokenProtector = tokenProtector;
     }
 
     #endregion
@@ -77,13 +74,11 @@ public class ConnectGumroadCommand
         var existing = (await _shopConnectionAdapter.FindAsync(s => s.PlatformConnectionId == platformConnectionId && s.PlatformShopId == platformShopId)).FirstOrDefault();
         var wasNewShop = existing is null;
 
-        var protectedAccessToken = _tokenProtector.Protect(tokens.AccessToken);
-
         if (existing is null)
         {
             await _shopConnectionAdapter.InsertAsync(new ShopConnection
             {
-                AccessToken = protectedAccessToken,
+                AccessToken = tokens.AccessToken,
                 ConsecutiveFailures = 0,
                 IsActive = true,
                 IsEnabled = true,
@@ -101,7 +96,7 @@ public class ConnectGumroadCommand
         }
         else
         {
-            existing.AccessToken = protectedAccessToken;
+            existing.AccessToken = tokens.AccessToken;
             existing.ConsecutiveFailures = 0;
             existing.IsActive = true;
             existing.LastErrorMessage = null;

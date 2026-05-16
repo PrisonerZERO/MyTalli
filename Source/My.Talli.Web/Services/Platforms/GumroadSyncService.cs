@@ -2,7 +2,6 @@ namespace My.Talli.Web.Services.Platforms;
 
 using Domain.Commands.Platforms;
 using Domain.Components;
-using Domain.Components.Tokens;
 using Domain.Models;
 
 /// <summary>Service</summary>
@@ -20,18 +19,16 @@ public class GumroadSyncService : IPlatformSyncService
 
     private readonly IGumroadApiClient _gumroadService;
     private readonly ILogger<GumroadSyncService> _logger;
-    private readonly IShopTokenProtector _tokenProtector;
     private readonly UpsertGumroadRevenueCommand _upsertGumroadRevenueCommand;
 
     #endregion
 
     #region <Constructors>
 
-    public GumroadSyncService(IGumroadApiClient gumroadService, ILogger<GumroadSyncService> logger, IShopTokenProtector tokenProtector, UpsertGumroadRevenueCommand upsertGumroadRevenueCommand)
+    public GumroadSyncService(IGumroadApiClient gumroadService, ILogger<GumroadSyncService> logger, UpsertGumroadRevenueCommand upsertGumroadRevenueCommand)
     {
         _gumroadService = gumroadService;
         _logger = logger;
-        _tokenProtector = tokenProtector;
         _upsertGumroadRevenueCommand = upsertGumroadRevenueCommand;
     }
 
@@ -48,7 +45,7 @@ public class GumroadSyncService : IPlatformSyncService
     public async Task<PlatformSyncResult> SyncShopAsync(ShopConnection shop, CancellationToken cancellationToken)
     {
         var result = new PlatformSyncResult();
-        var accessToken = _tokenProtector.Unprotect(shop.AccessToken);
+        var accessToken = shop.AccessToken;
         // Belt-and-suspenders: TalliDbContext already pins every EF-loaded DateTime to Kind=Utc via a global
         // value converter, so shop.LastSyncDateTime should already be Utc when it came from the database.
         // Re-pin here anyway to cover any in-memory ShopConnection (constructed in code, passed from a test

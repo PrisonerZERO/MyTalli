@@ -1,10 +1,8 @@
 namespace My.Talli.Web.Configuration;
 
-using Azure.Identity;
-using Domain.Components.Tokens;
+using Domain.Data.EntityFramework;
 using Microsoft.AspNetCore.DataProtection;
 using Web.Services.Platforms;
-using Web.Services.Tokens;
 using Web.Workers;
 
 /// <summary>Configuration</summary>
@@ -26,21 +24,10 @@ public static class PlatformsConfiguration
         services.AddScoped<StripeConnectService>();
         services.AddScoped<IStripeConnectApiClient>(sp => sp.GetRequiredService<StripeConnectService>());
 
-        // At-rest encryption for OAuth tokens stored on ShopConnection.
-        // In Azure, persist the master key to Blob Storage so it survives App Service VM moves and slot swaps.
-        // Locally (no AccountName configured), fall back to the default file-system store.
-        var dataProtection = services.AddDataProtection();
-
-        var blobAccountName = configuration["DataProtection:BlobStorage:AccountName"];
-        var blobContainerName = configuration["DataProtection:BlobStorage:ContainerName"];
-
-        if (!string.IsNullOrWhiteSpace(blobAccountName) && !string.IsNullOrWhiteSpace(blobContainerName))
-        {
-            var blobUri = new Uri($"https://{blobAccountName}.blob.core.windows.net/{blobContainerName}/keys.xml");
-            dataProtection.PersistKeysToAzureBlobStorage(blobUri, new DefaultAzureCredential());
-        }
-
-        services.AddSingleton<IShopTokenProtector, DataProtectionShopTokenProtector>();
+        // Persist DataProtection keys (used for auth cookies + antiforgery + Stripe Connect onboarding cookie)
+        // to SQL via TalliDbContext (components.DataProtectionKey table). Survives container restarts,
+        // slot swaps, and scale events; no MI / blob / sidecar dependency.
+        services.AddDataProtection().PersistKeysToDbContext<TalliDbContext>();
 
         // Per-platform token refreshers (rotate refresh tokens before expiry)
         services.AddScoped<EtsyTokenRefresher>();
