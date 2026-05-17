@@ -33,6 +33,8 @@
 .filter-pill { background: transparent; border: none; border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; padding: 7px 14px; transition: all 0.15s; }
 .filter-pill:hover { color: var(--purple-primary); }
 .filter-pill.active { background: var(--purple-soft); color: var(--purple-primary); font-weight: 600; }
+.filter-pill-upgrade { align-items: center; color: var(--purple-primary); display: inline-flex; font-weight: 600; gap: 4px; opacity: 0.85; padding: 7px 12px; text-decoration: none; }
+.filter-pill-upgrade:hover { background: var(--purple-soft); opacity: 1; }
 
 /* Data grid card */
 .grid-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }

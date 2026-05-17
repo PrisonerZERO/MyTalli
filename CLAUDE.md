@@ -1117,6 +1117,13 @@ The app runs in **Dashboard Mode** — full app experience with all routes activ
 - **Free:** 1 connected platform, basic dashboard, 30-day history
 - **Pro ($12/mo or $99/year):** Unlimited platforms, full history, goals, weekly emails, CSV export
 
+**Plan-tier check** = `IsProSubscriberCommand` (Domain, in `CommandsAndQueries/Commands/Billing/`). True when the user has a Subscription with `ProductId == 1 || 2`, `Status` in {`Active`, `Cancelling`}, and `EndDate >= UtcNow`. **Always** use this command — never inline the predicate. The single source of truth for Pro vs Free across all enforcement surfaces (free-tier 1-shop cap, 30-day history cap, CSV export gating).
+
+**Enforcement surfaces shipped:**
+- **1 connected platform:** `CanConnectAnotherShopCommand` + `GetFreeTierSlotShopIdCommand` (see Platform Connections rule).
+- **30-day history:** `GetEarliestQueryableDateCommand` returns `UtcNow.AddDays(-30)` for free users (null for Pro). Threaded into `DashboardViewModel`, `EtsySpokeViewModel`, `GumroadSpokeViewModel`, `StripeSpokeViewModel`, and `ManualEntryViewModel` — each clamps its computed `StartDate` to the floor before filtering OR before passing to a Find* query. The period filter UI also hides the 90D / 12M / All buttons for free users and replaces them with an "Pro ▸ 90D · All" upgrade link.
+- **CSV export:** `ExportEndpoints` (revenue/expenses/payouts) check `IsProSubscriberCommand` and 302-redirect to `/my-plan?error=export_pro_only` for free users. `ExportViewModel` exposes `IsPro`; `Export.razor` shows an amber "CSV export is a Pro feature" banner above the cards, and `ExportCard` swaps its Download button for an "Upgrade to Pro" button via the new `IsLockedByPlanTier` parameter.
+
 ## Rules
 
 ### Active Feature Branch Only — No Worktrees, No Side Branches

@@ -16,6 +16,8 @@
 .range-pill:hover { background: var(--bg-hover); color: var(--text-primary); }
 .range-pill.active { background: var(--purple-primary); border-color: var(--purple-primary); color: #fff; }
 .range-pill.active:hover { background: var(--purple-hover); }
+.range-pill-upgrade { align-items: center; color: var(--purple-primary); display: inline-flex; font-weight: 600; gap: 4px; opacity: 0.85; text-decoration: none; }
+.range-pill-upgrade:hover { background: var(--purple-soft); color: var(--purple-primary); opacity: 1; }
 
 /* CUSTOM RANGE INPUTS */
 .export-custom-range { align-items: end; display: flex; gap: 16px; flex-wrap: wrap; }
@@ -37,5 +39,15 @@
 ::deep .export-card-btn:hover { background: var(--purple-hover); }
 ::deep .export-card-btn svg { height: 16px; width: 16px; }
 ::deep .export-card-btn-disabled { background: var(--badge-free-bg); color: var(--text-muted); cursor: not-allowed; pointer-events: none; }
+::deep .export-card-btn-upgrade { background: linear-gradient(135deg, #6c5ce7 0%, #8b5cf6 100%); }
+::deep .export-card-btn-upgrade:hover { background: linear-gradient(135deg, #5b4ed4 0%, #7c4ee3 100%); box-shadow: 0 2px 12px rgba(108, 92, 231, 0.35); }
+::deep .export-card-btn-upgrade svg { color: #f5c842; }
+
+.export-pro-banner { align-items: center; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 10px; color: #78350f; display: flex; gap: 12px; margin: 0 0 16px; padding: 12px 18px; }
+.export-pro-banner svg { color: #b45309; flex-shrink: 0; height: 20px; width: 20px; }
+.export-pro-banner strong { color: #78350f; font-weight: 700; }
+[data-theme="dark"] .export-pro-banner { background: linear-gradient(135deg, #422006 0%, #57300a 100%); border-color: #b45309; color: #fde68a; }
+[data-theme="dark"] .export-pro-banner svg { color: #f59e0b; }
+[data-theme="dark"] .export-pro-banner strong { color: #fef3c7; }
 
 .export-fineprint { color: var(--text-muted); font-size: 12px; font-style: italic; margin: 8px 0 0; }

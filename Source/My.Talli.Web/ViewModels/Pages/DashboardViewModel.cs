@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Commands.Billing;
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
 using Domain.Framework;
@@ -24,6 +25,8 @@ public class DashboardViewModel : ComponentBase
 {
 	#region <Variables>
 
+	private DateTime? _earliestQueryable;
+	private bool _isPro;
 	private long? _userId;
 
 	[CascadingParameter]
@@ -34,6 +37,12 @@ public class DashboardViewModel : ComponentBase
 
 	[Inject]
 	private ExpenseFindCommand ExpenseFind { get; set; } = default!;
+
+	[Inject]
+	private GetEarliestQueryableDateCommand GetEarliestQueryableDate { get; set; } = default!;
+
+	[Inject]
+	private IsProSubscriberCommand IsProSubscriber { get; set; } = default!;
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.PlatformConnection, ENTITIES.PlatformConnection> PlatformConnectionAdapter { get; set; } = default!;
@@ -149,7 +158,7 @@ public class DashboardViewModel : ComponentBase
 		_ => "current period",
 	};
 
-	public List<string> Periods { get; } = ["7D", "30D", "90D", "12M"];
+	public List<string> Periods => _isPro ? ["7D", "30D", "90D", "12M"] : ["7D", "30D"];
 
 	public List<PlatformBreakdown> Platforms { get; private set; } = [];
 
@@ -352,7 +361,7 @@ public class DashboardViewModel : ComponentBase
 		_ => "#999"
 	};
 
-	private static (DateTime start, DateTime end, DateTime prevStart, DateTime prevEnd) GetPeriodDateRange(string period)
+	private (DateTime start, DateTime end, DateTime prevStart, DateTime prevEnd) GetPeriodDateRange(string period)
 	{
 		var end = DateTime.Today;
 		var days = period switch
@@ -365,6 +374,11 @@ public class DashboardViewModel : ComponentBase
 		};
 
 		var start = end.AddDays(-days);
+
+		// Free-tier 30-day history cap: clamp start forward if a free user picked (or had cached) a longer period
+		if (_earliestQueryable.HasValue && start < _earliestQueryable.Value)
+			start = _earliestQueryable.Value;
+
 		var prevEnd = start.AddDays(-1);
 		var prevStart = prevEnd.AddDays(-days);
 
@@ -681,6 +695,14 @@ public class DashboardViewModel : ComponentBase
 
 		_userId = userId;
 		CurrentUserService.Set(userId, string.Empty);
+
+		// Plan-tier — drives 30-day history cap for free users (clamps date ranges + hides 90D/12M buttons)
+		_isPro = await IsProSubscriber.ExecuteAsync(userId);
+		_earliestQueryable = await GetEarliestQueryableDate.ExecuteAsync(userId);
+
+		// If a free user landed here with a cached longer period from a previous Pro session, snap them back to a valid one
+		if (!_isPro && (ActivePeriod == "90D" || ActivePeriod == "12M"))
+			ActivePeriod = "30D";
 
 		var (info, userPreferences) = await UserDisplayCache.GetOrLoadAsync(userId, email);
 

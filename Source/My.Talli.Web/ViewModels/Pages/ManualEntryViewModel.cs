@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Commands.Billing;
 using Domain.Commands.Platforms;
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
@@ -22,6 +23,7 @@ public class ManualEntryViewModel : ComponentBase
 {
 	#region <Variables>
 
+	private DateTime? _earliestQueryable;
 	private long? _userId;
 
 	[CascadingParameter]
@@ -32,6 +34,12 @@ public class ManualEntryViewModel : ComponentBase
 
 	[Inject]
 	private ICurrentUserService CurrentUserService { get; set; } = default!;
+
+	[Inject]
+	private GetEarliestQueryableDateCommand GetEarliestQueryableDate { get; set; } = default!;
+
+	[Inject]
+	private IsProSubscriberCommand IsProSubscriberQuery { get; set; } = default!;
 
 	[Inject]
 	private RenameManualShopCommand RenameManualShopCommand { get; set; } = default!;
@@ -243,7 +251,9 @@ public class ManualEntryViewModel : ComponentBase
 		_ => "current period",
 	};
 
-	public List<string> Periods { get; } = ["7D", "30D", "90D", "12M"];
+	public List<string> Periods => IsPro ? ["7D", "30D", "90D", "12M"] : ["7D", "30D"];
+
+	public bool IsPro { get; private set; }
 
 	public List<string> PayoutStatuses { get; private set; } =
 	[
@@ -308,6 +318,13 @@ public class ManualEntryViewModel : ComponentBase
 
 		_userId = userId;
 		CurrentUserService.Set(userId, string.Empty);
+
+		// Plan-tier — drives 30-day history cap (filters period options + clamps date range)
+		IsPro = await IsProSubscriberQuery.ExecuteAsync(userId);
+		_earliestQueryable = await GetEarliestQueryableDate.ExecuteAsync(userId);
+
+		if (!IsPro && (ActivePeriod == "90D" || ActivePeriod == "12M"))
+			ActivePeriod = "30D";
 
 		// Check module access: active subscription for Manual Entry Module (ProductId = 3)
 		var subscriptions = await SubscriptionAdapter.FindAsync(s =>
@@ -904,6 +921,11 @@ public class ManualEntryViewModel : ComponentBase
 			"12M" => endExclusive.AddDays(-365),
 			_ => endExclusive.AddDays(-30),
 		};
+
+		// Free-tier 30-day history cap
+		if (_earliestQueryable.HasValue && start < _earliestQueryable.Value)
+			start = _earliestQueryable.Value;
+
 		return (start, endExclusive);
 	}
 

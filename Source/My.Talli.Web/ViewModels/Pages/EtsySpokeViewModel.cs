@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Commands.Billing;
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
 using Domain.Repositories;
@@ -21,6 +22,7 @@ public class EtsySpokeViewModel : ComponentBase
 
 	#region <Variables>
 
+	private DateTime? _earliestQueryable;
 	private long? _userId;
 
 	[CascadingParameter]
@@ -31,6 +33,12 @@ public class EtsySpokeViewModel : ComponentBase
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.Expense, ENTITIES.Expense> ExpenseAdapter { get; set; } = default!;
+
+	[Inject]
+	private GetEarliestQueryableDateCommand GetEarliestQueryableDate { get; set; } = default!;
+
+	[Inject]
+	private IsProSubscriberCommand IsProSubscriberQuery { get; set; } = default!;
 
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.ExpenseEtsy, ENTITIES.ExpenseEtsy> ExpenseEtsyAdapter { get; set; } = default!;
@@ -83,6 +91,8 @@ public class EtsySpokeViewModel : ComponentBase
 	public DateTime? LastSyncDateTime { get; private set; }
 
 	public decimal Net30d => RevenueItems.Where(r => r.TransactionDate >= DateTime.UtcNow.AddDays(-30)).Sum(r => r.NetAmount);
+
+	public bool IsPro { get; private set; }
 
 	public string PageTitle => ActiveTab switch
 	{
@@ -327,6 +337,14 @@ public class EtsySpokeViewModel : ComponentBase
 		_userId = parsedUserId;
 		CurrentUserService.Set(parsedUserId, string.Empty);
 
+		// Plan-tier — drives 30-day history cap (clamps period filter + adds floor to data load)
+		IsPro = await IsProSubscriberQuery.ExecuteAsync(parsedUserId);
+		_earliestQueryable = await GetEarliestQueryableDate.ExecuteAsync(parsedUserId);
+
+		// Snap free user back to a valid period if a longer one is cached
+		if (!IsPro && (Period == "90D" || Period == "All"))
+			Period = "30D";
+
 		await LoadGridPreferencesAsync();
 		await LoadAsync();
 	}
@@ -356,6 +374,10 @@ public class EtsySpokeViewModel : ComponentBase
 			"90D" => DateTime.UtcNow.AddDays(-90),
 			_ => DateTime.MinValue
 		};
+
+		// Free-tier 30-day history cap: even if Period is "All" / "90D", clamp the cutoff forward
+		if (_earliestQueryable.HasValue && cutoff < _earliestQueryable.Value)
+			cutoff = _earliestQueryable.Value;
 
 		return cutoff == DateTime.MinValue ? source : source.Where(x => dateSelector(x) >= cutoff);
 	}

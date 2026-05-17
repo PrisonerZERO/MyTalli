@@ -38,6 +38,10 @@ public class BillingHealthBuilder
 
 	public CanConnectAnotherShopCommand CanConnectAnotherShop => _container.GetInstance<CanConnectAnotherShopCommand>();
 
+	public GetEarliestQueryableDateCommand GetEarliestQueryableDate => _container.GetInstance<GetEarliestQueryableDateCommand>();
+
+	public IsProSubscriberCommand IsProSubscriber => _container.GetInstance<IsProSubscriberCommand>();
+
 	public GetFreeTierSlotShopIdCommand GetFreeTierSlotShopId => _container.GetInstance<GetFreeTierSlotShopIdCommand>();
 
 	public IServiceProvider Container => _container;
