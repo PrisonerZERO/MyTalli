@@ -18,7 +18,7 @@ public class BillingHealthWorkerTests
 	{
 		var builder = new BillingHealthBuilder();
 
-		var drift = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+		var drift = (await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None)).DriftCount;
 
 		Assert.Equal(0, drift);
 		Assert.Empty(builder.ApiClient.Calls);
@@ -42,7 +42,7 @@ public class BillingHealthWorkerTests
 			SubscriptionId = "sub_aligned"
 		});
 
-		var drift = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+		var drift = (await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None)).DriftCount;
 
 		Assert.Equal(0, drift);
 		Assert.Single(builder.ApiClient.Calls);
@@ -64,7 +64,7 @@ public class BillingHealthWorkerTests
 			SubscriptionId = "sub_canceled_on_stripe"
 		});
 
-		var drift = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+		var drift = (await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None)).DriftCount;
 
 		Assert.Equal(1, drift);
 		Assert.Contains(builder.ReconcileLogger.Entries, e =>
@@ -85,7 +85,7 @@ public class BillingHealthWorkerTests
 			SubscriptionId = "sub_cancelling"
 		});
 
-		var drift = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+		var drift = (await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None)).DriftCount;
 
 		Assert.Equal(0, drift);
 		Assert.DoesNotContain(builder.ReconcileLogger.Entries, e => e.Level == LogLevel.Warning);
@@ -105,7 +105,7 @@ public class BillingHealthWorkerTests
 			SubscriptionId = "sub_date_drift"
 		});
 
-		var drift = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+		var drift = (await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None)).DriftCount;
 
 		Assert.Equal(1, drift);
 		Assert.Contains(builder.ReconcileLogger.Entries, e =>
@@ -120,7 +120,7 @@ public class BillingHealthWorkerTests
 		await builder.SeedActiveProAsync(userId: 1, stripeSubscriptionId: "sub_missing_on_stripe", endDate: endDate);
 		builder.ApiClient.SetNotFound("sub_missing_on_stripe");
 
-		var drift = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+		var drift = (await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None)).DriftCount;
 
 		Assert.Equal(1, drift);
 		Assert.Contains(builder.ReconcileLogger.Entries, e =>
@@ -143,7 +143,7 @@ public class BillingHealthWorkerTests
 			UserId = 1
 		});
 
-		var drift = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+		var drift = (await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None)).DriftCount;
 
 		Assert.Equal(1, drift);
 		Assert.Empty(builder.ApiClient.Calls);
@@ -168,7 +168,7 @@ public class BillingHealthWorkerTests
 			SubscriptionId = "sub_ok"
 		});
 
-		var drift = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+		var drift = (await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None)).DriftCount;
 
 		Assert.Equal(0, drift);
 		Assert.Equal(2, builder.ApiClient.Calls.Count);
@@ -185,7 +185,7 @@ public class BillingHealthWorkerTests
 		// Cancelled subscription — should not be reconciled
 		await builder.SeedActiveProAsync(userId: 1, stripeSubscriptionId: "sub_cancelled", endDate: endDate, status: FRAMEWORK.SubscriptionStatuses.Cancelled);
 
-		var drift = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+		var drift = (await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None)).DriftCount;
 
 		Assert.Equal(0, drift);
 		Assert.Empty(builder.ApiClient.Calls);
@@ -209,6 +209,35 @@ public class BillingHealthWorkerTests
 
 		var heartbeat = (await builder.HeartbeatAdapter.GetAllAsync()).Single();
 		Assert.Equal(BillingHealthWorker.HeartbeatSourceName, heartbeat.HeartbeatSource);
+	}
+
+	[Fact]
+	public async Task RunPassAsync_NewlyExpiredSubWithUser_SendsExpirationEmailDuringPass()
+	{
+		var builder = new BillingHealthBuilder();
+		var userId = await builder.SeedGoogleUserAsync("Robert", "robert@example.com");
+		await builder.SeedActiveProAsync(userId, "sub_expired", DateTime.UtcNow.AddDays(-2));
+
+		var result = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+
+		Assert.Equal(1, result.EmailsSent);
+		Assert.Single(builder.EmailService.Sent);
+		Assert.Contains("robert@example.com", builder.EmailService.Sent[0].To);
+	}
+
+	[Fact]
+	public async Task RunPassAsync_AlreadyEmailedExpiredSub_DoesNotResendInSubsequentPass()
+	{
+		var builder = new BillingHealthBuilder();
+		var userId = await builder.SeedGoogleUserAsync("Robert", "robert@example.com");
+		await builder.SeedActiveProAsync(userId, "sub_expired", DateTime.UtcNow.AddDays(-2));
+
+		var firstPass = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+		var secondPass = await BillingHealthWorker.RunPassAsync(builder.Container, NullLogger.Instance, TimeSpan.Zero, CancellationToken.None);
+
+		Assert.Equal(1, firstPass.EmailsSent);
+		Assert.Equal(0, secondPass.EmailsSent);
+		Assert.Single(builder.EmailService.Sent);
 	}
 
 	#endregion

@@ -1,5 +1,6 @@
 namespace My.Talli.UnitTesting.Infrastructure.Builders;
 
+using Domain.Commands.Billing;
 using Domain.Models;
 using Domain.Repositories;
 using Lamar;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using My.Talli.UnitTesting.Infrastructure.IoC;
 using My.Talli.UnitTesting.Infrastructure.Stubs;
 using My.Talli.Web.Commands.Billing;
+using My.Talli.Web.Commands.Notifications;
 
 using ENTITIES = My.Talli.Domain.Entities;
 
@@ -30,12 +32,26 @@ public class BillingHealthBuilder
 
 	#region <Properties>
 
+	public AcknowledgeExpirationCommand AcknowledgeExpiration => _container.GetInstance<AcknowledgeExpirationCommand>();
+
 	public StripeBillingApiClientStub ApiClient => (StripeBillingApiClientStub)_container.GetInstance<My.Talli.Web.Services.Billing.IStripeBillingApiClient>();
 
 	public IServiceProvider Container => _container;
 
+	public EmailServiceStub EmailService => (EmailServiceStub)_container.GetInstance<My.Talli.Web.Services.Email.IEmailService>();
+
+	public FindExpiredUnacknowledgedSubscriptionCommand FindExpiredUnacknowledged => _container.GetInstance<FindExpiredUnacknowledgedSubscriptionCommand>();
+
+	public RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle> GoogleAuthAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<UserAuthenticationGoogle, ENTITIES.UserAuthenticationGoogle>>();
+
 	public RepositoryAdapterAsync<Heartbeat, ENTITIES.Heartbeat> HeartbeatAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<Heartbeat, ENTITIES.Heartbeat>>();
+
+	public CapturingLogger<NotifyExpiredSubscribersCommand> NotifyLogger =>
+		(CapturingLogger<NotifyExpiredSubscribersCommand>)_container.GetInstance<ILogger<NotifyExpiredSubscribersCommand>>();
+
+	public NotifyExpiredSubscribersCommand NotifyExpiredSubscribers => _container.GetInstance<NotifyExpiredSubscribersCommand>();
 
 	public CapturingLogger<ReconcileBillingHealthCommand> ReconcileLogger =>
 		(CapturingLogger<ReconcileBillingHealthCommand>)_container.GetInstance<ILogger<ReconcileBillingHealthCommand>>();
@@ -45,6 +61,9 @@ public class BillingHealthBuilder
 
 	public RepositoryAdapterAsync<SubscriptionStripe, ENTITIES.SubscriptionStripe> SubscriptionStripeAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<SubscriptionStripe, ENTITIES.SubscriptionStripe>>();
+
+	public RepositoryAdapterAsync<User, ENTITIES.User> UserAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<User, ENTITIES.User>>();
 
 	#endregion
 
@@ -73,6 +92,35 @@ public class BillingHealthBuilder
 		});
 
 		return sub;
+	}
+
+	/// <summary>Seeds a User + UserAuthenticationGoogle pair sharing the same PK; returns the User Id.</summary>
+	public async Task<long> SeedGoogleUserAsync(string firstName, string email)
+	{
+		var user = await UserAdapter.InsertAsync(new User
+		{
+			DisplayName = firstName,
+			FirstName = firstName,
+			LastName = string.Empty,
+			InitialProvider = "Google",
+			PreferredProvider = "Google",
+			UserPreferences = "{}"
+		});
+
+		await GoogleAuthAdapter.InsertAsync(new UserAuthenticationGoogle
+		{
+			Id = user.Id,
+			AvatarUrl = string.Empty,
+			DisplayName = firstName,
+			Email = email,
+			EmailVerified = true,
+			FirstName = firstName,
+			GoogleId = $"google_{user.Id}",
+			LastName = string.Empty,
+			Locale = "en"
+		});
+
+		return user.Id;
 	}
 
 	#endregion

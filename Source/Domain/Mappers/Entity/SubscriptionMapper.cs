@@ -12,6 +12,8 @@ public class SubscriptionMapper : EntityMapper<MODELS.Subscription, ENTITIES.Sub
 	{
 		destination.CancelledDate = source.CancelledDate;
 		destination.EndDate = source.EndDate;
+		destination.ExpirationAcknowledgedAt = source.ExpirationAcknowledgedAt;
+		destination.ExpirationEmailSentAt = source.ExpirationEmailSentAt;
 		destination.Id = source.Id;
 		destination.IsDeleted = source.IsDeleted;
 		destination.IsVisible = source.IsVisible;
@@ -27,6 +29,8 @@ public class SubscriptionMapper : EntityMapper<MODELS.Subscription, ENTITIES.Sub
 	{
 		CancelledDate = model.CancelledDate,
 		EndDate = model.EndDate,
+		ExpirationAcknowledgedAt = model.ExpirationAcknowledgedAt,
+		ExpirationEmailSentAt = model.ExpirationEmailSentAt,
 		Id = model.Id,
 		IsDeleted = model.IsDeleted,
 		IsVisible = model.IsVisible,
@@ -42,6 +46,8 @@ public class SubscriptionMapper : EntityMapper<MODELS.Subscription, ENTITIES.Sub
 	{
 		CancelledDate = entity.CancelledDate,
 		EndDate = entity.EndDate,
+		ExpirationAcknowledgedAt = entity.ExpirationAcknowledgedAt,
+		ExpirationEmailSentAt = entity.ExpirationEmailSentAt,
 		Id = entity.Id,
 		IsDeleted = entity.IsDeleted,
 		IsVisible = entity.IsVisible,

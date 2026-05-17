@@ -1,6 +1,7 @@
 namespace My.Talli.Web.Configuration;
 
 using Web.Commands.Billing;
+using Web.Commands.Notifications;
 using Web.Handlers.Endpoints;
 using Web.Services.Billing;
 using Web.Workers;
@@ -16,7 +17,9 @@ public static class BillingConfiguration
 
         services.Configure<StripeSettings>(stripeSection);
         services.AddScoped<CheckoutCompletedHandler>();
+        services.AddScoped<NotifyExpiredSubscribersCommand>();
         services.AddScoped<ReconcileBillingHealthCommand>();
+        services.AddScoped<SendSubscriptionExpiredEmailCommand>();
         services.AddScoped<StripeBillingService>();
         services.AddScoped<IStripeBillingApiClient>(sp => sp.GetRequiredService<StripeBillingService>());
         services.AddScoped<SubscriptionDeletedHandler>();

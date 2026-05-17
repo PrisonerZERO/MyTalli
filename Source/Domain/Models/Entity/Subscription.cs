@@ -9,6 +9,10 @@ public class Subscription : DefaultModel
 
 	public DateTime EndDate { get; set; }
 
+	public DateTime? ExpirationAcknowledgedAt { get; set; }
+
+	public DateTime? ExpirationEmailSentAt { get; set; }
+
 	public long OrderItemId { get; set; }
 
 	public long ProductId { get; set; }

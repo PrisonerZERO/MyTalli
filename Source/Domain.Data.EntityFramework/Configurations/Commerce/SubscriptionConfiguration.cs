@@ -21,15 +21,17 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
         builder.Property(e => e.UserId).HasColumnOrder(3);
         builder.Property(e => e.CancelledDate).IsRequired(false).HasColumnOrder(4);
         builder.Property(e => e.EndDate).IsRequired().HasColumnOrder(5);
-        builder.Property(e => e.RenewalDate).IsRequired().HasColumnOrder(6);
-        builder.Property(e => e.StartDate).IsRequired().HasColumnOrder(7);
-        builder.Property(e => e.Status).HasMaxLength(20).IsRequired().HasColumnOrder(8);
-        builder.Property(e => e.IsDeleted).HasColumnOrder(9);
-        builder.Property(e => e.IsVisible).HasColumnOrder(10);
-        builder.Property(e => e.CreateByUserId).HasColumnOrder(11);
-        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(12);
-        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(13);
-        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(14);
+        builder.Property(e => e.ExpirationAcknowledgedAt).IsRequired(false).HasColumnOrder(6);
+        builder.Property(e => e.ExpirationEmailSentAt).IsRequired(false).HasColumnOrder(7);
+        builder.Property(e => e.RenewalDate).IsRequired().HasColumnOrder(8);
+        builder.Property(e => e.StartDate).IsRequired().HasColumnOrder(9);
+        builder.Property(e => e.Status).HasMaxLength(20).IsRequired().HasColumnOrder(10);
+        builder.Property(e => e.IsDeleted).HasColumnOrder(11);
+        builder.Property(e => e.IsVisible).HasColumnOrder(12);
+        builder.Property(e => e.CreateByUserId).HasColumnOrder(13);
+        builder.Property(e => e.CreatedOnDateTime).HasColumnOrder(14);
+        builder.Property(e => e.UpdatedByUserId).HasColumnOrder(15);
+        builder.Property(e => e.UpdatedOnDate).HasColumnOrder(16);
 
         builder.HasIndex(e => e.OrderItemId).HasDatabaseName("IX_Subscription_OrderItemId");
         builder.HasIndex(e => e.ProductId).HasDatabaseName("IX_Subscription_ProductId");

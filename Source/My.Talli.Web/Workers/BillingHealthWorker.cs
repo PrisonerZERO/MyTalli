@@ -64,8 +64,9 @@ public class BillingHealthWorker : BackgroundService
 		}
 	}
 
-	public static async Task<int> RunPassAsync(IServiceProvider scopedServices, ILogger logger, TimeSpan perSubscriptionDelay, CancellationToken cancellationToken)
+	public static async Task<BillingHealthPassResult> RunPassAsync(IServiceProvider scopedServices, ILogger logger, TimeSpan perSubscriptionDelay, CancellationToken cancellationToken)
 	{
+		var notify = scopedServices.GetRequiredService<NotifyExpiredSubscribersCommand>();
 		var reconcile = scopedServices.GetRequiredService<ReconcileBillingHealthCommand>();
 		var writeHeartbeat = scopedServices.GetRequiredService<WriteHeartbeatTickCommand>();
 		var currentUser = scopedServices.GetRequiredService<ICurrentUserService>();
@@ -76,9 +77,21 @@ public class BillingHealthWorker : BackgroundService
 			var driftCount = await reconcile.ExecuteAsync(perSubscriptionDelay, cancellationToken);
 
 			if (driftCount > 0)
-				logger.LogWarning("BillingHealthWorker pass complete: {DriftCount} subscription(s) with drift.", driftCount);
+				logger.LogWarning("BillingHealthWorker reconciliation: {DriftCount} subscription(s) with drift.", driftCount);
 			else
-				logger.LogInformation("BillingHealthWorker pass complete: no drift detected.");
+				logger.LogInformation("BillingHealthWorker reconciliation: no drift detected.");
+
+			var emailsSent = 0;
+			try
+			{
+				emailsSent = await notify.ExecuteAsync(cancellationToken);
+				if (emailsSent > 0)
+					logger.LogInformation("BillingHealthWorker notifications: sent {EmailsSent} expiration email(s).", emailsSent);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "BillingHealthWorker notification pass threw an unhandled exception.");
+			}
 
 			try
 			{
@@ -89,7 +102,7 @@ public class BillingHealthWorker : BackgroundService
 				logger.LogWarning(ex, "BillingHealthWorker heartbeat write failed.");
 			}
 
-			return driftCount;
+			return new BillingHealthPassResult { DriftCount = driftCount, EmailsSent = emailsSent };
 		}
 		finally
 		{
