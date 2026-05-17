@@ -14,6 +14,9 @@ public interface IRepositoryAsync<T> where T : class, IIdentifiable
 
     Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
 
+    /// <summary>Server-side COUNT(*) for the predicate. Use instead of FindAsync(predicate).Count() when you only need the count — avoids materializing every matching row into memory.</summary>
+    Task<int> CountAsync(Expression<Func<T, bool>> predicate);
+
     Task AddAsync(T entity);
 
     void Update(T entity);

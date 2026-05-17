@@ -89,7 +89,6 @@ public class ContainerRegistry : ServiceRegistry
 		this.AddScoped<GetFreeTierSlotShopIdCommand>();
 		this.AddScoped<IsProSubscriberCommand>();
 		this.AddScoped<GetExportDataCommand>();
-		this.AddScoped<GetExportPreviewCommand>();
 		this.AddScoped<GetSyncHealthCommand>();
 		this.AddScoped<GetSystemSettingCommand>();
 		this.AddScoped<MarkExpirationEmailSentCommand>();

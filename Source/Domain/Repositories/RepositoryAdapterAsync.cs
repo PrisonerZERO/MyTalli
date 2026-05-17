@@ -48,6 +48,12 @@ public class RepositoryAdapterAsync<TModel, TEntity> where TModel : class where 
 		return _mapper.ToModels(entities);
 	}
 
+	/// <summary>Server-side COUNT(*) for the predicate. Returns the count directly without materializing any rows — use instead of <c>FindAsync(predicate).Count()</c> when only the count is needed.</summary>
+	public async Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate)
+	{
+		return await _repository.CountAsync(predicate);
+	}
+
 	public async Task<IEnumerable<TModel>> GetAllAsync()
 	{
 		var entities = await _repository.GetAllAsync();

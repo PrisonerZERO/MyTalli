@@ -10,8 +10,15 @@ public static class DatabaseConfiguration
 
     public static void AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<TalliDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        services.AddDbContext<TalliDbContext>(options => options.UseSqlServer(connectionString));
+
+        // IDbContextFactory<TalliDbContext> registers separately and produces brand-new DbContext instances
+        // on each CreateDbContextAsync() call. Use this when you need to run multiple reads in parallel via
+        // Task.WhenAll — each task gets its own context so they don't contend on the scoped TalliDbContext's
+        // ConcurrencyLock. See GetExportPreviewCommand for the reference usage.
+        services.AddDbContextFactory<TalliDbContext>(options => options.UseSqlServer(connectionString));
     }
 
     public static async Task PreWarmDatabaseAsync(this WebApplication app)

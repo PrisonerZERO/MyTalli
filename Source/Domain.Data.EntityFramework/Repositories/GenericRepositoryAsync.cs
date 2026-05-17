@@ -57,6 +57,20 @@ public class GenericRepositoryAsync<TEntity> : IRepositoryAsync<TEntity> where T
         }
     }
 
+    public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate)
+    {
+        await _dbContext.ConcurrencyLock.WaitAsync();
+
+        try
+        {
+            return await _dbSet.AsNoTracking().CountAsync(predicate);
+        }
+        finally
+        {
+            _dbContext.ConcurrencyLock.Release();
+        }
+    }
+
     public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
     {
         await _dbContext.ConcurrencyLock.WaitAsync();
