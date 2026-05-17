@@ -9,6 +9,8 @@ public class PlatformItem
 
 	public bool CanAddAnotherShop { get; set; }
 
+	public bool CanConnect { get; set; }
+
 	public string ConnectionStatus { get; set; } = "";
 
 	public string Description { get; set; } = "";

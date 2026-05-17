@@ -46,21 +46,30 @@ else
 
         <div class="export-range-pills" role="group" aria-label="Date range presets">
             <button class="range-pill @(SelectedRange == "30d" ? "active" : "")" @onclick='() => SelectRangeAsync("30d")'>Last 30 days</button>
-            <button class="range-pill @(SelectedRange == "90d" ? "active" : "")" @onclick='() => SelectRangeAsync("90d")'>Last 90 days</button>
-            <button class="range-pill @(SelectedRange == "365d" ? "active" : "")" @onclick='() => SelectRangeAsync("365d")'>Last 12 months</button>
-            <button class="range-pill @(SelectedRange == "ytd" ? "active" : "")" @onclick='() => SelectRangeAsync("ytd")'>Year to date</button>
-            <button class="range-pill @(SelectedRange == "all" ? "active" : "")" @onclick='() => SelectRangeAsync("all")'>All time</button>
+            @if (IsPro)
+            {
+                <button class="range-pill @(SelectedRange == "90d" ? "active" : "")" @onclick='() => SelectRangeAsync("90d")'>Last 90 days</button>
+                <button class="range-pill @(SelectedRange == "365d" ? "active" : "")" @onclick='() => SelectRangeAsync("365d")'>Last 12 months</button>
+                <button class="range-pill @(SelectedRange == "ytd" ? "active" : "")" @onclick='() => SelectRangeAsync("ytd")'>Year to date</button>
+                <button class="range-pill @(SelectedRange == "all" ? "active" : "")" @onclick='() => SelectRangeAsync("all")'>All time</button>
+            }
+            else
+            {
+                <a class="range-pill range-pill-upgrade" href="/my-plan" title="Upgrade to Pro for 90+ days, Year to date, or All time">Pro &#9656; 90 days &middot; 12 months &middot; All</a>
+            }
         </div>
 
         <div class="export-custom-range">
             <div class="custom-range-field">
                 <label for="from-date">From</label>
                 <input id="from-date" type="date" value="@FromDateLocal.ToString("yyyy-MM-dd")"
+                       min="@FromInputMin" max="@DateInputMax"
                        @onchange="async e => { FromDateLocal = DateTime.Parse(e.Value!.ToString()!); await SetCustomRangeAsync(); }" />
             </div>
             <div class="custom-range-field">
                 <label for="to-date">To</label>
                 <input id="to-date" type="date" value="@ToDateLocal.ToString("yyyy-MM-dd")"
+                       min="@ToInputMin" max="@DateInputMax"
                        @onchange="async e => { ToDateLocal = DateTime.Parse(e.Value!.ToString()!); await SetCustomRangeAsync(); }" />
             </div>
         </div>
@@ -71,10 +80,18 @@ else
         <h2>Download</h2>
         <p class="section-desc">@(IsRefreshingPreview ? "Counting rows…" : Preview is null ? "" : $"{Preview.TotalRowCount:N0} total rows in this range.")</p>
 
+        @if (!IsPro)
+        {
+            <div class="export-pro-banner" role="status">
+                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <span><strong>CSV export is a Pro feature.</strong> Upgrade to download your data for tax prep, bookkeeping, or anything else you need.</span>
+            </div>
+        }
+
         <div class="export-card-grid">
-            <ExportCard Label="Revenue" Description="Per-transaction sales with gross, fee, and net." RowCount="@RowCountFor("revenue")" DownloadUrl="@DownloadUrl("revenue")" />
-            <ExportCard Label="Expenses" Description="Platform fees and manual expenses." RowCount="@RowCountFor("expenses")" DownloadUrl="@DownloadUrl("expenses")" />
-            <ExportCard Label="Payouts" Description="Disbursements paid to your bank or PayPal." RowCount="@RowCountFor("payouts")" DownloadUrl="@DownloadUrl("payouts")" />
+            <ExportCard Label="Revenue" Description="Per-transaction sales with gross, fee, and net." RowCount="@RowCountFor("revenue")" DownloadUrl="@DownloadUrl("revenue")" IsLockedByPlanTier="@(!IsPro)" />
+            <ExportCard Label="Expenses" Description="Platform fees and manual expenses." RowCount="@RowCountFor("expenses")" DownloadUrl="@DownloadUrl("expenses")" IsLockedByPlanTier="@(!IsPro)" />
+            <ExportCard Label="Payouts" Description="Disbursements paid to your bank or PayPal." RowCount="@RowCountFor("payouts")" DownloadUrl="@DownloadUrl("payouts")" IsLockedByPlanTier="@(!IsPro)" />
         </div>
 
         <p class="export-fineprint">

@@ -9,6 +9,10 @@ public class Subscription : DefaultEntity
 
 	public DateTime EndDate { get; set; }
 
+	public DateTime? ExpirationAcknowledgedAt { get; set; }
+
+	public DateTime? ExpirationEmailSentAt { get; set; }
+
 	public OrderItem OrderItem { get; set; } = null!;
 
 	public long OrderItemId { get; set; }

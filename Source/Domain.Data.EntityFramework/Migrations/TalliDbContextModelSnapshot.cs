@@ -1821,23 +1821,31 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<long>("CreateByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(13);
 
                     b.Property<DateTime>("CreatedOnDateTime")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(14);
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2")
                         .HasColumnOrder(5);
 
+                    b.Property<DateTime?>("ExpirationAcknowledgedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime?>("ExpirationEmailSentAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnOrder(7);
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(11);
 
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(12);
 
                     b.Property<long>("OrderItemId")
                         .HasColumnType("bigint")
@@ -1849,25 +1857,25 @@ namespace My.Talli.Domain.Data.EntityFramework.Migrations
 
                     b.Property<DateTime>("RenewalDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(9);
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(10);
 
                     b.Property<long?>("UpdatedByUserId")
                         .HasColumnType("bigint")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(15);
 
                     b.Property<DateTime?>("UpdatedOnDate")
                         .HasColumnType("datetime2")
-                        .HasColumnOrder(14);
+                        .HasColumnOrder(16);
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")

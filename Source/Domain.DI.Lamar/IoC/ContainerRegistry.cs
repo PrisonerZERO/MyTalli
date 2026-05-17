@@ -77,15 +77,22 @@ public class ContainerRegistry : ServiceRegistry
 		For<StripeWebhookHandler>();
 
 		// Commands — AddScoped registers with IServiceProviderIsService so Minimal API parameter binding recognizes them as DI services
+		this.AddScoped<AcknowledgeExpirationCommand>();
+		this.AddScoped<CanConnectAnotherShopCommand>();
 		this.AddScoped<ConnectEtsyCommand>();
 		this.AddScoped<ConnectGumroadCommand>();
 		this.AddScoped<ConnectStripeCommand>();
 		this.AddScoped<CreateManualShopCommand>();
 		this.AddScoped<FindActiveSubscriptionWithStripeCommand>();
+		this.AddScoped<FindExpiredUnacknowledgedSubscriptionCommand>();
+		this.AddScoped<GetEarliestQueryableDateCommand>();
+		this.AddScoped<GetFreeTierSlotShopIdCommand>();
+		this.AddScoped<IsProSubscriberCommand>();
 		this.AddScoped<GetExportDataCommand>();
 		this.AddScoped<GetExportPreviewCommand>();
 		this.AddScoped<GetSyncHealthCommand>();
 		this.AddScoped<GetSystemSettingCommand>();
+		this.AddScoped<MarkExpirationEmailSentCommand>();
 		this.AddScoped<RefreshShopTokensCommand>();
 		this.AddScoped<RenameManualShopCommand>();
 		this.AddScoped<UpdateLocalSubscriptionCommand>();

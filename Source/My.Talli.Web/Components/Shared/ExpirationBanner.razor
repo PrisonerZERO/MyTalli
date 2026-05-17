@@ -1,0 +1,23 @@
+@inherits My.Talli.Web.ViewModels.Shared.ExpirationBannerViewModel
+
+@if (ShowBanner)
+{
+    <div class="exp-banner" role="status" aria-live="polite">
+        <div class="exp-banner-content">
+            <span class="exp-banner-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </span>
+            <span class="exp-banner-text">
+                Your <strong>@PlanName</strong> plan ended on <strong>@EndDateDisplay</strong>. Renew anytime to restore your Pro benefits.
+            </span>
+        </div>
+        <div class="exp-banner-actions">
+            <button class="exp-banner-renew" @onclick="Renew">Renew</button>
+            <button class="exp-banner-dismiss" @onclick="DismissAsync" aria-label="Dismiss notification">&times;</button>
+        </div>
+    </div>
+}

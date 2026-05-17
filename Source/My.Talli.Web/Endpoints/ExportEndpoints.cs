@@ -1,5 +1,6 @@
 namespace My.Talli.Web.Endpoints;
 
+using Domain.Commands.Billing;
 using Domain.Commands.Export;
 using System.Text;
 using Web.Services.Export;
@@ -21,10 +22,13 @@ public static class ExportEndpoints
 
 	#region <Methods>
 
-	private static async Task<IResult> DownloadRevenueCsv(HttpContext context, GetExportDataCommand command, CsvExportService csv, DateTime? from, DateTime? to)
+	private static async Task<IResult> DownloadRevenueCsv(HttpContext context, GetExportDataCommand command, CsvExportService csv, IsProSubscriberCommand isProSubscriber, DateTime? from, DateTime? to)
 	{
 		if (!TryResolveContext(context, from, to, out var userId, out var fromUtc, out var toUtc))
 			return Results.Unauthorized();
+
+		if (!await isProSubscriber.ExecuteAsync(userId))
+			return Results.Redirect("/my-plan?error=export_pro_only");
 
 		var rows = await command.GetRevenueAsync(userId, fromUtc, toUtc);
 		var content = csv.BuildRevenueCsv(rows);
@@ -32,10 +36,13 @@ public static class ExportEndpoints
 		return BuildCsvResponse(content, BuildFilename("revenue", fromUtc, toUtc));
 	}
 
-	private static async Task<IResult> DownloadExpensesCsv(HttpContext context, GetExportDataCommand command, CsvExportService csv, DateTime? from, DateTime? to)
+	private static async Task<IResult> DownloadExpensesCsv(HttpContext context, GetExportDataCommand command, CsvExportService csv, IsProSubscriberCommand isProSubscriber, DateTime? from, DateTime? to)
 	{
 		if (!TryResolveContext(context, from, to, out var userId, out var fromUtc, out var toUtc))
 			return Results.Unauthorized();
+
+		if (!await isProSubscriber.ExecuteAsync(userId))
+			return Results.Redirect("/my-plan?error=export_pro_only");
 
 		var rows = await command.GetExpensesAsync(userId, fromUtc, toUtc);
 		var content = csv.BuildExpenseCsv(rows);
@@ -43,10 +50,13 @@ public static class ExportEndpoints
 		return BuildCsvResponse(content, BuildFilename("expenses", fromUtc, toUtc));
 	}
 
-	private static async Task<IResult> DownloadPayoutsCsv(HttpContext context, GetExportDataCommand command, CsvExportService csv, DateTime? from, DateTime? to)
+	private static async Task<IResult> DownloadPayoutsCsv(HttpContext context, GetExportDataCommand command, CsvExportService csv, IsProSubscriberCommand isProSubscriber, DateTime? from, DateTime? to)
 	{
 		if (!TryResolveContext(context, from, to, out var userId, out var fromUtc, out var toUtc))
 			return Results.Unauthorized();
+
+		if (!await isProSubscriber.ExecuteAsync(userId))
+			return Results.Redirect("/my-plan?error=export_pro_only");
 
 		var rows = await command.GetPayoutsAsync(userId, fromUtc, toUtc);
 		var content = csv.BuildPayoutCsv(rows);

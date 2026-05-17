@@ -15,6 +15,8 @@ public class ShopItem
 
 	public bool IsEnabled { get; set; } = true;
 
+	public bool IsLockedByFreeTier { get; set; }
+
 	public bool IsOAuthPlatform { get; set; }
 
 	public string? LastErrorMessage { get; set; }

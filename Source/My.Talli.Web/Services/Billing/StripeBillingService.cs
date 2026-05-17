@@ -5,7 +5,7 @@ using Stripe;
 using Stripe.Checkout;
 
 /// <summary>Service</summary>
-public class StripeBillingService
+public class StripeBillingService : IStripeBillingApiClient
 {
     #region <Variables>
 
@@ -63,6 +63,30 @@ public class StripeBillingService
         _logger.LogInformation("Created Stripe Portal session for customer {CustomerId}", stripeCustomerId);
 
         return session;
+    }
+
+    public async Task<StripeSubscriptionInfo?> GetSubscriptionAsync(string stripeSubscriptionId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var service = new SubscriptionService();
+            var subscription = await service.GetAsync(stripeSubscriptionId, cancellationToken: cancellationToken);
+
+            if (subscription.Items?.Data is null || subscription.Items.Data.Count == 0)
+                throw new InvalidOperationException($"Stripe subscription {stripeSubscriptionId} returned no items — cannot resolve CurrentPeriodEnd.");
+
+            return new StripeSubscriptionInfo
+            {
+                CancelAtPeriodEnd = subscription.CancelAtPeriodEnd,
+                CurrentPeriodEnd = subscription.Items.Data[0].CurrentPeriodEnd,
+                Status = subscription.Status,
+                SubscriptionId = subscription.Id
+            };
+        }
+        catch (StripeException ex) when (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
     }
 
     public async Task SwitchPlanAsync(string stripeSubscriptionId, string newPriceId)

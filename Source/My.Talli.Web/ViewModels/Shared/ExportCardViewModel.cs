@@ -14,6 +14,9 @@ public class ExportCardViewModel : ComponentBase
 	public string DownloadUrl { get; set; } = string.Empty;
 
 	[Parameter]
+	public bool IsLockedByPlanTier { get; set; }
+
+	[Parameter]
 	public string Label { get; set; } = string.Empty;
 
 	[Parameter]

@@ -199,8 +199,15 @@ else
                 <div class="filter-pills" style="margin-left:auto;" role="group" aria-label="Time period filter">
                     <button class="filter-pill @(Period == "7D" ? "active" : "")" @onclick='() => SelectPeriod("7D")'>7D</button>
                     <button class="filter-pill @(Period == "30D" ? "active" : "")" @onclick='() => SelectPeriod("30D")'>30D</button>
-                    <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
-                    <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                    @if (IsPro)
+                    {
+                        <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
+                        <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                    }
+                    else
+                    {
+                        <a class="filter-pill filter-pill-upgrade" href="/my-plan" title="Upgrade to Pro for 90+ days of history">Pro &#9656; 90D &middot; All</a>
+                    }
                 </div>
             </div>
 
@@ -275,8 +282,15 @@ else
                 <div class="filter-pills" style="margin-left:auto;" role="group" aria-label="Time period filter">
                     <button class="filter-pill @(Period == "7D" ? "active" : "")" @onclick='() => SelectPeriod("7D")'>7D</button>
                     <button class="filter-pill @(Period == "30D" ? "active" : "")" @onclick='() => SelectPeriod("30D")'>30D</button>
-                    <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
-                    <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                    @if (IsPro)
+                    {
+                        <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
+                        <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                    }
+                    else
+                    {
+                        <a class="filter-pill filter-pill-upgrade" href="/my-plan" title="Upgrade to Pro for 90+ days of history">Pro &#9656; 90D &middot; All</a>
+                    }
                 </div>
             </div>
 
@@ -350,8 +364,15 @@ else
                 <div class="filter-pills" style="margin-left:auto;" role="group" aria-label="Time period filter">
                     <button class="filter-pill @(Period == "7D" ? "active" : "")" @onclick='() => SelectPeriod("7D")'>7D</button>
                     <button class="filter-pill @(Period == "30D" ? "active" : "")" @onclick='() => SelectPeriod("30D")'>30D</button>
-                    <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
-                    <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                    @if (IsPro)
+                    {
+                        <button class="filter-pill @(Period == "90D" ? "active" : "")" @onclick='() => SelectPeriod("90D")'>90D</button>
+                        <button class="filter-pill @(Period == "All" ? "active" : "")" @onclick='() => SelectPeriod("All")'>All</button>
+                    }
+                    else
+                    {
+                        <a class="filter-pill filter-pill-upgrade" href="/my-plan" title="Upgrade to Pro for 90+ days of history">Pro &#9656; 90D &middot; All</a>
+                    }
                 </div>
             </div>
 

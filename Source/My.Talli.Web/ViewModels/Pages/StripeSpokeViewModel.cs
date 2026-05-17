@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Commands.Billing;
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
 using Domain.Repositories;
@@ -21,6 +22,7 @@ public class StripeSpokeViewModel : ComponentBase
 
 	#region <Variables>
 
+	private DateTime? _earliestQueryable;
 	private long? _userId;
 
 	[CascadingParameter]
@@ -28,6 +30,12 @@ public class StripeSpokeViewModel : ComponentBase
 
 	[Inject]
 	private ICurrentUserService CurrentUserService { get; set; } = default!;
+
+	[Inject]
+	private GetEarliestQueryableDateCommand GetEarliestQueryableDate { get; set; } = default!;
+
+	[Inject]
+	private IsProSubscriberCommand IsProSubscriberQuery { get; set; } = default!;
 
 	[Inject]
 	private NavigationManager Navigation { get; set; } = default!;
@@ -86,6 +94,8 @@ public class StripeSpokeViewModel : ComponentBase
 		"payouts" => "Stripe — Payouts",
 		_ => "Stripe — Revenue"
 	};
+
+	public bool IsPro { get; private set; }
 
 	public int PageSize { get; set; } = 50;
 
@@ -252,6 +262,12 @@ public class StripeSpokeViewModel : ComponentBase
 		_userId = parsedUserId;
 		CurrentUserService.Set(parsedUserId, string.Empty);
 
+		IsPro = await IsProSubscriberQuery.ExecuteAsync(parsedUserId);
+		_earliestQueryable = await GetEarliestQueryableDate.ExecuteAsync(parsedUserId);
+
+		if (!IsPro && (Period == "90D" || Period == "All"))
+			Period = "30D";
+
 		await LoadGridPreferencesAsync();
 		await LoadAsync();
 	}
@@ -265,6 +281,10 @@ public class StripeSpokeViewModel : ComponentBase
 			"90D" => DateTime.UtcNow.AddDays(-90),
 			_ => DateTime.MinValue
 		};
+
+		// Free-tier 30-day history cap
+		if (_earliestQueryable.HasValue && cutoff < _earliestQueryable.Value)
+			cutoff = _earliestQueryable.Value;
 
 		return cutoff == DateTime.MinValue ? source : source.Where(x => dateSelector(x) >= cutoff);
 	}

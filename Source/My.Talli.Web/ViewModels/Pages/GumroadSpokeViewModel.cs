@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Commands.Billing;
 using Domain.Components.JsonSerializers;
 using Domain.Data.Interfaces;
 using Domain.Repositories;
@@ -21,6 +22,7 @@ public class GumroadSpokeViewModel : ComponentBase
 
 	#region <Variables>
 
+	private DateTime? _earliestQueryable;
 	private long? _userId;
 
 	[CascadingParameter]
@@ -28,6 +30,12 @@ public class GumroadSpokeViewModel : ComponentBase
 
 	[Inject]
 	private ICurrentUserService CurrentUserService { get; set; } = default!;
+
+	[Inject]
+	private GetEarliestQueryableDateCommand GetEarliestQueryableDate { get; set; } = default!;
+
+	[Inject]
+	private IsProSubscriberCommand IsProSubscriberQuery { get; set; } = default!;
 
 	[Inject]
 	private NavigationManager Navigation { get; set; } = default!;
@@ -71,6 +79,8 @@ public class GumroadSpokeViewModel : ComponentBase
 	public decimal OverviewNet30d => RevenueItems.Where(r => r.TransactionDate >= DateTime.UtcNow.AddDays(-30) && !r.IsRefunded && !r.IsDisputed).Sum(r => r.NetAmount);
 
 	public decimal OverviewRevenue30d => RevenueItems.Where(r => r.TransactionDate >= DateTime.UtcNow.AddDays(-30)).Sum(r => r.GrossAmount);
+
+	public bool IsPro { get; private set; }
 
 	public string PageTitle => ActiveTab switch
 	{
@@ -202,6 +212,12 @@ public class GumroadSpokeViewModel : ComponentBase
 		_userId = parsedUserId;
 		CurrentUserService.Set(parsedUserId, string.Empty);
 
+		IsPro = await IsProSubscriberQuery.ExecuteAsync(parsedUserId);
+		_earliestQueryable = await GetEarliestQueryableDate.ExecuteAsync(parsedUserId);
+
+		if (!IsPro && (Period == "90D" || Period == "All"))
+			Period = "30D";
+
 		await LoadGridPreferencesAsync();
 		await LoadAsync();
 	}
@@ -215,6 +231,10 @@ public class GumroadSpokeViewModel : ComponentBase
 			"90D" => DateTime.UtcNow.AddDays(-90),
 			_ => DateTime.MinValue
 		};
+
+		// Free-tier 30-day history cap
+		if (_earliestQueryable.HasValue && cutoff < _earliestQueryable.Value)
+			cutoff = _earliestQueryable.Value;
 
 		return cutoff == DateTime.MinValue ? source : source.Where(x => dateSelector(x) >= cutoff);
 	}
