@@ -7,6 +7,7 @@ using Domain.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
+using Web.Commands.Export;
 
 /// <summary>View Model</summary>
 public class ExportViewModel : ComponentBase
