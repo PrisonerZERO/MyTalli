@@ -73,13 +73,18 @@
 </head>
 
 <body>
-    <div id="nav-loader" aria-hidden="true"></div>
+    <div id="working-dialog" data-permanent role="status" aria-live="polite" aria-hidden="true">
+        <div class="working-dialog-card">
+            <div class="working-spinner" aria-hidden="true"></div>
+            <div class="working-text">Working<span class="working-dots"><span>.</span><span>.</span><span>.</span></span></div>
+        </div>
+    </div>
     <Routes />
     <script src="_framework/blazor.web.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/mobile-menu.js"></script>
     <script src="js/signin.js"></script>
-    <script src="js/nav-loader.js"></script>
+    <script src="js/working-dialog.js"></script>
 </body>
 
 </html>
