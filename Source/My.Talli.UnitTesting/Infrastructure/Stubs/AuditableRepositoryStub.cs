@@ -69,6 +69,12 @@ public class AuditableRepositoryStub<TEntity> : IAuditableRepositoryAsync<TEntit
 		return Task.FromResult(_store.Where(compiled));
 	}
 
+	public Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate)
+	{
+		var compiled = predicate.Compile();
+		return Task.FromResult(_store.Count(compiled));
+	}
+
 	public Task<IEnumerable<TEntity>> GetAllAsync()
 	{
 		return Task.FromResult<IEnumerable<TEntity>>(_store);

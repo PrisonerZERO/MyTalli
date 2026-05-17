@@ -36,16 +36,17 @@ public class GetExportPreviewCommand
 
 	public async Task<ExportPreview> ExecuteAsync(long userId, DateTime fromUtc, DateTime toUtc)
 	{
-		var revenues = await _revenueAdapter.FindAsync(r => r.UserId == userId && r.TransactionDate >= fromUtc && r.TransactionDate <= toUtc);
-		var expenses = await _expenseAdapter.FindAsync(e => e.UserId == userId && e.ExpenseDate >= fromUtc && e.ExpenseDate <= toUtc);
-		var payouts = await _payoutAdapter.FindAsync(p => p.UserId == userId && p.PayoutDate >= fromUtc && p.PayoutDate <= toUtc);
+		// Server-side COUNT(*) per table — previously this used FindAsync().Count() which materialized every matching row just to count them.
+		var revenueCount = await _revenueAdapter.CountAsync(r => r.UserId == userId && r.TransactionDate >= fromUtc && r.TransactionDate <= toUtc);
+		var expenseCount = await _expenseAdapter.CountAsync(e => e.UserId == userId && e.ExpenseDate >= fromUtc && e.ExpenseDate <= toUtc);
+		var payoutCount = await _payoutAdapter.CountAsync(p => p.UserId == userId && p.PayoutDate >= fromUtc && p.PayoutDate <= toUtc);
 
 		return new ExportPreview
 		{
-			ExpenseRowCount = expenses.Count(),
+			ExpenseRowCount = expenseCount,
 			FromDateUtc = fromUtc,
-			PayoutRowCount = payouts.Count(),
-			RevenueRowCount = revenues.Count(),
+			PayoutRowCount = payoutCount,
+			RevenueRowCount = revenueCount,
 			ToDateUtc = toUtc
 		};
 	}
