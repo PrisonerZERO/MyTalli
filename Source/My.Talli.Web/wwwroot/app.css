@@ -64,6 +64,18 @@ html, body { -webkit-font-smoothing: antialiased; color: var(--text-primary); fo
 .hero-action-btn svg { height: 12px; width: 12px; }
 @media (max-width: 641px) { .hero-top { flex-direction: column; gap: 12px; padding-left: 48px; } .hero-stats { gap: 16px; justify-content: center; } }
 
+/* Sample Data Banner (shared across all pages that render mock data with an upgrade CTA) */
+.sample-banner { align-items: center; background: linear-gradient(135deg, var(--purple-soft) 0%, var(--purple-soft-alt) 100%); border: 1px solid var(--border); border-left: 4px solid var(--purple-primary); border-radius: 10px; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 24px; padding: 14px 20px; }
+.sample-banner-content { align-items: center; color: var(--text-secondary); display: flex; font-size: 14px; gap: 10px; }
+.sample-banner-content strong { color: var(--text-primary); }
+.sample-banner-content svg { color: var(--purple-primary); flex-shrink: 0; height: 20px; width: 20px; }
+.sample-banner-actions { display: flex; flex-shrink: 0; gap: 8px; }
+.sample-banner-cta { background: var(--purple-primary); border-radius: 8px; color: #fff; flex-shrink: 0; font-size: 13px; font-weight: 600; padding: 8px 18px; text-decoration: none; transition: background 0.15s ease, border-color 0.15s ease; white-space: nowrap; }
+.sample-banner-cta:hover { background: var(--purple-hover); }
+.sample-banner-cta-secondary { background: transparent; border: 1px solid var(--purple-primary); color: var(--purple-primary); }
+.sample-banner-cta-secondary:hover { background: var(--purple-soft); color: var(--purple-hover); }
+@media (max-width: 641px) { .sample-banner { flex-direction: column; gap: 12px; text-align: center; } .sample-banner-actions { flex-direction: column; } .sample-banner-content { flex-direction: column; gap: 8px; } }
+
 /* Spoke Tabs (shared across hub + spoke pages) */
 .spoke-tabs { background: #5c5777; display: flex; gap: 0; margin: 0 -40px 24px; padding: 0 40px; position: relative; z-index: 2; }
 [data-theme="dark"] .spoke-tabs { background: #0a0a14; }

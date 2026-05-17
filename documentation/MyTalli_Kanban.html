@@ -90,21 +90,21 @@
 <div class="header">
   <h1>My<span>Talli</span> Active Work</h1>
   <p class="subtitle">Lightweight Kanban board — what's in flight, what's next, what's done</p>
-  <p class="doc-date">Last updated: May 10, 2026</p>
+  <p class="doc-date">Last updated: May 17, 2026</p>
 </div>
 
 <div class="content">
 
   <div class="intro">
     <div class="intro-left">
-      <h2>Current focus: Post-launch hardening</h2>
-      <p><strong>v1.0.0.8 LIVE on www.mytalli.com (May 16).</strong> Previous: v1.0.0.7 (May 16), v1.0.0.6 (May 10), v1.0.0.5 (May 10), v1.0.0.4–v1.0.0.1, initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; every release merged to <code>main</code>. The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. <strong>Infrastructure side is now stable:</strong> v1.0.0.8 moved DataProtection keys to SQL (<code>components.DataProtectionKey</code>) and removed the at-rest encryption layer on OAuth tokens — no more MI / blob / sidecar dependency, no more "container restart wipes keys" failure mode. Next: reconnect Etsy / Gumroad test shops on prod (old ciphertext tokens are unreadable), delete the dead <code>DataProtection__BlobStorage__*</code> env vars on both slots, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
+      <h2>Current focus: Pre-launch perf + nav feedback UX</h2>
+      <p><strong>v1.0.0.13 LIVE on www.mytalli.com (May 17).</strong> Bundled with v1.0.0.11 + v1.0.0.12 in one PR. Previous: v1.0.0.10 (May 17), v1.0.0.9 (May 17 free-tier enforcement + plan expiration UX), v1.0.0.8 (May 16 SQL-backed DataProtection), v1.0.0.7 (May 16 silent-data-loss sweep), down through initial v1.0.0.0 ship 2026-05-03; every release merged to <code>main</code>. The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. <strong>v1.0.0.11–13 closed the perf punch list and the "did my click register?" UX gap:</strong> server-side <code>CountAsync</code> + <code>IsProSubscriberCommand</code> per-circuit cache + <code>IDbContextFactory</code> for true parallel queries, plus a full-viewport "Working…" modal dialog (2s minimum, MutationObserver guards the active class against Blazor's enhanced-nav DOM merge) replacing the subtle nav bar users didn't notice. Next: reconnect Etsy / Gumroad test shops on prod, delete the dead <code>DataProtection__BlobStorage__*</code> env vars, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
     </div>
     <div class="intro-metrics">
       <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">3</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">23</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">25</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -235,9 +235,23 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">23</span>
+        <span class="lane-count">25</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span><span class="tag nav">Nav</span></div>
+          <h4>v1.0.0.11–13 LIVE — Pre-launch perf + "Working…" navigation dialog</h4>
+          <p>Bundled three same-day commits into one PR-and-deploy. <strong>v1.0.0.11 (perf pass #1):</strong> added <code>CountAsync(predicate)</code> to <code>IRepositoryAsync</code> / <code>GenericRepositoryAsync</code> / <code>RepositoryAdapterAsync</code> so Export preview counts come from <code>SELECT COUNT(*)</code> instead of materializing rows into memory just to count them. Added a per-circuit <code>ConcurrentDictionary&lt;long, Task&lt;bool&gt;&gt;</code> cache to <code>IsProSubscriberCommand</code> — Pro/Free check now hits the DB once per user per Blazor circuit instead of once per query (paid off heavily on pages that ask the question multiple times). Initial nav loading bar shipped as part of this pass. <strong>v1.0.0.12 (perf pass #2):</strong> registered <code>IDbContextFactory&lt;TalliDbContext&gt;</code> alongside the existing <code>AddDbContext</code> (Web's <code>DatabaseConfiguration</code>). Moved <code>GetExportPreviewCommand</code> from Domain to Web so it can spin up three independent DbContexts via the factory and run the Revenue / Expense / Payout counts in true parallel with <code>Task.WhenAll</code> — no contention on the shared scoped DbContext's <code>SemaphoreSlim</code>. <strong>v1.0.0.13 (UX):</strong> users weren't noticing the 3px shimmer bar at the top of the viewport during cold-start clicks. Replaced it with a full-viewport "Working…" modal — backdrop blur, centered card, purple spinner, animated dots. <strong>2s minimum visible duration</strong> so the dialog doesn't sub-flash on fast loads. <strong>15s safety timeout</strong> if the <code>enhancedload</code> event is missed. <strong>MutationObserver guards the active class</strong>: Blazor's enhanced-nav DOM merge was stripping the <code>working-dialog-active</code> class mid-navigation (root cause of the dialog vanishing immediately on the first nav); the observer re-applies it instantly whenever <code>shouldBeVisible</code> is true. <code>data-permanent</code> attribute on the dialog div so Blazor preserves it across enhanced navigations. Deleted <code>js/nav-loader.js</code> + the matching CSS; added <code>js/working-dialog.js</code> + replacement CSS.</p>
+          <span class="done-date">May 17 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag setup">Setup</span></div>
+          <h4>v1.0.0.10 LIVE — Admin: show BillingHealthWorker + Send Subscription Expired button</h4>
+          <p>The Sync Health Dashboard on <code>/admin</code> was missing the new <code>BillingHealthWorker</code> from its workers list (still showed only 3). Bumped the hardcoded expected-worker list to 4 and updated <code>GetSyncHealthCommandTests</code> accordingly. Added a "Send Subscription Expired" button to the Admin Resend Email section so the new transactional email is exercisable from the UI without hand-triggering the worker. Version bumped 1.0.0.9 → 1.0.0.10 and shipped via PR #80 + slot swap. Same-day follow-up to v1.0.0.9.</p>
+          <span class="done-date">May 17 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag billing">Billing</span><span class="tag nav">Nav</span></div>
