@@ -1,5 +1,6 @@
 namespace My.Talli.Web.ViewModels.Pages;
 
+using Domain.Commands.Billing;
 using Domain.Data.Interfaces;
 using Domain.Framework;
 using Domain.Repositories;
@@ -19,6 +20,9 @@ public class PlatformsViewModel : ComponentBase
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+	[Inject]
+	private CanConnectAnotherShopCommand CanConnectAnotherShop { get; set; } = default!;
 
 	[Inject]
 	private ICurrentUserService CurrentUserService { get; set; } = default!;
@@ -59,8 +63,6 @@ public class PlatformsViewModel : ComponentBase
 	public string? ErrorMessage { get; private set; }
 
 	public bool IsLoading { get; private set; } = true;
-
-	public bool IsProSubscriber { get; private set; }
 
 	public string? SuccessMessage { get; private set; }
 
@@ -231,7 +233,7 @@ public class PlatformsViewModel : ComponentBase
 				"stripe_create" => "We couldn't start your Stripe connection. Please try again or contact support.",
 				"stripe_expired" => "Your Stripe connection session expired. Please try again.",
 				"stripe_exchange" => "We couldn't finalize your Stripe connection. Please try again or contact support.",
-				"plan_limit" => "Your plan allows 1 shop per platform. Upgrade to Pro to connect additional shops.",
+				"plan_limit" => "Free tier is limited to 1 connected shop. Upgrade to Pro to connect more platforms.",
 				_ => "Something went wrong connecting that platform. Please try again."
 			};
 	}
@@ -295,17 +297,12 @@ public class PlatformsViewModel : ComponentBase
 
 		var now = DateTime.UtcNow;
 
-		// Detect Pro subscriber (ProductId 1 = Pro Monthly, 2 = Pro Yearly; Active or Cancelling both count)
-		var proSubscriptions = await SubscriptionAdapter.FindAsync(s =>
-			s.UserId == userId &&
-			(s.ProductId == 1 || s.ProductId == 2) &&
-			(s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling) &&
-			s.EndDate >= now);
-		IsProSubscriber = proSubscriptions.Any();
-
 		var connectionsByPlatform = connections.ToDictionary(c => c.Platform, StringComparer.OrdinalIgnoreCase);
 		var shopsByConnectionId = shops.GroupBy(s => s.PlatformConnectionId).ToDictionary(g => g.Key, g => g.ToList());
 		var txnCountsByShop = revenues.Where(r => r.ShopConnectionId.HasValue).GroupBy(r => r.ShopConnectionId!.Value).ToDictionary(g => g.Key, g => g.Count());
+
+		// Plan-tier gate (Pro check + free-tier 1-shop-total cap) is centralized in the command so endpoints and UI share one rule.
+		var canAcceptAnotherShop = await CanConnectAnotherShop.ExecuteAsync(userId);
 
 		// Merge catalog with real data
 		var catalog = GetPlatformCatalog();
@@ -348,8 +345,9 @@ public class PlatformsViewModel : ComponentBase
 				}
 			}
 
-			// Free tier capped at 1 shop per platform; Pro unlimited.
-			item.CanAddAnotherShop = IsProSubscriber || item.Shops.Count == 0;
+			// Free tier: 1 shop total across all platforms. Both flags share the same gate.
+			item.CanAddAnotherShop = canAcceptAnotherShop;
+			item.CanConnect = canAcceptAnotherShop;
 		}
 
 		Platforms = catalog;

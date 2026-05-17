@@ -101,7 +101,7 @@
       <p><strong>v1.0.0.8 LIVE on www.mytalli.com (May 16).</strong> Previous: v1.0.0.7 (May 16), v1.0.0.6 (May 10), v1.0.0.5 (May 10), v1.0.0.4–v1.0.0.1, initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; every release merged to <code>main</code>. The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. <strong>Infrastructure side is now stable:</strong> v1.0.0.8 moved DataProtection keys to SQL (<code>components.DataProtectionKey</code>) and removed the at-rest encryption layer on OAuth tokens — no more MI / blob / sidecar dependency, no more "container restart wipes keys" failure mode. Next: reconnect Etsy / Gumroad test shops on prod (old ciphertext tokens are unreadable), delete the dead <code>DataProtection__BlobStorage__*</code> env vars on both slots, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">14</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">3</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
       <span class="metric"><span class="metric-value">19</span><span class="metric-label">Recently<br>done</span></span>
@@ -118,9 +118,32 @@
     <div class="lane backlog">
       <div class="lane-header">
         <h3>Backlog</h3>
-        <span class="lane-count">12</span>
+        <span class="lane-count">14</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag setup">Setup</span></div>
+          <h4>Enforce 30-day history cap on free tier (or drop the promise)</h4>
+          <p>The landing page pricing copy promises <em>"Free: 1 connected platform, basic dashboard, 30-day history."</em> The 30-day history cap is <strong>not enforced anywhere in code</strong> — free-tier and expired Pro users see their full historical <code>app.Revenue</code> / <code>app.Expense</code> / <code>app.Payout</code> data on the Dashboard, every spoke page (Etsy / Stripe / Gumroad), and Manual Entry. None of those queries reference <code>IsProSubscriber</code>. Two paths:
+            <ul>
+              <li><strong>Enforce it.</strong> Add a date floor (<code>TransactionDate &gt;= UtcNow.AddDays(-30)</code>) on the Find* queries used by DashboardViewModel, the spoke ViewModels, and ManualEntryViewModel when <code>IsProSubscriber == false</code>. Bigger surface — every read path that pages a user-owned date-stamped table needs the gate.</li>
+              <li><strong>Drop the promise.</strong> Edit the landing-page pricing copy and let free tier keep unlimited history. Lower friction for free-to-Pro conversion (users get hooked on their full data) but loses one of the Pro upsell hooks.</li>
+            </ul>
+            Pick before any real customer lands on the free tier and notices the mismatch — discovered 2026-05-17 while shipping the plan-expiration banner/email work.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag setup">Setup</span></div>
+          <h4>Subscription expiration: belt-and-suspenders + reconciliation worker</h4>
+          <p>Audit (May 16) found that subscription expiration enforcement is 100% Stripe-webhook-driven — we have <code>Subscription.EndDate</code> / <code>RenewalDate</code> / <code>CancelledDate</code> in the schema and webhooks keep them current, but the actual gate (<code>IsProSubscriber</code> in <code>NavMenuViewModel</code> / <code>PlatformsViewModel</code> / <code>MyPlanViewModel</code>) only checks <code>Status == Active || Cancelling</code>. If Stripe drops a webhook (network blip, our endpoint down during a deploy, Stripe outage), a subscription could sit with <code>Status=Active</code> + <code>EndDate</code> in the past → user keeps Pro access they shouldn't have. Three things to fix:
+            <ul>
+              <li><strong>Belt-and-suspenders <code>EndDate &gt;= UtcNow</code> check</strong> in every <code>IsProSubscriber</code> computation. Five-line change. Catches webhook-drop scenarios with zero new infrastructure.</li>
+              <li><strong>Reconciliation worker</strong> (e.g., <code>BillingHealthWorker</code>, 1×/day): call <code>Stripe.Subscriptions.ListAsync()</code>, compare each Stripe-side subscription to our local row, flag drift to Elmah, optionally auto-correct status. Pairs with the existing Heartbeat infrastructure (writes its own row at end of pass).</li>
+              <li><strong>Grace period for <code>PastDue</code></strong> (UX decision, not infra): Stripe runs ~3 weeks of dunning retries before giving up. Currently we yank Pro access on the first <code>past_due</code> webhook. Consider keeping access through <code>PastDue</code> until <code>EndDate + 7 days</code> OR until Stripe escalates to <code>Unpaid</code>. Most SaaS apps preserve access through dunning.</li>
+            </ul>
+            Lowest-risk subset for first PR: just the <code>EndDate</code> check. Reconciliation worker can wait until we have actual paying users. Grace period is a product call.</p>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag docs">Docs</span></div>

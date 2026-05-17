@@ -36,6 +36,8 @@ public class BillingHealthBuilder
 
 	public StripeBillingApiClientStub ApiClient => (StripeBillingApiClientStub)_container.GetInstance<My.Talli.Web.Services.Billing.IStripeBillingApiClient>();
 
+	public CanConnectAnotherShopCommand CanConnectAnotherShop => _container.GetInstance<CanConnectAnotherShopCommand>();
+
 	public IServiceProvider Container => _container;
 
 	public EmailServiceStub EmailService => (EmailServiceStub)_container.GetInstance<My.Talli.Web.Services.Email.IEmailService>();
@@ -47,6 +49,12 @@ public class BillingHealthBuilder
 
 	public RepositoryAdapterAsync<Heartbeat, ENTITIES.Heartbeat> HeartbeatAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<Heartbeat, ENTITIES.Heartbeat>>();
+
+	public RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection> PlatformConnectionAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<PlatformConnection, ENTITIES.PlatformConnection>>();
+
+	public RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> ShopConnectionAdapter =>
+		_container.GetInstance<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
 
 	public CapturingLogger<NotifyExpiredSubscribersCommand> NotifyLogger =>
 		(CapturingLogger<NotifyExpiredSubscribersCommand>)_container.GetInstance<ILogger<NotifyExpiredSubscribersCommand>>();
@@ -92,6 +100,31 @@ public class BillingHealthBuilder
 		});
 
 		return sub;
+	}
+
+	/// <summary>Seeds a PlatformConnection + ShopConnection pair for the given user on the given platform; returns the shop.</summary>
+	public async Task<ShopConnection> SeedShopAsync(long userId, string platform, string shopName = "Test Shop")
+	{
+		var connection = await PlatformConnectionAdapter.InsertAsync(new PlatformConnection
+		{
+			ConnectionStatus = "Active",
+			Platform = platform,
+			UserId = userId
+		});
+
+		return await ShopConnectionAdapter.InsertAsync(new ShopConnection
+		{
+			AccessToken = string.Empty,
+			ConsecutiveFailures = 0,
+			IsActive = true,
+			IsEnabled = true,
+			PlatformAccountId = $"acct_{Guid.NewGuid():N}",
+			PlatformConnectionId = connection.Id,
+			PlatformShopId = $"shop_{Guid.NewGuid():N}",
+			ShopName = shopName,
+			Status = "Completed",
+			UserId = userId
+		});
 	}
 
 	/// <summary>Seeds a User + UserAuthenticationGoogle pair sharing the same PK; returns the User Id.</summary>

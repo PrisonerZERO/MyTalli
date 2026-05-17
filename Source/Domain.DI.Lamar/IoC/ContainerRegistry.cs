@@ -78,6 +78,7 @@ public class ContainerRegistry : ServiceRegistry
 
 		// Commands — AddScoped registers with IServiceProviderIsService so Minimal API parameter binding recognizes them as DI services
 		this.AddScoped<AcknowledgeExpirationCommand>();
+		this.AddScoped<CanConnectAnotherShopCommand>();
 		this.AddScoped<ConnectEtsyCommand>();
 		this.AddScoped<ConnectGumroadCommand>();
 		this.AddScoped<ConnectStripeCommand>();

@@ -1,5 +1,6 @@
 namespace My.Talli.Web.Endpoints;
 
+using Domain.Commands.Billing;
 using Domain.Commands.Platforms;
 using Domain.Components;
 using Domain.Framework;
@@ -53,27 +54,14 @@ public static class PlatformEndpoints
         HttpContext context,
         EtsyService etsy,
         IDataProtectionProvider dataProtectionProvider,
-        RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter,
-        RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> subscriptionAdapter)
+        CanConnectAnotherShopCommand canConnectAnotherShop)
     {
         var userIdClaim = context.User.FindFirst("UserId")?.Value;
         if (!long.TryParse(userIdClaim, out var userId))
             return Results.Unauthorized();
 
-        // Plan-tier guard: free tier is capped at 1 Etsy shop. Pro (ProductId 1 or 2, Active/Cancelling) is uncapped.
-        var isPro = (await subscriptionAdapter.FindAsync(s =>
-            s.UserId == userId &&
-            (s.ProductId == 1 || s.ProductId == 2) &&
-            (s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling))).Any();
-
-        if (!isPro)
-        {
-            var etsyShopCount = (await shopConnectionAdapter.FindAsync(s =>
-                s.UserId == userId && s.PlatformConnection.Platform == "Etsy")).Count();
-
-            if (etsyShopCount >= 1)
-                return Results.Redirect("/platforms?error=plan_limit");
-        }
+        if (!await canConnectAnotherShop.ExecuteAsync(userId))
+            return Results.Redirect("/platforms?error=plan_limit");
 
         var challenge = etsy.BuildAuthorizeChallenge();
         var protector = dataProtectionProvider.CreateProtector(EtsyChallengePurpose);
@@ -189,27 +177,14 @@ public static class PlatformEndpoints
         HttpContext context,
         GumroadService gumroad,
         IDataProtectionProvider dataProtectionProvider,
-        RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter,
-        RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> subscriptionAdapter)
+        CanConnectAnotherShopCommand canConnectAnotherShop)
     {
         var userIdClaim = context.User.FindFirst("UserId")?.Value;
         if (!long.TryParse(userIdClaim, out var userId))
             return Results.Unauthorized();
 
-        // Plan-tier guard: free tier capped at 1 Gumroad shop. Pro is uncapped.
-        var isPro = (await subscriptionAdapter.FindAsync(s =>
-            s.UserId == userId &&
-            (s.ProductId == 1 || s.ProductId == 2) &&
-            (s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling))).Any();
-
-        if (!isPro)
-        {
-            var gumroadShopCount = (await shopConnectionAdapter.FindAsync(s =>
-                s.UserId == userId && s.PlatformConnection.Platform == "Gumroad")).Count();
-
-            if (gumroadShopCount >= 1)
-                return Results.Redirect("/platforms?error=plan_limit");
-        }
+        if (!await canConnectAnotherShop.ExecuteAsync(userId))
+            return Results.Redirect("/platforms?error=plan_limit");
 
         var challenge = gumroad.BuildAuthorizeChallenge();
         var protector = dataProtectionProvider.CreateProtector(GumroadChallengePurpose);
@@ -330,8 +305,7 @@ public static class PlatformEndpoints
         HttpContext context,
         StripeConnectService stripeConnect,
         IDataProtectionProvider dataProtectionProvider,
-        RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter,
-        RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> subscriptionAdapter,
+        CanConnectAnotherShopCommand canConnectAnotherShop,
         ILogger<Program> logger,
         CancellationToken cancellationToken)
     {
@@ -339,20 +313,8 @@ public static class PlatformEndpoints
         if (!long.TryParse(userIdClaim, out var userId))
             return Results.Unauthorized();
 
-        // Plan-tier guard: free tier capped at 1 Stripe shop. Pro is uncapped.
-        var isPro = (await subscriptionAdapter.FindAsync(s =>
-            s.UserId == userId &&
-            (s.ProductId == 1 || s.ProductId == 2) &&
-            (s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling))).Any();
-
-        if (!isPro)
-        {
-            var stripeShopCount = (await shopConnectionAdapter.FindAsync(s =>
-                s.UserId == userId && s.PlatformConnection.Platform == "Stripe")).Count();
-
-            if (stripeShopCount >= 1)
-                return Results.Redirect("/platforms?error=plan_limit");
-        }
+        if (!await canConnectAnotherShop.ExecuteAsync(userId))
+            return Results.Redirect("/platforms?error=plan_limit");
 
         try
         {
