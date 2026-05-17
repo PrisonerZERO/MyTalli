@@ -120,10 +120,12 @@ public class MyPlanViewModel : ComponentBase
 
 		_userId = userId;
 
-		// Load all active subscriptions for this user
+		// Load all active subscriptions for this user (belt-and-suspenders: also gate on EndDate so a webhook-drop can't leave Pro access live past period end)
+		var now = DateTime.UtcNow;
 		var subscriptions = (await SubscriptionAdapter.FindAsync(
 			x => x.UserId == userId
-				&& (x.Status == SubscriptionStatuses.Active || x.Status == SubscriptionStatuses.Cancelling)))
+				&& (x.Status == SubscriptionStatuses.Active || x.Status == SubscriptionStatuses.Cancelling)
+				&& x.EndDate >= now))
 			.ToList();
 
 		// Load all products

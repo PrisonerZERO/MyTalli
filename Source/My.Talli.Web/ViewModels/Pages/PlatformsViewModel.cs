@@ -293,11 +293,14 @@ public class PlatformsViewModel : ComponentBase
 		var shops = await ShopConnectionAdapter.FindAsync(s => s.UserId == userId);
 		var revenues = await RevenueAdapter.FindAsync(r => r.UserId == userId);
 
+		var now = DateTime.UtcNow;
+
 		// Detect Pro subscriber (ProductId 1 = Pro Monthly, 2 = Pro Yearly; Active or Cancelling both count)
 		var proSubscriptions = await SubscriptionAdapter.FindAsync(s =>
 			s.UserId == userId &&
 			(s.ProductId == 1 || s.ProductId == 2) &&
-			(s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling));
+			(s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling) &&
+			s.EndDate >= now);
 		IsProSubscriber = proSubscriptions.Any();
 
 		var connectionsByPlatform = connections.ToDictionary(c => c.Platform, StringComparer.OrdinalIgnoreCase);
@@ -306,7 +309,6 @@ public class PlatformsViewModel : ComponentBase
 
 		// Merge catalog with real data
 		var catalog = GetPlatformCatalog();
-		var now = DateTime.UtcNow;
 
 		foreach (var item in catalog)
 		{

@@ -86,10 +86,12 @@ public class NavMenuViewModel : ComponentBase
 		UserFullName = info.FullName;
 		UserInitials = info.Initials;
 
+		var now = DateTime.UtcNow;
 		var proSub = (await SubscriptionAdapter.FindAsync(s =>
 			s.UserId == userId
 			&& (s.ProductId == 1 || s.ProductId == 2)
-			&& (s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling)))
+			&& (s.Status == SubscriptionStatuses.Active || s.Status == SubscriptionStatuses.Cancelling)
+			&& s.EndDate >= now))
 			.FirstOrDefault();
 
 		IsProSubscriber = proSub is not null;
