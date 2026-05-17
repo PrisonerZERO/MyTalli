@@ -21,8 +21,8 @@ public static class PlatformEndpoints
     private const string EtsyChallengePurpose = "Etsy.OAuth.v1";
     private const string GumroadChallengeCookieName = "mt_gumroad_oauth";
     private const string GumroadChallengePurpose = "Gumroad.OAuth.v1";
-    private const string StripeChallengeCookieName = "mt_stripe_connect";
-    private const string StripeChallengePurpose = "Stripe.Connect.v1";
+    private const string StripeChallengeCookieName = "mt_stripe_oauth";
+    private const string StripeChallengePurpose = "Stripe.OAuth.v1";
 
     #endregion
 
@@ -42,8 +42,8 @@ public static class PlatformEndpoints
 
         // Stripe
         app.MapGet("/api/platforms/stripe/connect", StripeConnect).RequireAuthorization();
-        app.MapGet("/api/platforms/stripe/refresh", StripeRefresh).RequireAuthorization();
-        app.MapGet("/api/platforms/stripe/return", StripeReturn).RequireAuthorization();
+        app.MapGet("/api/platforms/stripe/reconnect/{shopConnectionId:long}", StripeReconnect).RequireAuthorization();
+        app.MapGet("/api/platforms/stripe/callback", StripeCallback).RequireAuthorization();
     }
 
     #endregion
@@ -305,9 +305,7 @@ public static class PlatformEndpoints
         HttpContext context,
         StripeConnectService stripeConnect,
         IDataProtectionProvider dataProtectionProvider,
-        CanConnectAnotherShopCommand canConnectAnotherShop,
-        ILogger<Program> logger,
-        CancellationToken cancellationToken)
+        CanConnectAnotherShopCommand canConnectAnotherShop)
     {
         var userIdClaim = context.User.FindFirst("UserId")?.Value;
         if (!long.TryParse(userIdClaim, out var userId))
@@ -316,109 +314,98 @@ public static class PlatformEndpoints
         if (!await canConnectAnotherShop.ExecuteAsync(userId))
             return Results.Redirect("/platforms?error=plan_limit");
 
-        try
-        {
-            var account = await stripeConnect.CreateConnectedAccountAsync(cancellationToken);
-            var link = await stripeConnect.CreateAccountLinkAsync(account.Id, stripeConnect.ReturnUri, stripeConnect.RefreshUri, cancellationToken);
+        var challenge = stripeConnect.BuildAuthorizeChallenge();
+        var protector = dataProtectionProvider.CreateProtector(StripeChallengePurpose);
+        var cookiePayload = JsonSerializer.Serialize(new StripeOAuthCookie { State = challenge.State, UserId = userId });
+        var protectedPayload = protector.Protect(cookiePayload);
 
-            var protector = dataProtectionProvider.CreateProtector(StripeChallengePurpose);
-            var cookiePayload = JsonSerializer.Serialize(new StripeConnectCookie { AccountId = account.Id, UserId = userId });
-            var protectedPayload = protector.Protect(cookiePayload);
+        context.Response.Cookies.Append(StripeChallengeCookieName, protectedPayload, ToCookieOptions(context));
 
-            context.Response.Cookies.Append(StripeChallengeCookieName, protectedPayload, ToCookieOptions(context));
-
-            return Results.Redirect(link.Url);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Stripe Connect account creation failed for user {UserId}", userId);
-            return Results.Redirect("/platforms?error=stripe_create");
-        }
+        return Results.Redirect(challenge.AuthorizeUrl);
     }
 
-    private static async Task<IResult> StripeRefresh(
+    private static async Task<IResult> StripeReconnect(
+        long shopConnectionId,
         HttpContext context,
         StripeConnectService stripeConnect,
         IDataProtectionProvider dataProtectionProvider,
-        ILogger<Program> logger,
-        CancellationToken cancellationToken)
+        RepositoryAdapterAsync<MODELS.ShopConnection, ENTITIES.ShopConnection> shopConnectionAdapter)
     {
+        var userIdClaim = context.User.FindFirst("UserId")?.Value;
+        if (!long.TryParse(userIdClaim, out var userId))
+            return Results.Unauthorized();
+
+        // Ownership check — skip the plan-limit check (refresh-tokens flow, not add-shop flow)
+        var shop = (await shopConnectionAdapter.FindAsync(s =>
+            s.Id == shopConnectionId &&
+            s.UserId == userId &&
+            s.PlatformConnection.Platform == "Stripe")).FirstOrDefault();
+
+        if (shop is null)
+            return Results.Redirect("/platforms?error=stripe_reconnect_notfound");
+
+        var challenge = stripeConnect.BuildAuthorizeChallenge();
+        var protector = dataProtectionProvider.CreateProtector(StripeChallengePurpose);
+        var cookiePayload = JsonSerializer.Serialize(new StripeOAuthCookie { State = challenge.State, UserId = userId });
+        var protectedPayload = protector.Protect(cookiePayload);
+
+        context.Response.Cookies.Append(StripeChallengeCookieName, protectedPayload, ToCookieOptions(context));
+
+        return Results.Redirect(challenge.AuthorizeUrl);
+    }
+
+    private static async Task<IResult> StripeCallback(HttpContext context, StripeConnectService stripeConnect, IDataProtectionProvider dataProtectionProvider, ConnectStripeCommand connectStripe, ILogger<Program> logger, CancellationToken cancellationToken)
+    {
+        var error = context.Request.Query["error"].ToString();
+        if (!string.IsNullOrEmpty(error))
+        {
+            logger.LogWarning("Stripe OAuth returned error: {Error}", error);
+            ClearCookie(context, StripeChallengeCookieName);
+            return Results.Redirect("/platforms?error=stripe_denied");
+        }
+
+        var code = context.Request.Query["code"].ToString();
+        var state = context.Request.Query["state"].ToString();
+        if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
+        {
+            ClearCookie(context, StripeChallengeCookieName);
+            return Results.Redirect("/platforms?error=stripe_invalid");
+        }
+
         if (!context.Request.Cookies.TryGetValue(StripeChallengeCookieName, out var protectedPayload) || string.IsNullOrEmpty(protectedPayload))
             return Results.Redirect("/platforms?error=stripe_expired");
 
-        StripeConnectCookie? cookie;
+        StripeOAuthCookie? cookie;
         try
         {
             var protector = dataProtectionProvider.CreateProtector(StripeChallengePurpose);
             var cookieJson = protector.Unprotect(protectedPayload);
-            cookie = JsonSerializer.Deserialize<StripeConnectCookie>(cookieJson);
+            cookie = JsonSerializer.Deserialize<StripeOAuthCookie>(cookieJson);
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Stripe Connect cookie could not be unprotected on refresh");
+            logger.LogWarning(ex, "Stripe OAuth cookie could not be unprotected");
             ClearCookie(context, StripeChallengeCookieName);
             return Results.Redirect("/platforms?error=stripe_expired");
         }
 
-        if (cookie is null || string.IsNullOrEmpty(cookie.AccountId))
+        if (cookie is null || cookie.State != state)
         {
+            logger.LogWarning("Stripe OAuth state mismatch for user {UserId}", cookie?.UserId);
             ClearCookie(context, StripeChallengeCookieName);
-            return Results.Redirect("/platforms?error=stripe_expired");
+            return Results.Redirect("/platforms?error=stripe_state");
         }
 
         try
         {
-            var link = await stripeConnect.CreateAccountLinkAsync(cookie.AccountId, stripeConnect.ReturnUri, stripeConnect.RefreshUri, cancellationToken);
-            return Results.Redirect(link.Url);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Stripe Connect link refresh failed for user {UserId}", cookie.UserId);
-            ClearCookie(context, StripeChallengeCookieName);
-            return Results.Redirect("/platforms?error=stripe_create");
-        }
-    }
-
-    private static async Task<IResult> StripeReturn(
-        HttpContext context,
-        StripeConnectService stripeConnect,
-        IDataProtectionProvider dataProtectionProvider,
-        ConnectStripeCommand connectStripe,
-        ILogger<Program> logger,
-        CancellationToken cancellationToken)
-    {
-        if (!context.Request.Cookies.TryGetValue(StripeChallengeCookieName, out var protectedPayload) || string.IsNullOrEmpty(protectedPayload))
-            return Results.Redirect("/platforms?error=stripe_expired");
-
-        StripeConnectCookie? cookie;
-        try
-        {
-            var protector = dataProtectionProvider.CreateProtector(StripeChallengePurpose);
-            var cookieJson = protector.Unprotect(protectedPayload);
-            cookie = JsonSerializer.Deserialize<StripeConnectCookie>(cookieJson);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Stripe Connect cookie could not be unprotected on return");
-            ClearCookie(context, StripeChallengeCookieName);
-            return Results.Redirect("/platforms?error=stripe_expired");
-        }
-
-        if (cookie is null || string.IsNullOrEmpty(cookie.AccountId))
-        {
-            ClearCookie(context, StripeChallengeCookieName);
-            return Results.Redirect("/platforms?error=stripe_expired");
-        }
-
-        try
-        {
-            var account = await stripeConnect.GetAccountAsync(cookie.AccountId, cancellationToken);
-            var accountInfo = ToAccountInfo(account);
+            var tokenResponse = await stripeConnect.ExchangeCodeAsync(code, cancellationToken);
+            var account = await stripeConnect.GetAccountAsync(tokenResponse.AccessToken, cancellationToken);
+            var accountInfo = ToAccountInfo(account, tokenResponse.StripeUserId);
 
             // TRANSACTION
-            var result = await EnforcedTransactionScope.ExecuteAsync(async () => await connectStripe.ExecuteAsync(cookie.UserId, accountInfo));
+            var result = await EnforcedTransactionScope.ExecuteAsync(async () => await connectStripe.ExecuteAsync(cookie.UserId, accountInfo, tokenResponse.AccessToken, tokenResponse.RefreshToken));
 
-            logger.LogInformation("Stripe Connect linked for user {UserId}: account={AccountId} firstConnection={IsFirst} newShop={WasNewShop}", cookie.UserId, cookie.AccountId, result.IsFirstConnection, result.WasNewShop);
+            logger.LogInformation("Stripe OAuth connected for user {UserId}: account={AccountId} firstConnection={IsFirst} newShop={WasNewShop}", cookie.UserId, accountInfo.AccountId, result.IsFirstConnection, result.WasNewShop);
             ClearCookie(context, StripeChallengeCookieName);
 
             var status = (result.IsFirstConnection, result.WasNewShop) switch
@@ -431,14 +418,17 @@ public static class PlatformEndpoints
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Stripe Connect return handling failed for user {UserId}", cookie.UserId);
+            logger.LogError(ex, "Stripe OAuth token exchange failed for user {UserId}", cookie.UserId);
             ClearCookie(context, StripeChallengeCookieName);
             return Results.Redirect("/platforms?error=stripe_exchange");
         }
     }
 
-    private static StripeAccountInfo ToAccountInfo(Stripe.Account account)
+    private static StripeAccountInfo ToAccountInfo(Stripe.Account account, string fallbackAccountId)
     {
+        // OAuth response gives us stripe_user_id directly; account fetch returns null Id on read-only scopes
+        // when the SDK uses the GET /v1/account self endpoint. Fall back to the OAuth-provided value.
+        var accountId = string.IsNullOrEmpty(account.Id) ? fallbackAccountId : account.Id;
         var businessName = account.BusinessProfile?.Name
             ?? account.Settings?.Dashboard?.DisplayName
             ?? account.Email
@@ -446,7 +436,7 @@ public static class PlatformEndpoints
 
         return new StripeAccountInfo
         {
-            AccountId = account.Id,
+            AccountId = accountId,
             BusinessName = businessName,
             Email = account.Email
         };
@@ -459,9 +449,8 @@ public static class PlatformEndpoints
 
     private static CookieOptions ToCookieOptions(HttpContext context)
     {
-        // Stripe Connect Standard onboarding (identity, address, bank, 2FA) routinely takes 15-30+ minutes
-        // for a first-time seller. A short expiry leaves Stripe-side connected accounts orphaned with no DB
-        // binding when the cookie dies mid-flow. 60 min matches Stripe's own Account Link expiry default.
+        // 60 min comfortably covers any platform's OAuth approval flow (user might pause on the consent screen,
+        // 2FA, switch accounts, etc.) — shared across Etsy, Gumroad, and Stripe.
         return new CookieOptions
         {
             Expires = DateTimeOffset.UtcNow.AddMinutes(60),
@@ -503,11 +492,11 @@ internal class GumroadOAuthCookie
 }
 
 /// <summary>Cookie</summary>
-internal class StripeConnectCookie
+internal class StripeOAuthCookie
 {
     #region <Properties>
 
-    public string AccountId { get; set; } = string.Empty;
+    public string State { get; set; } = string.Empty;
 
     public long UserId { get; set; }
 

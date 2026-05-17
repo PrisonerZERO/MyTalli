@@ -21,7 +21,7 @@ public static class PlatformsConfiguration
         services.AddScoped<IGumroadApiClient>(sp => sp.GetRequiredService<GumroadService>());
 
         services.Configure<StripeConnectSettings>(configuration.GetSection("StripeConnect"));
-        services.AddScoped<StripeConnectService>();
+        services.AddHttpClient<StripeConnectService>();
         services.AddScoped<IStripeConnectApiClient>(sp => sp.GetRequiredService<StripeConnectService>());
 
         // Persist DataProtection keys (used for auth cookies + antiforgery + Stripe Connect onboarding cookie)

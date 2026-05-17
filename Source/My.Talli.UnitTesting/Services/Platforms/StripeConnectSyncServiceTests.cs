@@ -228,15 +228,26 @@ public class StripeConnectSyncServiceTests
     }
 
     [Fact]
-    public async Task SyncShop_StripeAccountIdPassedToApiCalls()
+    public async Task SyncShop_AccessTokenPassedToApiCalls()
     {
         var builder = new StripeSyncBuilder();
-        var shop = await InsertShopAsync(builder, accountId: "acct_xyz");
+        var shop = await InsertShopAsync(builder, accessToken: "sk_test_oauth_xyz");
 
         await builder.Service.SyncShopAsync(shop, CancellationToken.None);
 
-        Assert.Equal("acct_xyz", builder.ApiClient.ChargeCalls[0].AccountId);
-        Assert.Equal("acct_xyz", builder.ApiClient.PayoutCalls[0].AccountId);
+        Assert.Equal("sk_test_oauth_xyz", builder.ApiClient.ChargeCalls[0].AccessToken);
+        Assert.Equal("sk_test_oauth_xyz", builder.ApiClient.PayoutCalls[0].AccessToken);
+    }
+
+    [Fact]
+    public async Task SyncShop_EmptyAccessToken_ThrowsAndStopsBeforeApiCall()
+    {
+        var builder = new StripeSyncBuilder();
+        var shop = await InsertShopAsync(builder, accessToken: string.Empty);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => builder.Service.SyncShopAsync(shop, CancellationToken.None));
+        Assert.Empty(builder.ApiClient.ChargeCalls);
+        Assert.Empty(builder.ApiClient.PayoutCalls);
     }
 
     [Fact]
@@ -247,14 +258,14 @@ public class StripeConnectSyncServiceTests
         Assert.Equal("Stripe", builder.Service.Platform);
     }
 
-    private static async Task<ShopConnection> InsertShopAsync(StripeSyncBuilder builder, string accountId = "acct_test_001")
+    private static async Task<ShopConnection> InsertShopAsync(StripeSyncBuilder builder, string accessToken = "sk_test_oauth_001")
     {
         return await builder.ShopConnectionAdapter.InsertAsync(new ShopConnection
         {
-            AccessToken = string.Empty,
-            PlatformAccountId = accountId,
+            AccessToken = accessToken,
+            PlatformAccountId = "acct_test_001",
             PlatformConnectionId = 1,
-            PlatformShopId = accountId,
+            PlatformShopId = "acct_test_001",
             RefreshToken = null,
             ShopName = "Test Stripe",
             Status = "Active",
