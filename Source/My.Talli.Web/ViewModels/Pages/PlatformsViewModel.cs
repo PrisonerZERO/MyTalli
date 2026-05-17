@@ -28,6 +28,9 @@ public class PlatformsViewModel : ComponentBase
 	private ICurrentUserService CurrentUserService { get; set; } = default!;
 
 	[Inject]
+	private GetFreeTierSlotShopIdCommand GetFreeTierSlotShopId { get; set; } = default!;
+
+	[Inject]
 	private NavigationManager Navigation { get; set; } = default!;
 
 	[Inject]
@@ -304,6 +307,10 @@ public class PlatformsViewModel : ComponentBase
 		// Plan-tier gate (Pro check + free-tier 1-shop-total cap) is centralized in the command so endpoints and UI share one rule.
 		var canAcceptAnotherShop = await CanConnectAnotherShop.ExecuteAsync(userId);
 
+		// For free users with multiple shops (e.g., they were Pro and lapsed), only the oldest is their "free slot".
+		// All other shops get a "Pro-only" badge AND are skipped by ShopSyncWorker until they upgrade.
+		var freeSlotShopId = await GetFreeTierSlotShopId.ExecuteAsync(userId);
+
 		// Merge catalog with real data
 		var catalog = GetPlatformCatalog();
 
@@ -329,6 +336,7 @@ public class PlatformsViewModel : ComponentBase
 								FriendlyHealthMessage = ShopHealthAnalyzer.ToFriendlyMessage(health, item.Name, s.LastErrorMessage, s.LastSyncDateTime, now, s.Status),
 								Health = health,
 								IsEnabled = s.IsEnabled,
+								IsLockedByFreeTier = freeSlotShopId.HasValue && freeSlotShopId != s.Id,
 								IsOAuthPlatform = supportsOAuthReconnect,
 								LastErrorMessage = s.LastErrorMessage,
 								LastSyncLabel = ToSyncLabel(s),

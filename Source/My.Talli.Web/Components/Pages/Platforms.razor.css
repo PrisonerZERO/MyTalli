@@ -17,6 +17,10 @@
 /* ─── HEALTH BADGE (per-shop pill next to shop name) ─── */
 .plat-health-badge { align-items: center; border-radius: 12px; display: inline-flex; font-size: 11px; font-weight: 700; gap: 6px; letter-spacing: 0.3px; margin-left: 12px; padding: 3px 10px; text-transform: uppercase; vertical-align: middle; }
 .plat-health-dot { background: currentColor; border-radius: 50%; display: inline-block; height: 6px; width: 6px; }
+.plat-locked-badge { align-items: center; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; color: #92400e; display: inline-flex; font-size: 11px; font-weight: 700; gap: 6px; letter-spacing: 0.3px; margin-left: 8px; padding: 3px 10px; text-transform: uppercase; vertical-align: middle; }
+.plat-locked-badge svg { color: #b45309; height: 12px; width: 12px; }
+[data-theme="dark"] .plat-locked-badge { background: #422006; border-color: #b45309; color: #fde68a; }
+[data-theme="dark"] .plat-locked-badge svg { color: #f59e0b; }
 .plat-health-healthy { background: var(--success-bg); color: var(--success); }
 .plat-health-syncpending { background: rgba(108, 92, 231, 0.15); color: var(--purple-primary); }
 .plat-health-stale { background: rgba(245, 158, 11, 0.15); color: #92400e; }

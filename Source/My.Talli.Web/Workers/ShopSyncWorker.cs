@@ -1,6 +1,7 @@
 namespace My.Talli.Web.Workers;
 
 using Domain.Commands.Admin;
+using Domain.Commands.Billing;
 using Domain.Commands.Platforms;
 using Domain.Data.Interfaces;
 using Domain.Models;
@@ -87,6 +88,7 @@ public class ShopSyncWorker : BackgroundService
 
         var shopAdapter = sp.GetRequiredService<RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection>>();
         var stateCommand = sp.GetRequiredService<UpdateShopSyncStateCommand>();
+        var getFreeSlot = sp.GetRequiredService<GetFreeTierSlotShopIdCommand>();
         var currentUserService = sp.GetRequiredService<ICurrentUserService>();
 
         foreach (var syncService in syncServices)
@@ -94,7 +96,7 @@ public class ShopSyncWorker : BackgroundService
             if (stoppingToken.IsCancellationRequested)
                 return;
 
-            await SyncPlatformAsync(syncService, shopAdapter, stateCommand, currentUserService, stoppingToken);
+            await SyncPlatformAsync(syncService, shopAdapter, stateCommand, getFreeSlot, currentUserService, stoppingToken);
         }
 
         await WriteHeartbeatAsync(sp);
@@ -123,7 +125,7 @@ public class ShopSyncWorker : BackgroundService
         }
     }
 
-    private async Task SyncPlatformAsync(IPlatformSyncService syncService, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopAdapter, UpdateShopSyncStateCommand stateCommand, ICurrentUserService currentUserService, CancellationToken stoppingToken)
+    private async Task SyncPlatformAsync(IPlatformSyncService syncService, RepositoryAdapterAsync<ShopConnection, ENTITIES.ShopConnection> shopAdapter, UpdateShopSyncStateCommand stateCommand, GetFreeTierSlotShopIdCommand getFreeSlot, ICurrentUserService currentUserService, CancellationToken stoppingToken)
     {
         var platform = syncService.Platform;
         var now = DateTime.UtcNow;
@@ -146,6 +148,14 @@ public class ShopSyncWorker : BackgroundService
         {
             if (stoppingToken.IsCancellationRequested)
                 return;
+
+            // Free-tier gate: a free user is entitled to exactly 1 shop (their oldest). Skip the rest.
+            var freeSlotId = await getFreeSlot.ExecuteAsync(shop.UserId);
+            if (freeSlotId.HasValue && freeSlotId != shop.Id)
+            {
+                _logger.LogDebug("{Platform} shop {ShopId} skipped — over free-tier cap (free slot is shop {FreeSlotId}).", platform, shop.Id, freeSlotId);
+                continue;
+            }
 
             // Audit fields require an authenticated user — stamp as the shop's owner
             currentUserService.Set(shop.UserId, string.Empty);

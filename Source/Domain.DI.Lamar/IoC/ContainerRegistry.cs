@@ -85,6 +85,7 @@ public class ContainerRegistry : ServiceRegistry
 		this.AddScoped<CreateManualShopCommand>();
 		this.AddScoped<FindActiveSubscriptionWithStripeCommand>();
 		this.AddScoped<FindExpiredUnacknowledgedSubscriptionCommand>();
+		this.AddScoped<GetFreeTierSlotShopIdCommand>();
 		this.AddScoped<GetExportDataCommand>();
 		this.AddScoped<GetExportPreviewCommand>();
 		this.AddScoped<GetSyncHealthCommand>();

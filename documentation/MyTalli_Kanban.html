@@ -101,10 +101,10 @@
       <p><strong>v1.0.0.8 LIVE on www.mytalli.com (May 16).</strong> Previous: v1.0.0.7 (May 16), v1.0.0.6 (May 10), v1.0.0.5 (May 10), v1.0.0.4–v1.0.0.1, initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; every release merged to <code>main</code>. The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. <strong>Infrastructure side is now stable:</strong> v1.0.0.8 moved DataProtection keys to SQL (<code>components.DataProtectionKey</code>) and removed the at-rest encryption layer on OAuth tokens — no more MI / blob / sidecar dependency, no more "container restart wipes keys" failure mode. Next: reconnect Etsy / Gumroad test shops on prod (old ciphertext tokens are unreadable), delete the dead <code>DataProtection__BlobStorage__*</code> env vars on both slots, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">14</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">3</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">19</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">22</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -118,7 +118,7 @@
     <div class="lane backlog">
       <div class="lane-header">
         <h3>Backlog</h3>
-        <span class="lane-count">14</span>
+        <span class="lane-count">13</span>
       </div>
       <div class="lane-body">
 
@@ -131,18 +131,6 @@
               <li><strong>Drop the promise.</strong> Edit the landing-page pricing copy and let free tier keep unlimited history. Lower friction for free-to-Pro conversion (users get hooked on their full data) but loses one of the Pro upsell hooks.</li>
             </ul>
             Pick before any real customer lands on the free tier and notices the mismatch — discovered 2026-05-17 while shipping the plan-expiration banner/email work.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag setup">Setup</span></div>
-          <h4>Subscription expiration: belt-and-suspenders + reconciliation worker</h4>
-          <p>Audit (May 16) found that subscription expiration enforcement is 100% Stripe-webhook-driven — we have <code>Subscription.EndDate</code> / <code>RenewalDate</code> / <code>CancelledDate</code> in the schema and webhooks keep them current, but the actual gate (<code>IsProSubscriber</code> in <code>NavMenuViewModel</code> / <code>PlatformsViewModel</code> / <code>MyPlanViewModel</code>) only checks <code>Status == Active || Cancelling</code>. If Stripe drops a webhook (network blip, our endpoint down during a deploy, Stripe outage), a subscription could sit with <code>Status=Active</code> + <code>EndDate</code> in the past → user keeps Pro access they shouldn't have. Three things to fix:
-            <ul>
-              <li><strong>Belt-and-suspenders <code>EndDate &gt;= UtcNow</code> check</strong> in every <code>IsProSubscriber</code> computation. Five-line change. Catches webhook-drop scenarios with zero new infrastructure.</li>
-              <li><strong>Reconciliation worker</strong> (e.g., <code>BillingHealthWorker</code>, 1×/day): call <code>Stripe.Subscriptions.ListAsync()</code>, compare each Stripe-side subscription to our local row, flag drift to Elmah, optionally auto-correct status. Pairs with the existing Heartbeat infrastructure (writes its own row at end of pass).</li>
-              <li><strong>Grace period for <code>PastDue</code></strong> (UX decision, not infra): Stripe runs ~3 weeks of dunning retries before giving up. Currently we yank Pro access on the first <code>past_due</code> webhook. Consider keeping access through <code>PastDue</code> until <code>EndDate + 7 days</code> OR until Stripe escalates to <code>Unpaid</code>. Most SaaS apps preserve access through dunning.</li>
-            </ul>
-            Lowest-risk subset for first PR: just the <code>EndDate</code> check. Reconciliation worker can wait until we have actual paying users. Grace period is a product call.</p>
         </div>
 
         <div class="card">
@@ -258,9 +246,30 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">19</span>
+        <span class="lane-count">22</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag nav">Nav</span><span class="tag sync">Sync</span></div>
+          <h4>Free-tier enforcement — 1 shop total + over-cap "Pro-only" badge + sync-worker skip</h4>
+          <p>Closed the entire gap between the pricing copy ("Free: 1 connected platform") and code (which only enforced 1-shop-per-platform). Now actually enforces "1 shop total across all platforms" — a free user with 1 Etsy shop can no longer connect a 2nd Gumroad / Stripe shop. Threaded through a single Domain command <code>CanConnectAnotherShopCommand</code> so all 3 Connect endpoints AND the Platforms ViewModel share one source of truth (deduped 4 inline copies). Side benefit: closed a real hole where the connect endpoints didn't honor the <code>EndDate &gt;= now</code> belt-and-suspenders gate — expired-Pro users could previously bypass the free-tier cap by hitting the URL directly. <strong>Surplus-shop handling (Pro → Free with N&gt;1 shops):</strong> new <code>GetFreeTierSlotShopIdCommand</code> returns the user's <em>oldest</em> shop id as their "free slot" (lowest Id, since IDENTITY is monotonic). <code>ShopSyncWorker</code> calls it before each shop sync and skips any non-free-slot shops (preserves user-controlled <code>IsEnabled</code>; auto-resumes on Pro upgrade with no flip-back). <code>PlatformsViewModel</code> sets <code>ShopItem.IsLockedByFreeTier</code> on over-cap shops, rendering an amber "Pro-only — upgrade to resume" badge next to the health badge. Verified live at localhost — oldest shop runs normally, newer shop shows the badge. Rule saved in <code>memory/project_free_tier_rules.md</code>: users do NOT pick which shop is free; first-connected wins. <strong>16 new tests across 2 command test files, 435/435 pass.</strong></p>
+          <span class="done-date">May 17 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag nav">Nav</span><span class="tag email">Email</span></div>
+          <h4>Plan expiration UX — in-app banner + transactional email + DB tracking</h4>
+          <p>Before this, when a user's Pro plan ended, the UI silently changed (sidebar swapped, MyPlan flipped to Free view) but the user got <strong>zero explanation</strong> for what happened. Now: amber banner on every authenticated page ("Your Pro Monthly plan ended on Apr 22, 2026 — Renew anytime to restore your Pro benefits") with Renew + dismiss buttons; one-time transactional email sent by <code>BillingHealthWorker</code> the day expiration is detected. Both are idempotent via 2 new nullable DateTime columns on <code>commerce.Subscription</code> (<code>ExpirationAcknowledgedAt</code>, <code>ExpirationEmailSentAt</code>) added via the <code>AddSubscriptionExpirationTracking</code> migration. Dismiss hits <code>AcknowledgeExpirationCommand</code> with IDOR check + idempotency. Email send + mark-sent share a worker pass with the reconciliation work. Banner ViewModel queries via <code>FindExpiredUnacknowledgedSubscriptionCommand</code>. Worker return type widened from <code>int</code> to <code>BillingHealthPassResult</code> (DriftCount + EmailsSent) for telemetry. <strong>24 new tests, 419/419 pass.</strong></p>
+          <span class="done-date">May 17 2026</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag sync">Sync</span></div>
+          <h4>Subscription expiration: belt-and-suspenders + reconciliation worker</h4>
+          <p>Fixed the silent-privilege-creep risk where a dropped Stripe webhook (network blip, our endpoint down during a deploy, Stripe outage) could leave a subscription with <code>Status=Active</code> + <code>EndDate</code> in the past, granting Pro access the user shouldn't have. <strong>Belt-and-suspenders:</strong> added <code>EndDate &gt;= UtcNow</code> check to all 3 <code>IsProSubscriber</code> computations (NavMenu / Platforms / MyPlan ViewModels). Catches webhook-drop scenarios with zero new infrastructure. <strong>Reconciliation worker:</strong> new <code>BillingHealthWorker</code> (1×/day) calls Stripe per local Active/Cancelling subscription, compares status + CurrentPeriodEnd, logs drift to Elmah via <code>ILogger.Warning</code>. Heartbeat row written each pass under source <code>BillingHealthWorker</code> (interval 86400s). Flag-only first pass — no auto-correction. Stripe SDK testability seam via <code>IStripeBillingApiClient</code> + <code>StripeSubscriptionInfo</code> DTO. PastDue grace period intentionally skipped (product call). <strong>10 new tests, 395/395 pass.</strong></p>
+          <span class="done-date">May 17 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>

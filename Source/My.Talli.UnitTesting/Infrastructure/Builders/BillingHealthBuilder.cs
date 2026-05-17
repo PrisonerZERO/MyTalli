@@ -38,6 +38,8 @@ public class BillingHealthBuilder
 
 	public CanConnectAnotherShopCommand CanConnectAnotherShop => _container.GetInstance<CanConnectAnotherShopCommand>();
 
+	public GetFreeTierSlotShopIdCommand GetFreeTierSlotShopId => _container.GetInstance<GetFreeTierSlotShopIdCommand>();
+
 	public IServiceProvider Container => _container;
 
 	public EmailServiceStub EmailService => (EmailServiceStub)_container.GetInstance<My.Talli.Web.Services.Email.IEmailService>();
