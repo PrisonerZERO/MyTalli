@@ -90,21 +90,21 @@
 <div class="header">
   <h1>My<span>Talli</span> Active Work</h1>
   <p class="subtitle">Lightweight Kanban board — what's in flight, what's next, what's done</p>
-  <p class="doc-date">Last updated: May 17, 2026</p>
+  <p class="doc-date">Last updated: May 17, 2026 (PM — Stripe OAuth rewrite shipped; production token-exchange bug under investigation; site in Maintenance Mode)</p>
 </div>
 
 <div class="content">
 
   <div class="intro">
     <div class="intro-left">
-      <h2>Current focus: Pre-launch perf + nav feedback UX</h2>
-      <p><strong>v1.0.0.13 LIVE on www.mytalli.com (May 17).</strong> Bundled with v1.0.0.11 + v1.0.0.12 in one PR. Previous: v1.0.0.10 (May 17), v1.0.0.9 (May 17 free-tier enforcement + plan expiration UX), v1.0.0.8 (May 16 SQL-backed DataProtection), v1.0.0.7 (May 16 silent-data-loss sweep), down through initial v1.0.0.0 ship 2026-05-03; every release merged to <code>main</code>. The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. <strong>v1.0.0.11–13 closed the perf punch list and the "did my click register?" UX gap:</strong> server-side <code>CountAsync</code> + <code>IsProSubscriberCommand</code> per-circuit cache + <code>IDbContextFactory</code> for true parallel queries, plus a full-viewport "Working…" modal dialog (2s minimum, MutationObserver guards the active class against Blazor's enhanced-nav DOM merge) replacing the subtle nav bar users didn't notice. Next: reconnect Etsy / Gumroad test shops on prod, delete the dead <code>DataProtection__BlobStorage__*</code> env vars, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
+      <h2>Current focus: Stripe Connect OAuth rewrite (v1.0.0.15) — production token-exchange bug</h2>
+      <p><strong>v1.0.0.14 + v1.0.0.15 LIVE on www.mytalli.com (May 17 PM).</strong> v1.0.0.14 = Dashboard sample-data banner mirrors Goals (two CTAs). v1.0.0.15 = full Stripe Connect rewrite from Account Links to OAuth Connect — the original Account Links flow was the wrong pattern for MyTalli's read-only use case (forced every user through full Stripe Standard account creation + onboarding). OAuth flow proven to reach the Stripe consent page correctly on prod (right <code>client_id</code> / <code>redirect_uri</code> / <code>scope</code> wired through Azure env vars). <strong>BUT</strong> the token exchange in <code>/api/platforms/stripe/callback</code> is throwing — users always land on <code>/platforms?error=stripe_exchange</code> even after fully approving the OAuth grant on a verified Stripe account. Site put into Maintenance Mode while bug is investigated. Next session: pull the actual exception from Azure Log Stream, fix the root cause, redeploy.</p>
     </div>
     <div class="intro-metrics">
       <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
-      <span class="metric"><span class="metric-value">3</span><span class="metric-label">Next<br>up</span></span>
-      <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">25</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">2</span><span class="metric-label">Next<br>up</span></span>
+      <span class="metric"><span class="metric-value">1</span><span class="metric-label">In<br>progress</span></span>
+      <span class="metric"><span class="metric-value">27</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -224,10 +224,16 @@
     <div class="lane progress">
       <div class="lane-header">
         <h3>In Progress</h3>
-        <span class="lane-count">0</span>
+        <span class="lane-count">1</span>
       </div>
       <div class="lane-body">
-        <div class="lane-empty">Nothing in progress.</div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span><span class="tag billing">Billing</span></div>
+          <h4>Stripe Connect OAuth — token exchange failing on prod (BLOCKER, site in MM)</h4>
+          <p>v1.0.0.15 rewrote Stripe Connect from Account Links → OAuth Connect. The OAuth flow correctly reaches Stripe's consent page in production (right <code>client_id=ca_URV6BXNn6t1ynLuAKtRKMRgXuCrL1jyc</code>, right <code>redirect_uri</code>, <code>scope=read_write</code> via Azure env var override of the <code>read_only</code> default). User can select an eligible Stripe account and click Connect. <strong>BUT</strong> when Stripe redirects back to <code>/api/platforms/stripe/callback?code=…&amp;state=…</code>, our <code>ExchangeCodeAsync</code> (POST to <code>connect.stripe.com/oauth/token</code>) or <code>GetAccountAsync</code> (GET <code>/v1/account</code> with <code>RequestOptions.ApiKey = accessToken</code>) is throwing — endpoint catches, redirects to <code>/platforms?error=stripe_exchange</code>. Confirmed NOT caused by an unverified target account: user activated a fresh Stripe Standard account end-to-end (Mytalli / <code>acct_1TYAxERBARulNhy4</code>, KYC complete, live mode active, bank linked) and exchange still fails. <strong>Next session must:</strong> pull the actual exception text + stack trace from Azure Log Stream (filter to Error level; look for "Stripe OAuth token exchange failed for user {UserId}") to identify the root cause. Probable suspects: (a) <code>client_secret</code> binding (we pass <code>_billingSettings.SecretKey</code> which is the platform's <code>sk_live_</code> — should be correct per Stripe docs but worth verifying); (b) missing <code>client_id</code> form field in our POST (Stripe may require it even when secret is sent); (c) URL or content-type mismatch on the token POST; (d) <code>GetAccount</code> call failing because we pass <code>id: null</code> through Stripe.net SDK. Site put into Maintenance Mode while diagnosis happens.</p>
+        </div>
+
       </div>
     </div>
 
@@ -235,9 +241,23 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">25</span>
+        <span class="lane-count">27</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span><span class="tag billing">Billing</span></div>
+          <h4>v1.0.0.15 LIVE — Stripe Connect: Account Links → OAuth Connect rewrite</h4>
+          <p>The original Account Links flow was the wrong architectural choice for MyTalli's use case. MyTalli is a <strong>read-only revenue aggregator</strong> — when a user connects Stripe we want to read their existing charges + payouts, not create a brand-new Stripe Standard connected account for them and put them through full KYC onboarding. The Account Links flow forced exactly that broken UX (user reported: "Stripe is asking me about my name &amp; business — it should already know"). Rewritten to the OAuth Connect pattern that Etsy + Gumroad already use: <code>/api/platforms/stripe/connect</code> redirects to <code>connect.stripe.com/oauth/authorize</code>, <code>/callback</code> exchanges the returned code for an access token via <code>connect.stripe.com/oauth/token</code> (using the platform's existing <code>Stripe.SecretKey</code> as the OAuth <code>client_secret</code>), and sync calls authenticate with <code>RequestOptions.ApiKey = accessToken</code> instead of the legacy <code>StripeAccount</code> header on a platform-key request. New files: <code>StripeOAuthGenerator</code>, <code>StripeTokenResponse</code>, plus tests. Rewritten: <code>StripeConnectSettings</code> (now <code>ClientId</code>+<code>RedirectUri</code>+<code>Scope</code> instead of <code>RefreshUri</code>+<code>ReturnUri</code>), <code>IStripeConnectApiClient</code>, <code>StripeConnectService</code>, <code>StripeConnectSyncService</code> (reads <code>ShopConnection.AccessToken</code>, throws if empty), <code>ConnectStripeCommand</code> (now stores <code>access_token</code> + <code>refresh_token</code> on <code>ShopConnection</code>), <code>PlatformEndpoints</code> Stripe section (added <code>/reconnect/{id}</code>; deleted <code>/refresh</code> + <code>/return</code>). Azure env vars added: <code>StripeConnect__ClientId=ca_URV6BXNn6t1ynLuAKtRKMRgXuCrL1jyc</code>, <code>StripeConnect__RedirectUri=https://www.mytalli.com/api/platforms/stripe/callback</code>, <code>StripeConnect__Scope=read_write</code> (Stripe gates <code>read_only</code> behind a support ticket; <code>read_write</code> works out of the box). Stripe Connect dashboard side: OAuth toggle ON, prod + localhost redirect URIs registered. Cleaned up stale Stripe debris: deleted orphaned <code>acct_1TYAxERBARulNhy4</code> connected account, removed the <code>ShopConnection</code> + <code>PlatformConnection</code> rows from Azure SQL. CLAUDE.md rule flipped from "Account Links, not legacy OAuth" to "OAuth, same pattern as Etsy and Gumroad". <strong>454/454 tests pass.</strong> <strong>Caveat: production token exchange currently failing</strong> — see "In Progress" lane.</p>
+          <span class="done-date">May 17 2026 (PM)</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>v1.0.0.14 LIVE — Dashboard sample-data banner mirrors Goals (two CTAs)</h4>
+          <p>The Dashboard's sample-data banner showed a single "Get started" CTA → <code>/my-plan</code>, while the Goals page banner offered two distinct paths ("Connect a platform" → <code>/platforms</code> + "Activate Manual Entry" → <code>/my-plan</code>). Newly-subscribed Pro users hitting the Dashboard for the first time were getting bounced to <code>/my-plan</code> when their actual next step was either platform connect or manual entry activation. Fixed: Dashboard banner now mirrors the Goals banner exactly — same text ("Connect a platform or activate a module"), same two CTA buttons. Also consolidated the duplicated <code>.sample-banner*</code> CSS rules (which existed in 3 different scoped CSS files) into a single shared block in <code>app.css</code> — <code>Dashboard.razor.css</code> + <code>Goals.razor.css</code> trimmed accordingly. <code>ManualEntry</code>'s differently-named <code>.manual-sample-banner</code> left alone.</p>
+          <span class="done-date">May 17 2026 (PM)</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span><span class="tag nav">Nav</span></div>
