@@ -50,7 +50,9 @@ public class StripeConnectSyncService : IPlatformSyncService
     public async Task<PlatformSyncResult> SyncShopAsync(ShopConnection shop, CancellationToken cancellationToken)
     {
         var result = new PlatformSyncResult();
-        var accountId = shop.PlatformAccountId;
+        var accessToken = shop.AccessToken;
+        if (string.IsNullOrEmpty(accessToken))
+            throw new InvalidOperationException($"Stripe shop {shop.Id} has no OAuth access token; user must reconnect.");
         // Belt-and-suspenders: TalliDbContext already pins every EF-loaded DateTime to Kind=Utc via a global
         // value converter, so shop.LastSyncDateTime should already be Utc when it came from the database.
         // Re-pin here anyway to cover any in-memory ShopConnection (constructed in code, deserialized from a
@@ -61,20 +63,20 @@ public class StripeConnectSyncService : IPlatformSyncService
             ? DateTime.SpecifyKind(shop.LastSyncDateTime.Value, DateTimeKind.Utc)
             : DateTime.UtcNow.AddDays(-InitialBackfillDays);
 
-        await SyncChargesAsync(shop, accountId, createdAfter, result, cancellationToken);
-        await SyncPayoutsAsync(shop, accountId, createdAfter, result, cancellationToken);
+        await SyncChargesAsync(shop, accessToken, createdAfter, result, cancellationToken);
+        await SyncPayoutsAsync(shop, accessToken, createdAfter, result, cancellationToken);
 
         return result;
     }
 
-    private async Task SyncChargesAsync(ShopConnection shop, string accountId, DateTime createdAfter, PlatformSyncResult result, CancellationToken cancellationToken)
+    private async Task SyncChargesAsync(ShopConnection shop, string accessToken, DateTime createdAfter, PlatformSyncResult result, CancellationToken cancellationToken)
     {
         string? startingAfter = null;
         var pagesFetched = 0;
 
         while (!cancellationToken.IsCancellationRequested && pagesFetched < MaxPagesPerSync)
         {
-            var page = await _stripeConnect.ListChargesAsync(accountId, createdAfter, startingAfter, PageSize, cancellationToken);
+            var page = await _stripeConnect.ListChargesAsync(accessToken, createdAfter, startingAfter, PageSize, cancellationToken);
             result.PagesFetched++;
             result.ReceiptsProcessed += page.Data.Count;
             pagesFetched++;
@@ -106,14 +108,14 @@ public class StripeConnectSyncService : IPlatformSyncService
             _logger.LogWarning("Stripe charge sync hit page cap ({Cap}) for shop {ShopId}; remaining charges will be picked up on next sync.", MaxPagesPerSync, shop.Id);
     }
 
-    private async Task SyncPayoutsAsync(ShopConnection shop, string accountId, DateTime createdAfter, PlatformSyncResult result, CancellationToken cancellationToken)
+    private async Task SyncPayoutsAsync(ShopConnection shop, string accessToken, DateTime createdAfter, PlatformSyncResult result, CancellationToken cancellationToken)
     {
         string? startingAfter = null;
         var pagesFetched = 0;
 
         while (!cancellationToken.IsCancellationRequested && pagesFetched < MaxPagesPerSync)
         {
-            var page = await _stripeConnect.ListPayoutsAsync(accountId, createdAfter, startingAfter, PageSize, cancellationToken);
+            var page = await _stripeConnect.ListPayoutsAsync(accessToken, createdAfter, startingAfter, PageSize, cancellationToken);
             result.LedgerPagesFetched++;
             result.LedgerEntriesProcessed += page.Data.Count;
             pagesFetched++;

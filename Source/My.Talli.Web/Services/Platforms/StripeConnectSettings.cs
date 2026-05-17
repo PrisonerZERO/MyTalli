@@ -5,9 +5,11 @@ public class StripeConnectSettings
 {
     #region <Properties>
 
-    public string RefreshUri { get; set; } = string.Empty;
+    public string ClientId { get; set; } = string.Empty;
 
-    public string ReturnUri { get; set; } = string.Empty;
+    public string RedirectUri { get; set; } = string.Empty;
+
+    public string Scope { get; set; } = "read_only";
 
     #endregion
 }

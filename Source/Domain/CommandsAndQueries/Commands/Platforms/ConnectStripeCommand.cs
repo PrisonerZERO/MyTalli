@@ -34,10 +34,10 @@ public class ConnectStripeCommand
 
     #region <Methods>
 
-    public async Task<ConnectStripeResult> ExecuteAsync(long userId, StripeAccountInfo account)
+    public async Task<ConnectStripeResult> ExecuteAsync(long userId, StripeAccountInfo account, string accessToken, string? refreshToken)
     {
         var (connection, isFirstConnection) = await UpsertPlatformConnectionAsync(userId);
-        var wasNewShop = await UpsertShopAsync(userId, connection.Id, account);
+        var wasNewShop = await UpsertShopAsync(userId, connection.Id, account, accessToken, refreshToken);
 
         return new ConnectStripeResult
         {
@@ -66,7 +66,7 @@ public class ConnectStripeCommand
         return (existing, false);
     }
 
-    private async Task<bool> UpsertShopAsync(long userId, long platformConnectionId, StripeAccountInfo account)
+    private async Task<bool> UpsertShopAsync(long userId, long platformConnectionId, StripeAccountInfo account, string accessToken, string? refreshToken)
     {
         var shopName = string.IsNullOrEmpty(account.BusinessName) ? (account.Email ?? "Stripe") : account.BusinessName;
         var now = DateTime.UtcNow;
@@ -77,7 +77,7 @@ public class ConnectStripeCommand
         {
             await _shopConnectionAdapter.InsertAsync(new ShopConnection
             {
-                AccessToken = string.Empty,
+                AccessToken = accessToken,
                 ConsecutiveFailures = 0,
                 IsActive = true,
                 IsEnabled = true,
@@ -85,7 +85,7 @@ public class ConnectStripeCommand
                 PlatformAccountId = account.AccountId,
                 PlatformConnectionId = platformConnectionId,
                 PlatformShopId = account.AccountId,
-                RefreshToken = null,
+                RefreshToken = refreshToken,
                 RefreshTokenExpiryDateTime = null,
                 ShopName = shopName,
                 Status = "Pending",
@@ -95,10 +95,10 @@ public class ConnectStripeCommand
         }
         else
         {
-            existing.AccessToken = string.Empty;
+            existing.AccessToken = accessToken;
             existing.IsActive = true;
             existing.PlatformAccountId = account.AccountId;
-            existing.RefreshToken = null;
+            existing.RefreshToken = refreshToken;
             existing.RefreshTokenExpiryDateTime = null;
             existing.ShopName = shopName;
             existing.TokenExpiryDateTime = null;
