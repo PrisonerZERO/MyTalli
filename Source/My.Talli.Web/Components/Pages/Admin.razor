@@ -106,6 +106,10 @@ else
                                 @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
                                 Send Weekly Summary
                             </button>
+                            <button class="btn btn-resend" disabled="@IsSending" @onclick='() => ResendEmailAsync("subscription-expired")'>
+                                @if (IsSending) { <span class="spinner" aria-hidden="true"></span> }
+                                Send Subscription Expired
+                            </button>
                         </div>
                     </div>
                 }

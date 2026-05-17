@@ -17,6 +17,7 @@ public class GetSyncHealthCommand
 	private static readonly string[] ExpectedWorkerSources =
 	[
 		"AdminHealthWorker",
+		"BillingHealthWorker",
 		"ShopSyncWorker",
 		"TokenRefreshWorker"
 	];

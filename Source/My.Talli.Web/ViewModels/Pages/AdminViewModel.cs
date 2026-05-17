@@ -36,6 +36,9 @@ public class AdminViewModel : ComponentBase, IDisposable
     private SendSubscriptionConfirmationEmailCommand SubscriptionConfirmationCommand { get; set; } = default!;
 
     [Inject]
+    private SendSubscriptionExpiredEmailCommand SubscriptionExpiredCommand { get; set; } = default!;
+
+    [Inject]
     private SendWelcomeEmailCommand WelcomeCommand { get; set; } = default!;
 
     [Inject]
@@ -268,6 +271,14 @@ public class AdminViewModel : ComponentBase, IDisposable
                     await WeeklySummaryCommand.ExecuteAsync(SelectedUser.Email, SelectedUser.FirstName, SelectedUser.UserId);
                     StatusMessage = $"Weekly summary sent to {SelectedUser.Email}.";
                     IsStatusSuccess = true;
+                    break;
+
+                case "subscription-expired":
+                    var expiredSent = await SubscriptionExpiredCommand.ExecuteAsync(SelectedUser.Email, SelectedUser.FirstName, SelectedUser.UserId);
+                    StatusMessage = expiredSent
+                        ? $"Subscription expired email sent to {SelectedUser.Email}."
+                        : "No Pro subscription found on record for this user.";
+                    IsStatusSuccess = expiredSent;
                     break;
             }
         }
