@@ -101,10 +101,10 @@
       <p><strong>v1.0.0.8 LIVE on www.mytalli.com (May 16).</strong> Previous: v1.0.0.7 (May 16), v1.0.0.6 (May 10), v1.0.0.5 (May 10), v1.0.0.4–v1.0.0.1, initial v1.0.0.0 ship 2026-05-03 via VS Publish → staging slot → slot swap; every release merged to <code>main</code>. The full app — dashboard, billing, Etsy + Gumroad + Stripe Connect, dark mode, manual entry, suggestions, my-plan, admin, export — replaces the old waitlist-only <code>main</code> build. <strong>Infrastructure side is now stable:</strong> v1.0.0.8 moved DataProtection keys to SQL (<code>components.DataProtectionKey</code>) and removed the at-rest encryption layer on OAuth tokens — no more MI / blob / sidecar dependency, no more "container restart wipes keys" failure mode. Next: reconnect Etsy / Gumroad test shops on prod (old ciphertext tokens are unreadable), delete the dead <code>DataProtection__BlobStorage__*</code> env vars on both slots, attorney review of Privacy / Terms, then soft-launch with 5 friends.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">3</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">0</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">22</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">23</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -118,20 +118,9 @@
     <div class="lane backlog">
       <div class="lane-header">
         <h3>Backlog</h3>
-        <span class="lane-count">13</span>
+        <span class="lane-count">12</span>
       </div>
       <div class="lane-body">
-
-        <div class="card">
-          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag setup">Setup</span></div>
-          <h4>Enforce 30-day history cap on free tier (or drop the promise)</h4>
-          <p>The landing page pricing copy promises <em>"Free: 1 connected platform, basic dashboard, 30-day history."</em> The 30-day history cap is <strong>not enforced anywhere in code</strong> — free-tier and expired Pro users see their full historical <code>app.Revenue</code> / <code>app.Expense</code> / <code>app.Payout</code> data on the Dashboard, every spoke page (Etsy / Stripe / Gumroad), and Manual Entry. None of those queries reference <code>IsProSubscriber</code>. Two paths:
-            <ul>
-              <li><strong>Enforce it.</strong> Add a date floor (<code>TransactionDate &gt;= UtcNow.AddDays(-30)</code>) on the Find* queries used by DashboardViewModel, the spoke ViewModels, and ManualEntryViewModel when <code>IsProSubscriber == false</code>. Bigger surface — every read path that pages a user-owned date-stamped table needs the gate.</li>
-              <li><strong>Drop the promise.</strong> Edit the landing-page pricing copy and let free tier keep unlimited history. Lower friction for free-to-Pro conversion (users get hooked on their full data) but loses one of the Pro upsell hooks.</li>
-            </ul>
-            Pick before any real customer lands on the free tier and notices the mismatch — discovered 2026-05-17 while shipping the plan-expiration banner/email work.</p>
-        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag docs">Docs</span></div>
@@ -246,9 +235,16 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">22</span>
+        <span class="lane-count">23</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag nav">Nav</span></div>
+          <h4>v1.0.0.9 — Enforce 30-day history cap + Pro-only CSV export</h4>
+          <p>Closed the last two gaps between the landing-page pricing copy and what the code actually does. Free tier is now genuinely "1 connected platform, basic dashboard, 30-day history" and CSV export is genuinely Pro-only. <strong>Pro-check refactor:</strong> new <code>IsProSubscriberCommand</code> (Domain) is now the single source of truth for "is this user Pro?" across the whole app — replaces three inline copies inside <code>CanConnectAnotherShopCommand</code>, <code>GetFreeTierSlotShopIdCommand</code>, and the export gate. <strong>30-day history cap:</strong> new <code>GetEarliestQueryableDateCommand</code> returns <code>UtcNow - 30 days</code> for free users (null for Pro), threaded into all 5 data ViewModels (Dashboard, Etsy/Gumroad/Stripe spokes, ManualEntry) — each clamps its computed StartDate before filtering. Period filter UI for free users: Dashboard + ManualEntry shrink to ["7D","30D"]; spokes hide 90D + All and render a "Pro ▸ 90D · All" upgrade link. Defense-in-depth — server-side clamp inside each ViewModel still enforces if UI is bypassed. <strong>CSV export Pro-only:</strong> all 3 export endpoints check <code>IsProSubscriberCommand</code> and 302-redirect free users to <code>/my-plan?error=export_pro_only</code>. <code>Export.razor</code> shows an amber "CSV export is a Pro feature" banner; <code>ExportCard</code> swaps Download for an "Upgrade to Pro" button via new <code>IsLockedByPlanTier</code> param. Date-range presets for free users collapse to just "Last 30 days" + upgrade link; From/To date inputs get HTML <code>min</code>/<code>max</code> attributes so the OS date picker physically refuses dates outside the 30-day window (and refuses future dates for everyone). ViewModel server-clamps any tampered values + auto-corrects inverted ranges. CLAUDE.md updated with a "Pricing Model" subsection documenting all three enforcement surfaces. <strong>11 new tests, 446/446 pass.</strong> Version bumped 1.0.0.8 → 1.0.0.9.</p>
+          <span class="done-date">May 17 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag billing">Billing</span><span class="tag nav">Nav</span><span class="tag sync">Sync</span></div>
