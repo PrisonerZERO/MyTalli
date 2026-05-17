@@ -15,7 +15,7 @@ public class GetSyncHealthCommandTests
 
         var report = await builder.GetSyncHealth.ExecuteAsync();
 
-        Assert.Equal(3, report.Workers.Count);
+        Assert.Equal(4, report.Workers.Count);
         Assert.All(report.Workers, w =>
         {
             Assert.False(w.HasTicked);
