@@ -51,6 +51,13 @@ public class MaintenanceModeMiddlewareTests
     }
 
     [Theory]
+    [InlineData("/")]
+    [InlineData("/signin")]
+    [InlineData("/signin-google")]
+    [InlineData("/signin-microsoft")]
+    [InlineData("/signin-apple")]
+    [InlineData("/api/auth/login/Google")]
+    [InlineData("/api/auth/logout")]
     [InlineData("/maintenance")]
     [InlineData("/maintenance/something")]
     [InlineData("/api/admin/maintenance/on")]
