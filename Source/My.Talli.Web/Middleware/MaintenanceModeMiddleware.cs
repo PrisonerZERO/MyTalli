@@ -89,6 +89,10 @@ public class MaintenanceModeMiddleware
 				return true;
 		}
 
+		// Static assets (anything with a file extension) — app.css, My.Talli.Web.styles.css, favicon.svg, etc.
+		if (Path.HasExtension(path))
+			return true;
+
 		return false;
 	}
 
