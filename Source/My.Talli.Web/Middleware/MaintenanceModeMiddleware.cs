@@ -9,10 +9,17 @@ public class MaintenanceModeMiddleware
 
 	private const string MaintenancePath = "/maintenance";
 
+	private static readonly string[] WhitelistExactPaths =
+	[
+		"/"
+	];
+
 	private static readonly string[] WhitelistPrefixes =
 	[
 		"/maintenance",
 		"/api/admin/maintenance",
+		"/api/auth",
+		"/signin",
 		"/_blazor",
 		"/_framework",
 		"/css",
@@ -70,6 +77,12 @@ public class MaintenanceModeMiddleware
 
 	private static bool IsWhitelisted(string path)
 	{
+		foreach (var exact in WhitelistExactPaths)
+		{
+			if (string.Equals(path, exact, StringComparison.OrdinalIgnoreCase))
+				return true;
+		}
+
 		foreach (var prefix in WhitelistPrefixes)
 		{
 			if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
