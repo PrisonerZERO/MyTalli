@@ -90,21 +90,21 @@
 <div class="header">
   <h1>My<span>Talli</span> Active Work</h1>
   <p class="subtitle">Lightweight Kanban board — what's in flight, what's next, what's done</p>
-  <p class="doc-date">Last updated: May 17, 2026 (PM — Stripe OAuth rewrite shipped; production token-exchange bug under investigation; site in Maintenance Mode)</p>
+  <p class="doc-date">Last updated: May 18, 2026 (Maintenance Mode whitelist fixes — v1.0.0.16 merged, v1.0.0.17 local; Stripe OAuth token-exchange still under investigation; site still in Maintenance Mode)</p>
 </div>
 
 <div class="content">
 
   <div class="intro">
     <div class="intro-left">
-      <h2>Current focus: Stripe Connect OAuth rewrite (v1.0.0.15) — production token-exchange bug</h2>
-      <p><strong>v1.0.0.14 + v1.0.0.15 LIVE on www.mytalli.com (May 17 PM).</strong> v1.0.0.14 = Dashboard sample-data banner mirrors Goals (two CTAs). v1.0.0.15 = full Stripe Connect rewrite from Account Links to OAuth Connect — the original Account Links flow was the wrong pattern for MyTalli's read-only use case (forced every user through full Stripe Standard account creation + onboarding). OAuth flow proven to reach the Stripe consent page correctly on prod (right <code>client_id</code> / <code>redirect_uri</code> / <code>scope</code> wired through Azure env vars). <strong>BUT</strong> the token exchange in <code>/api/platforms/stripe/callback</code> is throwing — users always land on <code>/platforms?error=stripe_exchange</code> even after fully approving the OAuth grant on a verified Stripe account. Site put into Maintenance Mode while bug is investigated. Next session: pull the actual exception from Azure Log Stream, fix the root cause, redeploy.</p>
+      <h2>Current focus: Stripe Connect OAuth token-exchange bug (v1.0.0.15 blocker, site still in MM)</h2>
+      <p><strong>v1.0.0.16 merged to <code>main</code> via PR #84 (May 18); v1.0.0.17 committed locally on <code>development_ROBERT</code>, not yet PR'd.</strong> While diagnosing the Stripe Connect blocker, MM exposed two whitelist gaps: (a) the landing page + sign-in flow were being redirected to <code>/maintenance</code> for anonymous users (v1.0.0.16 fix: whitelist <code>/</code>, <code>/signin*</code>, <code>/api/auth*</code>); (b) static assets at the root path (<code>/app.css</code>, <code>/My.Talli.Web.styles.css</code>, <code>/favicon.svg</code>) were also being redirected, so the landing page rendered unstyled (v1.0.0.17 fix: whitelist any path with a file extension via <code>Path.HasExtension</code>). The original Stripe Connect token-exchange bug is still the blocker — <code>/api/platforms/stripe/callback</code> still throws on every user after Stripe consent. Next session: pull the actual exception from Azure Log Stream, fix the root cause, redeploy.</p>
     </div>
     <div class="intro-metrics">
       <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">2</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">1</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">27</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">29</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -241,9 +241,23 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">27</span>
+        <span class="lane-count">29</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>v1.0.0.17 LOCAL — Maintenance Mode: whitelist static assets (any file with extension)</h4>
+          <p>v1.0.0.16 let the landing page through the MM gate, but Blazor's <code>@Assets["app.css"]</code>, <code>@Assets["My.Talli.Web.styles.css"]</code>, and <code>favicon.svg</code> all sit at the root path — they were 302-redirected to <code>/maintenance</code>, the browser parsed the maintenance HTML as CSS, and the landing page rendered raw (unstyled gold-tier "looks broken in prod" bug). Fix: <code>MaintenanceModeMiddleware.IsWhitelisted</code> now also passes through any request whose path matches <code>Path.HasExtension(path)</code>. One-line catch-all covers all <code>.css</code>/<code>.js</code>/<code>.svg</code>/<code>.png</code>/font/etc. requests AND any future fingerprinted bundle without me needing to maintain a path list. 4 new test InlineData rows added (<code>/app.css</code>, <code>/My.Talli.Web.styles.css</code>, <code>/favicon.svg</code>, <code>/og-image.png</code>). <strong>28/28 middleware tests pass.</strong> Committed on <code>development_ROBERT</code> (commit <code>5bad2eb</code>); not yet PR'd or deployed.</p>
+          <span class="done-date">May 18 2026 (local)</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag setup">Setup</span></div>
+          <h4>v1.0.0.16 MERGED — Maintenance Mode: whitelist landing + sign-in routes</h4>
+          <p>v1.0.0.15 put the site into MM while diagnosing the Stripe Connect token-exchange bug, but the existing middleware was redirecting <strong>every</strong> non-whitelisted request to <code>/maintenance</code> — including the landing page (<code>/</code>), the sign-in page (<code>/signin</code>), the OAuth callbacks (<code>/signin-google</code>, <code>/signin-microsoft</code>, <code>/signin-apple</code>), and the auth endpoints (<code>/api/auth/login/{provider}</code>, <code>/api/auth/logout</code>). Net effect: anonymous users couldn't reach the marketing page or sign in during MM. Fix: added <code>WhitelistExactPaths</code> array for exact-match paths (<code>/</code>), added <code>/signin</code> + <code>/api/auth</code> to <code>WhitelistPrefixes</code>, and updated <code>IsWhitelisted</code> to check exact paths first then prefixes. 7 new test InlineData rows. <strong>24/24 middleware tests pass.</strong> Also added <code>.claude/worktrees/</code> to <code>.gitignore</code> so Claude Code worktree session files stop polluting <code>git status</code>. Merged via PR #84.</p>
+          <span class="done-date">May 18 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag sync">Sync</span><span class="tag billing">Billing</span></div>
