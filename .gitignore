@@ -28,6 +28,9 @@ appsettings.Development.json
 # Claude Code local settings (may contain secrets in permission entries)
 .claude/settings.local.json
 
+# Claude Code worktrees (transient session checkouts)
+.claude/worktrees/
+
 # User-specific files
 *.rsuser
 *.suo
