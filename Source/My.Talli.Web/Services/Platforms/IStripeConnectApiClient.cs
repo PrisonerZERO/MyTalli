@@ -10,7 +10,7 @@ public interface IStripeConnectApiClient
 
     Task<StripeTokenResponse> ExchangeCodeAsync(string code, CancellationToken cancellationToken);
 
-    Task<Account> GetAccountAsync(string accessToken, CancellationToken cancellationToken);
+    Task<Account> GetAccountAsync(string accessToken, string stripeUserId, CancellationToken cancellationToken);
 
     Task<StripeList<Charge>> ListChargesAsync(string accessToken, DateTime? createdAfter, string? startingAfter, int limit, CancellationToken cancellationToken);
 

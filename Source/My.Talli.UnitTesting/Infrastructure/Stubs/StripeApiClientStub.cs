@@ -28,7 +28,7 @@ public class StripeApiClientStub : IStripeConnectApiClient
         throw new NotImplementedException("ExchangeCodeAsync not used by these tests.");
     }
 
-    public Task<Account> GetAccountAsync(string accessToken, CancellationToken cancellationToken)
+    public Task<Account> GetAccountAsync(string accessToken, string stripeUserId, CancellationToken cancellationToken)
     {
         throw new NotImplementedException("GetAccountAsync not used by these tests.");
     }
