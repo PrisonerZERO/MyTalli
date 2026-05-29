@@ -418,6 +418,12 @@ public static class PlatformEndpoints
         }
         catch (Exception ex)
         {
+            // Diagnostic belt-and-suspenders: also write to stderr so the exception is visible in Azure Log Stream
+            // regardless of ILogger configuration / filter weirdness. This catch block swallows the exception
+            // for a clean user redirect, which means Elmah never sees it either — stderr is our only direct channel.
+            Console.Error.WriteLine($"[STRIPE_OAUTH_FAIL] User={cookie.UserId} ExceptionType={ex.GetType().FullName} Message={ex.Message}");
+            Console.Error.WriteLine(ex.ToString());
+
             logger.LogError(ex, "Stripe OAuth token exchange failed for user {UserId}", cookie.UserId);
             ClearCookie(context, StripeChallengeCookieName);
             return Results.Redirect("/platforms?error=stripe_exchange");
