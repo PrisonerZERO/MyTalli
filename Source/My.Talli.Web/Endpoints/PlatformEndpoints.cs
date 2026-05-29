@@ -399,7 +399,7 @@ public static class PlatformEndpoints
         try
         {
             var tokenResponse = await stripeConnect.ExchangeCodeAsync(code, cancellationToken);
-            var account = await stripeConnect.GetAccountAsync(tokenResponse.AccessToken, cancellationToken);
+            var account = await stripeConnect.GetAccountAsync(tokenResponse.AccessToken, tokenResponse.StripeUserId, cancellationToken);
             var accountInfo = ToAccountInfo(account, tokenResponse.StripeUserId);
 
             // TRANSACTION
@@ -426,8 +426,8 @@ public static class PlatformEndpoints
 
     private static StripeAccountInfo ToAccountInfo(Stripe.Account account, string fallbackAccountId)
     {
-        // OAuth response gives us stripe_user_id directly; account fetch returns null Id on read-only scopes
-        // when the SDK uses the GET /v1/account self endpoint. Fall back to the OAuth-provided value.
+        // We retrieve the account by stripe_user_id, so account.Id should be populated. The OAuth-provided
+        // fallback is defensive only — keeps the AccountInfo valid if a future SDK change ever returns a null Id.
         var accountId = string.IsNullOrEmpty(account.Id) ? fallbackAccountId : account.Id;
         var businessName = account.BusinessProfile?.Name
             ?? account.Settings?.Dashboard?.DisplayName

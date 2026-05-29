@@ -70,13 +70,15 @@ public class StripeConnectService : IStripeConnectApiClient
         return payload;
     }
 
-    public async Task<Account> GetAccountAsync(string accessToken, CancellationToken cancellationToken)
+    public async Task<Account> GetAccountAsync(string accessToken, string stripeUserId, CancellationToken cancellationToken)
     {
-        // GetAsync(null, ...) hits GET /v1/account, which Stripe resolves to "the account this API key belongs to".
-        // The OAuth access_token is scoped to the connected account, so this returns the seller's account.
+        // Hits GET /v1/accounts/{stripeUserId}, retrieving the connected account by its acct_xxx id.
+        // The OAuth access_token authenticates us AS that account, so the retrieve succeeds.
+        // Note: do NOT call GetAsync(id: null, ...) — the Stripe.net SDK constructs /v1/accounts/ (trailing slash, empty id)
+        // and Stripe's API returns 404 "Unrecognized request URL". The stripeUserId comes from the OAuth token response.
         var service = new AccountService();
         var requestOptions = new RequestOptions { ApiKey = accessToken };
-        return await service.GetAsync(id: null, options: null, requestOptions: requestOptions, cancellationToken: cancellationToken);
+        return await service.GetAsync(stripeUserId, options: null, requestOptions: requestOptions, cancellationToken: cancellationToken);
     }
 
     public async Task<StripeList<Charge>> ListChargesAsync(string accessToken, DateTime? createdAfter, string? startingAfter, int limit, CancellationToken cancellationToken)
