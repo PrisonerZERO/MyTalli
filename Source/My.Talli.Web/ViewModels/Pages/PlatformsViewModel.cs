@@ -45,6 +45,8 @@ public class PlatformsViewModel : ComponentBase
 	[Inject]
 	private RepositoryAdapterAsync<MODELS.Subscription, ENTITIES.Subscription> SubscriptionAdapter { get; set; } = default!;
 
+	private long _reconnectingShopConnectionId;
+
 	private long? _userId;
 
 	#endregion
@@ -53,9 +55,13 @@ public class PlatformsViewModel : ComponentBase
 
 	public string? AddingShopToPlatform { get; private set; }
 
-	public int AvailableCount => Platforms.Count(p => !p.IsConnected);
+	public int AvailableCount => Platforms.Count(p => !p.IsConnected && p.IsAvailable);
 
-	public List<PlatformItem> AvailablePlatforms => Platforms.Where(p => !p.IsConnected).ToList();
+	public List<PlatformItem> AvailablePlatforms => Platforms.Where(p => !p.IsConnected && p.IsAvailable).ToList();
+
+	public int ComingSoonCount => Platforms.Count(p => !p.IsConnected && !p.IsAvailable);
+
+	public List<PlatformItem> ComingSoonPlatforms => Platforms.Where(p => !p.IsConnected && !p.IsAvailable).ToList();
 
 	public int ConnectedCount => Platforms.Count(p => p.IsConnected);
 
@@ -66,6 +72,10 @@ public class PlatformsViewModel : ComponentBase
 	public string? ErrorMessage { get; private set; }
 
 	public bool IsLoading { get; private set; } = true;
+
+	public string? ReconnectingPlatform { get; private set; }
+
+	public string? ReconnectingShopName { get; private set; }
 
 	public string? SuccessMessage { get; private set; }
 
@@ -165,9 +175,29 @@ public class PlatformsViewModel : ComponentBase
 		AddingShopToPlatform = platformName;
 	}
 
-	public void StartReconnect(string platformName, long shopConnectionId)
+	public void StartReconnect(string platformName, long shopConnectionId, string shopName)
 	{
-		var platform = platformName.ToLowerInvariant();
+		ReconnectingPlatform = platformName;
+		ReconnectingShopName = shopName;
+		_reconnectingShopConnectionId = shopConnectionId;
+	}
+
+	public void CancelReconnect()
+	{
+		ReconnectingPlatform = null;
+		ReconnectingShopName = null;
+	}
+
+	public void ConfirmReconnect()
+	{
+		if (string.IsNullOrEmpty(ReconnectingPlatform))
+			return;
+
+		var platform = ReconnectingPlatform.ToLowerInvariant();
+		var shopConnectionId = _reconnectingShopConnectionId;
+		ReconnectingPlatform = null;
+		ReconnectingShopName = null;
+
 		Navigation.NavigateTo($"/api/platforms/{platform}/reconnect/{shopConnectionId}", forceLoad: true);
 	}
 
@@ -196,6 +226,7 @@ public class PlatformsViewModel : ComponentBase
 			{
 				"connected" => "Etsy connected. Your first sync will start shortly.",
 				"added" => "New Etsy shop connected. Sync will start shortly.",
+				"swapped" => "This shop was reconnected to a different Etsy account. The previous account's data was cleared and a fresh sync is starting.",
 				"refreshed" => "Your Etsy connection was refreshed — tokens renewed and any prior errors cleared. To add a different shop, sign out of Etsy first (profile menu → Sign out on etsy.com), then click \"Connect another shop\".",
 				_ => null
 			};
@@ -205,6 +236,7 @@ public class PlatformsViewModel : ComponentBase
 			{
 				"connected" => "Gumroad connected. Your first sync will start shortly.",
 				"added" => "New Gumroad account connected. Sync will start shortly.",
+				"swapped" => "This shop was reconnected to a different Gumroad account. The previous account's data was cleared and a fresh sync is starting.",
 				"refreshed" => "Your Gumroad connection was refreshed — tokens renewed and any prior errors cleared. To add a different account, sign out of Gumroad first, then click \"Connect another shop\".",
 				_ => null
 			};
@@ -214,7 +246,8 @@ public class PlatformsViewModel : ComponentBase
 			{
 				"connected" => "Stripe connected. Your first sync will start shortly.",
 				"added" => "New Stripe account connected. Sync will start shortly.",
-				"refreshed" => "That Stripe account was already connected — no new shop was added.",
+				"swapped" => "This shop was reconnected to a different Stripe account. The previous account's data was cleared and a fresh sync is starting.",
+				"refreshed" => "That Stripe account was already connected — your authorization was refreshed.",
 				_ => null
 			};
 
@@ -236,6 +269,7 @@ public class PlatformsViewModel : ComponentBase
 				"stripe_create" => "We couldn't start your Stripe connection. Please try again or contact support.",
 				"stripe_expired" => "Your Stripe connection session expired. Please try again.",
 				"stripe_exchange" => "We couldn't finalize your Stripe connection. Please try again or contact support.",
+				"stripe_reconnect_notfound" => "We couldn't find that Stripe connection. Please refresh the page and try again.",
 				"plan_limit" => "Free tier is limited to 1 connected shop. Upgrade to Pro to connect more platforms.",
 				_ => "Something went wrong connecting that platform. Please try again."
 			};
@@ -271,6 +305,7 @@ public class PlatformsViewModel : ComponentBase
 				IsAvailable = true,
 				Name = "Gumroad",
 				Subtitle = "Digital products",
+				SupportsMultipleShops = false,
 			},
 			new PlatformItem
 			{
@@ -320,7 +355,7 @@ public class PlatformsViewModel : ComponentBase
 			{
 				item.IsConnected = true;
 				item.ConnectionStatus = connection.ConnectionStatus;
-				var supportsOAuthReconnect = item.Name == "Etsy" || item.Name == "Gumroad";
+				var supportsOAuthReconnect = item.Name == "Etsy" || item.Name == "Gumroad" || item.Name == "Stripe";
 
 				if (shopsByConnectionId.TryGetValue(connection.Id, out var connectionShops))
 				{

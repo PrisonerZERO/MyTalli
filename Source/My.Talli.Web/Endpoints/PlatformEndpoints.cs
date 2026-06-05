@@ -19,6 +19,7 @@ public static class PlatformEndpoints
 
     private const string EtsyChallengeCookieName = "mt_etsy_oauth";
     private const string EtsyChallengePurpose = "Etsy.OAuth.v1";
+    private const int EtsyRefreshTokenLifetimeDays = 90;
     private const string GumroadChallengeCookieName = "mt_gumroad_oauth";
     private const string GumroadChallengePurpose = "Gumroad.OAuth.v1";
     private const string StripeChallengeCookieName = "mt_stripe_oauth";
@@ -73,7 +74,7 @@ public static class PlatformEndpoints
         return Results.Redirect(challenge.AuthorizeUrl);
     }
 
-    private static async Task<IResult> EtsyCallback(HttpContext context, EtsyService etsy, IDataProtectionProvider dataProtectionProvider, ConnectEtsyCommand connectEtsy, ILogger<Program> logger)
+    private static async Task<IResult> EtsyCallback(HttpContext context, EtsyService etsy, IDataProtectionProvider dataProtectionProvider, ConnectEtsyCommand connectEtsy, SwapShopAccountCommand swapShop, ILogger<Program> logger)
     {
         var error = context.Request.Query["error"].ToString();
         if (!string.IsNullOrEmpty(error))
@@ -121,6 +122,10 @@ public static class PlatformEndpoints
             var platformAccountId = EtsyPkceGenerator.ExtractEtsyUserId(tokenResponse.AccessToken);
             var shops = await etsy.GetShopsAsync(platformAccountId, tokenResponse.AccessToken);
 
+            // Reconnect flow — re-point the existing shop to whichever account the user just authorized.
+            if (cookie.ReconnectShopConnectionId is long reconnectShopId)
+                return await SwapEtsyAsync(context, swapShop, cookie.UserId, reconnectShopId, tokenResponse, platformAccountId, shops, logger);
+
             // TRANSACTION
             var result = await EnforcedTransactionScope.ExecuteAsync(async () => await connectEtsy.ExecuteAsync(cookie.UserId, tokenResponse, platformAccountId, shops));
 
@@ -165,7 +170,7 @@ public static class PlatformEndpoints
 
         var challenge = etsy.BuildAuthorizeChallenge();
         var protector = dataProtectionProvider.CreateProtector(EtsyChallengePurpose);
-        var cookiePayload = JsonSerializer.Serialize(new EtsyOAuthCookie { CodeVerifier = challenge.CodeVerifier, State = challenge.State, UserId = userId });
+        var cookiePayload = JsonSerializer.Serialize(new EtsyOAuthCookie { CodeVerifier = challenge.CodeVerifier, ReconnectShopConnectionId = shopConnectionId, State = challenge.State, UserId = userId });
         var protectedPayload = protector.Protect(cookiePayload);
 
         context.Response.Cookies.Append(EtsyChallengeCookieName, protectedPayload, ToCookieOptions(context));
@@ -196,7 +201,7 @@ public static class PlatformEndpoints
         return Results.Redirect(challenge.AuthorizeUrl);
     }
 
-    private static async Task<IResult> GumroadCallback(HttpContext context, GumroadService gumroad, IDataProtectionProvider dataProtectionProvider, ConnectGumroadCommand connectGumroad, ILogger<Program> logger, CancellationToken cancellationToken)
+    private static async Task<IResult> GumroadCallback(HttpContext context, GumroadService gumroad, IDataProtectionProvider dataProtectionProvider, ConnectGumroadCommand connectGumroad, SwapShopAccountCommand swapShop, ILogger<Program> logger, CancellationToken cancellationToken)
     {
         var error = context.Request.Query["error"].ToString();
         if (!string.IsNullOrEmpty(error))
@@ -249,6 +254,10 @@ public static class PlatformEndpoints
                 return Results.Redirect("/platforms?error=gumroad_exchange");
             }
 
+            // Reconnect flow — re-point the existing shop to whichever account the user just authorized.
+            if (cookie.ReconnectShopConnectionId is long reconnectShopId)
+                return await SwapGumroadAsync(context, swapShop, cookie.UserId, reconnectShopId, tokenResponse, user);
+
             // TRANSACTION
             var result = await EnforcedTransactionScope.ExecuteAsync(async () => await connectGumroad.ExecuteAsync(cookie.UserId, tokenResponse, user));
 
@@ -293,7 +302,7 @@ public static class PlatformEndpoints
 
         var challenge = gumroad.BuildAuthorizeChallenge();
         var protector = dataProtectionProvider.CreateProtector(GumroadChallengePurpose);
-        var cookiePayload = JsonSerializer.Serialize(new GumroadOAuthCookie { State = challenge.State, UserId = userId });
+        var cookiePayload = JsonSerializer.Serialize(new GumroadOAuthCookie { ReconnectShopConnectionId = shopConnectionId, State = challenge.State, UserId = userId });
         var protectedPayload = protector.Protect(cookiePayload);
 
         context.Response.Cookies.Append(GumroadChallengeCookieName, protectedPayload, ToCookieOptions(context));
@@ -346,7 +355,7 @@ public static class PlatformEndpoints
 
         var challenge = stripeConnect.BuildAuthorizeChallenge();
         var protector = dataProtectionProvider.CreateProtector(StripeChallengePurpose);
-        var cookiePayload = JsonSerializer.Serialize(new StripeOAuthCookie { State = challenge.State, UserId = userId });
+        var cookiePayload = JsonSerializer.Serialize(new StripeOAuthCookie { ReconnectShopConnectionId = shopConnectionId, State = challenge.State, UserId = userId });
         var protectedPayload = protector.Protect(cookiePayload);
 
         context.Response.Cookies.Append(StripeChallengeCookieName, protectedPayload, ToCookieOptions(context));
@@ -354,7 +363,7 @@ public static class PlatformEndpoints
         return Results.Redirect(challenge.AuthorizeUrl);
     }
 
-    private static async Task<IResult> StripeCallback(HttpContext context, StripeConnectService stripeConnect, IDataProtectionProvider dataProtectionProvider, ConnectStripeCommand connectStripe, ILogger<Program> logger, CancellationToken cancellationToken)
+    private static async Task<IResult> StripeCallback(HttpContext context, StripeConnectService stripeConnect, IDataProtectionProvider dataProtectionProvider, ConnectStripeCommand connectStripe, SwapShopAccountCommand swapShop, ILogger<Program> logger, CancellationToken cancellationToken)
     {
         var error = context.Request.Query["error"].ToString();
         if (!string.IsNullOrEmpty(error))
@@ -402,6 +411,10 @@ public static class PlatformEndpoints
             var account = await stripeConnect.GetAccountAsync(tokenResponse.AccessToken, tokenResponse.StripeUserId, cancellationToken);
             var accountInfo = ToAccountInfo(account, tokenResponse.StripeUserId);
 
+            // Reconnect flow — re-point the existing shop to whichever account the user just authorized.
+            if (cookie.ReconnectShopConnectionId is long reconnectShopId)
+                return await SwapStripeAsync(context, swapShop, cookie.UserId, reconnectShopId, accountInfo, tokenResponse.AccessToken, tokenResponse.RefreshToken);
+
             // TRANSACTION
             var result = await EnforcedTransactionScope.ExecuteAsync(async () => await connectStripe.ExecuteAsync(cookie.UserId, accountInfo, tokenResponse.AccessToken, tokenResponse.RefreshToken));
 
@@ -428,6 +441,88 @@ public static class PlatformEndpoints
             ClearCookie(context, StripeChallengeCookieName);
             return Results.Redirect("/platforms?error=stripe_exchange");
         }
+    }
+
+    private static async Task<IResult> SwapEtsyAsync(HttpContext context, SwapShopAccountCommand swapShop, long userId, long shopConnectionId, EtsyTokenResponse tokens, string platformAccountId, IReadOnlyList<EtsyShop> shops, ILogger logger)
+    {
+        var shop = shops.FirstOrDefault();
+        if (shop is null)
+        {
+            logger.LogWarning("Etsy reconnect returned no shops for user {UserId}", userId);
+            ClearCookie(context, EtsyChallengeCookieName);
+            return Results.Redirect("/platforms?error=etsy_exchange");
+        }
+
+        var now = DateTime.UtcNow;
+        var input = new SwapShopAccountInput
+        {
+            AccessToken = tokens.AccessToken,
+            EtsyDetail = new SwapShopEtsyDetail
+            {
+                CountryCode = shop.CountryIso ?? string.Empty,
+                IsVacationMode = shop.IsVacation,
+                ShopCurrency = shop.CurrencyCode ?? string.Empty,
+                ShopUrl = shop.Url ?? string.Empty
+            },
+            Platform = "Etsy",
+            PlatformAccountId = platformAccountId,
+            PlatformShopId = shop.ShopId.ToString(),
+            RefreshToken = tokens.RefreshToken,
+            RefreshTokenExpiryDateTime = now.AddDays(EtsyRefreshTokenLifetimeDays),
+            ShopConnectionId = shopConnectionId,
+            ShopName = shop.ShopName ?? string.Empty,
+            TokenExpiryDateTime = now.AddSeconds(tokens.ExpiresIn),
+            UserId = userId
+        };
+
+        return await ExecuteSwapAsync(context, swapShop, input, EtsyChallengeCookieName, "etsy");
+    }
+
+    private static async Task<IResult> SwapGumroadAsync(HttpContext context, SwapShopAccountCommand swapShop, long userId, long shopConnectionId, GumroadTokenResponse tokens, GumroadUser user)
+    {
+        var platformShopId = string.IsNullOrEmpty(user.UserId) ? user.Id : user.UserId;
+        var input = new SwapShopAccountInput
+        {
+            AccessToken = tokens.AccessToken,
+            Platform = "Gumroad",
+            PlatformAccountId = platformShopId,
+            PlatformShopId = platformShopId,
+            RefreshToken = null,
+            ShopConnectionId = shopConnectionId,
+            ShopName = string.IsNullOrEmpty(user.Name) ? (user.Email ?? "Gumroad") : user.Name,
+            UserId = userId
+        };
+
+        return await ExecuteSwapAsync(context, swapShop, input, GumroadChallengeCookieName, "gumroad");
+    }
+
+    private static async Task<IResult> SwapStripeAsync(HttpContext context, SwapShopAccountCommand swapShop, long userId, long shopConnectionId, StripeAccountInfo account, string accessToken, string? refreshToken)
+    {
+        var input = new SwapShopAccountInput
+        {
+            AccessToken = accessToken,
+            Platform = "Stripe",
+            PlatformAccountId = account.AccountId,
+            PlatformShopId = account.AccountId,
+            RefreshToken = refreshToken,
+            ShopConnectionId = shopConnectionId,
+            ShopName = string.IsNullOrEmpty(account.BusinessName) ? (account.Email ?? "Stripe") : account.BusinessName,
+            UserId = userId
+        };
+
+        return await ExecuteSwapAsync(context, swapShop, input, StripeChallengeCookieName, "stripe");
+    }
+
+    private static async Task<IResult> ExecuteSwapAsync(HttpContext context, SwapShopAccountCommand swapShop, SwapShopAccountInput input, string cookieName, string platformQueryKey)
+    {
+        // TRANSACTION
+        var result = await EnforcedTransactionScope.ExecuteAsync(async () => await swapShop.ExecuteAsync(input));
+        ClearCookie(context, cookieName);
+
+        if (!result.Found)
+            return Results.Redirect($"/platforms?error={platformQueryKey}_reconnect_notfound");
+
+        return Results.Redirect($"/platforms?{platformQueryKey}={(result.Swapped ? "swapped" : "refreshed")}");
     }
 
     private static StripeAccountInfo ToAccountInfo(Stripe.Account account, string fallbackAccountId)
@@ -478,6 +573,9 @@ internal class EtsyOAuthCookie
 
     public string CodeVerifier { get; set; } = string.Empty;
 
+    /// <summary>Set on a reconnect flow — the shop being re-authorized. Null on a fresh connect / add-shop flow.</summary>
+    public long? ReconnectShopConnectionId { get; set; }
+
     public string State { get; set; } = string.Empty;
 
     public long UserId { get; set; }
@@ -490,6 +588,9 @@ internal class GumroadOAuthCookie
 {
     #region <Properties>
 
+    /// <summary>Set on a reconnect flow — the shop being re-authorized. Null on a fresh connect / add-shop flow.</summary>
+    public long? ReconnectShopConnectionId { get; set; }
+
     public string State { get; set; } = string.Empty;
 
     public long UserId { get; set; }
@@ -501,6 +602,9 @@ internal class GumroadOAuthCookie
 internal class StripeOAuthCookie
 {
     #region <Properties>
+
+    /// <summary>Set on a reconnect flow — the shop being re-authorized. Null on a fresh connect / add-shop flow.</summary>
+    public long? ReconnectShopConnectionId { get; set; }
 
     public string State { get; set; } = string.Empty;
 

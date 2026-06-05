@@ -97,14 +97,14 @@
 
   <div class="intro">
     <div class="intro-left">
-      <h2>Current focus: Stripe Connect OAuth token-exchange bug (v1.0.0.15 blocker, site still in MM)</h2>
-      <p><strong>v1.0.0.16 merged to <code>main</code> via PR #84 (May 18); v1.0.0.17 committed locally on <code>development_ROBERT</code>, not yet PR'd.</strong> While diagnosing the Stripe Connect blocker, MM exposed two whitelist gaps: (a) the landing page + sign-in flow were being redirected to <code>/maintenance</code> for anonymous users (v1.0.0.16 fix: whitelist <code>/</code>, <code>/signin*</code>, <code>/api/auth*</code>); (b) static assets at the root path (<code>/app.css</code>, <code>/My.Talli.Web.styles.css</code>, <code>/favicon.svg</code>) were also being redirected, so the landing page rendered unstyled (v1.0.0.17 fix: whitelist any path with a file extension via <code>Path.HasExtension</code>). The original Stripe Connect token-exchange bug is still the blocker — <code>/api/platforms/stripe/callback</code> still throws on every user after Stripe consent. Next session: pull the actual exception from Azure Log Stream, fix the root cause, redeploy.</p>
+      <h2>Current focus: Platform "wrong account" UX — account-swap on Reconnect shipped (local)</h2>
+      <p><strong>Stripe Connect blocker is RESOLVED</strong> (v1.0.0.18 fixed the <code>GetAccountAsync(id: null)</code> SDK trap; all 3 platforms now connect Active + Healthy — see Done). Current thread is the platform-connection UX cluster: <strong>account-swap on Reconnect is built locally</strong> (replaces the rejected "disconnect mis-connected shop" idea — swap re-points the shop slot to a different account and hard-deletes the old account's data in place, so the plan slot never frees and there's no gaming vector; 471/471 tests pass, not yet deployed). Still In Progress: the connected-login-email subtitle and the pre-connect login-awareness modal (the prevention half of the same UX gap). Deferred ops cleanup: turn prod MM off, flip prod <code>StripeConnect__Scope</code> to <code>read_only</code>, delete dead <code>DataProtection__BlobStorage__*</code> env vars.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">2</span><span class="metric-label">Next<br>up</span></span>
-      <span class="metric"><span class="metric-value">1</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">29</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">2</span><span class="metric-label">In<br>progress</span></span>
+      <span class="metric"><span class="metric-value">32</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -118,9 +118,17 @@
     <div class="lane backlog">
       <div class="lane-header">
         <h3>Backlog</h3>
-        <span class="lane-count">12</span>
+        <span class="lane-count">13</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag nav">Nav</span></div>
+          <h4>House Account — track MyTalli's own revenue in-app</h4>
+          <p><strong>Problem.</strong> MyTalli's own income (Pro subscriptions, modules) settles in the <strong>platform</strong> Stripe account — and Stripe Connect refuses to let MyTalli connect that account ("an account cannot connect to itself"). So the normal connected-shop data flow structurally <strong>cannot read MyTalli LLC's own revenue</strong>: the one account the founder most wants to dogfood is unreadable via OAuth Connect. (Confirmed live 2026-06-05: the $12 Pro charge sits in the platform account <code>acct_1TDRnpRCvAIAzwLa</code>; the connected "MyTalli Personal OAuth" account is a different, empty account, so the Stripe spoke correctly shows $0.)</p>
+          <p><strong>Idea — a "House Account."</strong> A special internal shop that reads the platform account <em>directly via the existing <code>Stripe.SecretKey</code></em> (the same key already used for billing), NOT via per-shop OAuth. A dedicated <code>HouseStripeSyncService</code> (implements <code>IPlatformSyncService</code>) pulls <code>/v1/charges</code> (+ expanded <code>balance_transaction</code> for fee/net) and <code>/v1/payouts</code> from MyTalli's own account and dedups into <code>app.Revenue</code> / <code>app.Payout</code> stamped to a synthetic "House" <code>ShopConnection</code> (same pattern as Manual — no schema branching; the per-shop FK carries it). Surface it on its own admin-only dashboard (or a "House" spoke).</p>
+          <p><strong>Considerations.</strong> (1) <strong>Admin/owner-only</strong> — this is MyTalli's books, gate behind the Admin role. (2) <strong>Different auth path</strong> — the sync reads with the platform secret key, not a <code>ShopConnection.AccessToken</code>, so it's a distinct service/branch (the shop row's token field stays empty, like Manual). (3) Revenue = subscription payments minus Stripe fees; could later split MRR vs one-offs. (4) <strong>Interim today:</strong> Manual Entry already lets you log house income by hand — House Account just automates it. (5) <strong>Out of scope (first pass):</strong> refunds/dispute reconciliation, multi-currency, tax categorization. <strong>Why it matters:</strong> lets the founder watch MyTalli's own MRR/revenue alongside everything else, and dogfood the product with real numbers.</p>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag docs">Docs</span></div>
@@ -224,14 +232,20 @@
     <div class="lane progress">
       <div class="lane-header">
         <h3>In Progress</h3>
-        <span class="lane-count">1</span>
+        <span class="lane-count">2</span>
       </div>
       <div class="lane-body">
 
         <div class="card">
-          <div class="card-tags"><span class="tag sync">Sync</span><span class="tag billing">Billing</span></div>
-          <h4>Stripe Connect OAuth — token exchange failing on prod (BLOCKER, site in MM)</h4>
-          <p>v1.0.0.15 rewrote Stripe Connect from Account Links → OAuth Connect. The OAuth flow correctly reaches Stripe's consent page in production (right <code>client_id=ca_URV6BXNn6t1ynLuAKtRKMRgXuCrL1jyc</code>, right <code>redirect_uri</code>, <code>scope=read_write</code> via Azure env var override of the <code>read_only</code> default). User can select an eligible Stripe account and click Connect. <strong>BUT</strong> when Stripe redirects back to <code>/api/platforms/stripe/callback?code=…&amp;state=…</code>, our <code>ExchangeCodeAsync</code> (POST to <code>connect.stripe.com/oauth/token</code>) or <code>GetAccountAsync</code> (GET <code>/v1/account</code> with <code>RequestOptions.ApiKey = accessToken</code>) is throwing — endpoint catches, redirects to <code>/platforms?error=stripe_exchange</code>. Confirmed NOT caused by an unverified target account: user activated a fresh Stripe Standard account end-to-end (Mytalli / <code>acct_1TYAxERBARulNhy4</code>, KYC complete, live mode active, bank linked) and exchange still fails. <strong>Next session must:</strong> pull the actual exception text + stack trace from Azure Log Stream (filter to Error level; look for "Stripe OAuth token exchange failed for user {UserId}") to identify the root cause. Probable suspects: (a) <code>client_secret</code> binding (we pass <code>_billingSettings.SecretKey</code> which is the platform's <code>sk_live_</code> — should be correct per Stripe docs but worth verifying); (b) missing <code>client_id</code> form field in our POST (Stripe may require it even when secret is sent); (c) URL or content-type mismatch on the token POST; (d) <code>GetAccount</code> call failing because we pass <code>id: null</code> through Stripe.net SDK. Site put into Maintenance Mode while diagnosis happens.</p>
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Show platform login email on Platforms page</h4>
+          <p>Today the Platforms page shows a <code>ShopName</code> next to each connected shop but doesn't surface which email/login was used to authorize that connection. Gumroad happens to expose the email as the shop name (since <code>/v2/user</code> returns it), but Stripe and Etsy don't surface it anywhere. Users get confused — especially when their MyTalli login email differs from the email they used on the connected platform (e.g., signed into MyTalli as <code>robertmerrilljordan@gmail.com</code> but connected Gumroad as <code>hello@mytalli.com</code>). Fix: add a nullable <code>ConnectedAsEmail</code> column to <code>app.ShopConnection</code>, populate it during <code>ConnectStripeCommand</code> (from <code>account.Email</code>, already fetched via <code>GetAccountAsync</code>), <code>ConnectEtsyCommand</code> (new <code>GetUserAsync</code> call to <code>/v3/application/users/{id}</code> for <code>primary_email</code>), and <code>ConnectGumroadCommand</code> (already on hand via <code>/v2/user</code>). Render under the shop name on the Platforms page as a small subtitle ("Connected as {email}"). One EF migration. Update <code>ConnectXxxCommandTests</code> + <code>EtsyApiClientStub</code>.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Pre-connect login awareness modal</h4>
+          <p>Each platform's OAuth sign-in UX is platform-controlled and inconsistent. Etsy shows a combined Sign In / Sign Up form so users naturally pick which login to use. Stripe and Gumroad fast-path users who are already signed into the platform in their browser — they silently use the active session without ever showing a login picker. Users don't realize they're connecting under whichever account their browser cookie happens to be authenticated to, and they have no easy way to switch. Fix on MyTalli's side (since we can't change the platforms' OAuth screens): add a confirmation modal BEFORE the <code>/api/platforms/{platform}/connect</code> redirect that tells the user "You'll connect with whichever {Platform} account you're currently signed into. If that's wrong, sign out of {platform}.com first or open an incognito window." Mirror the existing "Connect another shop" dialog pattern. Optional enhancement: include a "Sign out of {Platform}" deep link where the platform supports it (Etsy doesn't — see CLAUDE.md "Etsy OAuth has no account switcher"). Combined with the account-swap on Reconnect (shipped — see Done) and the connected-email subtitle, this closes the "wrong account" UX gap on the prevention side.</p>
         </div>
 
       </div>
@@ -241,9 +255,30 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">29</span>
+        <span class="lane-count">32</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Platforms page polish — Available/Coming-Soon split + hide "Connect another shop" for Gumroad</h4>
+          <p>Two small UX corrections on <code>/platforms</code> (bundled with the version bump to <strong>v1.0.0.20</strong>). <strong>(1) Available vs Coming Soon.</strong> The page bucketed <em>all</em> not-connected platforms under "Available," so PayPal + Shopify (<code>IsAvailable=false</code>, "Coming Soon") were counted and labeled as available. Split into <code>AvailablePlatforms</code> (<code>!IsConnected &amp;&amp; IsAvailable</code>) and <code>ComingSoonPlatforms</code> (<code>!IsConnected &amp;&amp; !IsAvailable</code>), each with its own section + count; the hero "Available" stat is now accurate (reads 0 when all connectable platforms are already connected). Row markup extracted into a shared <code>RenderPlatformRow</code> fragment so the two sections don't duplicate it. <strong>(2) Hide "Connect another shop" for Gumroad.</strong> New <code>PlatformItem.SupportsMultipleShops</code> flag (default true, false for Gumroad) gates the whole button block. Gumroad has no "shop" concept (the account <em>is</em> the seller), multiple Gumroad accounts is rare, and its OAuth shows no account switcher — so the button overpromised and usually just re-refreshed the same account. Only Etsy is genuinely multi-shop; Stripe/PayPal/Shopify stay <code>true</code> for now. UI-only gate (endpoint not hard-blocked). Reverses the old CLAUDE.md "every platform supports multiple shops" stance (doc updated). Build clean, 471/471 tests pass. Not yet deployed.</p>
+          <span class="done-date">Jun 5 2026 (local)</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span><span class="tag sync">Sync</span></div>
+          <h4>Reconnect = account swap (the "wrong account connected" fix)</h4>
+          <p>Replaces the backlogged "Allow users to disconnect a mis-connected shop" card with a cleaner approach. <strong>Disconnect was rejected</strong> — it frees the plan slot, which reopens the free-tier 1-shop gaming vector and needs cooldown/counter abuse-guard machinery. <strong>Swap fixes the same mistake in place:</strong> the <strong>Reconnect</strong> button (now shown for Stripe too, not just Etsy/Gumroad) re-runs OAuth targeting the existing shop slot — <code>shopConnectionId</code> is threaded through the data-protected OAuth cookie as <code>ReconnectShopConnectionId</code>, so the callback dispatches to the new Domain <code>SwapShopAccountCommand</code> instead of the normal Connect command. <strong>Same account</strong> re-authorized → token refresh only (data kept), <code>?{platform}=refreshed</code>. <strong>Different account</strong> → the existing <code>ShopConnection</code> row is re-pointed (tokens, <code>PlatformAccountId</code>/<code>PlatformShopId</code>, <code>ShopName</code>, sync state reset) and the old account's <code>Revenue</code>/<code>Expense</code>/<code>Payout</code> rows are <strong>hard-deleted</strong> (per-platform subtables cascade via <code>OnDelete: Cascade</code>), then re-synced fresh, <code>?{platform}=swapped</code>. The slot is never freed → no gaming vector, no abuse guards. <code>SwapShopAccountCommand</code> is IDOR-checked (<code>UserId</code>) + platform-checked (loads parent <code>PlatformConnection</code>); for Etsy it also refreshes the <code>ShopConnectionEtsy</code> subtable so the spoke deep-link doesn't point at the old shop. A <strong>danger-styled <code>ConfirmDialog</code></strong> warns that a different-account sign-in permanently replaces the shop's data before the redirect. New files: <code>SwapShopAccountCommand/Input/Result</code> + <code>SwapShopEtsyDetail</code> (Domain), <code>SwapShopAccountCommandTests</code> (6). CLAUDE.md "Platform Connections" rule rewritten (reconnect is now refresh-OR-swap, not refresh-only). <strong>471/471 tests pass.</strong> Not yet deployed.</p>
+          <span class="done-date">Jun 5 2026 (local)</span>
+        </div>
+
+        <div class="card">
+          <div class="card-tags"><span class="tag sync">Sync</span><span class="tag billing">Billing</span></div>
+          <h4>RESOLVED — Stripe Connect OAuth token exchange (unblocked, site out of MM)</h4>
+          <p>The v1.0.0.15 → v1.0.0.19 blocker is closed: Stripe now connects end-to-end and shows <strong>Active · HEALTHY · "Synced 1 hour ago"</strong> on the Platforms page ("MyTalli Personal OAuth" shop). Two separate problems were tangled together inside the same <code>try</code> block, which is why this masqueraded as a token-exchange failure for ~2 weeks. <strong>(1) The real code bug (fixed v1.0.0.18):</strong> the token POST to <code>connect.stripe.com/oauth/token</code> was actually <em>succeeding</em>; the very next call, <code>GetAccountAsync</code>, was throwing. Stripe.net's <code>AccountService.GetAsync(id: null, …)</code> builds <code>GET /v1/accounts/</code> (trailing slash, empty id) → Stripe returns 404 <em>"Unrecognized request URL."</em> Fix: pass <code>tokenResponse.StripeUserId</code> so the SDK builds <code>GET /v1/accounts/{id}</code> correctly. Reproduced + verified locally on <code>read_only</code> scope before deploy. <strong>(2) The account-history red herring:</strong> the original prod test account <code>acct_1TYAxERBARulNhy4</code> was permanently v2-disconnected by Stripe (connected during the old Account Links era; OAuth Connect rejects it with <code>invalid_grant</code> / "previously disconnected as a v2 account and cannot be reconnected"). That is an account-history block on Stripe's side, not our code. Resolved by connecting a fresh, eligible Stripe account. <strong>Diagnostics that got us there:</strong> v1.0.0.19 added <code>Console.Error.WriteLine</code> in the callback catch block (plain <code>LogError</code> was silent in Azure Log Stream; App Insights captured the real exception). Net: code is correct, scope is <code>read_only</code> on live + sandbox, Stripe connects clean. <strong>Next:</strong> turn Maintenance Mode off in prod; flip the prod <code>StripeConnect__Scope</code> env var to <code>read_only</code> as cleanup.</p>
+          <span class="done-date">Jun 5 2026</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag setup">Setup</span></div>

@@ -67,6 +67,8 @@ public class PlatformHandlerBuilder
 	public RepositoryAdapterAsync<ShopConnectionEtsy, ENTITIES.ShopConnectionEtsy> ShopConnectionEtsyAdapter =>
 		_container.GetInstance<RepositoryAdapterAsync<ShopConnectionEtsy, ENTITIES.ShopConnectionEtsy>>();
 
+	public SwapShopAccountCommand SwapShopAccount => _container.GetInstance<SwapShopAccountCommand>();
+
 	public UpsertEtsyExpenseCommand UpsertExpense => _container.GetInstance<UpsertEtsyExpenseCommand>();
 
 	public UpsertEtsyPayoutCommand UpsertPayout => _container.GetInstance<UpsertEtsyPayoutCommand>();

@@ -33,6 +33,12 @@ public class PlatformItem
 
 	public string Subtitle { get; set; } = "";
 
+	// Whether the user can connect more than one account/shop on this platform. Etsy is genuinely
+	// multi-shop (one login = one shop, so multi-shop sellers use multiple logins). Gumroad has no shop
+	// concept (the account IS the seller) and its OAuth offers no account switcher, so "Connect another
+	// shop" is hidden for it. Defaults true; set false per-platform in the catalog.
+	public bool SupportsMultipleShops { get; set; } = true;
+
 	public string SyncStatus { get; set; } = "";
 
 	public int TransactionCount { get; set; }

@@ -169,13 +169,13 @@ else
                                     <div class="plat-shop-actions">
                                         @if (shop.IsOAuthPlatform && shop.IsEnabled && (shop.Health == ShopHealth.Failing || shop.Health == ShopHealth.Stale))
                                         {
-                                            <button class="plat-btn-reconnect" aria-label="Reconnect @shop.ShopName" @onclick="() => StartReconnect(shop.Platform, shop.ShopConnectionId)">
+                                            <button class="plat-btn-reconnect" aria-label="Reconnect @shop.ShopName" @onclick="() => StartReconnect(shop.Platform, shop.ShopConnectionId, shop.ShopName)">
                                                 Reconnect
                                             </button>
                                         }
                                         else if (shop.IsOAuthPlatform && shop.IsEnabled)
                                         {
-                                            <button class="plat-btn-outline-soft" aria-label="Reconnect @shop.ShopName (refresh tokens)" title="Refresh stored authorization" @onclick="() => StartReconnect(shop.Platform, shop.ShopConnectionId)">
+                                            <button class="plat-btn-outline-soft" aria-label="Reconnect @shop.ShopName (refresh or switch account)" title="Refresh authorization, or switch to a different account" @onclick="() => StartReconnect(shop.Platform, shop.ShopConnectionId, shop.ShopName)">
                                                 Reconnect
                                             </button>
                                         }
@@ -192,27 +192,30 @@ else
                         }
                     </ul>
 
-                    <div class="plat-shop-add">
-                        @if (platform.CanAddAnotherShop)
-                        {
-                            <button class="plat-btn-add-shop" aria-label="Connect another @platform.Name shop" @onclick="() => StartConnectAnotherShop(platform.Name)">
-                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
-                                    <line x1="12" x2="12" y1="5" y2="19" />
-                                    <line x1="5" x2="19" y1="12" y2="12" />
-                                </svg>
-                                Connect another shop
-                            </button>
-                        }
-                        else
-                        {
-                            <a class="plat-btn-upgrade" href="/my-plan" aria-label="Upgrade to Pro to connect more platforms">
-                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                                </svg>
-                                <span>Upgrade to Pro to connect more</span>
-                            </a>
-                        }
-                    </div>
+                    @if (platform.SupportsMultipleShops)
+                    {
+                        <div class="plat-shop-add">
+                            @if (platform.CanAddAnotherShop)
+                            {
+                                <button class="plat-btn-add-shop" aria-label="Connect another @platform.Name shop" @onclick="() => StartConnectAnotherShop(platform.Name)">
+                                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                        <line x1="12" x2="12" y1="5" y2="19" />
+                                        <line x1="5" x2="19" y1="12" y2="12" />
+                                    </svg>
+                                    Connect another shop
+                                </button>
+                            }
+                            else
+                            {
+                                <a class="plat-btn-upgrade" href="/my-plan" aria-label="Upgrade to Pro to connect more platforms">
+                                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                    </svg>
+                                    <span>Upgrade to Pro to connect more</span>
+                                </a>
+                            }
+                        </div>
+                    }
                 </article>
             }
         }
@@ -229,12 +232,12 @@ else
     </div>
 
     <!-- Divider -->
-    @if (AvailablePlatforms.Any())
+    @if (AvailablePlatforms.Any() || ComingSoonPlatforms.Any())
     {
         <hr class="plat-divider" aria-hidden="true" />
     }
 
-    <!-- Available platforms -->
+    <!-- Available platforms (connectable now) -->
     @if (AvailablePlatforms.Any())
     {
         <div class="animate-in delay-3">
@@ -245,37 +248,23 @@ else
 
             @foreach (var platform in AvailablePlatforms)
             {
-                <article class="plat-row plat-row-available @(platform.IsAvailable ? "" : "plat-row-coming-soon")" aria-label="@platform.Name platform, @(platform.IsAvailable ? "not connected" : "coming soon")">
-                    <div class="plat-row-identity">
-                        <div class="plat-icon" style="background: @platform.BrandColor;" aria-hidden="true">
-                            @RenderPlatformIcon(platform.Icon)
-                        </div>
-                        <div>
-                            <div class="plat-row-name">@platform.Name</div>
-                            <div class="plat-row-sub">@platform.Description</div>
-                        </div>
-                    </div>
-                    <div class="plat-row-actions">
-                        <span class="plat-row-type">@platform.Subtitle</span>
-                        @if (!platform.IsAvailable)
-                        {
-                            <span class="plat-coming-soon" title="Sync support coming soon">Coming Soon</span>
-                        }
-                        else if (platform.CanConnect)
-                        {
-                            <button class="plat-btn-connect" aria-label="Connect @platform.Name" @onclick="() => StartConnect(platform.Name)">Connect</button>
-                        }
-                        else
-                        {
-                            <a class="plat-btn-upgrade" href="/my-plan" aria-label="Upgrade to Pro to connect @platform.Name">
-                                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                                </svg>
-                                <span>Upgrade to Pro</span>
-                            </a>
-                        }
-                    </div>
-                </article>
+                @RenderPlatformRow(platform)
+            }
+        </div>
+    }
+
+    <!-- Coming soon platforms (sync support not shipped yet) -->
+    @if (ComingSoonPlatforms.Any())
+    {
+        <div class="animate-in delay-3">
+            <div class="plat-section-header">
+                <h2>Coming Soon</h2>
+                <span class="plat-section-count">@ComingSoonCount</span>
+            </div>
+
+            @foreach (var platform in ComingSoonPlatforms)
+            {
+                @RenderPlatformRow(platform)
             }
         </div>
     }
@@ -290,6 +279,16 @@ else
     </svg>
     <h2>Connect @ConnectingPlatform?</h2>
     <p>Once connected, <strong>@ConnectingPlatform</strong> can't be disconnected — it will permanently occupy a plan slot. You can pause syncing anytime from this page.</p>
+</ConfirmDialog>
+
+<!-- Reconnect / swap-account confirmation -->
+<ConfirmDialog Visible="!string.IsNullOrEmpty(ReconnectingPlatform)" ConfirmStyle="danger" OnConfirm="ConfirmReconnect" OnCancel="CancelReconnect">
+    <svg aria-hidden="true" fill="none" height="40" stroke="#e74c3c" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="40">
+        <path d="M23 4v6h-6" />
+        <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+    </svg>
+    <h2>Reconnect @ReconnectingShopName?</h2>
+    <p>Sign in with the <strong>same</strong> @ReconnectingPlatform account to refresh your authorization. Sign in with a <strong>different</strong> account and this shop's revenue, expense, and payout data will be <strong>permanently replaced</strong> with the new account's data. This can't be undone.</p>
 </ConfirmDialog>
 
 <!-- Add another Etsy shop (new login) confirmation -->
@@ -314,6 +313,38 @@ else
         "shopify" => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
         _ => @<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>,
     };
+
+    RenderFragment RenderPlatformRow(My.Talli.Web.Models.PlatformItem platform) => @<article class="plat-row plat-row-available @(platform.IsAvailable ? "" : "plat-row-coming-soon")" aria-label="@platform.Name platform, @(platform.IsAvailable ? "not connected" : "coming soon")">
+        <div class="plat-row-identity">
+            <div class="plat-icon" style="background: @platform.BrandColor;" aria-hidden="true">
+                @RenderPlatformIcon(platform.Icon)
+            </div>
+            <div>
+                <div class="plat-row-name">@platform.Name</div>
+                <div class="plat-row-sub">@platform.Description</div>
+            </div>
+        </div>
+        <div class="plat-row-actions">
+            <span class="plat-row-type">@platform.Subtitle</span>
+            @if (!platform.IsAvailable)
+            {
+                <span class="plat-coming-soon" title="Sync support coming soon">Coming Soon</span>
+            }
+            else if (platform.CanConnect)
+            {
+                <button class="plat-btn-connect" aria-label="Connect @platform.Name" @onclick="() => StartConnect(platform.Name)">Connect</button>
+            }
+            else
+            {
+                <a class="plat-btn-upgrade" href="/my-plan" aria-label="Upgrade to Pro to connect @platform.Name">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    <span>Upgrade to Pro</span>
+                </a>
+            }
+        </div>
+    </article>;
 
     string StatusDotClass(string status) => status.ToLowerInvariant() switch
     {
