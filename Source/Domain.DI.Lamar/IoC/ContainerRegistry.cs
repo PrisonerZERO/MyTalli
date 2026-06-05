@@ -94,6 +94,7 @@ public class ContainerRegistry : ServiceRegistry
 		this.AddScoped<MarkExpirationEmailSentCommand>();
 		this.AddScoped<RefreshShopTokensCommand>();
 		this.AddScoped<RenameManualShopCommand>();
+		this.AddScoped<SwapShopAccountCommand>();
 		this.AddScoped<UpdateLocalSubscriptionCommand>();
 		this.AddScoped<UpdateShopSyncStateCommand>();
 		this.AddScoped<UpsertEtsyExpenseCommand>();

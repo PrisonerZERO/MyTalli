@@ -169,13 +169,13 @@ else
                                     <div class="plat-shop-actions">
                                         @if (shop.IsOAuthPlatform && shop.IsEnabled && (shop.Health == ShopHealth.Failing || shop.Health == ShopHealth.Stale))
                                         {
-                                            <button class="plat-btn-reconnect" aria-label="Reconnect @shop.ShopName" @onclick="() => StartReconnect(shop.Platform, shop.ShopConnectionId)">
+                                            <button class="plat-btn-reconnect" aria-label="Reconnect @shop.ShopName" @onclick="() => StartReconnect(shop.Platform, shop.ShopConnectionId, shop.ShopName)">
                                                 Reconnect
                                             </button>
                                         }
                                         else if (shop.IsOAuthPlatform && shop.IsEnabled)
                                         {
-                                            <button class="plat-btn-outline-soft" aria-label="Reconnect @shop.ShopName (refresh tokens)" title="Refresh stored authorization" @onclick="() => StartReconnect(shop.Platform, shop.ShopConnectionId)">
+                                            <button class="plat-btn-outline-soft" aria-label="Reconnect @shop.ShopName (refresh or switch account)" title="Refresh authorization, or switch to a different account" @onclick="() => StartReconnect(shop.Platform, shop.ShopConnectionId, shop.ShopName)">
                                                 Reconnect
                                             </button>
                                         }
@@ -290,6 +290,16 @@ else
     </svg>
     <h2>Connect @ConnectingPlatform?</h2>
     <p>Once connected, <strong>@ConnectingPlatform</strong> can't be disconnected — it will permanently occupy a plan slot. You can pause syncing anytime from this page.</p>
+</ConfirmDialog>
+
+<!-- Reconnect / swap-account confirmation -->
+<ConfirmDialog Visible="!string.IsNullOrEmpty(ReconnectingPlatform)" ConfirmStyle="danger" OnConfirm="ConfirmReconnect" OnCancel="CancelReconnect">
+    <svg aria-hidden="true" fill="none" height="40" stroke="#e74c3c" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="40">
+        <path d="M23 4v6h-6" />
+        <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+    </svg>
+    <h2>Reconnect @ReconnectingShopName?</h2>
+    <p>Sign in with the <strong>same</strong> @ReconnectingPlatform account to refresh your authorization. Sign in with a <strong>different</strong> account and this shop's revenue, expense, and payout data will be <strong>permanently replaced</strong> with the new account's data. This can't be undone.</p>
 </ConfirmDialog>
 
 <!-- Add another Etsy shop (new login) confirmation -->
