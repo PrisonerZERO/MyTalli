@@ -104,7 +104,7 @@
       <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">2</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">2</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">32</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">33</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -255,9 +255,16 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">32</span>
+        <span class="lane-count">33</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span><span class="tag billing">Billing</span></div>
+          <h4>v1.0.0.21 — Friendly Stripe OAuth cancel/error messages</h4>
+          <p>Found live: clicking Stripe's <strong>"Return to MyTalli"</strong> (cancel) on the OAuth consent screen redirects to <code>/platforms?error=stripe_denied</code>, but <code>PlatformsViewModel</code> only handled <code>stripe_expired</code> / <code>stripe_exchange</code> — so <code>stripe_denied</code> (and <code>stripe_invalid</code> / <code>stripe_state</code>) fell through to the generic <em>"Something went wrong connecting that platform. Please try again."</em> A user who deliberately cancelled was wrongly told something failed (nothing did — the existing connection stayed intact). Fix: added the three Stripe cases mirroring the Etsy/Gumroad copy (<em>"You cancelled the connection to Stripe. No data was saved."</em> etc.). ViewModel-only, no migration, 3 lines. Surfaced while verifying the v1.0.0.20 deploy in production. Build clean, 471/471 tests pass. Not yet deployed.</p>
+          <span class="done-date">Jun 5 2026 (local)</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag nav">Nav</span></div>
