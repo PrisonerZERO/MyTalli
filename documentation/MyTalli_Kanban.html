@@ -101,7 +101,7 @@
       <p><strong>Stripe Connect blocker is RESOLVED</strong> (v1.0.0.18 fixed the <code>GetAccountAsync(id: null)</code> SDK trap; all 3 platforms now connect Active + Healthy — see Done). Current thread is the platform-connection UX cluster: <strong>account-swap on Reconnect is built locally</strong> (replaces the rejected "disconnect mis-connected shop" idea — swap re-points the shop slot to a different account and hard-deletes the old account's data in place, so the plan slot never frees and there's no gaming vector; 471/471 tests pass, not yet deployed). Still In Progress: the connected-login-email subtitle and the pre-connect login-awareness modal (the prevention half of the same UX gap). Deferred ops cleanup: turn prod MM off, flip prod <code>StripeConnect__Scope</code> to <code>read_only</code>, delete dead <code>DataProtection__BlobStorage__*</code> env vars.</p>
     </div>
     <div class="intro-metrics">
-      <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
+      <span class="metric"><span class="metric-value">13</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">2</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">2</span><span class="metric-label">In<br>progress</span></span>
       <span class="metric"><span class="metric-value">32</span><span class="metric-label">Recently<br>done</span></span>
@@ -118,9 +118,17 @@
     <div class="lane backlog">
       <div class="lane-header">
         <h3>Backlog</h3>
-        <span class="lane-count">12</span>
+        <span class="lane-count">13</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag billing">Billing</span><span class="tag nav">Nav</span></div>
+          <h4>House Account — track MyTalli's own revenue in-app</h4>
+          <p><strong>Problem.</strong> MyTalli's own income (Pro subscriptions, modules) settles in the <strong>platform</strong> Stripe account — and Stripe Connect refuses to let MyTalli connect that account ("an account cannot connect to itself"). So the normal connected-shop data flow structurally <strong>cannot read MyTalli LLC's own revenue</strong>: the one account the founder most wants to dogfood is unreadable via OAuth Connect. (Confirmed live 2026-06-05: the $12 Pro charge sits in the platform account <code>acct_1TDRnpRCvAIAzwLa</code>; the connected "MyTalli Personal OAuth" account is a different, empty account, so the Stripe spoke correctly shows $0.)</p>
+          <p><strong>Idea — a "House Account."</strong> A special internal shop that reads the platform account <em>directly via the existing <code>Stripe.SecretKey</code></em> (the same key already used for billing), NOT via per-shop OAuth. A dedicated <code>HouseStripeSyncService</code> (implements <code>IPlatformSyncService</code>) pulls <code>/v1/charges</code> (+ expanded <code>balance_transaction</code> for fee/net) and <code>/v1/payouts</code> from MyTalli's own account and dedups into <code>app.Revenue</code> / <code>app.Payout</code> stamped to a synthetic "House" <code>ShopConnection</code> (same pattern as Manual — no schema branching; the per-shop FK carries it). Surface it on its own admin-only dashboard (or a "House" spoke).</p>
+          <p><strong>Considerations.</strong> (1) <strong>Admin/owner-only</strong> — this is MyTalli's books, gate behind the Admin role. (2) <strong>Different auth path</strong> — the sync reads with the platform secret key, not a <code>ShopConnection.AccessToken</code>, so it's a distinct service/branch (the shop row's token field stays empty, like Manual). (3) Revenue = subscription payments minus Stripe fees; could later split MRR vs one-offs. (4) <strong>Interim today:</strong> Manual Entry already lets you log house income by hand — House Account just automates it. (5) <strong>Out of scope (first pass):</strong> refunds/dispute reconciliation, multi-currency, tax categorization. <strong>Why it matters:</strong> lets the founder watch MyTalli's own MRR/revenue alongside everything else, and dogfood the product with real numbers.</p>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag docs">Docs</span></div>
