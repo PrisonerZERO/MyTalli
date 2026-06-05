@@ -305,6 +305,7 @@ public class PlatformsViewModel : ComponentBase
 				IsAvailable = true,
 				Name = "Gumroad",
 				Subtitle = "Digital products",
+				SupportsMultipleShops = false,
 			},
 			new PlatformItem
 			{

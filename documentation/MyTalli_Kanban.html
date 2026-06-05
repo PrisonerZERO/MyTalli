@@ -104,7 +104,7 @@
       <span class="metric"><span class="metric-value">12</span><span class="metric-label">In<br>backlog</span></span>
       <span class="metric"><span class="metric-value">2</span><span class="metric-label">Next<br>up</span></span>
       <span class="metric"><span class="metric-value">2</span><span class="metric-label">In<br>progress</span></span>
-      <span class="metric"><span class="metric-value">31</span><span class="metric-label">Recently<br>done</span></span>
+      <span class="metric"><span class="metric-value">32</span><span class="metric-label">Recently<br>done</span></span>
     </div>
   </div>
 
@@ -247,9 +247,16 @@
     <div class="lane done">
       <div class="lane-header">
         <h3>Done</h3>
-        <span class="lane-count">31</span>
+        <span class="lane-count">32</span>
       </div>
       <div class="lane-body">
+
+        <div class="card">
+          <div class="card-tags"><span class="tag nav">Nav</span></div>
+          <h4>Platforms page polish — Available/Coming-Soon split + hide "Connect another shop" for Gumroad</h4>
+          <p>Two small UX corrections on <code>/platforms</code> (bundled with the version bump to <strong>v1.0.0.20</strong>). <strong>(1) Available vs Coming Soon.</strong> The page bucketed <em>all</em> not-connected platforms under "Available," so PayPal + Shopify (<code>IsAvailable=false</code>, "Coming Soon") were counted and labeled as available. Split into <code>AvailablePlatforms</code> (<code>!IsConnected &amp;&amp; IsAvailable</code>) and <code>ComingSoonPlatforms</code> (<code>!IsConnected &amp;&amp; !IsAvailable</code>), each with its own section + count; the hero "Available" stat is now accurate (reads 0 when all connectable platforms are already connected). Row markup extracted into a shared <code>RenderPlatformRow</code> fragment so the two sections don't duplicate it. <strong>(2) Hide "Connect another shop" for Gumroad.</strong> New <code>PlatformItem.SupportsMultipleShops</code> flag (default true, false for Gumroad) gates the whole button block. Gumroad has no "shop" concept (the account <em>is</em> the seller), multiple Gumroad accounts is rare, and its OAuth shows no account switcher — so the button overpromised and usually just re-refreshed the same account. Only Etsy is genuinely multi-shop; Stripe/PayPal/Shopify stay <code>true</code> for now. UI-only gate (endpoint not hard-blocked). Reverses the old CLAUDE.md "every platform supports multiple shops" stance (doc updated). Build clean, 471/471 tests pass. Not yet deployed.</p>
+          <span class="done-date">Jun 5 2026 (local)</span>
+        </div>
 
         <div class="card">
           <div class="card-tags"><span class="tag nav">Nav</span><span class="tag sync">Sync</span></div>
