@@ -55,9 +55,13 @@ public class PlatformsViewModel : ComponentBase
 
 	public string? AddingShopToPlatform { get; private set; }
 
-	public int AvailableCount => Platforms.Count(p => !p.IsConnected);
+	public int AvailableCount => Platforms.Count(p => !p.IsConnected && p.IsAvailable);
 
-	public List<PlatformItem> AvailablePlatforms => Platforms.Where(p => !p.IsConnected).ToList();
+	public List<PlatformItem> AvailablePlatforms => Platforms.Where(p => !p.IsConnected && p.IsAvailable).ToList();
+
+	public int ComingSoonCount => Platforms.Count(p => !p.IsConnected && !p.IsAvailable);
+
+	public List<PlatformItem> ComingSoonPlatforms => Platforms.Where(p => !p.IsConnected && !p.IsAvailable).ToList();
 
 	public int ConnectedCount => Platforms.Count(p => p.IsConnected);
 
